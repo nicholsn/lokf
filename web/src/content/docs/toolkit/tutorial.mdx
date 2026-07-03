@@ -7,15 +7,15 @@ sidebar:
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-The [reference bundle](/lokf/examples/) shows the destination; this tutorial
+The [reference bundle](/examples/) shows the destination; this tutorial
 walks the road. Starting from an empty directory you will author a
-three-concept bundle, validate it, let the [proposer](/lokf/toolkit/proposer/) upgrade
+three-concept bundle, validate it, let the [proposer](/toolkit/proposer/) upgrade
 your prose links into typed relations, and end with an RDF graph you can
 query and visualize.
 
 Every command below is copy-pasteable and assumes a clone of this repository
 (`git clone https://github.com/nicholsn/lokf.git && cd lokf && uv sync` — see
-[Getting started](/lokf/getting-started/)), run from the repository root so
+[Getting started](/getting-started/)), run from the repository root so
 `lokf.yaml` is in reach of the validator.
 
 ## 1. Create the bundle root
@@ -161,7 +161,7 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 </TabItem>
 </Tabs>
 
-See [Validation](/lokf/guide/validation/) for the JSON Schema / SHACL split.
+See [Validation](/guide/validation/) for the JSON Schema / SHACL split.
 
 ## 4. Propose typed relations
 
@@ -221,13 +221,13 @@ round-trip YAML editor, so your comments, ordering, and formatting survive.
 ```
 
 The prose is untouched — body links stay for humans, the frontmatter now
-carries the machine-readable layer. [How the heuristics work](/lokf/toolkit/proposer/)
+carries the machine-readable layer. [How the heuristics work](/toolkit/proposer/)
 covers cue phrases, domains, confidence, and the limits.
 
 ## 5. Project to RDF
 
 Load the bundle and serialize the graph — same two calls as the
-[five-minute tour](/lokf/toolkit/#a-five-minute-tour):
+[five-minute tour](/toolkit/#a-five-minute-tour):
 
 ```bash
 uv run python - <<'EOF'
@@ -261,11 +261,11 @@ Three markdown files, 23 triples, real edges (abridged):
 
 From here it's standard RDF tooling: SPARQL over `bundle.graph()`, SHACL with
 the generated shapes, OWL reasoning — see
-[Markdown to RDF](/lokf/guide/markdown-to-rdf/).
+[Markdown to RDF](/guide/markdown-to-rdf/).
 
 ## 6. Visualize it
 
-The [Knowledge graph](/lokf/graph/) page on this site is the pattern to copy:
+The [Knowledge graph](/graph/) page on this site is the pattern to copy:
 `lokf.export.to_cytoscape()` turns a bundle into Cytoscape.js elements whose
 edges are the RDF predicates from your typed relations (CURIE-labeled —
 `prov:wasDerivedFrom`, `lokf:measures`, …); plain body hyperlinks are
@@ -281,10 +281,10 @@ json.dump(to_cytoscape(bundle), open("graph.json", "w"), indent=2)
 EOF
 ```
 
-Or skip the file entirely: [`lokf serve mykb/`](/lokf/toolkit/serve/) publishes
+Or skip the file entirely: [`lokf serve mykb/`](/toolkit/serve/) publishes
 a live graph explorer (and a SPARQL endpoint) for your bundle with no build
 step. This documentation site uses the same projection — the
-[`lokf export`](/lokf/reference/api/) command emits `graph.json` and the
+[`lokf export`](/reference/api/) command emits `graph.json` and the
 schema.org `Dataset` JSON-LD (from `lokf.export.dataset_search_jsonld()`) that
 its knowledge-graph page and `<head>` consume, so your datasets are
 discoverable by search engines.

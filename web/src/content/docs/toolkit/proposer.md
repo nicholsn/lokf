@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-LOKF keeps [two layers in one file](/lokf/guide/relationships/): human-facing
+LOKF keeps [two layers in one file](/guide/relationships/): human-facing
 markdown links in the body, and typed frontmatter fields that carry the
 *kind* of link. In practice the prose layer always runs ahead — you write
 `derived from [Orders](/datasets/orders.md)` long before you remember to add
@@ -37,10 +37,10 @@ applied = apply(proposals, min_confidence=0.5)   # round-trips the files
 
 Each `Proposal` carries the **source** concept, the prose **link** (text,
 target, and the sentence it sits in), the suggested **relation** (a
-`Relation` from the [vocabulary](/lokf/reference/api/)), a **confidence**
+`Relation` from the [vocabulary](/reference/api/)), a **confidence**
 score, and a **rationale** — the evidence, so you can judge the suggestion
 without opening the file. See the proposer in action in the
-[tutorial](/lokf/toolkit/tutorial/#4-propose-typed-relations).
+[tutorial](/toolkit/tutorial/#4-propose-typed-relations).
 
 ## How the heuristics work
 
@@ -61,7 +61,7 @@ matched against a priority-ordered table of cue patterns: wording like
 (`dcterms:requires`), *measures / counts* at `measures`, *part of / within*
 at `isPartOf`, *same as / alias* at `sameAs`, *attributed to / authored by*
 at `wasAttributedTo`, *joins with / joined on* at `joinsWith`, and so on
-across the [relation vocabulary](/lokf/guide/relationships/). The first row
+across the [relation vocabulary](/guide/relationships/). The first row
 that matches
 (and whose relation the source's type may carry) wins. A link whose sentence
 matches no cue at all falls back to a low-confidence `relatedTo` — the
@@ -119,7 +119,7 @@ untouched. Where a proposal lands depends on the relation:
   target's IRI appended to the list.
 - **Reified `relations:` entry** — predicates from the `RelationType`
   vocabulary that have no dedicated field (`joinsWith`, `wasAttributedTo`)
-  are written as [reified relations](/lokf/guide/relationships/#custom-predicates-relations):
+  are written as [reified relations](/guide/relationships/#custom-predicates-relations):
 
   ```yaml
   relations:
@@ -130,10 +130,10 @@ untouched. Where a proposal lands depends on the relation:
 The two forms do **not** project to identical RDF. A named slot becomes a
 direct triple with its bound predicate
 (`<metric> prov:wasDerivedFrom <dataset>`); a `relations:` entry projects as
-a [reified statement](/lokf/guide/relationships/#custom-predicates-relations)
+a [reified statement](/guide/relationships/#custom-predicates-relations)
 — an `rdf:Statement` node reached via `lokf:relations` that carries the
 predicate and target — not a direct triple. The
-[knowledge-graph page](/lokf/graph/) flattens reified entries back into
+[knowledge-graph page](/graph/) flattens reified entries back into
 labeled edges for display, so both forms look the same in the picture, but
 SPARQL over `bundle.graph()` sees the difference.
 

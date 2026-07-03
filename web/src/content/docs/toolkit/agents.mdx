@@ -7,7 +7,7 @@ sidebar:
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Beyond the [MCP server](/lokf/toolkit/mcp/), LOKF bundles a set of **agent skills** —
+Beyond the [MCP server](/toolkit/mcp/), LOKF bundles a set of **agent skills** —
 self-contained instructions that teach a coding agent (Claude Code and
 compatible harnesses) how to work with LOKF bundles. They ship inside the
 `lokf` package, so `uv pip install lokf` puts them one command away.
@@ -72,5 +72,5 @@ That gives you:
 The core install is lean — `typer`, `rdflib`, `pyoxigraph`, and `mcp`. Only
 regenerating the LinkML-derived artifacts needs the heavier `linkml`
 dependency, which lives behind the `lokf[build]` extra (`uv pip install
-'lokf[build]'`). See [Getting started](/lokf/getting-started/) for the
+'lokf[build]'`). See [Getting started](/getting-started/) for the
 from-source setup.

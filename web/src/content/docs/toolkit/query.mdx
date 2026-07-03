@@ -8,7 +8,7 @@ sidebar:
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
 `lokf query` loads a bundle into an in-memory
-[`GraphStore`](/lokf/reference/api/) (backed by pyoxigraph) and runs SPARQL over
+[`GraphStore`](/reference/api/) (backed by pyoxigraph) and runs SPARQL over
 it. Nothing is written; the store lives only for the length of the command.
 
 ```bash
@@ -93,7 +93,7 @@ just query examples/acme-knowledge 'SELECT ?s WHERE { ?s a lokf:Metric }'
 
 ## From Python
 
-`lokf query` is a wrapper around [`GraphStore`](/lokf/reference/api/). The store
+`lokf query` is a wrapper around [`GraphStore`](/reference/api/). The store
 gives you the same queries, plus `rdflib_graph()`, `serialize_results()`, and
 `dump()`:
 
@@ -111,4 +111,4 @@ store.construct("CONSTRUCT { ?s ?p ?o } WHERE { ?s a lokf:Metric ; ?p ?o }")
 ```
 
 The prefixes are preset on the store too — `store.prefixes` is the dict it
-prepends. To publish the same store over HTTP, see [Serve](/lokf/toolkit/serve/).
+prepends. To publish the same store over HTTP, see [Serve](/toolkit/serve/).
