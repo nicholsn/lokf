@@ -33,6 +33,8 @@ prefixes:
   owl: http://www.w3.org/2002/07/owl#
   xsd: http://www.w3.org/2001/XMLSchema#
   pav: http://purl.org/pav/
+  org: http://www.w3.org/ns/org#
+  vivo: http://vivoweb.org/ontology/core#
 
 default_prefix: lokf
 default_range: string
@@ -209,6 +211,25 @@ classes:
     close_mappings:
       - schema:DigitalDocument
 
+  Role:
+    is_a: Concept
+    description: >-
+      A role an agent holds within an organization over a period of time — a
+      job, appointment, or position. Reifies the agent–organization link so it
+      can carry a title (roleName) and a start/end interval, following the
+      schema.org Role and W3C ORG Membership patterns.
+    class_uri: schema:OrganizationRole
+    close_mappings:
+      - schema:Role
+      - org:Role
+      - vivo:Position
+    slots:
+      - roleName
+      - startDate
+      - endDate
+      - memberOf
+      - holder
+
   # --- Value / supporting classes ------------------------------------------
 
   Agent:
@@ -226,7 +247,12 @@ classes:
 
   Person:
     is_a: Agent
-    description: An individual person.
+    mixins:
+      - Concept
+    description: >-
+      An individual person. Usable both as an inline Agent value (author,
+      publisher) and as a standalone Concept document with a body and typed
+      relations.
     class_uri: schema:Person
     exact_mappings:
       - foaf:Person
@@ -234,7 +260,12 @@ classes:
 
   Organization:
     is_a: Agent
-    description: An organization, team, or group.
+    mixins:
+      - Concept
+    description: >-
+      An organization, team, or group. Usable both as an inline Agent value
+      (publisher) and as a standalone Concept document with a body and typed
+      relations.
     class_uri: schema:Organization
     exact_mappings:
       - foaf:Organization
@@ -692,6 +723,47 @@ slots:
     in_subset:
       - lokf_semantic
 
+  # --- Role fields (schema.org OrganizationRole + W3C ORG) ------------------
+  roleName:
+    description: The name/title of the role held (e.g. a job title).
+    slot_uri: schema:roleName
+    in_subset:
+      - lokf_semantic
+
+  startDate:
+    description: The date the role began (ISO 8601 date or year).
+    slot_uri: schema:startDate
+    close_mappings:
+      - org:memberDuring
+    in_subset:
+      - lokf_semantic
+
+  endDate:
+    description: The date the role ended; omit for a role still held.
+    slot_uri: schema:endDate
+    in_subset:
+      - lokf_semantic
+
+  memberOf:
+    description: The organization within which the role is held.
+    range: Concept
+    multivalued: true
+    slot_uri: schema:memberOf
+    close_mappings:
+      - org:organization
+    in_subset:
+      - lokf_semantic
+
+  holder:
+    description: The agent (typically a Person) who holds the role.
+    range: Concept
+    multivalued: true
+    slot_uri: org:member
+    close_mappings:
+      - schema:member
+    in_subset:
+      - lokf_semantic
+
   # --- Citation fields ------------------------------------------------------
   url:
     description: A URL.
@@ -781,6 +853,12 @@ enums:
       source:
         description: The concept is sourced from the target.
         meaning: dcterms:source
+      memberOf:
+        description: The concept (a role) is held within the target organization.
+        meaning: schema:memberOf
+      holder:
+        description: The target agent holds this concept (a role).
+        meaning: org:member
 
   FieldType:
     description: >-

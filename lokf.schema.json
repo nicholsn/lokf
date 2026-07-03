@@ -1152,6 +1152,15 @@
                                 "$ref": "#/$defs/Document"
                             },
                             {
+                                "$ref": "#/$defs/Role"
+                            },
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            },
+                            {
                                 "$ref": "#/$defs/Table"
                             }
                         ]
@@ -1476,8 +1485,97 @@
         },
         "Organization": {
             "additionalProperties": false,
-            "description": "An organization, team, or group.",
+            "description": "An organization, team, or group. Usable both as an inline Agent value (publisher) and as a standalone Concept document with a body and typed relations.",
             "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "email": {
                     "description": "Contact email address.",
                     "type": [
@@ -1485,12 +1583,121 @@
                         "null"
                     ]
                 },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "id": {
                     "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
                     "type": "string"
                 },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "name": {
                     "description": "A name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
                     "type": [
                         "string",
                         "null"
@@ -1502,19 +1709,115 @@
                         "Organization"
                     ],
                     "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 }
             },
             "required": [
-                "type",
-                "id"
+                "id",
+                "type"
             ],
             "title": "Organization",
             "type": "object"
         },
         "Person": {
             "additionalProperties": false,
-            "description": "An individual person.",
+            "description": "An individual person. Usable both as an inline Agent value (author, publisher) and as a standalone Concept document with a body and typed relations.",
             "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "email": {
                     "description": "Contact email address.",
                     "type": [
@@ -1522,12 +1825,121 @@
                         "null"
                     ]
                 },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "id": {
                     "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
                     "type": "string"
                 },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "name": {
                     "description": "A name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
                     "type": [
                         "string",
                         "null"
@@ -1539,11 +1951,18 @@
                         "Person"
                     ],
                     "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 }
             },
             "required": [
-                "type",
-                "id"
+                "id",
+                "type"
             ],
             "title": "Person",
             "type": "object"
@@ -2274,10 +2693,281 @@
                 "definedBy",
                 "measures",
                 "joinsWith",
-                "source"
+                "source",
+                "memberOf",
+                "holder"
             ],
             "title": "RelationType",
             "type": "string"
+        },
+        "Role": {
+            "additionalProperties": false,
+            "description": "A role an agent holds within an organization over a period of time \u2014 a job, appointment, or position. Reifies the agent\u2013organization link so it can carry a title (roleName) and a start/end interval, following the schema.org Role and W3C ORG Membership patterns.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "endDate": {
+                    "description": "The date the role ended; omit for a role still held.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "holder": {
+                    "description": "The agent (typically a Person) who holds the role.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "memberOf": {
+                    "description": "The organization within which the role is held.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "roleName": {
+                    "description": "The name/title of the role held (e.g. a job title).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "startDate": {
+                    "description": "The date the role began (ISO 8601 date or year).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Role"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Role",
+            "type": "object"
         },
         "Service": {
             "additionalProperties": false,
@@ -2818,6 +3508,15 @@
                     },
                     {
                         "$ref": "#/$defs/Document"
+                    },
+                    {
+                        "$ref": "#/$defs/Role"
+                    },
+                    {
+                        "$ref": "#/$defs/Person"
+                    },
+                    {
+                        "$ref": "#/$defs/Organization"
                     },
                     {
                         "$ref": "#/$defs/Table"

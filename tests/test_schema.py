@@ -15,10 +15,12 @@ def vocab():
 
 
 def test_relation_slots_discovered(vocab):
-    # The ten Concept-level typed-relation keys plus Metric's `measures`.
+    # The ten Concept-level typed-relation keys, Metric's `measures`, and
+    # Role's `memberOf` / `holder`.
     assert set(vocab.relation_slots) == {
         "isPartOf", "hasPart", "references", "dependsOn", "derivedFrom",
         "about", "sameAs", "relatedTo", "definedBy", "source", "measures",
+        "memberOf", "holder",
     }
     assert vocab.relation_slots["derivedFrom"].curie == "prov:wasDerivedFrom"
     assert vocab.relation_slots["dependsOn"].uri == "http://purl.org/dc/terms/requires"

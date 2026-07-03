@@ -1,6 +1,7 @@
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix lokf: <https://w3id.org/lokf/> .
+@prefix org: <http://www.w3.org/ns/org#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -14,128 +15,33 @@ schema1:Dataset a sh:NodeShape ;
     rdfs:comment "A collection of data, published or curated for access and reuse." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 15 ;
-            sh:path lokf:relations ],
-        [ sh:class dcat:Distribution ;
-            sh:description "Accessible forms of the dataset." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 0 ;
-            sh:path dcat:distribution ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 14 ;
-            sh:path schema1:citation ],
-        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 6 ;
-            sh:path schema1:url ],
-        [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 13 ;
-            sh:path schema1:text ],
-        [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path schema1:description ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 11 ;
-            sh:path schema1:license ],
-        [ sh:datatype xsd:string ;
+    sh:property [ sh:datatype xsd:string ;
             sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path lokf:type ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 4 ;
-            sh:path schema1:name ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 23 ;
-            sh:path dcterms:relation ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept that is a part of this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path schema1:hasPart ],
-        [ sh:class lokf:Concept ;
-            sh:description "The target concept that this concept is a part of." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 16 ;
-            sh:path dcterms:isPartOf ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path schema1:about ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource from which this concept is derived or sourced." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 25 ;
-            sh:path dcterms:source ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path dcterms:requires ],
-        [ sh:datatype xsd:string ;
-            sh:description "Short cross-cutting keywords for categorization." ;
-            sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path schema1:keywords ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:dateModified ],
-        [ sh:class schema1:PropertyValue ;
-            sh:description "The columns / properties that make up a dataset's schema." ;
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 1 ;
-            sh:path lokf:field ],
+            sh:order 15 ;
+            sh:path lokf:relations ],
         [ sh:class lokf:Concept ;
-            sh:description "A resource that formally defines this concept." ;
+            sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
-            sh:order 24 ;
-            sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 10 ;
-            sh:path schema1:version ],
-        [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path schema1:sameAs ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:order 20 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
-            sh:order 2 ;
-            sh:path schema1:identifier ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept or resource this concept refers to." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 18 ;
-            sh:path dcterms:references ],
+            sh:order 11 ;
+            sh:path schema1:license ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -143,336 +49,847 @@ schema1:Dataset a sh:NodeShape ;
             sh:order 9 ;
             sh:path schema1:dateCreated ],
         [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path prov:wasDerivedFrom ],
+            sh:order 16 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path schema1:identifier ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path schema1:hasPart ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 25 ;
+            sh:path dcterms:source ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path dcterms:relation ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path schema1:sameAs ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:keywords ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 18 ;
+            sh:path dcterms:references ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 6 ;
+            sh:path schema1:url ],
         [ sh:class prov:Agent ;
             sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 12 ;
-            sh:path schema1:author ] ;
+            sh:path schema1:author ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 14 ;
+            sh:path schema1:citation ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path schema1:version ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 24 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 13 ;
+            sh:path schema1:text ],
+        [ sh:class dcat:Distribution ;
+            sh:description "Accessible forms of the dataset." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 0 ;
+            sh:path dcat:distribution ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path dcterms:requires ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path schema1:name ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:dateModified ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:description ],
+        [ sh:class schema1:PropertyValue ;
+            sh:description "The columns / properties that make up a dataset's schema." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path lokf:field ] ;
     sh:targetClass schema1:Dataset .
 
 schema1:DefinedTerm a sh:NodeShape ;
     rdfs:comment "A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+    sh:property [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 13 ;
-            sh:path schema1:text ],
-        [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path schema1:sameAs ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime the concept was created." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 9 ;
-            sh:path schema1:dateCreated ],
+            sh:order 11 ;
+            sh:path schema1:license ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 15 ;
+            sh:path lokf:relations ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
             sh:path dcterms:references ],
-        [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 10 ;
-            sh:path schema1:version ],
         [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
+            sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path dcterms:requires ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept that is a part of this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path schema1:hasPart ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 11 ;
-            sh:path schema1:license ],
+            sh:order 16 ;
+            sh:path dcterms:isPartOf ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path schema1:about ],
-        [ sh:datatype xsd:string ;
-            sh:description "The formal definition of a term." ;
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 12 ;
+            sh:path schema1:author ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 0 ;
-            sh:path skos:definition ],
-        [ sh:datatype xsd:string ;
-            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path lokf:type ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:dateModified ],
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path schema1:identifier ],
         [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 6 ;
             sh:path schema1:url ],
-        [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path schema1:description ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 4 ;
-            sh:path schema1:name ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path dcterms:relation ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 14 ;
-            sh:path schema1:citation ],
         [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:string ;
-            sh:description "Short cross-cutting keywords for categorization." ;
-            sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path schema1:keywords ],
         [ sh:datatype xsd:string ;
             sh:description "A short form or acronym for a term." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path schema1:alternateName ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 2 ;
-            sh:path schema1:identifier ],
-        [ sh:class prov:Agent ;
-            sh:description "The agent(s) responsible for authoring the concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 12 ;
-            sh:path schema1:author ],
         [ sh:class lokf:Concept ;
-            sh:description "The target concept that this concept is a part of." ;
+            sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
-            sh:order 16 ;
-            sh:path dcterms:isPartOf ],
+            sh:order 19 ;
+            sh:path dcterms:requires ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path schema1:sameAs ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 13 ;
+            sh:path schema1:text ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path dcterms:source ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path schema1:dateCreated ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:dateModified ],
+        [ sh:datatype xsd:string ;
+            sh:description "The formal definition of a term." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path skos:definition ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 15 ;
-            sh:path lokf:relations ],
+            sh:order 14 ;
+            sh:path schema1:citation ],
+        [ sh:datatype xsd:string ;
+            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path lokf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path schema1:version ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
-            sh:path prov:wasDerivedFrom ] ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:keywords ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path schema1:name ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path schema1:hasPart ] ;
     sh:targetClass schema1:DefinedTerm .
 
 schema1:Organization a sh:NodeShape ;
-    rdfs:comment "An organization, team, or group." ;
+    rdfs:comment "An organization, team, or group. Usable both as an inline Agent value (publisher) and as a standalone Concept document with a body and typed relations." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:property [ sh:datatype xsd:string ;
-            sh:description "A name." ;
+            sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path schema1:name ],
-        [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path schema1:email ],
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path schema1:url ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 15 ;
+            sh:path schema1:hasPart ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 0 ;
+            sh:order 1 ;
             sh:path lokf:type ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path schema1:about ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path schema1:text ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dcterms:requires ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
-            sh:order 1 ;
-            sh:path schema1:identifier ] ;
+            sh:order 0 ;
+            sh:path schema1:identifier ],
+        [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 14 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:version ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path schema1:description ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 18 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path schema1:license ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path dcterms:relation ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 10 ;
+            sh:path schema1:author ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 25 ;
+            sh:path schema1:email ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:dateCreated ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:keywords ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 13 ;
+            sh:path lokf:relations ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path dcterms:source ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 12 ;
+            sh:path schema1:citation ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path schema1:sameAs ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path schema1:dateModified ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 16 ;
+            sh:path dcterms:references ],
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 24 ;
+            sh:path schema1:name ] ;
     sh:targetClass schema1:Organization .
 
-schema1:Person a sh:NodeShape ;
-    rdfs:comment "An individual person." ;
+schema1:OrganizationRole a sh:NodeShape ;
+    rdfs:comment "A role an agent holds within an organization over a period of time — a job, appointment, or position. Reifies the agent–organization link so it can carry a title (roleName) and a start/end interval, following the schema.org Role and W3C ORG Membership patterns." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "A name." ;
+    sh:property [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path schema1:name ],
-        [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
+            sh:nodeKind sh:IRI ;
+            sh:order 14 ;
+            sh:path schema1:license ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path schema1:hasPart ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 17 ;
+            sh:path schema1:citation ],
+        [ sh:class lokf:Concept ;
+            sh:description "The organization within which the role is held." ;
+            sh:nodeKind sh:IRI ;
             sh:order 3 ;
-            sh:path schema1:email ],
+            sh:path schema1:memberOf ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path schema1:keywords ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path schema1:identifier ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 15 ;
+            sh:path schema1:author ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:name ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 0 ;
+            sh:order 6 ;
             sh:path lokf:type ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path schema1:dateModified ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 27 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 13 ;
+            sh:path schema1:version ],
+        [ sh:datatype xsd:string ;
+            sh:description "The name/title of the role held (e.g. a job title)." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path schema1:roleName ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:description ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 28 ;
+            sh:path dcterms:source ],
+        [ sh:datatype xsd:string ;
+            sh:description "The date the role ended; omit for a role still held." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path schema1:endDate ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 16 ;
+            sh:path schema1:text ],
+        [ sh:datatype xsd:string ;
+            sh:description "The date the role began (ISO 8601 date or year)." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path schema1:startDate ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 18 ;
+            sh:path lokf:relations ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 25 ;
+            sh:path schema1:sameAs ],
+        [ sh:class lokf:Concept ;
+            sh:description "The agent (typically a Person) who holds the role." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path org:member ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path dcterms:requires ],
+        [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path schema1:url ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 26 ;
+            sh:path dcterms:relation ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 24 ;
+            sh:path schema1:about ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path dcterms:references ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 12 ;
+            sh:path schema1:dateCreated ] ;
+    sh:targetClass schema1:OrganizationRole .
+
+schema1:Person a sh:NodeShape ;
+    rdfs:comment "An individual person. Usable both as an inline Agent value (author, publisher) and as a standalone Concept document with a body and typed relations." ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path dcterms:source ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:keywords ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path schema1:url ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path dcterms:relation ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 15 ;
+            sh:path schema1:hasPart ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path schema1:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:version ],
+        [ sh:datatype xsd:string ;
+            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path lokf:type ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path schema1:about ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path schema1:license ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 10 ;
+            sh:path schema1:author ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 25 ;
+            sh:path schema1:email ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:dateCreated ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 12 ;
+            sh:path schema1:citation ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path schema1:sameAs ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path schema1:text ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
-            sh:order 1 ;
-            sh:path schema1:identifier ] ;
+            sh:order 0 ;
+            sh:path schema1:identifier ],
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 24 ;
+            sh:path schema1:name ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 16 ;
+            sh:path dcterms:references ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path schema1:dateModified ],
+        [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 14 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 13 ;
+            sh:path lokf:relations ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dcterms:requires ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path schema1:name ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 18 ;
+            sh:path prov:wasDerivedFrom ] ;
     sh:targetClass schema1:Person .
 
 schema1:WebAPI a sh:NodeShape ;
     rdfs:comment "A callable service or API endpoint." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 6 ;
-            sh:path schema1:description ],
-        [ sh:class lokf:Concept ;
-            sh:description "The subject matter this concept is about." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path schema1:about ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 12 ;
-            sh:path schema1:license ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+    sh:property [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 3 ;
             sh:path schema1:identifier ],
-        [ sh:datatype xsd:string ;
-            sh:description "The HTTP method used to invoke the service, if applicable." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 1 ;
-            sh:path schema1:httpMethod ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 16 ;
-            sh:path lokf:relations ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource from which this concept is derived or sourced." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 26 ;
-            sh:path dcterms:source ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept that is a part of this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 18 ;
-            sh:path schema1:hasPart ],
         [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 10 ;
-            sh:path schema1:dateCreated ],
-        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 7 ;
-            sh:path schema1:url ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path schema1:name ],
-        [ sh:description "The base URL or invocation endpoint of a service." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 0 ;
-            sh:path schema1:url ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 15 ;
-            sh:path schema1:citation ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource that formally defines this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 25 ;
-            sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:string ;
-            sh:description "Short cross-cutting keywords for categorization." ;
-            sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:keywords ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 24 ;
-            sh:path dcterms:relation ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path dcterms:requires ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept or resource this concept refers to." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path dcterms:references ],
-        [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 23 ;
-            sh:path schema1:sameAs ],
+            sh:order 9 ;
+            sh:path schema1:dateModified ],
         [ sh:description "A link to the service's documentation." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 2 ;
             sh:path schema1:documentation ],
         [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 26 ;
+            sh:path dcterms:source ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path schema1:about ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 7 ;
+            sh:path schema1:url ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path dcterms:references ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 24 ;
+            sh:path dcterms:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "The HTTP method used to invoke the service, if applicable." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path schema1:httpMethod ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path schema1:sameAs ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:keywords ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 14 ;
+            sh:path schema1:text ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path schema1:dateCreated ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 13 ;
+            sh:path schema1:author ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 16 ;
+            sh:path lokf:relations ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 15 ;
+            sh:path schema1:citation ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path schema1:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:name ],
+        [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:isPartOf ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 12 ;
+            sh:path schema1:license ],
+        [ sh:description "The base URL or invocation endpoint of a service." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path schema1:url ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path dcterms:requires ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 25 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 18 ;
+            sh:path schema1:hasPart ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
@@ -485,29 +902,7 @@ schema1:WebAPI a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
-            sh:path schema1:version ],
-        [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path prov:wasDerivedFrom ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 9 ;
-            sh:path schema1:dateModified ],
-        [ sh:class prov:Agent ;
-            sh:description "The agent(s) responsible for authoring the concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 13 ;
-            sh:path schema1:author ],
-        [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 14 ;
-            sh:path schema1:text ] ;
+            sh:path schema1:version ] ;
     sh:targetClass schema1:WebAPI .
 
 lokf:Document a sh:NodeShape ;
@@ -515,27 +910,58 @@ lokf:Document a sh:NodeShape ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:property [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 15 ;
+            sh:path schema1:hasPart ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path schema1:url ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path schema1:description ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 12 ;
+            sh:path schema1:citation ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:dateCreated ],
+        [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
             sh:path prov:wasDerivedFrom ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path dcterms:relation ],
         [ sh:datatype xsd:string ;
-            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
-            sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 1 ;
-            sh:path lokf:type ],
+            sh:order 11 ;
+            sh:path schema1:text ],
         [ sh:class lokf:Concept ;
-            sh:description "The subject matter this concept is about." ;
+            sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path schema1:about ],
+            sh:order 17 ;
+            sh:path dcterms:requires ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path schema1:identifier ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 10 ;
+            sh:path schema1:author ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
@@ -546,124 +972,83 @@ lokf:Document a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 5 ;
             sh:path schema1:keywords ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource that formally defines this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path schema1:description ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept that is a part of this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 15 ;
-            sh:path schema1:hasPart ],
-        [ sh:class lokf:Concept ;
-            sh:description "The target concept that this concept is a part of." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 14 ;
-            sh:path dcterms:isPartOf ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 12 ;
-            sh:path schema1:citation ],
-        [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path schema1:sameAs ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path schema1:name ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
-        [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:version ],
-        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 4 ;
-            sh:path schema1:url ],
         [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
+            sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path dcterms:requires ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 13 ;
-            sh:path lokf:relations ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
-            sh:maxCount 1 ;
+            sh:order 21 ;
+            sh:path dcterms:relation ],
+        [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
-            sh:order 0 ;
-            sh:path schema1:identifier ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:order 14 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:datatype xsd:string ;
+            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
+            sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path schema1:dateCreated ],
+            sh:order 1 ;
+            sh:path lokf:type ],
         [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 9 ;
             sh:path schema1:license ],
         [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 11 ;
-            sh:path schema1:text ],
+            sh:order 8 ;
+            sh:path schema1:version ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path schema1:name ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path schema1:sameAs ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:references ],
-        [ sh:class prov:Agent ;
-            sh:description "The agent(s) responsible for authoring the concept." ;
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
-            sh:order 10 ;
-            sh:path schema1:author ] ;
+            sh:order 19 ;
+            sh:path schema1:about ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 13 ;
+            sh:path lokf:relations ] ;
     sh:targetClass lokf:Document .
 
 lokf:KnowledgeBundle a sh:NodeShape ;
     rdfs:comment "A self-contained, hierarchical collection of concept documents — the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass)." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:description "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`." ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 2 ;
-            sh:path lokf:baseIri ],
-        [ sh:class prov:Agent ;
-            sh:description "The agent responsible for making the bundle available." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 7 ;
-            sh:path schema1:publisher ],
-        [ sh:description "The URL of the JSON-LD @context to attach to this bundle's concepts to interpret their frontmatter as Linked Data." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 3 ;
-            sh:path lokf:context ],
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:description ],
         [ sh:datatype xsd:string ;
             sh:description "The OKF version the bundle remains compatible with (e.g. \"0.1\")." ;
             sh:maxCount 1 ;
@@ -675,17 +1060,17 @@ lokf:KnowledgeBundle a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 6 ;
             sh:path schema1:license ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
+        [ sh:description "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 4 ;
-            sh:path schema1:name ],
-        [ sh:class lokf:Concept ;
-            sh:description "The concepts contained in a bundle." ;
             sh:nodeKind sh:IRI ;
-            sh:order 8 ;
-            sh:path dcat:dataset ],
+            sh:order 2 ;
+            sh:path lokf:baseIri ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent responsible for making the bundle available." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 7 ;
+            sh:path schema1:publisher ],
         [ sh:datatype xsd:string ;
             sh:description "The LOKF version the bundle targets (e.g. \"0.1\")." ;
             sh:maxCount 1 ;
@@ -693,141 +1078,38 @@ lokf:KnowledgeBundle a sh:NodeShape ;
             sh:order 0 ;
             sh:path lokf:lokfVersion ],
         [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
+            sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path schema1:description ] ;
+            sh:order 4 ;
+            sh:path schema1:name ],
+        [ sh:description "The URL of the JSON-LD @context to attach to this bundle's concepts to interpret their frontmatter as Linked Data." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path lokf:context ],
+        [ sh:class lokf:Concept ;
+            sh:description "The concepts contained in a bundle." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 8 ;
+            sh:path dcat:dataset ] ;
     sh:targetClass lokf:KnowledgeBundle .
 
 lokf:Metric a sh:NodeShape ;
     rdfs:comment "A precisely defined, measurable quantity — the canonical definition of a business or operational metric." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:class prov:Agent ;
-            sh:description "The agent(s) responsible for authoring the concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 13 ;
-            sh:path schema1:author ],
-        [ sh:class lokf:Concept ;
-            sh:description "The target concept that this concept is a part of." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path dcterms:isPartOf ],
-        [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 6 ;
-            sh:path schema1:description ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 9 ;
-            sh:path schema1:dateModified ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept or resource this concept refers to." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path dcterms:references ],
-        [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path prov:wasDerivedFrom ],
-        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 7 ;
-            sh:path schema1:url ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 15 ;
-            sh:path schema1:citation ],
-        [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 11 ;
-            sh:path schema1:version ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 3 ;
-            sh:path schema1:identifier ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path schema1:name ],
-        [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 23 ;
-            sh:path schema1:sameAs ],
-        [ sh:datatype xsd:string ;
-            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 4 ;
-            sh:path lokf:type ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource from which this concept is derived or sourced." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 26 ;
-            sh:path dcterms:source ],
-        [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 14 ;
-            sh:path schema1:text ],
-        [ sh:class lokf:Concept ;
-            sh:description "The subject matter this concept is about." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path schema1:about ],
-        [ sh:datatype xsd:dateTime ;
+    sh:property [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 10 ;
             sh:path schema1:dateCreated ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 12 ;
-            sh:path schema1:license ],
         [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path dcterms:requires ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 24 ;
-            sh:path dcterms:relation ],
-        [ sh:datatype xsd:string ;
-            sh:description "The unit of measurement (e.g. USD, seconds, count)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 0 ;
-            sh:path schema1:unitText ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 16 ;
-            sh:path lokf:relations ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept that is a part of this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 18 ;
-            sh:path schema1:hasPart ],
+            sh:order 23 ;
+            sh:path schema1:sameAs ],
         [ sh:datatype xsd:string ;
             sh:description "The calculation or definition expression for a metric." ;
             sh:maxCount 1 ;
@@ -835,20 +1117,133 @@ lokf:Metric a sh:NodeShape ;
             sh:order 1 ;
             sh:path lokf:formula ],
         [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 26 ;
+            sh:path dcterms:source ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path schema1:description ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path dcterms:references ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path schema1:about ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 7 ;
+            sh:path schema1:url ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 24 ;
+            sh:path dcterms:relation ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept that is a part of this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 18 ;
+            sh:path schema1:hasPart ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 15 ;
+            sh:path schema1:citation ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path schema1:dateModified ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path dcterms:requires ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path schema1:version ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path schema1:identifier ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "The unit of measurement (e.g. USD, seconds, count)." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path schema1:unitText ],
+        [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path rdfs:isDefinedBy ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 16 ;
+            sh:path lokf:relations ],
+        [ sh:class lokf:Concept ;
+            sh:description "What the metric measures (a concept IRI or description)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path lokf:measures ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:keywords ],
-        [ sh:class lokf:Concept ;
-            sh:description "What the metric measures (a concept IRI or description)." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path lokf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 14 ;
+            sh:path schema1:text ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
-            sh:order 2 ;
-            sh:path lokf:measures ] ;
+            sh:order 12 ;
+            sh:path schema1:license ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 13 ;
+            sh:path schema1:author ] ;
     sh:targetClass lokf:Metric .
 
 lokf:Playbook a sh:NodeShape ;
@@ -856,29 +1251,6 @@ lokf:Playbook a sh:NodeShape ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:property [ sh:class lokf:Concept ;
-            sh:description "A resource from which this concept is derived or sourced." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 23 ;
-            sh:path dcterms:source ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 0 ;
-            sh:path schema1:identifier ],
-        [ sh:datatype xsd:string ;
-            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 1 ;
-            sh:path lokf:type ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime the concept was created." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path schema1:dateCreated ],
-        [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
@@ -888,38 +1260,46 @@ lokf:Playbook a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 4 ;
             sh:path schema1:url ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path dcterms:requires ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept or resource this concept refers to." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 16 ;
-            sh:path dcterms:references ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 13 ;
-            sh:path lokf:relations ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path dcterms:relation ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 6 ;
-            sh:path schema1:dateModified ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path schema1:description ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:dateCreated ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path schema1:dateModified ],
+        [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 14 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path dcterms:source ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path dcterms:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path lokf:type ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
@@ -927,15 +1307,15 @@ lokf:Playbook a sh:NodeShape ;
             sh:order 2 ;
             sh:path schema1:name ],
         [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dcterms:requires ],
+        [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 9 ;
-            sh:path schema1:license ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
@@ -943,36 +1323,35 @@ lokf:Playbook a sh:NodeShape ;
             sh:order 11 ;
             sh:path schema1:text ],
         [ sh:class lokf:Concept ;
-            sh:description "The target concept that this concept is a part of." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 14 ;
-            sh:path dcterms:isPartOf ],
-        [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:sameAs ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 12 ;
-            sh:path schema1:citation ],
-        [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
-            sh:order 18 ;
-            sh:path prov:wasDerivedFrom ],
+            sh:order 0 ;
+            sh:path schema1:identifier ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
-        [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:version ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 16 ;
+            sh:path dcterms:references ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 12 ;
+            sh:path schema1:citation ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 13 ;
+            sh:path lokf:relations ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -982,7 +1361,23 @@ lokf:Playbook a sh:NodeShape ;
             sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 10 ;
-            sh:path schema1:author ] ;
+            sh:path schema1:author ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 18 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:version ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path schema1:license ] ;
     sh:targetClass lokf:Playbook .
 
 lokf:Policy a sh:NodeShape ;
@@ -990,53 +1385,83 @@ lokf:Policy a sh:NodeShape ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:property [ sh:class lokf:Concept ;
-            sh:description "A resource that formally defines this concept." ;
+            sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path rdfs:isDefinedBy ],
+            sh:order 18 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 10 ;
+            sh:path schema1:author ],
         [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path schema1:sameAs ],
+            sh:order 16 ;
+            sh:path dcterms:references ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 12 ;
+            sh:path schema1:citation ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path schema1:sameAs ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path schema1:identifier ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:dateCreated ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept or resource this concept refers to." ;
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
-            sh:order 16 ;
-            sh:path dcterms:references ],
+            sh:order 4 ;
+            sh:path schema1:url ],
         [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
+            sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:version ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 13 ;
-            sh:path lokf:relations ],
+            sh:order 2 ;
+            sh:path schema1:name ],
+        [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 14 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path dcterms:relation ],
         [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 11 ;
-            sh:path schema1:text ],
+            sh:order 3 ;
+            sh:path schema1:description ],
         [ sh:class lokf:Concept ;
-            sh:description "The subject matter this concept is about." ;
+            sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path schema1:about ],
+            sh:order 22 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path schema1:license ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
@@ -1044,32 +1469,101 @@ lokf:Policy a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path lokf:type ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path dcterms:source ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path schema1:about ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dcterms:requires ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path schema1:dateModified ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path schema1:keywords ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:version ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path schema1:text ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 13 ;
+            sh:path lokf:relations ] ;
+    sh:targetClass lokf:Policy .
+
+lokf:Reference a sh:NodeShape ;
+    rdfs:comment "A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked." ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path schema1:sameAs ],
         [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 9 ;
             sh:path schema1:license ],
         [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
+            sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path schema1:description ],
+            sh:order 2 ;
+            sh:path schema1:name ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
         [ sh:class lokf:Concept ;
-            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
-            sh:order 23 ;
-            sh:path dcterms:source ],
+            sh:order 21 ;
+            sh:path dcterms:relation ],
         [ sh:class schema1:CreativeWork ;
             sh:description "External sources supporting claims in the body." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 12 ;
             sh:path schema1:citation ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path schema1:about ],
+        [ sh:class lokf:Concept ;
+            sh:description "A concept or resource this concept refers to." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 16 ;
+            sh:path dcterms:references ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path schema1:url ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -1080,106 +1574,38 @@ lokf:Policy a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 14 ;
             sh:path dcterms:isPartOf ],
-        [ sh:class prov:Agent ;
-            sh:description "The agent(s) responsible for authoring the concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 10 ;
-            sh:path schema1:author ],
-        [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 18 ;
-            sh:path prov:wasDerivedFrom ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path schema1:name ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 6 ;
-            sh:path schema1:dateModified ],
-        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 4 ;
-            sh:path schema1:url ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path dcterms:requires ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path dcterms:relation ] ;
-    sh:targetClass lokf:Policy .
-
-lokf:Reference a sh:NodeShape ;
-    rdfs:comment "A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked." ;
-    sh:closed true ;
-    sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:version ],
-        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 4 ;
-            sh:path schema1:url ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource that formally defines this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path rdfs:isDefinedBy ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 9 ;
-            sh:path schema1:license ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept that is a part of this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 15 ;
-            sh:path schema1:hasPart ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path schema1:description ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
+        [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dcterms:requires ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 12 ;
-            sh:path schema1:citation ],
+            sh:order 13 ;
+            sh:path lokf:relations ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path schema1:text ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path rdfs:isDefinedBy ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path dcterms:source ],
-        [ sh:class prov:Agent ;
-            sh:description "The agent(s) responsible for authoring the concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 10 ;
-            sh:path schema1:author ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 0 ;
-            sh:path schema1:identifier ],
-        [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 18 ;
-            sh:path prov:wasDerivedFrom ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:maxCount 1 ;
@@ -1192,27 +1618,21 @@ lokf:Reference a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:dateCreated ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path dcterms:requires ],
-        [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 11 ;
-            sh:path schema1:text ],
+            sh:order 10 ;
+            sh:path schema1:author ],
         [ sh:class lokf:Concept ;
-            sh:description "The target concept that this concept is a part of." ;
+            sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
-            sh:order 14 ;
-            sh:path dcterms:isPartOf ],
+            sh:order 18 ;
+            sh:path prov:wasDerivedFrom ],
         [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path schema1:sameAs ],
+            sh:order 15 ;
+            sh:path schema1:hasPart ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
@@ -1220,37 +1640,12 @@ lokf:Reference a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path lokf:type ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path dcterms:relation ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept or resource this concept refers to." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 16 ;
-            sh:path dcterms:references ],
-        [ sh:class lokf:Concept ;
-            sh:description "The subject matter this concept is about." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path schema1:about ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 13 ;
-            sh:path lokf:relations ],
         [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
+            sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path schema1:name ],
-        [ sh:datatype xsd:string ;
-            sh:description "Short cross-cutting keywords for categorization." ;
-            sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path schema1:keywords ] ;
+            sh:order 8 ;
+            sh:path schema1:version ] ;
     sh:targetClass lokf:Reference .
 
 lokf:Table a sh:NodeShape ;
@@ -1258,56 +1653,97 @@ lokf:Table a sh:NodeShape ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:property [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path prov:wasDerivedFrom ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:order 19 ;
+            sh:path dcterms:requires ],
+        [ sh:datatype xsd:string ;
+            sh:description "Short cross-cutting keywords for categorization." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:keywords ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:dateModified ],
+            sh:order 5 ;
+            sh:path schema1:description ],
+        [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 24 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 13 ;
+            sh:path schema1:text ],
+        [ sh:class schema1:PropertyValue ;
+            sh:description "The columns / properties that make up a dataset's schema." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 1 ;
+            sh:path lokf:field ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path schema1:hasPart ],
-        [ sh:class lokf:Concept ;
-            sh:description "The target concept that this concept is a part of." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 16 ;
-            sh:path dcterms:isPartOf ],
-        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 6 ;
-            sh:path schema1:url ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 11 ;
-            sh:path schema1:license ],
         [ sh:class rdf:Statement ;
             sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 15 ;
             sh:path lokf:relations ],
-        [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
+        [ sh:class schema1:CreativeWork ;
+            sh:description "External sources supporting claims in the body." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 14 ;
+            sh:path schema1:citation ],
+        [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
+            sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path schema1:sameAs ],
+            sh:order 6 ;
+            sh:path schema1:url ],
         [ sh:class lokf:Concept ;
-            sh:description "The subject matter this concept is about." ;
+            sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path schema1:about ],
+            sh:order 25 ;
+            sh:path dcterms:source ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path prov:wasDerivedFrom ],
         [ sh:class dcat:Distribution ;
             sh:description "Accessible forms of the dataset." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 0 ;
             sh:path dcat:distribution ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 23 ;
+            sh:path dcterms:relation ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path schema1:identifier ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path schema1:about ],
+        [ sh:class lokf:Concept ;
+            sh:description "The target concept that this concept is a part of." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 16 ;
+            sh:path dcterms:isPartOf ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 11 ;
+            sh:path schema1:license ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
@@ -1320,81 +1756,40 @@ lokf:Table a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 9 ;
             sh:path schema1:dateCreated ],
+        [ sh:class prov:Agent ;
+            sh:description "The agent(s) responsible for authoring the concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 12 ;
+            sh:path schema1:author ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:dateModified ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
             sh:path dcterms:references ],
         [ sh:datatype xsd:string ;
-            sh:description "Short cross-cutting keywords for categorization." ;
-            sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path schema1:keywords ],
-        [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 13 ;
-            sh:path schema1:text ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 2 ;
-            sh:path schema1:identifier ],
-        [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 10 ;
             sh:path schema1:version ],
-        [ sh:class schema1:PropertyValue ;
-            sh:description "The columns / properties that make up a dataset's schema." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 1 ;
-            sh:path lokf:field ],
         [ sh:class lokf:Concept ;
-            sh:description "A resource from which this concept is derived or sourced." ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
-            sh:order 25 ;
-            sh:path dcterms:source ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path dcterms:requires ],
-        [ sh:class schema1:CreativeWork ;
-            sh:description "External sources supporting claims in the body." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 14 ;
-            sh:path schema1:citation ],
+            sh:order 22 ;
+            sh:path schema1:sameAs ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
-            sh:path lokf:type ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource that formally defines this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 24 ;
-            sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path schema1:description ],
-        [ sh:class prov:Agent ;
-            sh:description "The agent(s) responsible for authoring the concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 12 ;
-            sh:path schema1:author ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 23 ;
-            sh:path dcterms:relation ] ;
+            sh:path lokf:type ] ;
     sh:targetClass lokf:Table .
 
 schema1:PropertyValue a sh:NodeShape ;
@@ -1402,17 +1797,11 @@ schema1:PropertyValue a sh:NodeShape ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:property [ sh:datatype xsd:string ;
-            sh:description "The unit of measurement (e.g. USD, seconds, count)." ;
+            sh:description "Free-text or expression describing constraints on a field." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path schema1:unitText ],
-        [ sh:datatype xsd:string ;
-            sh:description "A name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 0 ;
-            sh:path schema1:name ],
+            sh:order 5 ;
+            sh:path lokf:constraints ],
         [ sh:description "The data type of a field." ;
             sh:in ( xsd:string xsd:integer xsd:decimal xsd:boolean xsd:date xsd:dateTime xsd:time xsd:anyURI rdf:JSON ) ;
             sh:maxCount 1 ;
@@ -1424,31 +1813,31 @@ schema1:PropertyValue a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path schema1:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "The unit of measurement (e.g. USD, seconds, count)." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path schema1:unitText ],
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path schema1:name ],
         [ sh:datatype xsd:boolean ;
             sh:description "Whether the field is (part of) the primary key." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 4 ;
-            sh:path lokf:isKey ],
-        [ sh:datatype xsd:string ;
-            sh:description "Free-text or expression describing constraints on a field." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 5 ;
-            sh:path lokf:constraints ] ;
+            sh:path lokf:isKey ] ;
     sh:targetClass schema1:PropertyValue .
 
 dcat:Distribution a sh:NodeShape ;
     rdfs:comment "A specific accessible form of a Dataset (a file, feed, or endpoint). Maps to dcat:Distribution." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 1 ;
-            sh:path schema1:description ],
-        [ sh:description "A URL that gives access to a distribution." ;
+    sh:property [ sh:description "A URL that gives access to a distribution." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 2 ;
@@ -1464,7 +1853,13 @@ dcat:Distribution a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
-            sh:path dcat:mediaType ] ;
+            sh:path dcat:mediaType ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path schema1:description ] ;
     sh:targetClass dcat:Distribution .
 
 schema1:CreativeWork a sh:NodeShape ;
@@ -1477,38 +1872,38 @@ schema1:CreativeWork a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path schema1:description ],
-        [ sh:description "A URL." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 1 ;
-            sh:path schema1:url ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
-            sh:path schema1:name ] ;
+            sh:path schema1:name ],
+        [ sh:description "A URL." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path schema1:url ] ;
     sh:targetClass schema1:CreativeWork .
 
 rdf:Statement a sh:NodeShape ;
     rdfs:comment "A typed, reified relationship from the containing concept to a target, used when a predicate is not covered by one of the named relation slots. Modeled as an rdf:Statement (subject = the containing concept)." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:class lokf:Concept ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "An optional human-readable label for the relationship." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path rdfs:label ],
+        [ sh:class lokf:Concept ;
             sh:description "The IRI (or Concept ID) of the relationship's object." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 1 ;
             sh:path rdf:object ],
-        [ sh:datatype xsd:string ;
-            sh:description "An optional human-readable label for the relationship." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path rdfs:label ],
         [ sh:description "The relationship type. SHOULD be drawn from the RelationType vocabulary." ;
-            sh:in ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source ) ;
+            sh:in ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source schema1:memberOf org:member ) ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:order 0 ;
@@ -1518,19 +1913,13 @@ rdf:Statement a sh:NodeShape ;
 prov:Agent a sh:NodeShape ;
     rdfs:comment "A person or organization responsible for a concept." ;
     sh:closed false ;
-    sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+    sh:ignoredProperties ( lokf:relations dcterms:source schema1:dateCreated schema1:description rdfs:isDefinedBy schema1:author schema1:dateModified schema1:url dcterms:requires schema1:about schema1:sameAs schema1:text schema1:citation prov:wasDerivedFrom dcterms:references schema1:license dcterms:isPartOf schema1:version schema1:keywords dcterms:relation schema1:hasPart rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "A name." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 1 ;
-            sh:path schema1:identifier ],
-        [ sh:datatype xsd:string ;
-            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 0 ;
-            sh:path lokf:type ],
+            sh:order 2 ;
+            sh:path schema1:name ],
         [ sh:datatype xsd:string ;
             sh:description "Contact email address." ;
             sh:maxCount 1 ;
@@ -1538,32 +1927,126 @@ prov:Agent a sh:NodeShape ;
             sh:order 3 ;
             sh:path schema1:email ],
         [ sh:datatype xsd:string ;
-            sh:description "A name." ;
+            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
             sh:maxCount 1 ;
+            sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path schema1:name ] ;
+            sh:order 0 ;
+            sh:path lokf:type ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path schema1:identifier ] ;
     sh:targetClass prov:Agent .
 
 lokf:Concept a sh:NodeShape ;
     rdfs:comment "A single unit of knowledge within a bundle, represented as one markdown document. The abstract base of every LOKF type. Its own IRI (`id`) is the RDF subject; the markdown body and typed relations become triples about that subject." ;
     sh:closed false ;
-    sh:ignoredProperties ( lokf:formula dcat:distribution schema1:alternateName schema1:documentation skos:definition schema1:unitText lokf:field lokf:measures schema1:httpMethod rdf:type ) ;
+    sh:ignoredProperties ( schema1:endDate lokf:field schema1:httpMethod schema1:memberOf skos:definition schema1:unitText lokf:formula schema1:roleName lokf:measures schema1:startDate org:member schema1:alternateName dcat:distribution rdf:type schema1:documentation ) ;
     sh:property [ sh:class lokf:Concept ;
+            sh:description "A resource that formally defines this concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 22 ;
+            sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "A version string for the concept's content." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path schema1:version ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime of the last meaningful change." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path schema1:dateModified ],
+        [ sh:class lokf:Concept ;
+            sh:description "An entity this concept was derived from (provenance)." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 18 ;
+            sh:path prov:wasDerivedFrom ],
+        [ sh:class lokf:Concept ;
+            sh:description "The subject matter this concept is about." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path schema1:about ],
+        [ sh:class lokf:Concept ;
+            sh:description "A generic association to another concept." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 21 ;
+            sh:path dcterms:relation ],
+        [ sh:description "The license under which the concept or bundle is offered." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path schema1:license ],
+        [ sh:datatype xsd:string ;
+            sh:description "A single-sentence summary of the concept." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path schema1:description ],
+        [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path dcterms:source ],
         [ sh:class lokf:Concept ;
+            sh:description "A concept this concept depends on." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dcterms:requires ],
+        [ sh:datatype xsd:string ;
+            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path lokf:type ],
+        [ sh:class rdf:Statement ;
+            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 13 ;
+            sh:path lokf:relations ],
+        [ sh:datatype xsd:string ;
+            sh:description "Human-readable display name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path schema1:name ],
+        [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
+        [ sh:class lokf:Concept ;
+            sh:description "An IRI asserting this concept is the same entity as another." ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path schema1:sameAs ],
+        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path schema1:identifier ],
         [ sh:class prov:Agent ;
             sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 10 ;
             sh:path schema1:author ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime the concept was created." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:dateCreated ],
+        [ sh:datatype xsd:string ;
+            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path schema1:text ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -1574,50 +2057,11 @@ lokf:Concept a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:references ],
-        [ sh:datatype xsd:string ;
-            sh:description "A single-sentence summary of the concept." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path schema1:description ],
-        [ sh:class lokf:Concept ;
-            sh:description "An IRI asserting this concept is the same entity as another." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 20 ;
-            sh:path schema1:sameAs ],
-        [ sh:datatype xsd:string ;
-            sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 11 ;
-            sh:path schema1:text ],
-        [ sh:datatype xsd:string ;
-            sh:description "A version string for the concept's content." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 8 ;
-            sh:path schema1:version ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime the concept was created." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path schema1:dateCreated ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
             sh:order 14 ;
             sh:path dcterms:isPartOf ],
-        [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 0 ;
-            sh:path schema1:identifier ],
-        [ sh:description "The license under which the concept or bundle is offered." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 9 ;
-            sh:path schema1:license ],
         [ sh:class schema1:CreativeWork ;
             sh:description "External sources supporting claims in the body." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -1627,56 +2071,7 @@ lokf:Concept a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 4 ;
-            sh:path schema1:url ],
-        [ sh:class lokf:Concept ;
-            sh:description "The subject matter this concept is about." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 19 ;
-            sh:path schema1:about ],
-        [ sh:class lokf:Concept ;
-            sh:description "A resource that formally defines this concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 22 ;
-            sh:path rdfs:isDefinedBy ],
-        [ sh:class lokf:Concept ;
-            sh:description "A generic association to another concept." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 21 ;
-            sh:path dcterms:relation ],
-        [ sh:class rdf:Statement ;
-            sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 13 ;
-            sh:path lokf:relations ],
-        [ sh:class lokf:Concept ;
-            sh:description "A concept this concept depends on." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 17 ;
-            sh:path dcterms:requires ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime of the last meaningful change." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 6 ;
-            sh:path schema1:dateModified ],
-        [ sh:datatype xsd:string ;
-            sh:description "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 1 ;
-            sh:path lokf:type ],
-        [ sh:class lokf:Concept ;
-            sh:description "An entity this concept was derived from (provenance)." ;
-            sh:nodeKind sh:IRI ;
-            sh:order 18 ;
-            sh:path prov:wasDerivedFrom ],
-        [ sh:datatype xsd:string ;
-            sh:description "Human-readable display name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path schema1:name ] ;
+            sh:path schema1:url ] ;
     sh:targetClass lokf:Concept .
 
 

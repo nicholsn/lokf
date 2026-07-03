@@ -59,7 +59,9 @@ CUE_TABLE: tuple[tuple[re.Pattern, str, float], ...] = tuple(
 _FALLBACK = ("relatedTo", 0.25)
 # RelationType names deliberately absent from CUE_TABLE: relatedTo is the
 # _FALLBACK when no cue matches, so a cue row for it would be redundant.
-UNCUED: frozenset[str] = frozenset({"relatedTo"})
+# memberOf / holder are structural Role fields authored in frontmatter, not
+# inferred from prose links, so they carry no cue phrase.
+UNCUED: frozenset[str] = frozenset({"relatedTo", "memberOf", "holder"})
 _ADJACENCY_BOOST = 0.15
 _ADJACENCY_GAP = 24  # max chars between cue and link text to count as adjacent
 _CONFIDENCE_CAP = 0.95
