@@ -56,8 +56,9 @@ writePartial(
 );
 writePartial(
   "metric-nt",
+  // N-Triples is a subset of Turtle, so the `turtle` grammar highlights it.
   fenced(
-    'text title="examples/weekly-active-users.nt"',
+    'turtle title="examples/weekly-active-users.nt"',
     read("examples/weekly-active-users.nt"),
   ),
 );

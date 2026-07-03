@@ -26,6 +26,19 @@
     </div>
   </div>
   <div class="lokf-graph__stage">
+    <div class="lokf-graph__toolbar">
+      <button type="button" class="lokf-graph__btn" data-action="fit" title="Fit graph to view">
+        ⤢ Fit
+      </button>
+      <button
+        type="button"
+        class="lokf-graph__btn"
+        data-action="fullscreen"
+        title="Open the full-screen graph browser"
+      >
+        ⛶ Full screen
+      </button>
+    </div>
     <div class="lokf-graph__canvas"></div>
     <aside class="lokf-graph__detail" hidden>
       <button type="button" class="lokf-graph__close" aria-label="Close">&times;</button>
@@ -42,6 +55,9 @@
 
 <script>
   import cytoscape from "cytoscape";
+  import fcose from "cytoscape-fcose";
+
+  cytoscape.use(fcose);
 
   const PALETTE = [
     "#5b8def", "#e8833a", "#2ea77d", "#c1558b",
@@ -88,7 +104,20 @@
     const cy = cytoscape({
       container: mount,
       elements: graph,
-      layout: { name: "cose", padding: 30, idealEdgeLength: () => 130, nodeRepulsion: () => 9000, animate: false },
+      minZoom: 0.2,
+      maxZoom: 2.5,
+      wheelSensitivity: 0.3,
+      layout: {
+        name: "fcose",
+        quality: "proof",
+        animate: false,
+        padding: 50,
+        nodeSeparation: 160,
+        idealEdgeLength: 150,
+        nodeRepulsion: 7000,
+        gravity: 0.2,
+        fit: true,
+      },
       style: [
         {
           selector: "node",
@@ -194,6 +223,30 @@
       "click",
       () => (detail.hidden = true),
     );
+
+    // Zoom to fit once the force layout settles (fcose fits too, but a re-fit
+    // after the container has its final size avoids the "too zoomed in" start).
+    const fit = () => cy.fit(undefined, 45);
+    cy.one("layoutstop", () => requestAnimationFrame(fit));
+
+    // Toolbar: fit + a full-screen graph browser (the whole explorer — search,
+    // filters, and graph — fills the viewport).
+    root.querySelector('[data-action="fit"]')!.addEventListener("click", fit);
+    const fsBtn = root.querySelector('[data-action="fullscreen"]') as HTMLButtonElement;
+    fsBtn.addEventListener("click", () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else root.requestFullscreen?.();
+    });
+    document.addEventListener("fullscreenchange", () => {
+      const full = document.fullscreenElement === root;
+      root.classList.toggle("is-fullscreen", full);
+      fsBtn.textContent = full ? "⛶ Exit full screen" : "⛶ Full screen";
+      // Let the layout reflow to the new size before resizing the canvas.
+      requestAnimationFrame(() => {
+        cy.resize();
+        fit();
+      });
+    });
   }
 
   // This module script is deferred, so the DOM is ready — boot now. Also
@@ -262,13 +315,53 @@
   .lokf-graph__stage {
     position: relative;
   }
+  .lokf-graph__toolbar {
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    z-index: 3;
+    display: flex;
+    gap: 0.4rem;
+  }
+  .lokf-graph__btn {
+    font-size: 0.75rem;
+    padding: 0.28rem 0.6rem;
+    color: var(--sl-color-text);
+    background: var(--sl-color-black);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .lokf-graph__btn:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+  }
   .lokf-graph__canvas {
     width: 100%;
     height: 60vh;
-    min-height: 420px;
+    min-height: 460px;
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.5rem;
     background: var(--sl-color-gray-7, var(--sl-color-black));
+  }
+  /* Full-screen graph browser: the whole explorer — search, filters, and
+     graph — fills the viewport, with the graph stage taking the leftover
+     height. */
+  .lokf-graph.is-fullscreen {
+    margin: 0;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    background: var(--sl-color-bg);
+  }
+  .lokf-graph.is-fullscreen .lokf-graph__stage {
+    flex: 1;
+    min-height: 0;
+  }
+  .lokf-graph.is-fullscreen .lokf-graph__canvas {
+    height: 100%;
+    min-height: 0;
   }
   .lokf-graph__detail {
     position: absolute;

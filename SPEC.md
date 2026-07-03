@@ -286,20 +286,30 @@ dependsOn:     [ https://acme.example/knowledge/glossary/active-user ]
 ```
 <!-- --8<-- [end:worked-yaml] -->
 
-Attaching the context and expanding yields (N-Triples, abridged):
+Attaching the context and expanding yields (Turtle, abridged):
 
 <!-- --8<-- [start:worked-ttl] -->
 ```turtle
-<…/metrics/weekly-active-users> a lokf:Metric .
-<…/metrics/weekly-active-users> schema:name "Weekly Active Users" .
-<…/metrics/weekly-active-users> schema:unitText "users" .
-<…/metrics/weekly-active-users> schema:keywords "growth", "engagement" .
-<…/metrics/weekly-active-users> schema:dateModified "2026-06-30T12:00:00Z"^^xsd:dateTime .
-<…/metrics/weekly-active-users> schema:author <…/people/jsmith> .
-<…/people/jsmith> a schema:Person ; schema:name "Jordan Smith" .
-<…/metrics/weekly-active-users> lokf:measures  <…/glossary/active-user> .
-<…/metrics/weekly-active-users> prov:wasDerivedFrom <…/tables/user-events> .
-<…/metrics/weekly-active-users> dcterms:requires <…/glossary/active-user> .
+@prefix lokf:    <https://w3id.org/lokf/> .
+@prefix schema:  <http://schema.org/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<…/metrics/weekly-active-users>
+    a lokf:Metric ;
+    schema:name "Weekly Active Users" ;
+    schema:unitText "users" ;
+    schema:keywords "growth", "engagement" ;
+    schema:dateModified "2026-06-30T12:00:00Z"^^xsd:dateTime ;
+    schema:author <…/people/jsmith> ;
+    lokf:measures <…/glossary/active-user> ;
+    prov:wasDerivedFrom <…/tables/user-events> ;
+    dcterms:requires <…/glossary/active-user> .
+
+<…/people/jsmith>
+    a schema:Person ;
+    schema:name "Jordan Smith" .
 ```
 <!-- --8<-- [end:worked-ttl] -->
 
