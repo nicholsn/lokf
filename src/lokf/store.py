@@ -118,6 +118,26 @@ class GraphStore:
             )
         return self.query(sparql, **kw).serialize(format=_RESULT_FORMATS[fmt.lower()])
 
+    def rdflib_graph(self, sparql: str | None = None):
+        """The store (or a CONSTRUCT/DESCRIBE result) as an :class:`rdflib.Graph`.
+
+        With no query, the whole store is returned. This backs the live graph
+        visualization, which projects the graph to cytoscape elements.
+        """
+        from rdflib import Graph
+
+        if sparql is None:
+            nt = self.store.dump(
+                format=ox.RdfFormat.N_TRIPLES, from_graph=ox.DefaultGraph()
+            )
+        else:
+            nt = self.query(sparql).serialize(format=ox.RdfFormat.N_TRIPLES)
+        g = Graph()
+        g.parse(data=nt, format="nt")
+        for prefix, ns in self.prefixes.items():
+            g.bind(prefix, ns)
+        return g
+
     def dump(self, fmt=ox.RdfFormat.TURTLE) -> bytes:
-        """Serialize the whole store."""
-        return self.store.dump(format=fmt)
+        """Serialize the whole store (default graph) as RDF text."""
+        return self.store.dump(format=fmt, from_graph=ox.DefaultGraph())
