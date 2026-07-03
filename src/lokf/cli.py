@@ -142,7 +142,7 @@ def propose(
 ) -> None:
     """Propose typed relations from markdown links in concept bodies."""
     from lokf.model import load_bundle
-    from lokf.propose import apply
+    from lokf.propose import apply, proposal_row
     from lokf.propose import propose as propose_relations
     from lokf.schema import vocabulary
 
@@ -161,20 +161,8 @@ def propose(
     applied_ids = {id(p) for p in applied}
 
     if json_:
-        rows = []
-        for p in proposals:
-            row = {
-                "source": p.source.concept_id,
-                "link_text": p.link.text,
-                "target": p.target_iri,
-                "predicate": p.relation.name,
-                "curie": p.relation.curie,
-                "confidence": round(p.confidence, 2),
-                "rationale": p.rationale,
-            }
-            if apply_:
-                row["applied"] = id(p) in applied_ids
-            rows.append(row)
+        ids = applied_ids if apply_ else None
+        rows = [proposal_row(p, ids) for p in proposals]
         typer.echo(json.dumps(rows, indent=2))
         return
 
@@ -220,21 +208,7 @@ def vocab(
     v = vocabulary()
     relations = sorted(v.relation_types.values(), key=lambda r: r.name)
     if json_:
-        typer.echo(
-            json.dumps(
-                [
-                    {
-                        "name": r.name,
-                        "curie": r.curie,
-                        "uri": r.uri,
-                        "frontmatter_key": r.is_slot,
-                        "description": r.description,
-                    }
-                    for r in relations
-                ],
-                indent=2,
-            )
-        )
+        typer.echo(json.dumps([r.as_row() for r in relations], indent=2))
         return
     name_w = max(len(r.name) for r in relations)
     curie_w = max(len(r.curie) for r in relations)

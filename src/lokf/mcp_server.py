@@ -129,7 +129,7 @@ def propose_relations(
     """
     from lokf.model import load_bundle
     from lokf.propose import apply as apply_proposals
-    from lokf.propose import propose
+    from lokf.propose import propose, proposal_row
     from lokf.schema import vocabulary
 
     b = load_bundle(bundle)
@@ -138,26 +138,12 @@ def propose_relations(
         for p in propose(b, vocabulary())
         if p.confidence >= min_confidence
     ]
-    applied_ids: set[int] = set()
+    applied_ids: set[int] | None = None
     if apply:
         applied_ids = {
             id(p) for p in apply_proposals(proposals, min_confidence=min_confidence)
         }
-    rows = []
-    for p in proposals:
-        row = {
-            "source": p.source.concept_id,
-            "link_text": p.link.text,
-            "target": p.target_iri,
-            "predicate": p.relation.name,
-            "curie": p.relation.curie,
-            "confidence": round(p.confidence, 2),
-            "rationale": p.rationale,
-        }
-        if apply:
-            row["applied"] = id(p) in applied_ids
-        rows.append(row)
-    return rows
+    return [proposal_row(p, applied_ids) for p in proposals]
 
 
 @server.tool()
@@ -175,16 +161,7 @@ def get_vocabulary() -> dict:
     relations = sorted(v.relation_types.values(), key=lambda r: r.name)
     return {
         "classes": dict(v.classes),
-        "relations": [
-            {
-                "name": r.name,
-                "curie": r.curie,
-                "uri": r.uri,
-                "frontmatter_key": r.is_slot,
-                "description": r.description,
-            }
-            for r in relations
-        ],
+        "relations": [r.as_row() for r in relations],
     }
 
 

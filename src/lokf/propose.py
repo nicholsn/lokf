@@ -255,6 +255,27 @@ def propose(
     return proposals
 
 
+def proposal_row(proposal: Proposal, applied_ids: set[int] | None = None) -> dict:
+    """A JSON-serializable row for a proposal.
+
+    Shared wire shape for ``lokf propose --json`` and the MCP
+    ``propose_relations`` tool. When *applied_ids* is given (apply mode), the
+    row gains an ``applied`` flag; in dry-run mode it is omitted.
+    """
+    row = {
+        "source": proposal.source.concept_id,
+        "link_text": proposal.link.text,
+        "target": proposal.target_iri,
+        "predicate": proposal.relation.name,
+        "curie": proposal.relation.curie,
+        "confidence": round(proposal.confidence, 2),
+        "rationale": proposal.rationale,
+    }
+    if applied_ids is not None:
+        row["applied"] = id(proposal) in applied_ids
+    return row
+
+
 def _rt_yaml():
     from ruamel.yaml import YAML
 
