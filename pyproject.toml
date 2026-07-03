@@ -11,6 +11,7 @@ dependencies = [
     "linkml>=1.8.5",
     "rdflib>=7.0",
     "pyyaml>=6.0",
+    "ruamel-yaml>=0.18",
 ]
 
 [project.urls]
@@ -22,6 +23,9 @@ Issues = "https://github.com/nicholsn/lokf/issues"
 lokf-build = "lokf.build:main"
 
 [dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
 docs = [
     "mkdocs-material>=9.5",
     "mkdocstrings[python]>=0.26",

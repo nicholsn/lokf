@@ -22,6 +22,7 @@ import glob
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 
@@ -80,7 +81,15 @@ def generate(root: pathlib.Path) -> None:
         os.remove(base)  # gitignored intermediate; some filesystems block unlink
     except OSError:
         pass
-    print("  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl")
+
+    # Refresh the copies packaged with the lokf toolkit so an installed wheel
+    # is self-sufficient (see lokf.schema's resolution order).
+    data = root / "src" / "lokf" / "data"
+    data.mkdir(parents=True, exist_ok=True)
+    shutil.copy(root / "lokf.yaml", data / "lokf.yaml")
+    shutil.copy(root / "lokf.context.jsonld", data / "lokf.context.jsonld")
+    print("  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl "
+          "(+ src/lokf/data copies)")
 
 
 def assemble(root: pathlib.Path) -> dict:
