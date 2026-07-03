@@ -6,14 +6,21 @@ import Default from "@astrojs/starlight/components/Head.astro";
 import datasets from "../generated/datasets.json";
 
 const path = Astro.url.pathname.replace(/\/$/, "");
-const showJsonLd =
-  path.endsWith("/examples") || path.endsWith("/graph");
+const showJsonLd = path.endsWith("/examples") || path.endsWith("/graph");
+
+// Escape HTML-significant chars so a field value containing "</script>" can't
+// break out of the JSON-LD block (stored XSS). \uXXXX stays valid JSON.
+const ldjson = (doc: unknown) =>
+  JSON.stringify(doc)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
 ---
 
 <Default><slot /></Default>
 {
   showJsonLd &&
     datasets.map((doc: unknown) => (
-      <script type="application/ld+json" set:html={JSON.stringify(doc)} />
+      <script type="application/ld+json" set:html={ldjson(doc)} />
     ))
 }

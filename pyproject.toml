@@ -54,11 +54,6 @@ dev = [
     "pytest>=8.0",
     "lokf[build]",
 ]
-docs = [
-    "mkdocs-material>=9.5",
-    "mkdocstrings[python]>=0.26",
-    "mkdocs-git-revision-date-localized-plugin>=1.2",
-]
 
 [build-system]
 requires = ["hatchling"]

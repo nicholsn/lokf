@@ -22,19 +22,14 @@ query BUNDLE SPARQL:
 serve BUNDLE:
     uv run lokf serve {{BUNDLE}}
 
-# Sync the vendored cytoscape.js: the package copy is canonical; the docs
-# site copies from it (a test guards the two against drift).
-sync-cytoscape:
-    cp src/lokf/static/cytoscape.min.js docs/assets/js/cytoscape.min.js
-
 # Run the test suite
 test:
     uv run --group dev pytest
 
-# Serve the docs locally with live reload
+# Serve the Astro docs site locally with live reload (web/)
 docs:
-    uv run --group docs mkdocs serve
+    cd web && npm install && npm run dev
 
-# Build the docs site with the locked toolchain (strict — the same check CI runs)
+# Build the Astro docs site exactly as CI does (web/)
 docs-build:
-    uv run --locked --group docs mkdocs build --strict
+    cd web && npm ci && npm run build

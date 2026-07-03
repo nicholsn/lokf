@@ -19,21 +19,30 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # full history for git-revision-date-localized
 
+      # uv drives the prebuild data steps (lokf export, gen_api_docs); Node
+      # builds the Astro/Starlight site.
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
-      - name: Build site (strict)
-        # --only-group: the docs build doesn't need the project or its runtime
-        # deps (mkdocstrings reads src/ statically) — 37 packages instead of 107
-        run: uv run --locked --only-group docs mkdocs build --strict
+      - name: Install the lokf package (for the prebuild data steps)
+        run: uv sync --locked
+
+      - name: Build the Astro site
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: web/dist
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
