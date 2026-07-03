@@ -18,7 +18,8 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+import { Content as ConceptGlance } from '../../generated/concept-glance.md';
 
 LOKF keeps OKF's markdown-plus-frontmatter authoring model but binds every
 concept, field, and relationship to **schema.org, W3C DCAT, and W3C PROV-O**,
@@ -26,6 +27,15 @@ so a bundle of markdown files is *also* valid **JSON-LD** that expands
 losslessly to **RDF**. The format is defined once in **LinkML**; the JSON-LD
 context, JSON Schema, SHACL shapes, and OWL ontology are all generated from
 that single source.
+
+## A concept at a glance
+
+Ordinary OKF markdown, where every key has a defined RDF meaning:
+
+<ConceptGlance />
+
+Attach the published `lokf.context.jsonld` and this expands to RDF triples
+using `schema:`, `prov:`, `dcterms:`, and `lokf:` predicates — no separate file.
 
 <CardGrid>
 	<Card title="Convert" icon="seti:markdown">
@@ -45,3 +55,11 @@ that single source.
 		toolkit.
 	</Card>
 </CardGrid>
+
+<Aside type="caution" title="Draft profile">
+	LOKF v0.1 is a **draft profile** and is **not affiliated with or endorsed by
+	Google**. "Open Knowledge Format" / "OKF" refer to the format published by
+	Google Cloud
+	([`GoogleCloudPlatform/knowledge-catalog`](https://github.com/GoogleCloudPlatform/knowledge-catalog));
+	LOKF extends it under its open terms.
+</Aside>
