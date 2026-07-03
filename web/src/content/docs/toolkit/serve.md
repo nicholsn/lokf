@@ -7,7 +7,7 @@ sidebar:
 
 `lokf serve` publishes a bundle locally as a **SPARQL endpoint** plus a **live
 graph explorer** — the reference bundle you see on the [Knowledge
-graph](/lokf/graph/) page, served from your own checkout.
+graph](/graph/) page, served from your own checkout.
 
 ```bash
 uv run lokf serve examples/acme-knowledge
@@ -43,7 +43,7 @@ curl -s 'http://127.0.0.1:8000/sparql' \
 ```
 
 The schema prefixes are preset here exactly as they are for
-[`lokf query`](/lokf/toolkit/query/), so your query needs no `PREFIX` block.
+[`lokf query`](/toolkit/query/), so your query needs no `PREFIX` block.
 
 ## Fully offline
 

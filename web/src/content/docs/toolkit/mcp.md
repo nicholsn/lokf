@@ -89,4 +89,4 @@ base with no bespoke code:
   class is allowed to use.
 
 For the skills that package these workflows for coding agents, see
-[Agents](/lokf/toolkit/agents/).
+[Agents](/toolkit/agents/).

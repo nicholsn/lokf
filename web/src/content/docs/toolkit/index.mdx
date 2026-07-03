@@ -12,28 +12,28 @@ need to **load** a bundle, **inspect** the vocabulary, **project** markdown to
 RDF, **query** it with SPARQL, **serve** it locally, **propose** typed
 relations from prose links, and **export** the result as a graph or as
 schema.org JSON-LD. It comes with a CLI (`lokf convert` / `query` / `serve` /
-`propose` / `vocab` / `skills` / `mcp`) and an [MCP server](/lokf/toolkit/mcp/) so agents
+`propose` / `vocab` / `skills` / `mcp`) and an [MCP server](/toolkit/mcp/) so agents
 can drive all of it. The format itself stays where it belongs — in `lokf.yaml`
-and the [specification](/lokf/specification/); the toolkit never hardcodes a
+and the [specification](/specification/); the toolkit never hardcodes a
 type or predicate it can read from the schema.
 
 | Module | What it gives you |
 |---|---|
 | `lokf.model` | `load_bundle()` → `Bundle` / `Concept` objects, JSON-LD and `rdflib.Graph` projection |
-| `lokf.rdf` | `serialize()` / `graph_of()` — project markdown to RDF ([`lokf convert`](/lokf/toolkit/convert/)) |
-| `lokf.store` | `GraphStore` — an in-memory pyoxigraph store for SPARQL ([`lokf query`](/lokf/toolkit/query/)) |
-| `lokf.server` | `serve()` — a local SPARQL endpoint + graph explorer ([`lokf serve`](/lokf/toolkit/serve/)) |
+| `lokf.rdf` | `serialize()` / `graph_of()` — project markdown to RDF ([`lokf convert`](/toolkit/convert/)) |
+| `lokf.store` | `GraphStore` — an in-memory pyoxigraph store for SPARQL ([`lokf query`](/toolkit/query/)) |
+| `lokf.server` | `serve()` — a local SPARQL endpoint + graph explorer ([`lokf serve`](/toolkit/serve/)) |
 | `lokf.schema` | `vocabulary()` → the typed-relation slots and `RelationType` vocabulary, straight from `lokf.yaml` |
 | `lokf.parse` | frontmatter parsing helpers (`parse_concept`, `isoify`) |
-| `lokf.propose` | heuristic [relation proposer](/lokf/toolkit/proposer/) + the `lokf propose` CLI |
+| `lokf.propose` | heuristic [relation proposer](/toolkit/proposer/) + the `lokf propose` CLI |
 | `lokf.export` | Cytoscape.js graph elements and schema.org `Dataset` JSON-LD |
-| `lokf.mcp_server` | the `lokf mcp` / `lokf-mcp` [MCP server](/lokf/toolkit/mcp/) that exposes the toolkit to agents |
+| `lokf.mcp_server` | the `lokf mcp` / `lokf-mcp` [MCP server](/toolkit/mcp/) that exposes the toolkit to agents |
 | `lokf.build` | the `lokf-build` console script that regenerates every artifact |
 
 ## Install
 
-Installing `lokf` gives you the CLI (`lokf`), the [MCP server](/lokf/toolkit/mcp/)
-(`lokf-mcp`), and the bundled [agent skills](/lokf/toolkit/agents/):
+Installing `lokf` gives you the CLI (`lokf`), the [MCP server](/toolkit/mcp/)
+(`lokf-mcp`), and the bundled [agent skills](/toolkit/agents/):
 
 <Tabs>
   <TabItem label="uv">
@@ -64,12 +64,12 @@ uv pip install 'lokf[build]'   # adds linkml for lokf-build
 
 Working inside a clone of this repository? `uv sync` already installs the
 package (with the `build` extra) in editable mode — see
-[Getting started](/lokf/getting-started/).
+[Getting started](/getting-started/).
 
 ## A five-minute tour
 
 Everything below runs against the committed
-[reference bundle](/lokf/examples/), from the repository root:
+[reference bundle](/examples/), from the repository root:
 
 ```python
 import lokf
@@ -118,11 +118,11 @@ outside a repo checkout.
 
 - **Build your own knowledge base** — from an empty directory to a validated,
   queryable bundle: authoring, validation, proposals, RDF, and a graph view.
-  See the [Tutorial](/lokf/toolkit/tutorial/).
+  See the [Tutorial](/toolkit/tutorial/).
 - **Relation proposer** — how `lokf propose` turns prose links into
   typed-relation suggestions, and where its heuristics stop. See the
-  [Proposer](/lokf/toolkit/proposer/).
+  [Proposer](/toolkit/proposer/).
 - **Knowledge graph** — the reference bundle rendered as an interactive graph,
-  built with `lokf.export`. See the [Knowledge graph](/lokf/graph/).
+  built with `lokf.export`. See the [Knowledge graph](/graph/).
 - **Python reference** — generated API docs for every module in the package.
-  See the [API reference](/lokf/reference/api/).
+  See the [API reference](/reference/api/).

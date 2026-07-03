@@ -6,7 +6,7 @@ sidebar:
 ---
 
 `lokf convert` projects LOKF markdown to RDF. It is the CLI in front of
-[`lokf.rdf.serialize`](/lokf/reference/api/): attach the generated context,
+[`lokf.rdf.serialize`](/reference/api/): attach the generated context,
 expand the JSON-LD, and emit triples — no glue code on your side.
 
 ```bash
@@ -81,5 +81,5 @@ g = rdf.graph_of("examples/acme-knowledge/metrics/weekly-active-users.md")
 len(g)
 ```
 
-See [Markdown to RDF](/lokf/guide/markdown-to-rdf/) for the mechanics of the
-projection, and [Query](/lokf/toolkit/query/) to run SPARQL over the result.
+See [Markdown to RDF](/guide/markdown-to-rdf/) for the mechanics of the
+projection, and [Query](/toolkit/query/) to run SPARQL over the result.

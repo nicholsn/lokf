@@ -3,10 +3,9 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import mermaid from "astro-mermaid";
 
-// The project site lives under /lokf on the custom domain.
+// Served at its own subdomain (no base path).
 export default defineConfig({
-  site: "https://www.nolan-nichols.com",
-  base: "/lokf",
+  site: "https://lokf.nolan-nichols.com",
   integrations: [
     // Renders ```mermaid fences client-side, synced to the Starlight theme.
     // Must precede starlight() so it can hook Expressive Code.
