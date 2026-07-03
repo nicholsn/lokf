@@ -1,0 +1,309 @@
+---
+title: Build your own knowledge base
+description: Author, validate, enrich, and visualize a three-concept LOKF bundle from scratch.
+sidebar:
+  order: 8
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+The [reference bundle](/lokf/examples/) shows the destination; this tutorial
+walks the road. Starting from an empty directory you will author a
+three-concept bundle, validate it, let the [proposer](/lokf/toolkit/proposer/) upgrade
+your prose links into typed relations, and end with an RDF graph you can
+query and visualize.
+
+Every command below is copy-pasteable and assumes a clone of this repository
+(`git clone https://github.com/nicholsn/lokf.git && cd lokf && uv sync` — see
+[Getting started](/lokf/getting-started/)), run from the repository root so
+`lokf.yaml` is in reach of the validator.
+
+## 1. Create the bundle root
+
+A bundle is just a directory with an `index.md`. The frontmatter of that one
+file is what lifts the whole bundle into Linked Data: `base_iri` turns
+Concept IDs into IRIs, `context` names the JSON-LD context that gives every
+key its meaning.
+
+```bash
+mkdir -p mykb/datasets mykb/metrics mykb/glossary
+```
+
+```markdown title="mykb/index.md"
+---
+lokf_version: "0.1"
+okf_version: "0.1"
+base_iri: https://mykb.example/kb/
+context: https://w3id.org/lokf/context.jsonld
+title: My Knowledge Base
+description: A three-concept starter bundle for the LOKF toolkit tutorial.
+publisher:
+  type: Organization
+  id: https://mykb.example
+  name: Example Co
+---
+
+# Datasets
+
+* [Orders](datasets/orders.md) - One row per completed order.
+
+# Metrics
+
+* [Order Conversion Rate](metrics/order-conversion-rate.md) - Share of sessions that convert.
+
+# Glossary
+
+* [Conversion](glossary/conversion.md) - A session that completes an order.
+```
+
+## 2. Author three concepts
+
+`type` is the only required key. Write the connections in **prose** for now —
+markdown links in the body, the way you'd write documentation anyway. Step 4
+will offer to promote them to typed frontmatter.
+
+```markdown title="mykb/datasets/orders.md"
+---
+type: Dataset
+title: Orders
+description: One row per completed order, all storefronts.
+tags: [commerce, core]
+---
+
+# Overview
+
+Every completed order lands here within five minutes. See the
+[Order Conversion Rate](/metrics/order-conversion-rate.md) for the north-star
+metric built on this dataset.
+```
+
+```markdown title="mykb/metrics/order-conversion-rate.md"
+---
+type: Metric
+title: Order Conversion Rate
+description: Share of sessions that end in a completed order.
+unit: percent
+formula: 100 * sessions_with_order / total_sessions
+tags: [commerce, north-star]
+---
+
+# Definition
+
+**Order Conversion Rate** is derived from [Orders](/datasets/orders.md).
+It measures [conversion](/glossary/conversion.md) across all storefronts.
+
+# Notes
+
+- Sessions from internal test accounts are excluded.
+```
+
+```markdown title="mykb/glossary/conversion.md"
+---
+type: GlossaryTerm
+title: Conversion
+definition: A session in which the visitor completes at least one order.
+abbreviation: CVR
+---
+
+# Notes
+
+A conversion depends on [Orders](/datasets/orders.md) arriving inside the
+session window.
+```
+
+:::note[No `id` needed while authoring]
+A concept without an explicit `id` gets one from its path:
+`metrics/order-conversion-rate` resolves against `base_iri` to
+`https://mykb.example/kb/metrics/order-conversion-rate`. That's
+`Bundle.iri()` doing the work, and it's why the validation step below
+injects the resolved `id` into the assembled document.
+:::
+
+## 3. Validate
+
+The JSON Schema validates *documents*, so there is one assembly step: fold
+the concepts into a single `KnowledgeBundle` JSON, injecting each concept's
+`id` where it is missing (a `setdefault`, resolved from `base_iri` + Concept
+ID — explicit `id`s are kept), exactly as `lokf-build` does for the
+reference bundle.
+
+<Tabs>
+<TabItem label="Whole bundle">
+
+```bash
+uv run python - <<'EOF'
+import json, lokf
+
+bundle = lokf.load_bundle("mykb")
+doc = dict(bundle.meta)
+doc["concepts"] = [dict(c.data, id=bundle.iri(c)) for c in bundle.concepts]
+json.dump(doc, open("mykb.bundle.json", "w"), indent=2)
+EOF
+uv run linkml-validate -s lokf.yaml -C KnowledgeBundle mykb.bundle.json
+# -> No issues found
+```
+
+</TabItem>
+<TabItem label="Single concept">
+
+```bash
+uv run python - <<'EOF'
+import json, lokf
+
+bundle = lokf.load_bundle("mykb")
+c = bundle.get("metrics/order-conversion-rate")
+json.dump(dict(c.data, id=bundle.iri(c)), open("metric.json", "w"), indent=2)
+EOF
+uv run linkml-validate -s lokf.yaml -C Metric metric.json
+# -> No issues found
+```
+
+</TabItem>
+</Tabs>
+
+See [Validation](/lokf/guide/validation/) for the JSON Schema / SHACL split.
+
+## 4. Propose typed relations
+
+Right now the bundle's graph has **no edges between concepts** — the
+connections live only in prose. The proposer reads the markdown links in each
+body, looks at the surrounding sentence and the concept types, and suggests
+typed frontmatter fields. Dry-run first:
+
+```bash
+uv run lokf propose mykb/
+```
+
+```text
+SOURCE                         LINK                   PREDICATE            CONF  RATIONALE
+datasets/orders                Order Conversion Rate  dcterms:references   0.70  cue "see" adjacent to link
+glossary/conversion            Orders                 dcterms:requires     0.85  cue "depends" adjacent to link
+metrics/order-conversion-rate  Orders                 prov:wasDerivedFrom  0.90  cue "derived" adjacent to link
+metrics/order-conversion-rate  conversion             lokf:measures        0.85  cue "measures" adjacent to link
+```
+
+Each row is one prose link: the source concept, the link, the suggested
+predicate, a confidence score, and the rationale — which cue phrase
+triggered it, and where. "Is derived from [Orders]…" became
+`prov:wasDerivedFrom`; "measures [conversion]…" became `lokf:measures` (and
+`measures` is only ever proposed for Metrics). Add `--json` for a
+machine-readable version of the same list.
+
+Happy with what you see? Apply it:
+
+```bash
+uv run lokf propose mykb/ --apply --min-confidence 0.5
+```
+
+The table prints again, followed by a log of what was written:
+
+```text
+wrote references -> https://mykb.example/kb/metrics/order-conversion-rate in mykb/datasets/orders.md
+wrote dependsOn -> https://mykb.example/kb/datasets/orders in mykb/glossary/conversion.md
+wrote derivedFrom -> https://mykb.example/kb/datasets/orders in mykb/metrics/order-conversion-rate.md
+wrote measures -> https://mykb.example/kb/glossary/conversion in mykb/metrics/order-conversion-rate.md
+applied 4 of 4 proposal(s).
+```
+
+`--apply` writes the accepted proposals back into the concept files with a
+round-trip YAML editor, so your comments, ordering, and formatting survive.
+`git diff` (or plain `diff`) shows exactly what changed — for the metric:
+
+```diff title="mykb/metrics/order-conversion-rate.md"
+ unit: percent
+ formula: 100 * sessions_with_order / total_sessions
+ tags: [commerce, north-star]
++derivedFrom:
++  - https://mykb.example/kb/datasets/orders
++measures:
++  - https://mykb.example/kb/glossary/conversion
+ ---
+```
+
+The prose is untouched — body links stay for humans, the frontmatter now
+carries the machine-readable layer. [How the heuristics work](/lokf/toolkit/proposer/)
+covers cue phrases, domains, confidence, and the limits.
+
+## 5. Project to RDF
+
+Load the bundle and serialize the graph — same two calls as the
+[five-minute tour](/lokf/toolkit/#a-five-minute-tour):
+
+```bash
+uv run python - <<'EOF'
+import lokf
+
+bundle = lokf.load_bundle("mykb")
+graph = bundle.graph()
+print(len(graph), "triples")
+print(graph.serialize(format="turtle"))
+EOF
+```
+
+Three markdown files, 23 triples, real edges (abridged):
+
+```turtle
+<https://mykb.example/kb/metrics/order-conversion-rate> a lokf:Metric ;
+    schema1:name "Order Conversion Rate" ;
+    schema1:unitText "percent" ;
+    prov:wasDerivedFrom <https://mykb.example/kb/datasets/orders> ;
+    lokf:formula "100 * sessions_with_order / total_sessions" ;
+    lokf:measures <https://mykb.example/kb/glossary/conversion> .
+
+<https://mykb.example/kb/glossary/conversion> a schema1:DefinedTerm ;
+    dcterms:requires <https://mykb.example/kb/datasets/orders> ;
+    skos:definition "A session in which the visitor completes at least one order." .
+
+<https://mykb.example/kb/datasets/orders> a schema1:Dataset ;
+    dcterms:references <https://mykb.example/kb/metrics/order-conversion-rate> ;
+    schema1:name "Orders" .
+```
+
+From here it's standard RDF tooling: SPARQL over `bundle.graph()`, SHACL with
+the generated shapes, OWL reasoning — see
+[Markdown to RDF](/lokf/guide/markdown-to-rdf/).
+
+## 6. Visualize it
+
+The [Knowledge graph](/lokf/graph/) page on this site is the pattern to copy:
+`lokf.export.to_cytoscape()` turns a bundle into Cytoscape.js elements whose
+edges are the RDF predicates from your typed relations (CURIE-labeled —
+`prov:wasDerivedFrom`, `lokf:measures`, …); plain body hyperlinks are
+deliberately excluded, so the picture shows exactly what step 4 asserted.
+
+```bash
+uv run python - <<'EOF'
+import json, lokf
+from lokf.export import to_cytoscape
+
+bundle = lokf.load_bundle("mykb")
+json.dump(to_cytoscape(bundle), open("graph.json", "w"), indent=2)
+EOF
+```
+
+This site feeds the same output to a small MkDocs hook
+([`docs/hooks/lokf_hooks.py`](https://github.com/nicholsn/lokf/blob/main/docs/hooks/lokf_hooks.py))
+that emits `assets/graph.json` at build time and renders it with Cytoscape.js
+— point the hook's bundle path at `mykb/` and you have a graph page for your
+own knowledge base. The same hook also injects the output of
+`lokf.export.dataset_search_jsonld()` — schema.org `Dataset` JSON-LD for each
+Dataset/Table concept — into the HTML, making your datasets discoverable by
+search engines.
+
+## Recap
+
+```text
+mykb/                       # markdown in …
+├── index.md
+├── datasets/orders.md
+├── metrics/order-conversion-rate.md
+└── glossary/conversion.md
+                            # … knowledge graph out
+mykb.bundle.json            # validated against KnowledgeBundle
+graph.json                  # Cytoscape.js elements
++ 23 RDF triples            # bundle.graph()
+```
+
+Author in markdown, validate against the schema, let the proposer type your
+links, and everything downstream — SPARQL, SHACL, visualization, dataset
+search markup — comes for free.

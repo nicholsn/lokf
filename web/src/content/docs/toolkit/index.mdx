@@ -1,0 +1,128 @@
+---
+title: Toolkit
+description: The lokf Python package — load, inspect, project, query, serve, propose, and export a knowledge bundle.
+sidebar:
+  order: 1
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+The `lokf` Python package is the toolkit around the format: everything you
+need to **load** a bundle, **inspect** the vocabulary, **project** markdown to
+RDF, **query** it with SPARQL, **serve** it locally, **propose** typed
+relations from prose links, and **export** the result as a graph or as
+schema.org JSON-LD. It comes with a CLI (`lokf convert` / `query` / `serve` /
+`propose` / `vocab` / `skills` / `mcp`) and an [MCP server](/lokf/toolkit/mcp/) so agents
+can drive all of it. The format itself stays where it belongs — in `lokf.yaml`
+and the [specification](/lokf/specification/); the toolkit never hardcodes a
+type or predicate it can read from the schema.
+
+| Module | What it gives you |
+|---|---|
+| `lokf.model` | `load_bundle()` → `Bundle` / `Concept` objects, JSON-LD and `rdflib.Graph` projection |
+| `lokf.rdf` | `serialize()` / `graph_of()` — project markdown to RDF ([`lokf convert`](/lokf/toolkit/convert/)) |
+| `lokf.store` | `GraphStore` — an in-memory pyoxigraph store for SPARQL ([`lokf query`](/lokf/toolkit/query/)) |
+| `lokf.server` | `serve()` — a local SPARQL endpoint + graph explorer ([`lokf serve`](/lokf/toolkit/serve/)) |
+| `lokf.schema` | `vocabulary()` → the typed-relation slots and `RelationType` vocabulary, straight from `lokf.yaml` |
+| `lokf.parse` | frontmatter parsing helpers (`parse_concept`, `isoify`) |
+| `lokf.propose` | heuristic [relation proposer](/lokf/toolkit/proposer/) + the `lokf propose` CLI |
+| `lokf.export` | Cytoscape.js graph elements and schema.org `Dataset` JSON-LD |
+| `lokf.mcp_server` | the `lokf mcp` / `lokf-mcp` [MCP server](/lokf/toolkit/mcp/) that exposes the toolkit to agents |
+| `lokf.build` | the `lokf-build` console script that regenerates every artifact |
+
+## Install
+
+Installing `lokf` gives you the CLI (`lokf`), the [MCP server](/lokf/toolkit/mcp/)
+(`lokf-mcp`), and the bundled [agent skills](/lokf/toolkit/agents/):
+
+<Tabs>
+  <TabItem label="uv">
+
+    ```bash
+    uv pip install lokf
+    ```
+
+  </TabItem>
+  <TabItem label="pip">
+
+    ```bash
+    pip install lokf
+    ```
+
+  </TabItem>
+</Tabs>
+
+The **core install is lean** — just `typer`, `rdflib`, `pyoxigraph`, and
+`mcp`. It reads the committed schema and context directly, so it can convert,
+query, serve, and propose without a heavy dependency tree. The one thing it
+leaves out is LinkML, needed only to **regenerate** the artifacts from
+`lokf.yaml`; that lives behind the `build` extra:
+
+```bash
+uv pip install 'lokf[build]'   # adds linkml for lokf-build
+```
+
+Working inside a clone of this repository? `uv sync` already installs the
+package (with the `build` extra) in editable mode — see
+[Getting started](/lokf/getting-started/).
+
+## A five-minute tour
+
+Everything below runs against the committed
+[reference bundle](/lokf/examples/), from the repository root:
+
+```python
+import lokf
+
+# Load a bundle: a directory of markdown files, nothing else.
+bundle = lokf.load_bundle("examples/acme-knowledge")
+len(bundle.concepts)        # -> 6
+bundle.base_iri             # -> 'https://acme.example/knowledge/'
+
+# Concepts are addressable by Concept ID, path, or IRI.
+wau = bundle.get("metrics/weekly-active-users")
+wau.type, wau.title         # -> ('Metric', 'Weekly Active Users')
+wau.data["formula"]         # frontmatter is a plain dict (body included)
+
+# The same bundle, as RDF — this is the committed 86-triple projection.
+g = bundle.graph()
+len(g)                      # -> 86
+print(g.serialize(format="turtle"))
+```
+
+And the vocabulary side — the typed-relation fields, read from the LinkML
+schema rather than hardcoded:
+
+```python
+vocab = lokf.vocabulary()
+
+sorted(vocab.relation_slots)
+# -> ['about', 'definedBy', 'dependsOn', 'derivedFrom', 'hasPart', 'isPartOf',
+#     'measures', 'references', 'relatedTo', 'sameAs', 'source']
+
+vocab.relation_slots["derivedFrom"].curie   # -> 'prov:wasDerivedFrom'
+vocab.relation_slots["measures"].domains    # -> frozenset({'Metric'})
+vocab.expand("prov:wasDerivedFrom")         # -> 'http://www.w3.org/ns/prov#wasDerivedFrom'
+```
+
+:::tip[The schema travels with the package]
+`vocabulary()` and `load_context()` resolve `lokf.yaml` and
+`lokf.context.jsonld` in this order: an explicit path argument first,
+then a checkout found by walking up from the current directory — so
+local schema edits always win — and only then the copies packaged
+inside the wheel, the fallback that lets an installed `lokf` work
+outside a repo checkout.
+:::
+
+## Where next
+
+- **Build your own knowledge base** — from an empty directory to a validated,
+  queryable bundle: authoring, validation, proposals, RDF, and a graph view.
+  See the [Tutorial](/lokf/toolkit/tutorial/).
+- **Relation proposer** — how `lokf propose` turns prose links into
+  typed-relation suggestions, and where its heuristics stop. See the
+  [Proposer](/lokf/toolkit/proposer/).
+- **Knowledge graph** — the reference bundle rendered as an interactive graph,
+  built with `lokf.export`. See the [Knowledge graph](/lokf/graph/).
+- **Python reference** — generated API docs for every module in the package.
+  See the [API reference](/lokf/reference/api/).
