@@ -9,7 +9,7 @@ ontology are all generated from that single source.
 
 > One sentence: *write OKF markdown, get a queryable knowledge graph for free.*
 
-**Documentation:** <https://www.nolan-nichols.com/lokf/>
+**Documentation:** <https://lokf.nolan-nichols.com/>
 
 ## Why
 

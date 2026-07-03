@@ -2,7 +2,7 @@ site_name: LOKF — Linked Open Knowledge Format
 site_description: >-
   A semantic profile of Google's Open Knowledge Format: write OKF markdown,
   get a queryable knowledge graph for free.
-site_url: https://www.nolan-nichols.com/lokf/
+site_url: https://lokf.nolan-nichols.com/
 repo_url: https://github.com/nicholsn/lokf
 repo_name: nicholsn/lokf
 edit_uri: edit/main/docs/
