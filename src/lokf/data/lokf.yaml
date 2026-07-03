@@ -1,0 +1,806 @@
+id: https://w3id.org/lokf/schema
+name: lokf
+title: Linked Open Knowledge Format (LOKF)
+description: >-
+  LOKF is a semantic, ontology-grounded profile of the Google Open Knowledge
+  Format (OKF v0.1). It preserves OKF's authoring model — a directory of
+  markdown files, each with a small YAML frontmatter block describing one
+  concept — but binds every concept, field, and relationship to established
+  web vocabularies (schema.org, W3C DCAT, and W3C PROV-O). Because the
+  frontmatter keys are LinkML slots mapped to IRIs, a LOKF concept file, once
+  a LinkML-generated JSON-LD @context is attached, is simultaneously
+  human-readable markdown AND valid JSON-LD that expands losslessly to RDF
+  triples. The entire format is defined in this single LinkML schema, from
+  which the JSON-LD context, JSON Schema, SHACL shapes, and an OWL ontology
+  are generated.
+license: https://creativecommons.org/licenses/by/4.0/
+version: 0.1.0
+
+# ---------------------------------------------------------------------------
+# Namespaces
+# ---------------------------------------------------------------------------
+prefixes:
+  lokf: https://w3id.org/lokf/
+  linkml: https://w3id.org/linkml/
+  schema: http://schema.org/
+  dcat: http://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  prov: http://www.w3.org/ns/prov#
+  skos: http://www.w3.org/2004/02/skos/core#
+  foaf: http://xmlns.com/foaf/0.1/
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  owl: http://www.w3.org/2002/07/owl#
+  xsd: http://www.w3.org/2001/XMLSchema#
+  pav: http://purl.org/pav/
+
+default_prefix: lokf
+default_range: string
+
+imports:
+  - linkml:types
+
+# ---------------------------------------------------------------------------
+# Subsets — used to tag which parts are OKF-compatible vs. LOKF extensions
+# ---------------------------------------------------------------------------
+subsets:
+  okf_core:
+    description: >-
+      Fields and structural rules that already exist in OKF v0.1. A bundle
+      using only okf_core features is a valid OKF bundle.
+  lokf_semantic:
+    description: >-
+      Extensions LOKF layers on top of OKF to achieve JSON-LD / RDF grounding,
+      typed relationships, and ontology alignment.
+
+# ---------------------------------------------------------------------------
+# Classes
+# ---------------------------------------------------------------------------
+classes:
+
+  KnowledgeBundle:
+    description: >-
+      A self-contained, hierarchical collection of concept documents — the unit
+      of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT
+      Catalog. When a whole bundle is serialized as a single JSON-LD document,
+      this class is the tree root; individual concept files validate against
+      Concept (or a subclass).
+    class_uri: lokf:KnowledgeBundle
+    close_mappings:
+      - dcat:Catalog
+      - schema:Collection
+    tree_root: true
+    slots:
+      - lokf_version
+      - okf_version
+      - base_iri
+      - context
+      - title
+      - description
+      - license
+      - publisher
+      - concepts
+
+  Concept:
+    abstract: true
+    description: >-
+      A single unit of knowledge within a bundle, represented as one markdown
+      document. The abstract base of every LOKF type. Its own IRI (`id`) is the
+      RDF subject; the markdown body and typed relations become triples about
+      that subject.
+    class_uri: lokf:Concept
+    broad_mappings:
+      - schema:CreativeWork
+      - prov:Entity
+    slots:
+      - id
+      - type
+      - title
+      - description
+      - resource
+      - tags
+      - timestamp
+      - created
+      - version
+      - license
+      - author
+      - body
+      - citations
+      - relations
+      - isPartOf
+      - hasPart
+      - references
+      - dependsOn
+      - derivedFrom
+      - about
+      - sameAs
+      - relatedTo
+      - definedBy
+      - source
+
+  Dataset:
+    is_a: Concept
+    description: A collection of data, published or curated for access and reuse.
+    class_uri: schema:Dataset
+    exact_mappings:
+      - dcat:Dataset
+    slots:
+      - distribution
+      - fields
+
+  Table:
+    is_a: Dataset
+    description: >-
+      A structured, tabular dataset (e.g. a warehouse table or view) whose
+      columns are described by Field objects under `fields`.
+    class_uri: lokf:Table
+    close_mappings:
+      - schema:Dataset
+      - dcat:Dataset
+
+  Metric:
+    is_a: Concept
+    description: >-
+      A precisely defined, measurable quantity — the canonical definition of a
+      business or operational metric.
+    class_uri: lokf:Metric
+    close_mappings:
+      - schema:Observation
+      - skos:Concept
+    slots:
+      - unit
+      - formula
+      - measures
+
+  Service:
+    is_a: Concept
+    description: A callable service or API endpoint.
+    class_uri: schema:WebAPI
+    close_mappings:
+      - schema:SoftwareApplication
+    slots:
+      - endpoint
+      - http_method
+      - documentation
+
+  Playbook:
+    is_a: Concept
+    description: >-
+      A procedure or runbook — an ordered set of steps to accomplish a task or
+      respond to an event.
+    class_uri: lokf:Playbook
+    exact_mappings:
+      - schema:HowTo
+
+  Policy:
+    is_a: Concept
+    description: A governance, compliance, or operational policy document.
+    class_uri: lokf:Policy
+    close_mappings:
+      - schema:DigitalDocument
+      - schema:CreativeWork
+
+  GlossaryTerm:
+    is_a: Concept
+    description: >-
+      A defined term in a controlled vocabulary or glossary. Maps to
+      schema:DefinedTerm and skos:Concept.
+    class_uri: schema:DefinedTerm
+    exact_mappings:
+      - skos:Concept
+    slots:
+      - definition
+      - abbreviation
+
+  Reference:
+    is_a: Concept
+    description: >-
+      A concept that mirrors an external source (a page, paper, or document) as
+      a first-class citizen of the bundle so it can be cited and linked.
+    class_uri: lokf:Reference
+    close_mappings:
+      - schema:CreativeWork
+      - schema:WebPage
+
+  Document:
+    is_a: Concept
+    description: A general knowledge document that does not fit a more specific type.
+    class_uri: lokf:Document
+    close_mappings:
+      - schema:DigitalDocument
+
+  # --- Value / supporting classes ------------------------------------------
+
+  Agent:
+    abstract: true
+    description: A person or organization responsible for a concept.
+    class_uri: prov:Agent
+    close_mappings:
+      - schema:Agent
+      - foaf:Agent
+    slots:
+      - type
+      - id
+      - name
+      - email
+
+  Person:
+    is_a: Agent
+    description: An individual person.
+    class_uri: schema:Person
+    exact_mappings:
+      - foaf:Person
+      - prov:Person
+
+  Organization:
+    is_a: Agent
+    description: An organization, team, or group.
+    class_uri: schema:Organization
+    exact_mappings:
+      - foaf:Organization
+      - prov:Organization
+
+  Field:
+    description: >-
+      A single column / property within a Table or Dataset schema. Maps to
+      schema:PropertyValue.
+    class_uri: schema:PropertyValue
+    slots:
+      - name
+      - datatype
+      - description
+      - unit
+      - is_key
+      - constraints
+
+  Distribution:
+    description: >-
+      A specific accessible form of a Dataset (a file, feed, or endpoint).
+      Maps to dcat:Distribution.
+    class_uri: dcat:Distribution
+    slots:
+      - name
+      - description
+      - access_url
+      - media_type
+
+  Relation:
+    description: >-
+      A typed, reified relationship from the containing concept to a target,
+      used when a predicate is not covered by one of the named relation slots.
+      Modeled as an rdf:Statement (subject = the containing concept).
+    class_uri: rdf:Statement
+    slots:
+      - predicate
+      - target
+      - relation_label
+
+  Citation:
+    description: >-
+      A reference to an external source supporting a claim in a concept's body.
+      Attached via the schema:citation predicate.
+    class_uri: schema:CreativeWork
+    close_mappings:
+      - dcterms:BibliographicResource
+    slots:
+      - title
+      - url
+      - description
+
+# ---------------------------------------------------------------------------
+# Slots
+# ---------------------------------------------------------------------------
+slots:
+
+  # --- Identity & core OKF fields ------------------------------------------
+  id:
+    description: >-
+      The concept's stable IRI. By convention it is the bundle base IRI joined
+      with the Concept ID (the file path within the bundle, minus the `.md`
+      suffix). Becomes the JSON-LD @id / RDF subject.
+    identifier: true
+    range: uriorcurie
+    slot_uri: schema:identifier
+    in_subset:
+      - lokf_semantic
+
+  type:
+    description: >-
+      The concept's type. OKF's single required field. In LOKF the value SHOULD
+      name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm);
+      it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate
+      unknown values by treating the concept as a generic lokf:Concept.
+    designates_type: true
+    required: true
+    range: string
+    in_subset:
+      - okf_core
+
+  title:
+    description: Human-readable display name.
+    slot_uri: schema:name
+    close_mappings:
+      - dcterms:title
+      - rdfs:label
+    in_subset:
+      - okf_core
+
+  description:
+    description: A single-sentence summary of the concept.
+    slot_uri: schema:description
+    close_mappings:
+      - dcterms:description
+    in_subset:
+      - okf_core
+
+  resource:
+    description: >-
+      A URI that uniquely identifies the underlying real-world asset the
+      concept describes (a table console URL, an API base URL, etc.). Absent
+      for purely abstract concepts.
+    range: uriorcurie
+    slot_uri: schema:url
+    close_mappings:
+      - dcat:landingPage
+      - prov:specializationOf
+    in_subset:
+      - okf_core
+
+  tags:
+    description: Short cross-cutting keywords for categorization.
+    multivalued: true
+    slot_uri: schema:keywords
+    close_mappings:
+      - dcat:keyword
+    in_subset:
+      - okf_core
+
+  timestamp:
+    description: ISO 8601 datetime of the last meaningful change.
+    range: datetime
+    slot_uri: schema:dateModified
+    exact_mappings:
+      - dcterms:modified
+    in_subset:
+      - okf_core
+
+  created:
+    description: ISO 8601 datetime the concept was created.
+    range: datetime
+    slot_uri: schema:dateCreated
+    exact_mappings:
+      - dcterms:created
+    in_subset:
+      - lokf_semantic
+
+  version:
+    description: A version string for the concept's content.
+    slot_uri: schema:version
+    close_mappings:
+      - pav:version
+    in_subset:
+      - lokf_semantic
+
+  license:
+    description: The license under which the concept or bundle is offered.
+    range: uriorcurie
+    slot_uri: schema:license
+    in_subset:
+      - lokf_semantic
+
+  author:
+    description: The agent(s) responsible for authoring the concept.
+    range: Agent
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: schema:author
+    close_mappings:
+      - dcterms:creator
+      - prov:wasAttributedTo
+    in_subset:
+      - lokf_semantic
+
+  publisher:
+    description: The agent responsible for making the bundle available.
+    range: Agent
+    inlined: true
+    slot_uri: schema:publisher
+    close_mappings:
+      - dcterms:publisher
+    in_subset:
+      - lokf_semantic
+
+  body:
+    description: >-
+      The markdown body of the concept document (everything after the
+      frontmatter). Mapped to schema:text; carried as a field only in the
+      JSON-LD / JSON serialization, not duplicated in the frontmatter.
+    slot_uri: schema:text
+    close_mappings:
+      - lokf:body
+    in_subset:
+      - okf_core
+
+  citations:
+    description: External sources supporting claims in the body.
+    range: Citation
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: schema:citation
+    in_subset:
+      - lokf_semantic
+
+  concepts:
+    description: The concepts contained in a bundle.
+    range: Concept
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: dcat:dataset
+    in_subset:
+      - lokf_semantic
+
+  # --- Named typed relations (LOKF's core upgrade over OKF's untyped links) -
+  relations:
+    description: >-
+      Typed relationships whose predicate is not covered by a named relation
+      slot. Each entry is a reified Relation (predicate + target).
+    range: Relation
+    multivalued: true
+    inlined_as_list: true
+    in_subset:
+      - lokf_semantic
+
+  isPartOf:
+    description: The target concept that this concept is a part of.
+    range: Concept
+    multivalued: true
+    slot_uri: dcterms:isPartOf
+    close_mappings:
+      - schema:isPartOf
+    in_subset:
+      - lokf_semantic
+
+  hasPart:
+    description: A concept that is a part of this concept.
+    range: Concept
+    multivalued: true
+    slot_uri: schema:hasPart
+    close_mappings:
+      - dcterms:hasPart
+    in_subset:
+      - lokf_semantic
+
+  references:
+    description: A concept or resource this concept refers to.
+    range: Concept
+    multivalued: true
+    slot_uri: dcterms:references
+    in_subset:
+      - lokf_semantic
+
+  dependsOn:
+    description: A concept this concept depends on.
+    range: Concept
+    multivalued: true
+    slot_uri: dcterms:requires
+    close_mappings:
+      - lokf:dependsOn
+    in_subset:
+      - lokf_semantic
+
+  derivedFrom:
+    description: An entity this concept was derived from (provenance).
+    range: Concept
+    multivalued: true
+    slot_uri: prov:wasDerivedFrom
+    in_subset:
+      - lokf_semantic
+
+  about:
+    description: The subject matter this concept is about.
+    range: Concept
+    multivalued: true
+    slot_uri: schema:about
+    close_mappings:
+      - foaf:primaryTopic
+    in_subset:
+      - lokf_semantic
+
+  sameAs:
+    description: An IRI asserting this concept is the same entity as another.
+    range: Concept
+    multivalued: true
+    slot_uri: schema:sameAs
+    close_mappings:
+      - owl:sameAs
+    in_subset:
+      - lokf_semantic
+
+  relatedTo:
+    description: A generic association to another concept.
+    range: Concept
+    multivalued: true
+    slot_uri: dcterms:relation
+    close_mappings:
+      - skos:related
+    in_subset:
+      - lokf_semantic
+
+  definedBy:
+    description: A resource that formally defines this concept.
+    range: Concept
+    multivalued: true
+    slot_uri: rdfs:isDefinedBy
+    in_subset:
+      - lokf_semantic
+
+  source:
+    description: A resource from which this concept is derived or sourced.
+    range: Concept
+    multivalued: true
+    slot_uri: dcterms:source
+    in_subset:
+      - lokf_semantic
+
+  # --- Relation (reified) fields -------------------------------------------
+  predicate:
+    description: The relationship type. SHOULD be drawn from the RelationType vocabulary.
+    range: RelationType
+    required: true
+    slot_uri: rdf:predicate
+    in_subset:
+      - lokf_semantic
+
+  target:
+    description: The IRI (or Concept ID) of the relationship's object.
+    range: Concept
+    required: true
+    slot_uri: rdf:object
+    in_subset:
+      - lokf_semantic
+
+  relation_label:
+    description: An optional human-readable label for the relationship.
+    slot_uri: rdfs:label
+    in_subset:
+      - lokf_semantic
+
+  # --- Dataset / Table / Field fields --------------------------------------
+  distribution:
+    description: Accessible forms of the dataset.
+    range: Distribution
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: dcat:distribution
+    in_subset:
+      - lokf_semantic
+
+  fields:
+    description: The columns / properties that make up a dataset's schema.
+    range: Field
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: lokf:field
+    in_subset:
+      - lokf_semantic
+
+  name:
+    description: A name.
+    slot_uri: schema:name
+    in_subset:
+      - lokf_semantic
+
+  email:
+    description: Contact email address.
+    slot_uri: schema:email
+    close_mappings:
+      - foaf:mbox
+    in_subset:
+      - lokf_semantic
+
+  datatype:
+    description: The data type of a field.
+    range: FieldType
+    slot_uri: lokf:datatype
+    close_mappings:
+      - schema:rangeIncludes
+    in_subset:
+      - lokf_semantic
+
+  unit:
+    description: The unit of measurement (e.g. USD, seconds, count).
+    slot_uri: schema:unitText
+    in_subset:
+      - lokf_semantic
+
+  is_key:
+    description: Whether the field is (part of) the primary key.
+    range: boolean
+    slot_uri: lokf:isKey
+    in_subset:
+      - lokf_semantic
+
+  constraints:
+    description: Free-text or expression describing constraints on a field.
+    slot_uri: lokf:constraints
+    in_subset:
+      - lokf_semantic
+
+  access_url:
+    description: A URL that gives access to a distribution.
+    range: uriorcurie
+    slot_uri: dcat:accessURL
+    in_subset:
+      - lokf_semantic
+
+  media_type:
+    description: The media (MIME) type of a distribution.
+    slot_uri: dcat:mediaType
+    in_subset:
+      - lokf_semantic
+
+  # --- Metric fields --------------------------------------------------------
+  formula:
+    description: The calculation or definition expression for a metric.
+    slot_uri: lokf:formula
+    in_subset:
+      - lokf_semantic
+
+  measures:
+    description: What the metric measures (a concept IRI or description).
+    range: Concept
+    multivalued: true
+    slot_uri: lokf:measures
+    in_subset:
+      - lokf_semantic
+
+  # --- Service fields -------------------------------------------------------
+  endpoint:
+    description: The base URL or invocation endpoint of a service.
+    range: uriorcurie
+    slot_uri: schema:url
+    close_mappings:
+      - schema:contentUrl
+    in_subset:
+      - lokf_semantic
+
+  http_method:
+    description: The HTTP method used to invoke the service, if applicable.
+    slot_uri: schema:httpMethod
+    in_subset:
+      - lokf_semantic
+
+  documentation:
+    description: A link to the service's documentation.
+    range: uriorcurie
+    slot_uri: schema:documentation
+    in_subset:
+      - lokf_semantic
+
+  # --- GlossaryTerm fields --------------------------------------------------
+  definition:
+    description: The formal definition of a term.
+    slot_uri: skos:definition
+    in_subset:
+      - lokf_semantic
+
+  abbreviation:
+    description: A short form or acronym for a term.
+    slot_uri: schema:alternateName
+    close_mappings:
+      - skos:altLabel
+    in_subset:
+      - lokf_semantic
+
+  # --- Citation fields ------------------------------------------------------
+  url:
+    description: A URL.
+    range: uriorcurie
+    slot_uri: schema:url
+    in_subset:
+      - lokf_semantic
+
+  # --- Bundle metadata ------------------------------------------------------
+  lokf_version:
+    description: The LOKF version the bundle targets (e.g. "0.1").
+    slot_uri: lokf:lokfVersion
+    in_subset:
+      - lokf_semantic
+
+  okf_version:
+    description: The OKF version the bundle remains compatible with (e.g. "0.1").
+    slot_uri: lokf:okfVersion
+    in_subset:
+      - okf_core
+
+  base_iri:
+    description: >-
+      The base IRI against which Concept IDs are resolved to produce each
+      concept's stable `id`.
+    range: uri
+    slot_uri: lokf:baseIri
+    in_subset:
+      - lokf_semantic
+
+  context:
+    description: >-
+      The URL of the JSON-LD @context to attach to this bundle's concepts to
+      interpret their frontmatter as Linked Data.
+    range: uri
+    slot_uri: lokf:context
+    in_subset:
+      - lokf_semantic
+
+# ---------------------------------------------------------------------------
+# Enums
+# ---------------------------------------------------------------------------
+enums:
+
+  RelationType:
+    description: >-
+      The recommended controlled vocabulary of relationship predicates for
+      reified Relations. Each value carries a `meaning` mapping to its RDF
+      predicate in schema.org, Dublin Core Terms, PROV-O, RDFS, or OWL.
+    permissible_values:
+      isPartOf:
+        description: The concept is a part of the target.
+        meaning: dcterms:isPartOf
+      hasPart:
+        description: The target is a part of the concept.
+        meaning: schema:hasPart
+      references:
+        description: The concept refers to the target.
+        meaning: dcterms:references
+      dependsOn:
+        description: The concept depends on the target.
+        meaning: dcterms:requires
+      derivedFrom:
+        description: The concept was derived from the target.
+        meaning: prov:wasDerivedFrom
+      about:
+        description: The concept is about the target.
+        meaning: schema:about
+      sameAs:
+        description: The concept is the same entity as the target.
+        meaning: owl:sameAs
+      relatedTo:
+        description: The concept is generically related to the target.
+        meaning: dcterms:relation
+      wasAttributedTo:
+        description: The concept was attributed to the target agent.
+        meaning: prov:wasAttributedTo
+      definedBy:
+        description: The concept is formally defined by the target.
+        meaning: rdfs:isDefinedBy
+      measures:
+        description: The concept (a metric) measures the target.
+        meaning: lokf:measures
+      joinsWith:
+        description: The concept (a table) is joined with the target.
+        meaning: lokf:joinsWith
+      source:
+        description: The concept is sourced from the target.
+        meaning: dcterms:source
+
+  FieldType:
+    description: >-
+      Datatypes for dataset/table fields, each mapped to its XSD (or RDF) type.
+    permissible_values:
+      string:
+        meaning: xsd:string
+      integer:
+        meaning: xsd:integer
+      number:
+        meaning: xsd:decimal
+      boolean:
+        meaning: xsd:boolean
+      date:
+        meaning: xsd:date
+      datetime:
+        meaning: xsd:dateTime
+      time:
+        meaning: xsd:time
+      uri:
+        meaning: xsd:anyURI
+      json:
+        meaning: rdf:JSON
