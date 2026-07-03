@@ -14,6 +14,6 @@ clean:
 docs:
     uv run --group docs mkdocs serve
 
-# Build the docs site exactly as CI does (strict mode)
+# Build the docs site with the locked toolchain (strict — the same check CI runs)
 docs-build:
-    uv run --group docs mkdocs build --strict
+    uv run --locked --group docs mkdocs build --strict

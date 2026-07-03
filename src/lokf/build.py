@@ -26,10 +26,25 @@ import pathlib
 import subprocess
 import sys
 
-ROOT = pathlib.Path.cwd()
-SCHEMA = ROOT / "lokf.yaml"
-EX = ROOT / "examples"
-BUNDLE_DIR = EX / "acme-knowledge"
+def _find_root() -> pathlib.Path:
+    """Locate the repository root from the current directory or any ancestor.
+
+    Requiring the reference bundle alongside ``lokf.yaml`` prevents the
+    generators from writing into an unrelated directory that merely contains
+    a file named ``lokf.yaml``.
+    """
+    cwd = pathlib.Path.cwd()
+    for p in (cwd, *cwd.parents):
+        if (p / "lokf.yaml").exists() and (p / "examples" / "acme-knowledge" / "index.md").exists():
+            return p
+    sys.exit(
+        "lokf-build must be run from inside the lokf repository "
+        "(no ancestor of the current directory contains both lokf.yaml "
+        "and examples/acme-knowledge/)"
+    )
+
+
+ROOT = SCHEMA = EX = BUNDLE_DIR = None  # bound by main() via _find_root()
 
 
 def run(cmd, **kw):
@@ -131,8 +146,11 @@ def to_rdf(bundle: dict) -> None:
 
 
 def main() -> int:
-    if not SCHEMA.exists():
-        sys.exit("lokf-build must be run from the repository root (lokf.yaml not found)")
+    global ROOT, SCHEMA, EX, BUNDLE_DIR
+    ROOT = _find_root()
+    SCHEMA = ROOT / "lokf.yaml"
+    EX = ROOT / "examples"
+    BUNDLE_DIR = EX / "acme-knowledge"
     generate()
     bundle = assemble()
     validate()
