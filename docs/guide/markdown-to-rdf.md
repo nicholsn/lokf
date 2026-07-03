@@ -54,4 +54,10 @@ property directly from the model.
 
 ## Do it yourself
 
+You never have to wire the context by hand — `lokf convert` (and the
+`lokf.rdf.serialize` function underneath it) does the expansion for you:
+
 --8<-- "README.md:quickstart-rdf"
+
+See [Convert](../toolkit/convert.md) for the full command, every output
+format, and the matching `just` recipe.

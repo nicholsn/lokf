@@ -10,6 +10,18 @@ build:
 clean:
     rm -f examples/*.bundle.json lokf.context.base.jsonld *.err
 
+# Project a concept file or bundle directory to RDF (Turtle) on stdout
+gen-rdf-turtle FILE:
+    uv run lokf convert --format ttl {{FILE}}
+
+# Run a SPARQL query over a bundle (schema prefixes are preset)
+query BUNDLE SPARQL:
+    uv run lokf query {{BUNDLE}} {{SPARQL}}
+
+# Serve a bundle locally: SPARQL endpoint + live graph explorer
+serve BUNDLE:
+    uv run lokf serve {{BUNDLE}}
+
 # Run the test suite
 test:
     uv run --group dev pytest

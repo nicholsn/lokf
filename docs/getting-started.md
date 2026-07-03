@@ -54,12 +54,16 @@ You can also run the individual generators by hand:
 
 See [Validation](guide/validation.md) for the JSON Schema / SHACL split.
 
-## Markdown → RDF in ~10 lines
+## Markdown → RDF in one command
+
+The `lokf convert` command projects a concept — or the whole bundle — to RDF
+directly from the checkout you just cloned:
 
 --8<-- "README.md:quickstart-rdf"
 
 This is the whole thesis: OKF authoring in, RDF knowledge graph out. The
-mechanics are covered in [Markdown to RDF](guide/markdown-to-rdf.md).
+[Convert](toolkit/convert.md) page covers every format and flag, and the
+mechanics of the projection are in [Markdown to RDF](guide/markdown-to-rdf.md).
 
 ## Work on the docs
 

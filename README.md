@@ -110,22 +110,32 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 <!-- --8<-- [end:validate-bundle] -->
 
-## Markdown → RDF in ~10 lines
+## Markdown → RDF in one command
+
+The `lokf` CLI projects a concept — or a whole bundle directory — straight to
+RDF. No context wiring, no glue code:
 
 <!-- --8<-- [start:quickstart-rdf] -->
+```bash
+# a single concept -> Turtle on stdout
+uv run lokf convert examples/acme-knowledge/metrics/weekly-active-users.md --format ttl
+
+# the same thing behind the just recipe
+just gen-rdf-turtle examples/acme-knowledge/metrics/weekly-active-users.md
+```
+
+`--format` also takes `nt`, `jsonld`, `xml`, `n3`, and `trig`; `--output FILE`
+writes to disk instead of stdout. Point `convert` at the bundle directory
+(`examples/acme-knowledge`) to project all six concepts at once.
+
+Prefer to stay in Python? `lokf.rdf.serialize` is the same projection the CLI
+calls:
+
 ```python
-import json, yaml
-from rdflib import Graph
+from lokf import rdf
 
-# from the repository root
-raw = open("examples/acme-knowledge/metrics/weekly-active-users.md").read()
-_, fm, body = raw.split("---", 2)
-doc = yaml.safe_load(fm)
-doc["body"] = body.strip()
-doc["@context"] = json.load(open("lokf.context.jsonld"))["@context"]
-
-g = Graph().parse(data=json.dumps(doc, default=lambda d: d.isoformat()), format="json-ld")
-print(g.serialize(format="turtle"))
+# a concept file, or the bundle directory — either resolves IRIs correctly
+print(rdf.serialize("examples/acme-knowledge/metrics/weekly-active-users.md", "ttl"))
 ```
 <!-- --8<-- [end:quickstart-rdf] -->
 
