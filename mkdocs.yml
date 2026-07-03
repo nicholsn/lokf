@@ -113,7 +113,12 @@ nav:
   - Toolkit:
       - toolkit/index.md
       - Build your own KB: toolkit/tutorial.md
+      - Convert to RDF: toolkit/convert.md
+      - Query with SPARQL: toolkit/query.md
+      - Serve a bundle: toolkit/serve.md
       - Relation proposer: toolkit/proposer.md
+      - MCP server: toolkit/mcp.md
+      - Agent skills: toolkit/agents.md
   - Example bundle: examples.md
   - Knowledge graph: graph.md
   - Specification: specification.md

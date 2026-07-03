@@ -2,44 +2,57 @@
 
 The `lokf` Python package is the toolkit around the format: everything you
 need to **load** a bundle, **inspect** the vocabulary, **project** markdown to
-RDF, **propose** typed relations from prose links, and **export** the result
-as a graph or as schema.org JSON-LD. The format itself stays where it belongs
-— in `lokf.yaml` and the [specification](../specification.md); the toolkit
-never hardcodes a type or predicate it can read from the schema.
+RDF, **query** it with SPARQL, **serve** it locally, **propose** typed
+relations from prose links, and **export** the result as a graph or as
+schema.org JSON-LD. It comes with a CLI (`lokf convert` / `query` / `serve` /
+`propose` / `vocab` / `skills` / `mcp`) and an [MCP server](mcp.md) so agents
+can drive all of it. The format itself stays where it belongs — in `lokf.yaml`
+and the [specification](../specification.md); the toolkit never hardcodes a
+type or predicate it can read from the schema.
 
 | Module | What it gives you |
 |---|---|
 | `lokf.model` | `load_bundle()` → `Bundle` / `Concept` objects, JSON-LD and `rdflib.Graph` projection |
+| `lokf.rdf` | `serialize()` / `graph_of()` — project markdown to RDF ([`lokf convert`](convert.md)) |
+| `lokf.store` | `GraphStore` — an in-memory pyoxigraph store for SPARQL ([`lokf query`](query.md)) |
+| `lokf.server` | `serve()` — a local SPARQL endpoint + graph explorer ([`lokf serve`](serve.md)) |
 | `lokf.schema` | `vocabulary()` → the typed-relation slots and `RelationType` vocabulary, straight from `lokf.yaml` |
 | `lokf.parse` | frontmatter parsing helpers (`parse_concept`, `isoify`) |
 | `lokf.propose` | heuristic [relation proposer](proposer.md) + the `lokf propose` CLI |
 | `lokf.export` | Cytoscape.js graph elements and schema.org `Dataset` JSON-LD |
+| `lokf.mcp_server` | the `lokf mcp` / `lokf-mcp` [MCP server](mcp.md) that exposes the toolkit to agents |
 | `lokf.build` | the `lokf-build` console script that regenerates every artifact |
 
 ## Install
 
-!!! warning "Not on PyPI yet"
-
-    `lokf` is not published to PyPI. Until it is, install straight from git —
-    after release, this becomes a plain `uv add lokf`.
+Installing `lokf` gives you the CLI (`lokf`), the [MCP server](mcp.md)
+(`lokf-mcp`), and the bundled [agent skills](agents.md):
 
 === "uv"
 
     ```bash
-    uv add "lokf @ git+https://github.com/nicholsn/lokf"
+    uv pip install lokf
     ```
 
 === "pip"
 
     ```bash
-    pip install git+https://github.com/nicholsn/lokf
+    pip install lokf
     ```
 
-    Note that pip bypasses `uv.lock` (the locked toolchain) — fine for
-    consumers of the package; contributors should use `uv sync`.
+The **core install is lean** — just `typer`, `rdflib`, `pyoxigraph`, and
+`mcp`. It reads the committed schema and context directly, so it can convert,
+query, serve, and propose without a heavy dependency tree. The one thing it
+leaves out is LinkML, needed only to **regenerate** the artifacts from
+`lokf.yaml`; that lives behind the `build` extra:
+
+```bash
+uv pip install 'lokf[build]'   # adds linkml for lokf-build
+```
 
 Working inside a clone of this repository? `uv sync` already installs the
-package in editable mode — see [Getting started](../getting-started.md).
+package (with the `build` extra) in editable mode — see
+[Getting started](../getting-started.md).
 
 ## A five-minute tour
 
