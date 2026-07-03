@@ -1,0 +1,25 @@
+{
+  "name": "web",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "sync": "cd .. && uv run lokf export examples/acme-knowledge --out-dir web/public --source-base https://github.com/nicholsn/lokf/tree/main/examples/acme-knowledge",
+    "predev": "npm run sync",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "prebuild": "npm run sync",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.2",
+    "astro": "^7.0.2",
+    "cytoscape": "^3.34.0",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@types/cytoscape": "^3.21.9",
+    "rehype-mermaid": "^3.0.0"
+  }
+}

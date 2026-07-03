@@ -112,3 +112,18 @@ def test_vocab_json_valid():
     records = json.loads(result.stdout)
     assert isinstance(records, list) and records
     assert {"name", "curie", "uri"} <= set(records[0])
+
+
+# -- export -----------------------------------------------------------------
+def test_export_writes_graph_and_datasets(tmp_path):
+    """export writes graph.json (cytoscape) + datasets.jsonld (Dataset docs)."""
+    result = runner.invoke(
+        app,
+        ["export", str(BUNDLE), "--out-dir", str(tmp_path), "--source-base", "https://x/"],
+    )
+    assert result.exit_code == 0
+    graph = json.loads((tmp_path / "graph.json").read_text())
+    assert len(graph["nodes"]) == 6 and len(graph["edges"]) == 8
+    assert graph["meta"]["source_base"] == "https://x/"
+    datasets = json.loads((tmp_path / "datasets.jsonld").read_text())
+    assert len(datasets) == 2 and all(d["@type"] == "Dataset" for d in datasets)

@@ -1,0 +1,25 @@
+---
+title: Bundles & concepts
+description: How a LOKF bundle is laid out and what a concept looks like.
+---
+
+LOKF keeps OKF's authoring model intact: a **knowledge bundle** is a directory
+tree of markdown files, each file describing one **concept** with a small YAML
+frontmatter block. Everything here is readable with `cat` and diffable in git.
+
+## Concept documents
+
+Every concept is a UTF-8 markdown file: a YAML **frontmatter** block followed
+by a markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter
+keys *mean* by mapping each to an RDF property. `type` is the only required
+field; all others are optional.
+
+:::note[Permissive by design]
+Producers MAY add any other keys; consumers MUST preserve unknown keys and
+MUST NOT reject documents that carry them. Missing optional fields, unknown
+`type` values, and broken cross-links MUST NOT cause rejection either.
+:::
+
+## Next
+
+- Give links meaning with [typed relationships](/lokf/graph/).

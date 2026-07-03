@@ -1,0 +1,19 @@
+---
+title: Knowledge graph
+description: An interactive view of the reference bundle's typed RDF relations.
+---
+
+import KnowledgeGraph from "../../components/KnowledgeGraph.astro";
+
+Every edge below is an **RDF predicate** drawn from a concept's typed
+frontmatter relations — labels like `prov:wasDerivedFrom`, `dcterms:requires`,
+or `lokf:measures`. Plain markdown links in a concept's *body* are **not**
+edges: only the typed relations that project to RDF triples appear here, so
+this graph is exactly the concept-to-concept subset of the bundle's RDF
+projection.
+
+The data is the Acme knowledge bundle — six concepts, eight typed relations.
+Search dims non-matching nodes; the filters toggle node types and predicates;
+click a node for its details.
+
+<KnowledgeGraph />
