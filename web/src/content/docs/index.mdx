@@ -1,0 +1,47 @@
+---
+title: Linked Open Knowledge Format
+description: Write OKF markdown, get a queryable knowledge graph for free.
+template: splash
+hero:
+  tagline: A semantic profile of Google's Open Knowledge Format — write OKF markdown, get a queryable knowledge graph for free.
+  actions:
+    - text: Get started
+      link: /lokf/getting-started/
+      icon: right-arrow
+    - text: Explore the graph
+      link: /lokf/graph/
+      icon: external
+      variant: minimal
+    - text: View on GitHub
+      link: https://github.com/nicholsn/lokf
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+LOKF keeps OKF's markdown-plus-frontmatter authoring model but binds every
+concept, field, and relationship to **schema.org, W3C DCAT, and W3C PROV-O**,
+so a bundle of markdown files is *also* valid **JSON-LD** that expands
+losslessly to **RDF**. The format is defined once in **LinkML**; the JSON-LD
+context, JSON Schema, SHACL shapes, and OWL ontology are all generated from
+that single source.
+
+<CardGrid>
+	<Card title="Convert" icon="seti:markdown">
+		`lokf convert` projects a concept or a whole bundle to Turtle,
+		N-Triples, JSON-LD, or RDF/XML.
+	</Card>
+	<Card title="Query" icon="magnifier">
+		`lokf query` runs SPARQL over a bundle loaded into an in-process
+		Oxigraph store.
+	</Card>
+	<Card title="Serve" icon="rocket">
+		`lokf serve` publishes a local SPARQL endpoint and a live graph
+		explorer.
+	</Card>
+	<Card title="Automate" icon="puzzle">
+		An MCP server and bundled agent skills let agents drive the whole
+		toolkit.
+	</Card>
+</CardGrid>

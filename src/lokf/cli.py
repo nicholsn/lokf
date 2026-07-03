@@ -250,6 +250,41 @@ def skills(
 # mcp
 # ---------------------------------------------------------------------------
 @app.command()
+def export(
+    bundle_dir: Path = typer.Argument(
+        ..., exists=True, file_okay=False, help="A LOKF bundle directory."
+    ),
+    out_dir: Path = typer.Option(
+        ..., "--out-dir", "-d", help="Directory to write graph.json + datasets.jsonld."
+    ),
+    source_base: Optional[str] = typer.Option(
+        None, "--source-base", help="URL prefix for a node's source file (graph meta)."
+    ),
+) -> None:
+    """Export a bundle's graph + Dataset JSON-LD for a static site to consume.
+
+    Writes ``graph.json`` (cytoscape.js elements, typed-relation edges, plus
+    ``meta.source_base``) and ``datasets.jsonld`` (schema.org Dataset docs for
+    Google Dataset Search). This is the data step behind the docs site.
+    """
+    from lokf.export import dataset_search_jsonld, to_cytoscape
+    from lokf.model import load_bundle
+
+    bundle = load_bundle(bundle_dir)
+    graph = to_cytoscape(bundle)
+    graph["meta"] = {"source_base": source_base} if source_base else {}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "graph.json").write_text(json.dumps(graph, indent=2), encoding="utf-8")
+    (out_dir / "datasets.jsonld").write_text(
+        json.dumps(dataset_search_jsonld(bundle), indent=2), encoding="utf-8"
+    )
+    typer.echo(
+        f"wrote {out_dir}/graph.json ({len(graph['nodes'])} nodes, "
+        f"{len(graph['edges'])} edges) and {out_dir}/datasets.jsonld"
+    )
+
+
+@app.command()
 def mcp() -> None:
     """Run the LOKF MCP server (stdio) so agents can drive the toolkit."""
     from lokf.mcp_server import main as run_mcp
