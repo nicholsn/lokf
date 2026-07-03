@@ -91,12 +91,16 @@ just docs-build  # strict build, exactly as CI runs it
 ```
 
 </TabItem>
-<TabItem label="uv">
+<TabItem label="npm">
 
 ```bash
-uv run --group docs mkdocs serve
-uv run --group docs mkdocs build --strict
+cd web && npm install && npm run dev    # live-reloading dev server
+cd web && npm ci && npm run build       # strict build, exactly as CI runs it
 ```
 
 </TabItem>
 </Tabs>
+
+The docs site is an [Astro Starlight](https://starlight.astro.build/) project
+in `web/`; the graph data and API reference are generated from the `lokf`
+package by a prebuild step.

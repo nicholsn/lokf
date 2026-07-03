@@ -281,14 +281,13 @@ json.dump(to_cytoscape(bundle), open("graph.json", "w"), indent=2)
 EOF
 ```
 
-This site feeds the same output to a small MkDocs hook
-([`docs/hooks/lokf_hooks.py`](https://github.com/nicholsn/lokf/blob/main/docs/hooks/lokf_hooks.py))
-that emits `assets/graph.json` at build time and renders it with Cytoscape.js
-— point the hook's bundle path at `mykb/` and you have a graph page for your
-own knowledge base. The same hook also injects the output of
-`lokf.export.dataset_search_jsonld()` — schema.org `Dataset` JSON-LD for each
-Dataset/Table concept — into the HTML, making your datasets discoverable by
-search engines.
+Or skip the file entirely: [`lokf serve mykb/`](/lokf/toolkit/serve/) publishes
+a live graph explorer (and a SPARQL endpoint) for your bundle with no build
+step. This documentation site uses the same projection — the
+[`lokf export`](/lokf/reference/api/) command emits `graph.json` and the
+schema.org `Dataset` JSON-LD (from `lokf.export.dataset_search_jsonld()`) that
+its knowledge-graph page and `<head>` consume, so your datasets are
+discoverable by search engines.
 
 ## Recap
 

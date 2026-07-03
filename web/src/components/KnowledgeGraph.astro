@@ -5,7 +5,10 @@
 // node opens its details. Themed with Starlight's CSS variables.
 ---
 
-<div class="lokf-graph" data-graph-src={import.meta.env.BASE_URL + "graph.json"}>
+<div
+  class="lokf-graph"
+  data-graph-src={import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph.json"}
+>
   <div class="lokf-graph__controls">
     <input
       type="search"
