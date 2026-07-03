@@ -139,6 +139,7 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 
 `type` is the only required field (as in OKF). All others are optional.
 
+<!-- --8<-- [start:core-fields-table] -->
 | Field         | OKF | RDF property (`slot_uri`)          | Range   | Notes                                             |
 |---------------|:---:|------------------------------------|---------|---------------------------------------------------|
 | `type`        |  ✅ | `rdf:type` (via `@type`)           | class   | **Required.** Names a LOKF class (§6).            |
@@ -154,6 +155,7 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 | `author`      |     | `schema:author`                    | Agent*  | close: `dcterms:creator`, `prov:wasAttributedTo`  |
 | `body`        |  ✅ | `schema:text`                      | string  | The markdown after the frontmatter.               |
 | `citations`   |     | `schema:citation`                  | Citation*|                                                  |
+<!-- --8<-- [end:core-fields-table] -->
 
 (`*` = multivalued.) Producers MAY add any other keys; consumers MUST preserve
 unknown keys and MUST NOT reject documents that carry them (OKF §4.1).
@@ -164,6 +166,7 @@ Where OKF has one untyped link, LOKF provides a set of **named relation fields**
 each pinned to an RDF predicate. Values are Concept IRIs (or Concept IDs resolved
 against `base_iri`). All are optional and multivalued.
 
+<!-- --8<-- [start:rel-table] -->
 | Field         | RDF predicate (`slot_uri`)   | Meaning                                   |
 |---------------|------------------------------|-------------------------------------------|
 | `isPartOf`    | `dcterms:isPartOf`           | This concept is part of the target.       |
@@ -176,6 +179,7 @@ against `base_iri`). All are optional and multivalued.
 | `relatedTo`   | `dcterms:relation`           | Generic association.                      |
 | `definedBy`   | `rdfs:isDefinedBy`           | A resource that formally defines this.    |
 | `source`      | `dcterms:source`             | Sourced/derived from the target.          |
+<!-- --8<-- [end:rel-table] -->
 
 For predicates outside this set, use the generic **`relations`** field — a list of
 reified `Relation` objects, each a `predicate` (drawn from the `RelationType`
@@ -205,6 +209,7 @@ A concept's `type` SHOULD name one of the following classes. Each maps to a publ
 ontology term; consumers MUST tolerate unknown values by treating the concept as a
 generic `lokf:Concept` (OKF §4.1 / §9).
 
+<!-- --8<-- [start:type-table] -->
 | `type`         | Class IRI (`@type`)   | Aligned to                                   |
 |----------------|-----------------------|----------------------------------------------|
 | *(abstract)*   | `lokf:Concept`        | broad: `schema:CreativeWork`, `prov:Entity`  |
@@ -219,6 +224,7 @@ generic `lokf:Concept` (OKF §4.1 / §9).
 | `Document`     | `lokf:Document`       | close: `schema:DigitalDocument`              |
 | `Person`       | `schema:Person`       | exact: `foaf:Person`, `prov:Person`          |
 | `Organization` | `schema:Organization` | exact: `foaf:Organization`, `prov:Organization`|
+<!-- --8<-- [end:type-table] -->
 
 **Type-specific fields** are available on the relevant classes:
 
@@ -260,6 +266,7 @@ meaning.
 
 `metrics/weekly-active-users.md` (abridged frontmatter):
 
+<!-- --8<-- [start:worked-yaml] -->
 ```yaml
 ---
 type: Metric
@@ -277,9 +284,11 @@ derivedFrom:   [ https://acme.example/knowledge/tables/user-events ]
 dependsOn:     [ https://acme.example/knowledge/glossary/active-user ]
 ---
 ```
+<!-- --8<-- [end:worked-yaml] -->
 
 Attaching the context and expanding yields (N-Triples, abridged):
 
+<!-- --8<-- [start:worked-ttl] -->
 ```turtle
 <…/metrics/weekly-active-users> a lokf:Metric .
 <…/metrics/weekly-active-users> schema:name "Weekly Active Users" .
@@ -292,6 +301,7 @@ Attaching the context and expanding yields (N-Triples, abridged):
 <…/metrics/weekly-active-users> prov:wasDerivedFrom <…/tables/user-events> .
 <…/metrics/weekly-active-users> dcterms:requires <…/glossary/active-user> .
 ```
+<!-- --8<-- [end:worked-ttl] -->
 
 The `type: Metric` field became `rdf:type lokf:Metric`; the typed relations became
 `prov:`, `dcterms:`, and `lokf:` predicates pointing at other concepts' IRIs.

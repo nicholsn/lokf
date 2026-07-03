@@ -29,20 +29,7 @@ bundle, and every OKF bundle is valid LOKF with default mappings.
 
 Ordinary OKF markdown, where every key has a defined RDF meaning:
 
-```markdown title="metrics/weekly-active-users.md"
----
-type: Metric                                    # -> rdf:type lokf:Metric
-id: https://acme.example/knowledge/metrics/weekly-active-users   # -> @id (subject)
-title: Weekly Active Users                       # -> schema:name
-unit: users                                      # -> schema:unitText
-timestamp: 2026-06-30T12:00:00Z                  # -> schema:dateModified
-derivedFrom: [ .../tables/user-events ]          # -> prov:wasDerivedFrom
-dependsOn:   [ .../glossary/active-user ]        # -> dcterms:requires
-measures:    [ .../glossary/active-user ]        # -> lokf:measures
----
-# Definition
-Distinct users with a qualifying event in a trailing 7-day window.
-```
+--8<-- "README.md:concept-glance"
 
 Attach the published [`lokf.context.jsonld`](reference/artifacts.md) and this
 expands to RDF triples using `schema:`, `prov:`, `dcterms:`, and `lokf:`

@@ -8,18 +8,7 @@ it says *how*.
 Values are Concept IRIs (or Concept IDs resolved against the bundle's
 `base_iri`). All relation fields are optional and multivalued.
 
-| Field         | RDF predicate (`slot_uri`)   | Meaning                                   |
-|---------------|------------------------------|-------------------------------------------|
-| `isPartOf`    | `dcterms:isPartOf`           | This concept is part of the target.       |
-| `hasPart`     | `schema:hasPart`             | The target is part of this concept.       |
-| `references`  | `dcterms:references`         | This concept refers to the target.        |
-| `dependsOn`   | `dcterms:requires`           | This concept depends on the target.       |
-| `derivedFrom` | `prov:wasDerivedFrom`        | Provenance: derived from the target.      |
-| `about`       | `schema:about`               | Subject matter of this concept.           |
-| `sameAs`      | `schema:sameAs`              | Same entity as the target (close `owl:sameAs`). |
-| `relatedTo`   | `dcterms:relation`           | Generic association.                      |
-| `definedBy`   | `rdfs:isDefinedBy`           | A resource that formally defines this.    |
-| `source`      | `dcterms:source`             | Sourced/derived from the target.          |
+--8<-- "SPEC.md:rel-table"
 
 ## Custom predicates: `relations`
 

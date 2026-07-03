@@ -46,42 +46,17 @@ The build:
 
 You can also run the individual generators by hand:
 
-```bash
-uv run gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
-uv run gen-json-schema     lokf.yaml > lokf.schema.json
-uv run gen-shacl           lokf.yaml > lokf.shacl.ttl
-uv run gen-owl             lokf.yaml > lokf.owl.ttl
-```
+--8<-- "README.md:gen-commands"
 
 ## Validate a bundle
 
-```bash
-# `just build` assembles examples/acme-knowledge.bundle.json from the markdown, then:
-uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.bundle.json
-# -> No issues found
-
-# Or validate a single concept against its class
-uv run linkml-validate -s lokf.yaml -C Metric metric.json
-```
+--8<-- "README.md:validate-bundle"
 
 See [Validation](guide/validation.md) for the JSON Schema / SHACL split.
 
 ## Markdown → RDF in ~10 lines
 
-```python
-import json, yaml
-from rdflib import Graph
-
-# from the repository root
-raw = open("examples/acme-knowledge/metrics/weekly-active-users.md").read()
-_, fm, body = raw.split("---", 2)
-doc = yaml.safe_load(fm)
-doc["body"] = body.strip()
-doc["@context"] = json.load(open("lokf.context.jsonld"))["@context"]
-
-g = Graph().parse(data=json.dumps(doc, default=lambda d: d.isoformat()), format="json-ld")
-print(g.serialize(format="turtle"))
-```
+--8<-- "README.md:quickstart-rdf"
 
 This is the whole thesis: OKF authoring in, RDF knowledge graph out. The
 mechanics are covered in [Markdown to RDF](guide/markdown-to-rdf.md).
