@@ -6,9 +6,9 @@ default:
 build:
     uv run lokf-build
 
-# Remove generated scratch files
+# Remove generated scratch files (committed artifacts like examples/*.nt are left alone)
 clean:
-    rm -f examples/*.bundle.json examples/*.nt lokf.context.base.jsonld *.err
+    rm -f examples/*.bundle.json lokf.context.base.jsonld *.err
 
 # Serve the docs locally with live reload
 docs:

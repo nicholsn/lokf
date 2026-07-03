@@ -76,10 +76,10 @@ Or run the individual generators by hand:
 
 ```bash
 # JSON-LD context (then alias type->@type, id->@id for authoring — see below)
-gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
-gen-json-schema     lokf.yaml > lokf.schema.json
-gen-shacl           lokf.yaml > lokf.shacl.ttl
-gen-owl             lokf.yaml > lokf.owl.ttl
+uv run gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
+uv run gen-json-schema     lokf.yaml > lokf.schema.json
+uv run gen-shacl           lokf.yaml > lokf.shacl.ttl
+uv run gen-owl             lokf.yaml > lokf.owl.ttl
 ```
 
 The published `lokf.context.jsonld` is the generated context with two standard
@@ -96,12 +96,12 @@ json.dump(c, open("lokf.context.jsonld", "w"), indent=2)
 ## Validate a bundle
 
 ```bash
-# `make` assembles examples/acme-knowledge.bundle.json from the markdown, then:
-linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.bundle.json
+# `just build` assembles examples/acme-knowledge.bundle.json from the markdown, then:
+uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.bundle.json
 # -> No issues found
 
 # Or validate a single concept against its class
-linkml-validate -s lokf.yaml -C Metric metric.json
+uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 
 ## Markdown → RDF in ~10 lines

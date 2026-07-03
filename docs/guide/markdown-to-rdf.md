@@ -24,7 +24,8 @@ the meaning.
 
 ## Worked example
 
-The frontmatter of the reference bundle's WAU metric, and the triples it
+The frontmatter of the reference bundle's WAU metric (abridged — see the
+[full file](../examples.md#one-concept-end-to-end)), and the triples it
 expands to:
 
 === "Frontmatter (YAML)"

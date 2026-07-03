@@ -7,9 +7,10 @@ on:
 
 permissions: {}
 
+# Cancel superseded PR builds, but never a production Pages deploy mid-flight.
 concurrency:
   group: docs-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -26,7 +27,7 @@ jobs:
           enable-cache: true
 
       - name: Build site (strict)
-        run: uv run --group docs mkdocs build --strict
+        run: uv run --locked --group docs mkdocs build --strict
 
       - uses: actions/upload-pages-artifact@v3
         with:

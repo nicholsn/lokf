@@ -47,10 +47,10 @@ The build:
 You can also run the individual generators by hand:
 
 ```bash
-gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
-gen-json-schema     lokf.yaml > lokf.schema.json
-gen-shacl           lokf.yaml > lokf.shacl.ttl
-gen-owl             lokf.yaml > lokf.owl.ttl
+uv run gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
+uv run gen-json-schema     lokf.yaml > lokf.schema.json
+uv run gen-shacl           lokf.yaml > lokf.shacl.ttl
+uv run gen-owl             lokf.yaml > lokf.owl.ttl
 ```
 
 ## Validate a bundle

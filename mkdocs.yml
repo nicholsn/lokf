@@ -63,6 +63,7 @@ plugins:
           options:
             show_root_heading: true
             show_source: true
+            show_if_no_docstring: true
             members_order: source
 
 markdown_extensions:
@@ -85,7 +86,7 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.snippets:
-      base_path: ["."]
+      base_path: [!relative $config_dir]
       check_paths: true
   - pymdownx.superfences:
       custom_fences:
