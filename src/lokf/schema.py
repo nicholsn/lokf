@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import pathlib
 from dataclasses import dataclass
+from functools import lru_cache
 from importlib import resources
 
 import yaml
@@ -53,15 +54,27 @@ def _resolve(name: str, path: str | pathlib.Path | None) -> pathlib.Path:
     return found
 
 
+# Cached on the resolved absolute path, not the (path=None) argument, so a
+# changed working directory re-resolves to a different file and reads fresh,
+# while repeated calls from one location (e.g. the server hot path) are free.
+@lru_cache(maxsize=None)
+def _load_schema(resolved: str) -> dict:
+    return yaml.safe_load(pathlib.Path(resolved).read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=None)
+def _load_context(resolved: str) -> dict:
+    return json.loads(pathlib.Path(resolved).read_text(encoding="utf-8"))["@context"]
+
+
 def load_schema(path: str | pathlib.Path | None = None) -> dict:
-    """Return the LOKF LinkML schema as a plain dict."""
-    return yaml.safe_load(_resolve(_SCHEMA_NAME, path).read_text(encoding="utf-8"))
+    """Return the LOKF LinkML schema as a plain dict (cached per file)."""
+    return _load_schema(str(_resolve(_SCHEMA_NAME, path)))
 
 
 def load_context(path: str | pathlib.Path | None = None) -> dict:
-    """Return the published JSON-LD ``@context`` mapping (the inner dict)."""
-    doc = json.loads(_resolve(_CONTEXT_NAME, path).read_text(encoding="utf-8"))
-    return doc["@context"]
+    """Return the published JSON-LD ``@context`` mapping (cached per file)."""
+    return _load_context(str(_resolve(_CONTEXT_NAME, path)))
 
 
 @dataclass(frozen=True)
@@ -159,6 +172,11 @@ class Vocabulary:
         return out
 
 
+@lru_cache(maxsize=None)
+def _vocabulary(resolved: str) -> "Vocabulary":
+    return Vocabulary(_load_schema(resolved))
+
+
 def vocabulary(schema_path: str | pathlib.Path | None = None) -> Vocabulary:
-    """Load the schema and return its :class:`Vocabulary`."""
-    return Vocabulary(load_schema(schema_path))
+    """Load the schema and return its :class:`Vocabulary` (cached per file)."""
+    return _vocabulary(str(_resolve(_SCHEMA_NAME, schema_path)))

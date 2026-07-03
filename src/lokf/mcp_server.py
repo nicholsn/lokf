@@ -9,8 +9,6 @@ at a bundle directory (e.g. ``examples/acme-knowledge``) unless noted.
 """
 from __future__ import annotations
 
-import re
-
 from mcp.server.fastmcp import FastMCP
 
 _INSTRUCTIONS = (
@@ -26,12 +24,6 @@ _INSTRUCTIONS = (
 )
 
 server = FastMCP("lokf", instructions=_INSTRUCTIONS)
-
-# The SPARQL query form, ignoring any leading PREFIX/BASE declarations.
-_QUERY_FORM = re.compile(
-    r"^\s*(?:(?:prefix|base)\b[^\n]*\n\s*)*\s*(select|ask|construct|describe)\b",
-    re.IGNORECASE,
-)
 
 
 @server.tool()
@@ -91,10 +83,9 @@ def sparql_query(bundle: str, query: str) -> dict:
     CONSTRUCT/DESCRIBE returns {turtle: '...'}. Returns {error: ...} on a bad
     query.
     """
-    from lokf.store import GraphStore
+    from lokf.store import GraphStore, query_form
 
-    match = _QUERY_FORM.match(query)
-    form = match.group(1).lower() if match else "select"
+    form = query_form(query)
     try:
         store = GraphStore.from_bundle(bundle)
         if form in ("construct", "describe"):
@@ -217,7 +208,8 @@ def bundle_summary(bundle: str) -> dict:
     return {
         "concept_count": len(b.concepts),
         "types": types,
-        "triple_count": len(GraphStore.from_bundle(bundle)),
+        # Reuse the already-loaded bundle instead of re-reading it from disk.
+        "triple_count": len(GraphStore.from_graph(b.graph())),
         "relation_edge_count": len(edges),
     }
 

@@ -15,26 +15,21 @@ from __future__ import annotations
 
 import json
 import pathlib
-import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from lokf.store import GraphStore
+from lokf.store import GraphStore, query_form
 
 _STATIC = pathlib.Path(__file__).resolve().parent / "static"
-_QUERY_FORM = re.compile(
-    r"^\s*(?:(?:prefix|base)\b[^\n]*\n\s*)*\s*(select|ask|construct|describe)\b",
-    re.IGNORECASE,
-)
-
-
-def _query_form(sparql: str) -> str:
-    m = _QUERY_FORM.match(sparql)
-    return m.group(1).lower() if m else "select"
 
 
 def _handler_class(store: GraphStore):
     """Build a request handler bound to *store* (one store per server)."""
+    from lokf.export import graph_to_cytoscape
+
+    # The default (whole-graph) cytoscape elements never change while serving,
+    # so build them once instead of dumping + re-parsing the store per request.
+    default_graph_json = json.dumps(graph_to_cytoscape(store.rdflib_graph())).encode("utf-8")
 
     class LokfHandler(BaseHTTPRequestHandler):
         server_version = "lokf-server"
@@ -56,7 +51,7 @@ def _handler_class(store: GraphStore):
                 self._send(400, b"missing query", "text/plain")
                 return
             try:
-                if _query_form(sparql) in ("construct", "describe"):
+                if query_form(sparql) in ("construct", "describe"):
                     body = store.construct(sparql, fmt="ttl").encode("utf-8")
                     self._send(200, body, "text/turtle")
                 else:
@@ -71,16 +66,22 @@ def _handler_class(store: GraphStore):
             if route.path == "/":
                 self._send(200, _INDEX_HTML.encode("utf-8"), "text/html; charset=utf-8")
             elif route.path == "/graph.json":
-                from lokf.export import graph_to_cytoscape
-
-                params = parse_qs(route.query)
-                sparql = (params.get("query") or [None])[0]
+                sparql = (parse_qs(route.query).get("query") or [None])[0]
+                if sparql is None:
+                    self._send(200, default_graph_json, "application/json")
+                    return
+                if query_form(sparql) not in ("construct", "describe"):
+                    self._send(
+                        400,
+                        b"the graph view needs a CONSTRUCT or DESCRIBE query",
+                        "text/plain",
+                    )
+                    return
                 try:
-                    graph = store.rdflib_graph(sparql)
+                    elements = graph_to_cytoscape(store.rdflib_graph(sparql))
                 except Exception as exc:  # noqa: BLE001 — bad CONSTRUCT → 400
                     self._send(400, str(exc).encode("utf-8"), "text/plain")
                     return
-                elements = graph_to_cytoscape(graph)
                 self._send(200, json.dumps(elements).encode("utf-8"), "application/json")
             elif route.path == "/static/cytoscape.min.js":
                 data = (_STATIC / "cytoscape.min.js").read_bytes()
@@ -95,8 +96,12 @@ def _handler_class(store: GraphStore):
             if urlparse(self.path).path != "/sparql":
                 self._send(404, b"not found", "text/plain")
                 return
-            length = int(self.headers.get("Content-Length", 0))
-            raw = self.rfile.read(length).decode("utf-8") if length else ""
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+                raw = self.rfile.read(length).decode("utf-8") if length else ""
+            except (ValueError, UnicodeDecodeError) as exc:
+                self._send(400, f"bad request body: {exc}".encode("utf-8"), "text/plain")
+                return
             ctype = self.headers.get("Content-Type", "")
             if ctype.startswith("application/x-www-form-urlencoded"):
                 sparql = (parse_qs(raw).get("query") or [""])[0]

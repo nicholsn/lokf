@@ -26,11 +26,18 @@ def isoify(o):
 
 
 def parse_concept(path: str) -> dict:
-    """Read one concept markdown file into a dict of frontmatter + ``body``."""
+    """Read one concept markdown file into a dict of frontmatter + ``body``.
+
+    Raises ``ValueError`` with a clear message if the file has no ``---``
+    delimited YAML frontmatter (e.g. a plain markdown or reserved file).
+    """
     import yaml
 
     raw = open(path, encoding="utf-8").read()
-    _, front, body = raw.split("---", 2)
+    parts = raw.split("---", 2)
+    if len(parts) < 3:
+        raise ValueError(f"{path}: no YAML frontmatter (expected a '---' delimited block)")
+    _, front, body = parts
     d = yaml.safe_load(front) or {}
     d["body"] = body.strip()
     return isoify(d)
