@@ -86,6 +86,63 @@ def to_cytoscape(bundle, vocab=None) -> dict:
     return {"nodes": nodes, "edges": list(edges.values())}
 
 
+def graph_to_cytoscape(graph, vocab=None) -> dict:
+    """Any :class:`rdflib.Graph` as cytoscape.js ``elements``.
+
+    Nodes are resources that carry an ``rdf:type`` in the graph (labelled by
+    ``schema:name``/``rdfs:label`` when present, else the local IRI part);
+    edges are triples whose predicate is a LOKF relation predicate and whose
+    object is itself a node. This drives the live server's visualization of a
+    SPARQL ``CONSTRUCT`` result, mirroring :func:`to_cytoscape` for a store.
+    """
+    from rdflib import RDF, RDFS, Namespace, URIRef
+
+    vocab = vocab or vocabulary()
+    schema = Namespace("http://schema.org/")
+    predicate_uris = {r.uri: vocab.compact(r.uri) for r in vocab.relation_types.values()}
+    type_uris = {vocab.expand(uri): name for name, uri in vocab.classes.items()}
+
+    def _local(iri: str) -> str:
+        return iri.rstrip("/").rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+
+    def _node(iri: str) -> dict:
+        rdf_type = graph.value(URIRef(iri), RDF.type)
+        label = graph.value(URIRef(iri), schema.name) or graph.value(URIRef(iri), RDFS.label)
+        return {
+            "data": {
+                "id": iri,
+                "label": str(label) if label else _local(iri),
+                "type": type_uris.get(str(rdf_type), _local(str(rdf_type)) if rdf_type else ""),
+                "concept_id": _local(iri),
+            }
+        }
+
+    # Typed resources are always nodes; resources appearing on either end of a
+    # relation edge are added too, so a CONSTRUCT that omits type triples still
+    # yields a connected graph.
+    nodes: dict[str, dict] = {
+        str(s): _node(str(s))
+        for s in set(graph.subjects(RDF.type, None))
+        if isinstance(s, URIRef)
+    }
+    edges: dict[tuple[str, str, str], dict] = {}
+    for subject, predicate, obj in graph:
+        p_uri = str(predicate)
+        if p_uri not in predicate_uris or not isinstance(obj, URIRef):
+            continue
+        s, o = str(subject), str(obj)
+        nodes.setdefault(s, _node(s))
+        nodes.setdefault(o, _node(o))
+        curie = predicate_uris[p_uri]
+        key = (s, curie, o)
+        edges.setdefault(
+            key,
+            {"data": {"id": f"{s} {curie} {o}", "source": s, "target": o,
+                      "predicate": curie, "slot": curie.split(":", 1)[-1]}},
+        )
+    return {"nodes": list(nodes.values()), "edges": list(edges.values())}
+
+
 def dataset_search_jsonld(bundle, vocab=None) -> list[dict]:
     """schema.org ``Dataset`` JSON-LD docs for each Dataset/Table concept.
 
