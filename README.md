@@ -44,7 +44,8 @@ and every OKF bundle is valid LOKF with default mappings.
 `metrics/weekly-active-users.md` — ordinary OKF markdown; every key has a defined
 RDF meaning:
 
-```markdown
+<!-- --8<-- [start:concept-glance] -->
+```markdown title="metrics/weekly-active-users.md"
 ---
 type: Metric                                    # -> rdf:type lokf:Metric
 id: https://acme.example/knowledge/metrics/weekly-active-users   # -> @id (subject)
@@ -58,6 +59,7 @@ measures:    [ .../glossary/active-user ]        # -> lokf:measures
 # Definition
 Distinct users with a qualifying event in a trailing 7-day window.
 ```
+<!-- --8<-- [end:concept-glance] -->
 
 Attach `lokf.context.jsonld` and this expands to RDF triples using
 `schema:`, `prov:`, `dcterms:`, and `lokf:` predicates — no separate file.
@@ -74,13 +76,15 @@ just build      # == uv run lokf-build
 
 Or run the individual generators by hand:
 
+<!-- --8<-- [start:gen-commands] -->
 ```bash
-# JSON-LD context (then alias type->@type, id->@id for authoring — see below)
+# JSON-LD context (aliased type->@type, id->@id for authoring)
 uv run gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
 uv run gen-json-schema     lokf.yaml > lokf.schema.json
 uv run gen-shacl           lokf.yaml > lokf.shacl.ttl
 uv run gen-owl             lokf.yaml > lokf.owl.ttl
 ```
+<!-- --8<-- [end:gen-commands] -->
 
 The published `lokf.context.jsonld` is the generated context with two standard
 JSON-LD keyword aliases applied so unmodified OKF frontmatter is valid Linked Data:
@@ -95,6 +99,7 @@ json.dump(c, open("lokf.context.jsonld", "w"), indent=2)
 
 ## Validate a bundle
 
+<!-- --8<-- [start:validate-bundle] -->
 ```bash
 # `just build` assembles examples/acme-knowledge.bundle.json from the markdown, then:
 uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.bundle.json
@@ -103,9 +108,11 @@ uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.b
 # Or validate a single concept against its class
 uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
+<!-- --8<-- [end:validate-bundle] -->
 
 ## Markdown → RDF in ~10 lines
 
+<!-- --8<-- [start:quickstart-rdf] -->
 ```python
 import json, yaml
 from rdflib import Graph
@@ -120,6 +127,7 @@ doc["@context"] = json.load(open("lokf.context.jsonld"))["@context"]
 g = Graph().parse(data=json.dumps(doc, default=lambda d: d.isoformat()), format="json-ld")
 print(g.serialize(format="turtle"))
 ```
+<!-- --8<-- [end:quickstart-rdf] -->
 
 This is the whole thesis: OKF authoring in, RDF knowledge graph out.
 

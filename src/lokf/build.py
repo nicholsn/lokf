@@ -3,7 +3,7 @@
 (``lokf.yaml``), then assemble the reference bundle, validate it against the
 schema, and project it to RDF.
 
-Run from the repository root:
+Run from anywhere inside the repository:
 
     uv sync
     uv run lokf-build               # or: just build
@@ -18,13 +18,15 @@ Outputs (regenerated in place):
     examples/weekly-active-users.nt       RDF triples for one concept
 """
 from __future__ import annotations
-import datetime as dt
 import glob
 import json
 import os
 import pathlib
 import subprocess
 import sys
+
+from lokf.parse import isoify, parse_concept
+
 
 def _find_root() -> pathlib.Path:
     """Locate the repository root from the current directory or any ancestor.
@@ -44,27 +46,26 @@ def _find_root() -> pathlib.Path:
     )
 
 
-ROOT = SCHEMA = EX = BUNDLE_DIR = None  # bound by main() via _find_root()
-
-
 def run(cmd, **kw):
+    """Echo *cmd*, then run it with ``subprocess.run(..., check=True)``."""
     print("  $", " ".join(str(c) for c in cmd))
     return subprocess.run(cmd, check=True, **kw)
 
 
-def generate() -> None:
+def generate(root: pathlib.Path) -> None:
     """Run the four LinkML generators, then publish the authoring context."""
+    schema = root / "lokf.yaml"
     print("== generate artifacts from lokf.yaml ==")
-    with open(ROOT / "lokf.schema.json", "w") as f:
-        run(["gen-json-schema", str(SCHEMA)], stdout=f)
-    with open(ROOT / "lokf.owl.ttl", "w") as f:
-        run(["gen-owl", str(SCHEMA)], stdout=f)
-    with open(ROOT / "lokf.shacl.ttl", "w") as f:
-        run(["gen-shacl", str(SCHEMA)], stdout=f)
+    with open(root / "lokf.schema.json", "w") as f:
+        run(["gen-json-schema", str(schema)], stdout=f)
+    with open(root / "lokf.owl.ttl", "w") as f:
+        run(["gen-owl", str(schema)], stdout=f)
+    with open(root / "lokf.shacl.ttl", "w") as f:
+        run(["gen-shacl", str(schema)], stdout=f)
 
-    base = ROOT / "lokf.context.base.jsonld"
+    base = root / "lokf.context.base.jsonld"
     with open(base, "w") as f:
-        run(["gen-jsonld-context", str(SCHEMA)], stdout=f)
+        run(["gen-jsonld-context", str(schema)], stdout=f)
     ctx = json.load(open(base))
     # Two standard JSON-LD keyword aliases make unmodified OKF frontmatter
     # behave as Linked Data: `type` designates the RDF class, `id` the subject.
@@ -74,7 +75,7 @@ def generate() -> None:
         "Authoring context: `type`->@type and `id`->@id aliased so OKF "
         "frontmatter is valid JSON-LD."
     )
-    json.dump(ctx, open(ROOT / "lokf.context.jsonld", "w"), indent=2)
+    json.dump(ctx, open(root / "lokf.context.jsonld", "w"), indent=2)
     try:
         os.remove(base)  # gitignored intermediate; some filesystems block unlink
     except OSError:
@@ -82,79 +83,61 @@ def generate() -> None:
     print("  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl")
 
 
-def _isoify(o):
-    if isinstance(o, dict):
-        return {k: _isoify(v) for k, v in o.items()}
-    if isinstance(o, list):
-        return [_isoify(v) for v in o]
-    if isinstance(o, (dt.datetime, dt.date)):
-        return o.isoformat().replace("+00:00", "Z")
-    return o
-
-
-def _parse_concept(path: str) -> dict:
-    import yaml
-    raw = open(path, encoding="utf-8").read()
-    _, front, body = raw.split("---", 2)
-    d = yaml.safe_load(front) or {}
-    d["body"] = body.strip()
-    return _isoify(d)
-
-
-def assemble() -> dict:
+def assemble(root: pathlib.Path) -> dict:
     """Assemble all concept files (+ root index.md metadata) into one bundle."""
     import yaml
-    idx = open(BUNDLE_DIR / "index.md", encoding="utf-8").read().split("---", 2)
-    bundle = _isoify(yaml.safe_load(idx[1]))
+    bundle_dir = root / "examples" / "acme-knowledge"
+    idx = open(bundle_dir / "index.md", encoding="utf-8").read().split("---", 2)
+    bundle = isoify(yaml.safe_load(idx[1]))
     concepts = [
-        _parse_concept(p)
-        for p in sorted(glob.glob(str(BUNDLE_DIR / "**" / "*.md"), recursive=True))
+        parse_concept(p)
+        for p in sorted(glob.glob(str(bundle_dir / "**" / "*.md"), recursive=True))
         if os.path.basename(p) not in ("index.md", "log.md")
     ]
     bundle["concepts"] = concepts
-    json.dump(bundle, open(EX / "acme-knowledge.bundle.json", "w"), indent=2)
+    json.dump(bundle, open(root / "examples" / "acme-knowledge.bundle.json", "w"), indent=2)
     print(f"== assembled bundle: {len(concepts)} concepts "
           f"({', '.join(c['type'] for c in concepts)}) ==")
     return bundle
 
 
-def validate() -> None:
+def validate(root: pathlib.Path) -> None:
+    """Validate the assembled bundle against the schema's ``KnowledgeBundle`` root."""
     print("== validate against JSON Schema ==")
-    run(["linkml-validate", "-s", str(SCHEMA), "-C", "KnowledgeBundle",
-         str(EX / "acme-knowledge.bundle.json")])
+    run(["linkml-validate", "-s", str(root / "lokf.yaml"), "-C", "KnowledgeBundle",
+         str(root / "examples" / "acme-knowledge.bundle.json")])
 
 
-def to_rdf(bundle: dict) -> None:
+def to_rdf(root: pathlib.Path, bundle: dict) -> None:
+    """Project the bundle (and its Metric concept) to N-Triples in ``examples/``."""
     from rdflib import Graph
-    ctx = json.load(open(ROOT / "lokf.context.jsonld"))["@context"]
+    ex = root / "examples"
+    ctx = json.load(open(root / "lokf.context.jsonld"))["@context"]
 
     whole = Graph()
     for c in bundle["concepts"]:
         doc = dict(c)
         doc["@context"] = ctx
         whole.parse(data=json.dumps(doc), format="json-ld")
-    whole.serialize(destination=str(EX / "acme-knowledge.nt"), format="nt")
+    whole.serialize(destination=str(ex / "acme-knowledge.nt"), format="nt")
 
     metric = next(c for c in bundle["concepts"] if c["type"] == "Metric")
     mdoc = {k: v for k, v in metric.items() if k != "body"}
     mdoc["@context"] = ctx
     mg = Graph()
     mg.parse(data=json.dumps(mdoc), format="json-ld")
-    mg.serialize(destination=str(EX / "weekly-active-users.nt"), format="nt")
+    mg.serialize(destination=str(ex / "weekly-active-users.nt"), format="nt")
     print(f"== RDF projection: {len(whole)} triples (bundle), "
           f"{len(mg)} triples (metric) ==")
 
 
 def main() -> int:
-    global ROOT, SCHEMA, EX, BUNDLE_DIR
-    ROOT = _find_root()
-    SCHEMA = ROOT / "lokf.yaml"
-    EX = ROOT / "examples"
-    BUNDLE_DIR = EX / "acme-knowledge"
-    generate()
-    bundle = assemble()
-    validate()
-    to_rdf(bundle)
+    """Entry point for the ``lokf-build`` console script."""
+    root = _find_root()
+    generate(root)
+    bundle = assemble(root)
+    validate(root)
+    to_rdf(root, bundle)
     print("\nOK - all artifacts reproduced and validated.")
     return 0
 

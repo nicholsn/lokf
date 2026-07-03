@@ -4,20 +4,7 @@ A concept's `type` SHOULD name one of the following classes. Each maps to a
 public ontology term; consumers MUST tolerate unknown values by treating the
 concept as a generic `lokf:Concept`.
 
-| `type`         | Class IRI (`@type`)   | Aligned to                                   |
-|----------------|-----------------------|----------------------------------------------|
-| *(abstract)*   | `lokf:Concept`        | broad: `schema:CreativeWork`, `prov:Entity`  |
-| `Dataset`      | `schema:Dataset`      | exact: `dcat:Dataset`                        |
-| `Table`        | `lokf:Table`          | is-a `Dataset`; close `dcat:Dataset`         |
-| `Metric`       | `lokf:Metric`         | close: `schema:Observation`, `skos:Concept`  |
-| `Service`      | `schema:WebAPI`       | close: `schema:SoftwareApplication`          |
-| `Playbook`     | `lokf:Playbook`       | exact: `schema:HowTo`                        |
-| `Policy`       | `lokf:Policy`         | close: `schema:DigitalDocument`              |
-| `GlossaryTerm` | `schema:DefinedTerm`  | exact: `skos:Concept`                        |
-| `Reference`    | `lokf:Reference`      | close: `schema:CreativeWork`, `schema:WebPage`|
-| `Document`     | `lokf:Document`       | close: `schema:DigitalDocument`              |
-| `Person`       | `schema:Person`       | exact: `foaf:Person`, `prov:Person`          |
-| `Organization` | `schema:Organization` | exact: `foaf:Organization`, `prov:Organization`|
+--8<-- "SPEC.md:type-table"
 
 ## Type-specific fields
 

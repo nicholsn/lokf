@@ -43,21 +43,7 @@ keys *mean* by mapping each to an RDF property.
 
 `type` is the only required field (as in OKF). All others are optional.
 
-| Field         | OKF | RDF property (`slot_uri`)          | Range   | Notes                                             |
-|---------------|:---:|------------------------------------|---------|---------------------------------------------------|
-| `type`        |  ✅ | `rdf:type` (via `@type`)           | class   | **Required.** Names a LOKF class.                 |
-| `id`          |     | `@id` (subject)                    | IRI     | Concept IRI. Defaults to `base_iri` + Concept ID. |
-| `title`       |  ✅ | `schema:name`                      | string  | close: `dcterms:title`, `rdfs:label`              |
-| `description` |  ✅ | `schema:description`               | string  | close: `dcterms:description`                      |
-| `resource`    |  ✅ | `schema:url`                       | IRI     | The underlying asset. close: `dcat:landingPage`, `prov:specializationOf` |
-| `tags`        |  ✅ | `schema:keywords`                  | string* | close: `dcat:keyword`                             |
-| `timestamp`   |  ✅ | `schema:dateModified`              | dateTime| exact: `dcterms:modified`                         |
-| `created`     |     | `schema:dateCreated`               | dateTime| exact: `dcterms:created`                          |
-| `version`     |     | `schema:version`                   | string  |                                                   |
-| `license`     |     | `schema:license`                   | IRI     |                                                   |
-| `author`      |     | `schema:author`                    | Agent*  | close: `dcterms:creator`, `prov:wasAttributedTo`  |
-| `body`        |  ✅ | `schema:text`                      | string  | The markdown after the frontmatter.               |
-| `citations`   |     | `schema:citation`                  | Citation*|                                                  |
+--8<-- "SPEC.md:core-fields-table"
 
 (`*` = multivalued.)
 
