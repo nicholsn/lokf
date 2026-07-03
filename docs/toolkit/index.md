@@ -35,6 +35,9 @@ never hardcodes a type or predicate it can read from the schema.
     pip install git+https://github.com/nicholsn/lokf
     ```
 
+    Note that pip bypasses `uv.lock` (the locked toolchain) — fine for
+    consumers of the package; contributors should use `uv sync`.
+
 Working inside a clone of this repository? `uv sync` already installs the
 package in editable mode — see [Getting started](../getting-started.md).
 
@@ -80,9 +83,11 @@ vocab.expand("prov:wasDerivedFrom")         # -> 'http://www.w3.org/ns/prov#wasD
 !!! tip "The schema travels with the package"
 
     `vocabulary()` and `load_context()` resolve `lokf.yaml` and
-    `lokf.context.jsonld` from the copies packaged inside the wheel, so an
-    installed `lokf` works outside a repo checkout. An explicit path or a
-    checkout in an ancestor directory takes precedence.
+    `lokf.context.jsonld` in this order: an explicit path argument first,
+    then a checkout found by walking up from the current directory — so
+    local schema edits always win — and only then the copies packaged
+    inside the wheel, the fallback that lets an installed `lokf` work
+    outside a repo checkout.
 
 ## Where next
 

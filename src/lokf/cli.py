@@ -1,11 +1,12 @@
 """The ``lokf`` command-line interface.
 
-Subcommands are registered in :data:`SUBCOMMANDS` (name -> parser
-configurator) so future commands slot in beside ``propose``::
+::
 
-    lokf propose examples/acme-knowledge              # dry-run table
-    lokf propose examples/acme-knowledge --json       # machine-readable
-    lokf propose examples/acme-knowledge --apply      # write frontmatter
+    lokf propose examples/acme-knowledge                 # dry-run table
+    lokf propose examples/acme-knowledge --json          # machine-readable
+    lokf propose examples/acme-knowledge --apply         # write frontmatter
+    lokf propose examples/acme-knowledge --json --apply  # write + JSON with
+                                                         # per-proposal "applied"
 """
 from __future__ import annotations
 
@@ -29,19 +30,25 @@ def cmd_propose(args: argparse.Namespace) -> int:
         for p in propose(bundle, vocabulary())
         if p.confidence >= args.min_confidence
     ]
+    applied: list = []
+    if args.apply:
+        applied = apply(proposals, min_confidence=args.min_confidence)
+    applied_ids = {id(p) for p in applied}
     if args.json:
-        rows = [
-            {
+        rows = []
+        for p in proposals:
+            row = {
                 "source": p.source.concept_id,
                 "link_text": p.link.text,
-                "target": bundle.iri(p.link.target),
+                "target": p.target_iri,
                 "predicate": p.relation.name,
                 "curie": p.relation.curie,
                 "confidence": round(p.confidence, 2),
                 "rationale": p.rationale,
             }
-            for p in proposals
-        ]
+            if args.apply:
+                row["applied"] = id(p) in applied_ids
+            rows.append(row)
         print(json.dumps(rows, indent=2))
         return 0
     if not proposals:
@@ -49,13 +56,9 @@ def cmd_propose(args: argparse.Namespace) -> int:
         return 0
     _print_table(proposals)
     if args.apply:
-        applied = apply(proposals, min_confidence=args.min_confidence)
         print()
         for p in applied:
-            print(
-                f"wrote {p.relation.name} -> {bundle.iri(p.link.target)} "
-                f"in {p.source.path}"
-            )
+            print(f"wrote {p.relation.name} -> {p.target_iri} in {p.source.path}")
         print(f"applied {len(applied)} of {len(proposals)} proposal(s).")
     return 0
 
@@ -88,7 +91,8 @@ def _add_propose(subparsers) -> None:
     p.add_argument(
         "--apply",
         action="store_true",
-        help="write accepted proposals into concept frontmatter",
+        help="write accepted proposals into concept frontmatter "
+        "(composes with --json)",
     )
     p.add_argument(
         "--min-confidence",
@@ -98,20 +102,19 @@ def _add_propose(subparsers) -> None:
         help="drop proposals below this confidence (default: 0.0)",
     )
     p.add_argument(
-        "--json", action="store_true", help="emit proposals as JSON instead of a table"
+        "--json",
+        action="store_true",
+        help="emit proposals as JSON instead of a table; with --apply, each "
+        'proposal object gains an "applied" flag',
     )
     p.set_defaults(func=cmd_propose)
-
-
-SUBCOMMANDS = {"propose": _add_propose}
 
 
 def main(argv: list[str] | None = None) -> int:
     """Entry point for the ``lokf`` console script."""
     parser = argparse.ArgumentParser(prog="lokf", description="LOKF toolkit CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for add in SUBCOMMANDS.values():
-        add(subparsers)
+    _add_propose(subparsers)  # re-add a registry when a second subcommand exists
     args = parser.parse_args(argv)
     return args.func(args)
 
