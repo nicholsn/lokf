@@ -150,5 +150,6 @@ its open terms.
 
 ## License
 
-CC-BY-4.0 — see [`LICENSE`](LICENSE). It's a spec + vocabulary; if you'd rather put
-the scripts under a code license, swap in MIT or Apache-2.0.
+CC-BY-4.0 — see [`LICENSE`](https://github.com/nicholsn/lokf/blob/main/LICENSE).
+It's a spec + vocabulary; if you'd rather put the scripts under a code license,
+swap in MIT or Apache-2.0.

@@ -3,10 +3,23 @@ name = "lokf"
 version = "0.1.0"
 description = "Linked Open Knowledge Format (LOKF) — a semantic profile of Google's Open Knowledge Format, defined once in LinkML"
 readme = "README.md"
-license = { text = "CC-BY-4.0" }
+license = "CC-BY-4.0"
+license-files = ["LICENSE"]
 authors = [{ name = "Nolan Nichols" }]
 requires-python = ">=3.11"
 keywords = ["linkml", "json-ld", "rdf", "knowledge-graph", "okf", "dcat", "prov", "sparql", "mcp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing :: Markup",
+]
 # Core toolkit: the `lokf` CLI, RDF conversion, the pyoxigraph store + SPARQL,
 # the local server, and the MCP server. Deliberately excludes linkml (heavy;
 # only the artifact regenerator needs it — see the `build` extra).
