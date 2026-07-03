@@ -48,6 +48,39 @@ def _prefix_header(prefixes: dict[str, str]) -> str:
     return "".join(f"PREFIX {p}: <{ns}>\n" for p, ns in prefixes.items())
 
 
+def _uses_service(sparql: str) -> bool:
+    """True if the query contains a SPARQL ``SERVICE`` (federation) clause.
+
+    Parsed via rdflib's algebra so a ``SERVICE`` inside a string literal does
+    not trip it. If rdflib cannot parse the query, returns False and lets the
+    engine reject it — this only gates the federation vector, not validity.
+    """
+    from rdflib.plugins.sparql import prepareQuery
+    from rdflib.plugins.sparql.parserutils import CompValue
+
+    try:
+        algebra = prepareQuery(sparql).algebra
+    except Exception:  # noqa: BLE001 — parse failures fall through to the engine
+        return False
+    found = []
+
+    def walk(node):
+        if isinstance(node, CompValue):
+            if node.name == "ServiceGraphPattern":
+                found.append(True)
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, (list, tuple, set)):
+            for v in node:
+                walk(v)
+        elif isinstance(node, dict):
+            for v in node.values():
+                walk(v)
+
+    walk(algebra)
+    return bool(found)
+
+
 class GraphStore:
     """An in-memory SPARQL store over a LOKF knowledge base.
 
@@ -89,8 +122,19 @@ class GraphStore:
 
         Returns pyoxigraph's native result: ``QuerySolutions`` (SELECT),
         ``QueryBoolean`` (ASK), or ``QueryTriples`` (CONSTRUCT/DESCRIBE).
+
+        Federated ``SERVICE`` queries are rejected: the engine would issue an
+        outbound request to a query-controlled host, which is an SSRF vector
+        for the local ``lokf serve`` endpoint. (``LOAD``/``INSERT``/``DELETE``
+        are already rejected by pyoxigraph's read-only ``query``.)
         """
-        return self.store.query(_prefix_header(self.prefixes) + sparql, **kw)
+        full = _prefix_header(self.prefixes) + sparql
+        if _uses_service(full):
+            raise ValueError(
+                "SPARQL SERVICE (federated query) is disabled: it would let a "
+                "query drive outbound network requests"
+            )
+        return self.store.query(full, **kw)
 
     def select(self, sparql: str, **kw) -> list[dict]:
         """Run a SELECT and return rows as ``{var: python value}`` dicts.

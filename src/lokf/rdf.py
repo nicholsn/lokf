@@ -43,6 +43,21 @@ def _rdflib_format(fmt: str) -> str:
     return FORMATS[key]
 
 
+def _strip_context(obj):
+    """Recursively drop any ``@context`` keys from concept data.
+
+    Concepts get their meaning from the trusted published context attached to
+    the wrapper; a concept that declares its own ``@context`` (e.g. a remote
+    IRI in attacker-supplied frontmatter) would otherwise make the JSON-LD
+    parser fetch that URL — an SSRF vector. Stripping it closes that.
+    """
+    if isinstance(obj, dict):
+        return {k: _strip_context(v) for k, v in obj.items() if k != "@context"}
+    if isinstance(obj, list):
+        return [_strip_context(v) for v in obj]
+    return obj
+
+
 def docs_to_graph(docs: list[dict], context: dict | None = None):
     """Parse a list of concept docs into one :class:`rdflib.Graph`.
 
@@ -55,7 +70,7 @@ def docs_to_graph(docs: list[dict], context: dict | None = None):
     ctx = context if context is not None else load_context()
     g = Graph()
     g.parse(
-        data=json.dumps({"@context": ctx, "@graph": docs}),
+        data=json.dumps({"@context": ctx, "@graph": [_strip_context(d) for d in docs]}),
         format="json-ld",
     )
     return g
