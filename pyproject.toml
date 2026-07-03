@@ -40,7 +40,7 @@ build = [
 ]
 
 [project.urls]
-Documentation = "https://www.nolan-nichols.com/lokf/"
+Documentation = "https://lokf.nolan-nichols.com/"
 Repository = "https://github.com/nicholsn/lokf"
 Issues = "https://github.com/nicholsn/lokf/issues"
 
