@@ -27,7 +27,9 @@ jobs:
           enable-cache: true
 
       - name: Build site (strict)
-        run: uv run --locked --group docs mkdocs build --strict
+        # --only-group: the docs build doesn't need the project or its runtime
+        # deps (mkdocstrings reads src/ statically) — 37 packages instead of 107
+        run: uv run --locked --only-group docs mkdocs build --strict
 
       - uses: actions/upload-pages-artifact@v3
         with:

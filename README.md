@@ -110,13 +110,14 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 import json, yaml
 from rdflib import Graph
 
-raw = open("metrics/weekly-active-users.md").read()
+# from the repository root
+raw = open("examples/acme-knowledge/metrics/weekly-active-users.md").read()
 _, fm, body = raw.split("---", 2)
 doc = yaml.safe_load(fm)
 doc["body"] = body.strip()
 doc["@context"] = json.load(open("lokf.context.jsonld"))["@context"]
 
-g = Graph().parse(data=json.dumps(doc), format="json-ld")
+g = Graph().parse(data=json.dumps(doc, default=lambda d: d.isoformat()), format="json-ld")
 print(g.serialize(format="turtle"))
 ```
 
