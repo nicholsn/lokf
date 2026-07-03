@@ -1,0 +1,121 @@
+site_name: LOKF — Linked Open Knowledge Format
+site_description: >-
+  A semantic profile of Google's Open Knowledge Format: write OKF markdown,
+  get a queryable knowledge graph for free.
+site_url: https://nicholsn.github.io/lokf/
+repo_url: https://github.com/nicholsn/lokf
+repo_name: nicholsn/lokf
+edit_uri: edit/main/docs/
+copyright: >-
+  CC-BY-4.0 · LOKF is a draft profile and is not affiliated with or endorsed by Google.
+
+theme:
+  name: material
+  icon:
+    logo: material/graph-outline
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - content.action.view
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: date
+      fallback_to_build_date: true
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_source: true
+            members_order: source
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nicholsn/lokf
+
+watch:
+  - src
+  - SPEC.md
+  - examples
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Guide:
+      - Bundles & concepts: guide/concepts.md
+      - Typed relationships: guide/relationships.md
+      - Type vocabulary: guide/types.md
+      - Markdown to RDF: guide/markdown-to-rdf.md
+      - Validation: guide/validation.md
+  - Example bundle: examples.md
+  - Specification: specification.md
+  - Reference:
+      - Generated artifacts: reference/artifacts.md
+      - Build API: reference/api.md

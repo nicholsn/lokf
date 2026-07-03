@@ -3,8 +3,10 @@
 (``lokf.yaml``), then assemble the reference bundle, validate it against the
 schema, and project it to RDF.
 
-    pip install linkml rdflib pyyaml
-    python scripts/build.py         # or: make
+Run from the repository root:
+
+    uv sync
+    uv run lokf-build               # or: just build
 
 Outputs (regenerated in place):
     lokf.context.jsonld   JSON-LD context (+ type->@type, id->@id aliases)
@@ -24,7 +26,7 @@ import pathlib
 import subprocess
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path.cwd()
 SCHEMA = ROOT / "lokf.yaml"
 EX = ROOT / "examples"
 BUNDLE_DIR = EX / "acme-knowledge"
@@ -129,6 +131,8 @@ def to_rdf(bundle: dict) -> None:
 
 
 def main() -> int:
+    if not SCHEMA.exists():
+        sys.exit("lokf-build must be run from the repository root (lokf.yaml not found)")
     generate()
     bundle = assemble()
     validate()

@@ -19,3 +19,6 @@ examples/*.bundle.yaml
 .DS_Store
 .fuse_hidden*
 *.swp
+
+# MkDocs build output
+site/

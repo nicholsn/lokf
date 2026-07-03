@@ -9,6 +9,8 @@ ontology are all generated from that single source.
 
 > One sentence: *write OKF markdown, get a queryable knowledge graph for free.*
 
+**Documentation:** <https://nicholsn.github.io/lokf/>
+
 ## Why
 
 OKF v0.1 is deliberately minimal — the only required field is `type`, links are
@@ -66,15 +68,13 @@ Everything downstream of `lokf.yaml` is generated. One command reproduces every
 artifact, re-assembles the reference bundle, re-validates it, and re-emits the RDF:
 
 ```bash
-pip install linkml rdflib pyyaml
-make            # == python scripts/build.py
+uv sync
+just build      # == uv run lokf-build
 ```
 
 Or run the individual generators by hand:
 
 ```bash
-pip install linkml
-
 # JSON-LD context (then alias type->@type, id->@id for authoring — see below)
 gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
 gen-json-schema     lokf.yaml > lokf.schema.json
