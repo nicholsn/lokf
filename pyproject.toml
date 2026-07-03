@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://nicholsn.github.io/lokf/"
+Documentation = "https://www.nolan-nichols.com/lokf/"
 Repository = "https://github.com/nicholsn/lokf"
 Issues = "https://github.com/nicholsn/lokf/issues"
 
