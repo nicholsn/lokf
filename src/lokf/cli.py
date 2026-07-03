@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
 from typing import Optional
@@ -24,12 +23,6 @@ app = typer.Typer(
     "linked-open knowledge bundles.",
     no_args_is_help=True,
     add_completion=False,
-)
-
-# The SPARQL query form, ignoring any leading PREFIX/BASE declarations.
-_QUERY_FORM = re.compile(
-    r"^\s*(?:(?:prefix|base)\b[^\n]*\n\s*)*\s*(select|ask|construct|describe)\b",
-    re.IGNORECASE,
 )
 
 
@@ -60,6 +53,9 @@ def convert(
     except ValueError as exc:
         _err(str(exc))
         raise typer.Exit(2)
+    except OSError as exc:
+        _err(f"could not read {source}: {exc}")
+        raise typer.Exit(1)
     if output is not None:
         output.write_text(data, encoding="utf-8")
         typer.echo(f"wrote {output}")
@@ -81,11 +77,10 @@ def query(
     ),
 ) -> None:
     """Run SPARQL over a knowledge base loaded into an in-memory store."""
-    from lokf.store import GraphStore
+    from lokf.store import GraphStore, query_form
 
     store = GraphStore.from_bundle(source)
-    match = _QUERY_FORM.match(sparql)
-    form = match.group(1).lower() if match else "select"
+    form = query_form(sparql)
     try:
         if form in ("construct", "describe"):
             fmt = "ttl" if format == "table" else format
@@ -289,11 +284,17 @@ def mcp() -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Programmatic entry point (tests use ``typer.testing.CliRunner``)."""
+    """Programmatic entry point (tests use ``typer.testing.CliRunner``).
+
+    Runs the app in standalone mode so Typer converts ``typer.Exit`` and
+    argument errors into ``SystemExit`` (with a printed message); the code is
+    returned here so ``python -m lokf.cli`` and ``sys.exit(main())`` report
+    failures correctly instead of always exiting 0.
+    """
     try:
-        app(args=argv, standalone_mode=False)
+        app(args=argv, standalone_mode=True)
         return 0
-    except SystemExit as exc:  # raised by typer.Exit
+    except SystemExit as exc:
         return int(exc.code or 0)
 
 

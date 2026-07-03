@@ -22,6 +22,11 @@ query BUNDLE SPARQL:
 serve BUNDLE:
     uv run lokf serve {{BUNDLE}}
 
+# Sync the vendored cytoscape.js: the package copy is canonical; the docs
+# site copies from it (a test guards the two against drift).
+sync-cytoscape:
+    cp src/lokf/static/cytoscape.min.js docs/assets/js/cytoscape.min.js
+
 # Run the test suite
 test:
     uv run --group dev pytest

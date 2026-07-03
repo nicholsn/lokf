@@ -12,6 +12,7 @@ SPARQL over it — the knowledge-retrieval layer of the toolkit.
 from __future__ import annotations
 
 import pathlib
+import re
 
 import pyoxigraph as ox
 
@@ -24,6 +25,23 @@ _RESULT_FORMATS = {
     "csv": ox.QueryResultsFormat.CSV,
     "tsv": ox.QueryResultsFormat.TSV,
 }
+
+# The query form, skipping any leading comments and PREFIX/BASE declarations.
+_QUERY_FORM = re.compile(
+    r"^(?:\s*(?:#[^\n]*|(?:prefix|base)\b[^\n]*)\n)*\s*(select|ask|construct|describe)\b",
+    re.IGNORECASE,
+)
+
+
+def query_form(sparql: str) -> str:
+    """The SPARQL query form: 'select', 'ask', 'construct', or 'describe'.
+
+    Leading comments and PREFIX/BASE lines are skipped. Defaults to 'select'
+    when no form keyword is found. Shared by the CLI, server, and MCP so all
+    three classify a query identically.
+    """
+    m = _QUERY_FORM.match(sparql)
+    return m.group(1).lower() if m else "select"
 
 
 def _prefix_header(prefixes: dict[str, str]) -> str:
@@ -77,19 +95,20 @@ class GraphStore:
     def select(self, sparql: str, **kw) -> list[dict]:
         """Run a SELECT and return rows as ``{var: python value}`` dicts.
 
-        Each binding is reduced to its lexical value (IRIs and literals become
-        strings); unbound variables are omitted from a row.
+        Every selected variable is a key in every row (``None`` when unbound),
+        so the column set is complete even when a variable is unbound in all
+        rows; bound bindings are reduced to their lexical value.
         """
         result = self.query(sparql, **kw)
-        variables = [str(v)[1:] for v in result.variables]  # strip leading '?'
+        variables = [v.value for v in result.variables]
         rows = []
         for solution in result:
-            row = {}
-            for var in variables:
-                term = solution[var]
-                if term is not None:
-                    row[var] = term.value
-            rows.append(row)
+            rows.append(
+                {
+                    var: (solution[var].value if solution[var] is not None else None)
+                    for var in variables
+                }
+            )
         return rows
 
     def ask(self, sparql: str, **kw) -> bool:

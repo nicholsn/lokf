@@ -31,15 +31,15 @@ def test_select_returns_dict_rows_with_lexical_values():
     assert isinstance(rows[0]["name"], str)
 
 
-def test_select_omits_unbound_variables():
-    """A variable left unbound by OPTIONAL is absent from the row, not None."""
+def test_select_keeps_unbound_variables_as_none():
+    """Every selected variable is a column; an unbound one is present as None,
+    so a variable unbound in all rows is never silently dropped."""
     rows = _store().select(
         "SELECT ?name ?missing WHERE { "
         "?m a lokf:Metric ; schema:name ?name . "
         "OPTIONAL { ?m lokf:nonexistentSlot ?missing } }"
     )
-    assert rows == [{"name": "Weekly Active Users"}]
-    assert "missing" not in rows[0]
+    assert rows == [{"name": "Weekly Active Users", "missing": None}]
 
 
 def test_ask_true_and_false():
