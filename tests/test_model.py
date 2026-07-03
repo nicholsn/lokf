@@ -48,6 +48,14 @@ def test_graph_matches_committed_projection(bundle):
     assert "http://purl.org/dc/terms/requires" in preds
 
 
+def test_to_jsonld_injects_id_and_context(bundle):
+    docs = bundle.to_jsonld()
+    assert len(docs) == 6
+    for doc in docs:
+        assert "@context" in doc
+        assert doc["id"].startswith("https://acme.example/knowledge/")
+
+
 def test_concept_body_and_title(bundle):
     term = bundle.get("glossary/active-user")
     assert term.title == "Active User"

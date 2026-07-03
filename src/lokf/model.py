@@ -76,19 +76,19 @@ class Bundle:
         """Look up a concept by IRI, Concept ID, or bundle-relative path."""
         return self.by_iri().get(self.resolve(ref.removesuffix(".md")))
 
-    def _docs(self) -> list[dict]:
+    def docs(self) -> list[dict]:
         """Each concept's frontmatter with its IRI injected as ``id``."""
-        docs = []
+        out = []
         for c in self.concepts:
             doc = dict(c.data)
             doc.setdefault("id", self.iri(c))
-            docs.append(doc)
-        return docs
+            out.append(doc)
+        return out
 
     def to_jsonld(self, context: dict | None = None) -> list[dict]:
         """Each concept's frontmatter as a JSON-LD document (context attached)."""
         ctx = context if context is not None else load_context()
-        return [{**doc, "@context": ctx} for doc in self._docs()]
+        return [{**doc, "@context": ctx} for doc in self.docs()]
 
     def graph(self, context: dict | None = None):
         """The whole bundle as one :class:`rdflib.Graph`.
@@ -101,7 +101,7 @@ class Bundle:
         ctx = context if context is not None else load_context()
         g = Graph()
         g.parse(
-            data=json.dumps({"@context": ctx, "@graph": self._docs()}),
+            data=json.dumps({"@context": ctx, "@graph": self.docs()}),
             format="json-ld",
         )
         return g

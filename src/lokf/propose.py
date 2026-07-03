@@ -118,7 +118,8 @@ def _blank(line: str) -> str:
 
 def _sentence_at(text: str, pos: int) -> str:
     """The prose sentence (link markup flattened) around offset ``pos``."""
-    para_start = text.rfind("\n\n", 0, pos) + 2 if "\n\n" in text[:pos] else 0
+    prev_break = text.rfind("\n\n", 0, pos)
+    para_start = prev_break + 2 if prev_break != -1 else 0
     para_end = text.find("\n\n", pos)
     para_end = len(text) if para_end == -1 else para_end
     start, end = para_start, para_end
