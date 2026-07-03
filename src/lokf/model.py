@@ -66,32 +66,44 @@ class Bundle:
         """A concept's IRI: explicit ``id`` or ``base_iri`` + Concept ID."""
         return concept.data.get("id") or self.resolve(concept.concept_id)
 
+    def by_iri(self) -> dict[str, Concept]:
+        """IRI -> Concept index (built once, cached)."""
+        if not hasattr(self, "_by_iri"):
+            self._by_iri = {self.iri(c): c for c in self.concepts}
+        return self._by_iri
+
     def get(self, ref: str) -> Concept | None:
         """Look up a concept by IRI, Concept ID, or bundle-relative path."""
-        target = self.resolve(ref.removesuffix(".md"))
-        for c in self.concepts:
-            if self.iri(c) == target:
-                return c
-        return None
+        return self.by_iri().get(self.resolve(ref.removesuffix(".md")))
 
-    def to_jsonld(self, context: dict | None = None) -> list[dict]:
-        """Each concept's frontmatter as a JSON-LD document (context attached)."""
-        ctx = context if context is not None else load_context()
+    def _docs(self) -> list[dict]:
+        """Each concept's frontmatter with its IRI injected as ``id``."""
         docs = []
         for c in self.concepts:
             doc = dict(c.data)
             doc.setdefault("id", self.iri(c))
-            doc["@context"] = ctx
             docs.append(doc)
         return docs
 
+    def to_jsonld(self, context: dict | None = None) -> list[dict]:
+        """Each concept's frontmatter as a JSON-LD document (context attached)."""
+        ctx = context if context is not None else load_context()
+        return [{**doc, "@context": ctx} for doc in self._docs()]
+
     def graph(self, context: dict | None = None):
-        """The whole bundle as one :class:`rdflib.Graph`."""
+        """The whole bundle as one :class:`rdflib.Graph`.
+
+        All concepts are parsed in a single pass (one ``@graph`` document) so
+        the JSON-LD context is compiled once, not once per concept.
+        """
         from rdflib import Graph
 
+        ctx = context if context is not None else load_context()
         g = Graph()
-        for doc in self.to_jsonld(context):
-            g.parse(data=json.dumps(doc), format="json-ld")
+        g.parse(
+            data=json.dumps({"@context": ctx, "@graph": self._docs()}),
+            format="json-ld",
+        )
         return g
 
 

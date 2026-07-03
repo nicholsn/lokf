@@ -18,7 +18,6 @@ Outputs (regenerated in place):
     examples/weekly-active-users.nt       RDF triples for one concept
 """
 from __future__ import annotations
-import glob
 import json
 import os
 import pathlib
@@ -26,7 +25,7 @@ import shutil
 import subprocess
 import sys
 
-from lokf.parse import isoify, parse_concept
+from lokf.model import load_bundle
 
 
 def _find_root() -> pathlib.Path:
@@ -83,26 +82,28 @@ def generate(root: pathlib.Path) -> None:
         pass
 
     # Refresh the copies packaged with the lokf toolkit so an installed wheel
-    # is self-sufficient (see lokf.schema's resolution order).
-    data = root / "src" / "lokf" / "data"
-    data.mkdir(parents=True, exist_ok=True)
-    shutil.copy(root / "lokf.yaml", data / "lokf.yaml")
-    shutil.copy(root / "lokf.context.jsonld", data / "lokf.context.jsonld")
-    print("  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl "
-          "(+ src/lokf/data copies)")
+    # is self-sufficient (see lokf.schema's resolution order). Only when run
+    # inside the lokf repo itself: a downstream knowledge repo that satisfies
+    # _find_root must not have a src/lokf/ tree planted in it.
+    outputs = "  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl"
+    if (root / "src" / "lokf" / "__init__.py").exists():
+        data = root / "src" / "lokf" / "data"
+        data.mkdir(parents=True, exist_ok=True)
+        shutil.copy(root / "lokf.yaml", data / "lokf.yaml")
+        shutil.copy(root / "lokf.context.jsonld", data / "lokf.context.jsonld")
+        outputs += " (+ src/lokf/data copies)"
+    print(outputs)
 
 
 def assemble(root: pathlib.Path) -> dict:
     """Assemble all concept files (+ root index.md metadata) into one bundle."""
-    import yaml
-    bundle_dir = root / "examples" / "acme-knowledge"
-    idx = open(bundle_dir / "index.md", encoding="utf-8").read().split("---", 2)
-    bundle = isoify(yaml.safe_load(idx[1]))
-    concepts = [
-        parse_concept(p)
-        for p in sorted(glob.glob(str(bundle_dir / "**" / "*.md"), recursive=True))
-        if os.path.basename(p) not in ("index.md", "log.md")
-    ]
+    b = load_bundle(root / "examples" / "acme-knowledge")
+    bundle = dict(b.meta)
+    concepts = []
+    for c in b.concepts:
+        doc = dict(c.data)
+        doc.setdefault("id", b.iri(c))  # no-op where frontmatter has explicit id
+        concepts.append(doc)
     bundle["concepts"] = concepts
     json.dump(bundle, open(root / "examples" / "acme-knowledge.bundle.json", "w"), indent=2)
     print(f"== assembled bundle: {len(concepts)} concepts "
@@ -123,11 +124,14 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
     ex = root / "examples"
     ctx = json.load(open(root / "lokf.context.jsonld"))["@context"]
 
+    # Same single-parse projection as lokf.model.Bundle.graph(): the
+    # assembled concepts already carry injected ids, so one @graph document
+    # (context compiled once) covers the whole bundle.
     whole = Graph()
-    for c in bundle["concepts"]:
-        doc = dict(c)
-        doc["@context"] = ctx
-        whole.parse(data=json.dumps(doc), format="json-ld")
+    whole.parse(
+        data=json.dumps({"@context": ctx, "@graph": bundle["concepts"]}),
+        format="json-ld",
+    )
     whole.serialize(destination=str(ex / "acme-knowledge.nt"), format="nt")
 
     metric = next(c for c in bundle["concepts"] if c["type"] == "Metric")

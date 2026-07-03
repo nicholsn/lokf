@@ -115,8 +115,10 @@ session window.
 ## 3. Validate
 
 The JSON Schema validates *documents*, so there is one assembly step: fold
-the concepts (plus their resolved `id`s) into a single `KnowledgeBundle`
-JSON, exactly as `lokf-build` does for the reference bundle.
+the concepts into a single `KnowledgeBundle` JSON, injecting each concept's
+`id` where it is missing (a `setdefault`, resolved from `base_iri` + Concept
+ID — explicit `id`s are kept), exactly as `lokf-build` does for the
+reference bundle.
 
 === "Whole bundle"
 

@@ -1,7 +1,12 @@
 """Vocabulary derivation from lokf.yaml."""
+import pathlib
+
 import pytest
+import yaml
 
 from lokf.schema import load_context, load_schema, vocabulary
+
+ROOT = pathlib.Path(__file__).parent.parent
 
 
 @pytest.fixture(scope="module")
@@ -50,3 +55,33 @@ def test_context_has_authoring_aliases():
 def test_schema_loads():
     schema = load_schema()
     assert schema["name"] == "lokf" or "lokf" in schema.get("id", "")
+
+
+def test_subclasses_of_is_inclusive(vocab):
+    assert vocab.subclasses_of("Dataset") == {"Dataset", "Table"}
+
+
+def test_packaged_data_matches_root_files():
+    """Drift guard: lokf-build must keep the packaged copies byte-identical."""
+    for name in ("lokf.yaml", "lokf.context.jsonld"):
+        packaged = ROOT / "src" / "lokf" / "data" / name
+        assert packaged.read_bytes() == (ROOT / name).read_bytes(), (
+            f"src/lokf/data/{name} is out of sync with the repo-root {name}; "
+            "run lokf-build"
+        )
+
+
+def test_load_schema_resolves_root_checkout():
+    # Run from inside the repo, the no-arg load resolves the checkout's root
+    # lokf.yaml (ancestors-first), matching an explicitly-pathed load.
+    assert load_schema() == load_schema(ROOT / "lokf.yaml")
+
+
+def test_ancestor_schema_wins_over_packaged(tmp_path, monkeypatch):
+    # A locally edited lokf.yaml in an ancestor of cwd must beat the copy
+    # packaged under lokf/data/ (resolution order: ancestors first).
+    doctored = yaml.safe_load((ROOT / "lokf.yaml").read_text(encoding="utf-8"))
+    doctored["name"] = "lokf-local-edit"
+    (tmp_path / "lokf.yaml").write_text(yaml.safe_dump(doctored), encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    assert load_schema()["name"] == "lokf-local-edit"

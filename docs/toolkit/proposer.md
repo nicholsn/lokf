@@ -12,6 +12,7 @@ uv run lokf propose mykb/                    # dry-run: table of proposals
 uv run lokf propose mykb/ --json             # same list, machine-readable
 uv run lokf propose mykb/ --min-confidence 0.5   # drop the weak ones
 uv run lokf propose mykb/ --apply --min-confidence 0.5   # write frontmatter
+uv run lokf propose mykb/ --json --apply     # apply + JSON report of what was written
 ```
 
 Or from Python:
@@ -53,8 +54,10 @@ matched against a priority-ordered table of cue patterns: wording like
 *derived / computed / built from* points at `derivedFrom`
 (`prov:wasDerivedFrom`), *depends / requires / needs* at `dependsOn`
 (`dcterms:requires`), *measures / counts* at `measures`, *part of / within*
-at `isPartOf`, *same as / alias* at `sameAs`, and so on across the
-[relation vocabulary](../guide/relationships.md). The first row that matches
+at `isPartOf`, *same as / alias* at `sameAs`, *attributed to / authored by*
+at `wasAttributedTo`, *joins with / joined on* at `joinsWith`, and so on
+across the [relation vocabulary](../guide/relationships.md). The first row
+that matches
 (and whose relation the source's type may carry) wins. A link whose sentence
 matches no cue at all falls back to a low-confidence `relatedTo` — the
 weakest, most honest claim available.
@@ -119,8 +122,19 @@ untouched. Where a proposal lands depends on the relation:
       target: https://acme.example/knowledge/tables/customers
   ```
 
-Both forms project to identical RDF, so nothing downstream cares which one a
-proposal used.
+The two forms do **not** project to identical RDF. A named slot becomes a
+direct triple with its bound predicate
+(`<metric> prov:wasDerivedFrom <dataset>`); a `relations:` entry projects as
+a [reified statement](../guide/relationships.md#custom-predicates-relations)
+— an `rdf:Statement` node reached via `lokf:relations` that carries the
+predicate and target — not a direct triple. The
+[knowledge-graph page](../graph.md) flattens reified entries back into
+labeled edges for display, so both forms look the same in the picture, but
+SPARQL over `bundle.graph()` sees the difference.
+
+`--json` composes with `--apply`: the proposals are still written, and the
+JSON output reports the outcome — every proposal that was written gains
+`"applied": true`.
 
 ## Honest limits
 

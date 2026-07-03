@@ -4,9 +4,9 @@ Every edge below is an **RDF predicate** drawn from a concept's typed
 frontmatter relations — labels like `prov:wasDerivedFrom`, `dcterms:requires`,
 or `lokf:measures` (compacted through the LOKF
 [vocabulary](guide/relationships.md)). Plain markdown links in a concept's
-*body* are **not** edges: only the typed relations that project to RDF triples
-appear here, so this graph is exactly the concept-to-concept subset of the
-[bundle's RDF projection](examples.md).
+*body* are **not** edges. Named typed relations appear exactly as in the
+[bundle's RDF projection](examples.md); reified `relations:` entries are
+flattened to labeled edges for display (in RDF they are reified statements).
 
 The data is the [Acme knowledge bundle](examples.md) — six concepts, eight
 typed relations. Search dims non-matching nodes; the filters toggle node types
@@ -100,27 +100,74 @@ and predicates; click a node for its details.
 }
 </style>
 
-<script src="../assets/js/cytoscape.min.js"></script>
 <script>
 (function () {
-  var mount = document.getElementById("lokf-cy");
-  if (!mount || typeof cytoscape === "undefined") { return; }
+  // Material's navigation.instant swaps page content and re-executes these
+  // scripts without waiting for external <script src> tags, so the vendored
+  // cytoscape build is loaded on demand behind a shared promise, and init is
+  // driven off document$ (re-emitted on every SPA navigation) when available.
+  var CY_SRC = "../assets/js/cytoscape.min.js";
+  var DATA_SRC = "../assets/graph.json";
   // Small type -> color palette; nodes without a known type fall through.
   var PALETTE = [
     "#5b8def", "#e8833a", "#2ea77d", "#c1558b",
     "#9b6dd6", "#d2b13a", "#4bacc6", "#d05b5b"
   ];
-  var SRC_BASE =
-    "https://github.com/nicholsn/lokf/tree/main/examples/acme-knowledge/";
 
-  fetch("../assets/graph.json")
-    .then(function (r) { return r.json(); })
-    .then(function (graph) { render(graph); })
-    .catch(function (e) {
-      mount.textContent = "Could not load graph data: " + e;
+  function ensureCytoscape() {
+    if (window.cytoscape) { return Promise.resolve(); }
+    if (!window.__lokfCyLoad) {
+      window.__lokfCyLoad = new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = CY_SRC;
+        s.onload = function () { resolve(); };
+        s.onerror = function () {
+          window.__lokfCyLoad = null;
+          reject(new Error("could not load " + CY_SRC));
+        };
+        document.head.appendChild(s);
+      });
+    }
+    return window.__lokfCyLoad;
+  }
+
+  function boot() {
+    var mount = document.getElementById("lokf-cy");
+    if (!mount || mount.dataset.lokfInit) { return; }
+    mount.dataset.lokfInit = "1";
+    Promise.all([
+      ensureCytoscape(),
+      fetch(DATA_SRC).then(function (r) {
+        if (!r.ok) { throw new Error(r.status + " " + r.statusText); }
+        return r.json();
+      })
+    ]).then(function (results) {
+      if (!mount.isConnected) { return; }  // page swapped away while loading
+      if (window.__lokfCy) {
+        try { window.__lokfCy.destroy(); } catch (e) { /* already gone */ }
+        window.__lokfCy = null;
+      }
+      window.__lokfCy = render(mount, results[1]);
+    }).catch(function (e) {
+      mount.textContent = "Could not load graph: " + (e.message || e);
     });
+  }
 
-  function render(graph) {
+  // Subscribe to document$ exactly once (this script re-runs per instant-nav
+  // visit); on themes without it, fall back to plain page-load events. All
+  // other listeners live on elements inside the swapped content (or on the
+  // cy instance we destroy), so they die with the old page.
+  if (window.document$ && typeof window.document$.subscribe === "function") {
+    if (!window.__lokfGraphSub) {
+      window.__lokfGraphSub = window.document$.subscribe(boot);
+    }
+  } else if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+
+  function render(mount, graph) {
     var types = [];
     graph.nodes.forEach(function (n) {
       if (types.indexOf(n.data.type) === -1) { types.push(n.data.type); }
@@ -155,7 +202,7 @@ and predicates; click a node for its details.
 
     var cy = cytoscape({
       container: mount,
-      elements: graph,
+      elements: { nodes: graph.nodes, edges: graph.edges },
       layout: { name: "cose", padding: 30, animate: false,
                 nodeRepulsion: 9000, idealEdgeLength: 130 },
       style: [
@@ -193,7 +240,8 @@ and predicates; click a node for its details.
     buildTypeFilter(cy, types, colorOf);
     buildPredicateFilter(cy, predicates);
     wireSearch(cy);
-    wireDetail(cy);
+    wireDetail(cy, graph.meta);
+    return cy;
   }
 
   function buildTypeFilter(cy, types, colorOf) {
@@ -262,7 +310,8 @@ and predicates; click a node for its details.
     });
   }
 
-  function wireDetail(cy) {
+  function wireDetail(cy, meta) {
+    var srcBase = meta && meta.source_base;
     var panel = document.getElementById("lokf-detail");
     var close = document.getElementById("lokf-detail-close");
     cy.on("tap", "node", function (evt) {
@@ -272,7 +321,12 @@ and predicates; click a node for its details.
       document.getElementById("lokf-detail-iri").textContent = d.id;
       document.getElementById("lokf-detail-cid").textContent = d.concept_id;
       var src = document.getElementById("lokf-detail-src");
-      src.href = SRC_BASE + d.concept_id + ".md";
+      if (srcBase) {
+        src.href = srcBase + d.concept_id + ".md";
+        src.hidden = false;
+      } else {
+        src.hidden = true;  // no repo_url configured: nothing to link to
+      }
       panel.hidden = false;
     });
     cy.on("tap", function (evt) {

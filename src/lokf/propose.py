@@ -17,8 +17,17 @@ from dataclasses import dataclass
 from lokf.model import Bundle, Concept
 from lokf.schema import Relation, Vocabulary, vocabulary
 
-# Markdown inline link [text](target); the lookbehind skips images.
-_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)\s]+)\)")
+# Markdown inline link [text](target); the lookbehind skips images. The
+# target is either angle-bracketed (group 2, may contain spaces) or bare
+# (group 3); an optional quoted title after the target is matched but
+# excluded — use _link_target() to read the target.
+_LINK_RE = re.compile(
+    r"(?<!!)\[([^\]]+)\]"  # [text]
+    r"\(\s*"
+    r"(?:<([^<>\n]*)>|([^)\s]+))"  # <target> | target
+    r"(?:\s+(?:\"[^\"]*\"|'[^']*'))?"  # optional "Title" / 'Title'
+    r"\s*\)"
+)
 _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 _INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
 
@@ -36,12 +45,21 @@ CUE_TABLE: tuple[tuple[re.Pattern, str, float], ...] = tuple(
         (r"\bdepends?\b|\brequires?\b|\bneeds?\b", "dependsOn", 0.7),
         (r"\bdefined by\b|\bdefinitions?\b", "definedBy", 0.7),
         (r"\bmeasures?\b|\bcounts?\b", "measures", 0.7),
+        (r"\bjoins? with\b|\bjoined (?:on|with)\b", "joinsWith", 0.7),
+        (
+            r"\battributed to\b|\bauthored by\b|\bwritten by\b|\bmaintained by\b",
+            "wasAttributedTo",
+            0.7,
+        ),
         (r"\babout\b|\bcovers?\b|\bdescribes?\b", "about", 0.6),
-        (r"\bsee\b|\brefer(?:s|ence)?\b|\bsee also\b|\bused by\b", "references", 0.55),
+        (r"\bsee\b|\brefer(?:s|ence)?\b|\bused by\b", "references", 0.55),
         (r"\bsource\b|\bfrom\b", "source", 0.5),
     )
 )
 _FALLBACK = ("relatedTo", 0.25)
+# RelationType names deliberately absent from CUE_TABLE: relatedTo is the
+# _FALLBACK when no cue matches, so a cue row for it would be redundant.
+UNCUED: frozenset[str] = frozenset({"relatedTo"})
 _ADJACENCY_BOOST = 0.15
 _ADJACENCY_GAP = 24  # max chars between cue and link text to count as adjacent
 _CONFIDENCE_CAP = 0.95
@@ -66,6 +84,13 @@ class Proposal:
     relation: Relation
     confidence: float
     rationale: str
+    target_iri: str  # resolved at propose() time; apply() writes exactly this
+
+
+def _link_target(m: re.Match) -> str:
+    """The target of a :data:`_LINK_RE` match (angle-bracketed or bare)."""
+    target = m.group(2)
+    return m.group(3) if target is None else target
 
 
 def _mask_code(text: str) -> str:
@@ -127,8 +152,8 @@ def extract_links(concept: Concept, bundle: Bundle) -> list[Link]:
     return [
         Link(
             text=m.group(1),
-            target_raw=m.group(2),
-            target=_resolve_target(concept, bundle, m.group(2)),
+            target_raw=_link_target(m),
+            target=_resolve_target(concept, bundle, _link_target(m)),
             sentence=_sentence_at(masked, m.start()),
         )
         for m in _LINK_RE.finditer(masked)
@@ -170,7 +195,9 @@ def _adjacent(sentence: str, link_text: str, cue: re.Match) -> bool:
     )
 
 
-def _classify(source: Concept, link: Link, vocab: Vocabulary) -> Proposal | None:
+def _classify(
+    source: Concept, link: Link, vocab: Vocabulary, target_iri: str
+) -> Proposal | None:
     """Pick a relation for one link from the cue table (fallback: relatedTo)."""
     for pattern, name, confidence in CUE_TABLE:
         relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
@@ -189,6 +216,7 @@ def _classify(source: Concept, link: Link, vocab: Vocabulary) -> Proposal | None
             ),
             rationale=f'cue "{match.group(0).lower()}" '
             + ("adjacent to link" if boosted else "in sentence"),
+            target_iri=target_iri,
         )
     name, confidence = _FALLBACK
     relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
@@ -200,6 +228,7 @@ def _classify(source: Concept, link: Link, vocab: Vocabulary) -> Proposal | None
         relation=relation,
         confidence=confidence,
         rationale="no cue phrase matched",
+        target_iri=target_iri,
     )
 
 
@@ -214,37 +243,15 @@ def propose(
     for source in [concept] if concept is not None else bundle.concepts:
         asserted = _asserted_iris(source, bundle, vocab)
         for link in extract_links(source, bundle):
-            if link.target is None or bundle.iri(link.target) in asserted:
+            if link.target is None:
                 continue
-            proposal = _classify(source, link, vocab)
+            target_iri = bundle.iri(link.target)
+            if target_iri in asserted:
+                continue
+            proposal = _classify(source, link, vocab, target_iri)
             if proposal is not None:
                 proposals.append(proposal)
     return proposals
-
-
-def _bundle_base_iri(concept: Concept) -> str:
-    """Recover the bundle's base IRI from the concept's file location."""
-    import yaml
-
-    root = concept.path
-    for _ in pathlib.PurePosixPath(concept.concept_id + ".md").parts:
-        root = root.parent
-    index = root / "index.md"
-    if not index.exists():
-        return ""
-    raw = index.read_text(encoding="utf-8")
-    if not raw.startswith("---"):
-        return ""
-    meta = yaml.safe_load(raw.split("---", 2)[1]) or {}
-    return meta.get("base_iri", "")
-
-
-def _target_iri(proposal: Proposal) -> str:
-    """The IRI of a proposal's link target."""
-    target = proposal.link.target
-    return target.data.get("id") or (
-        _bundle_base_iri(proposal.source) + target.concept_id
-    )
 
 
 def _rt_yaml():
@@ -263,8 +270,12 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
     Slot relations append the target IRI under the slot key; non-slot
     relations append ``{predicate, target}`` to ``relations``. Files are
     edited with round-trip YAML so comments, key order, and quoting survive;
-    duplicates are never written and body text is untouched.
+    duplicates are never written, and everything outside the frontmatter
+    block (any preamble before the first ``---`` and the whole body after
+    the second) is preserved byte-for-byte.
     """
+    from ruamel.yaml.comments import CommentedMap
+
     by_path: dict[pathlib.Path, list[Proposal]] = {}
     for p in proposals:
         if p.confidence >= min_confidence:
@@ -273,11 +284,14 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
     applied = []
     for path, batch in by_path.items():
         raw = path.read_text(encoding="utf-8")
-        _, front, body = raw.split("---", 2)
+        prefix, _, rest = raw.partition("---")
+        front, _, remainder = rest.partition("---")
         fm = yaml_rt.load(front)
+        if fm is None:  # empty frontmatter block
+            fm = CommentedMap()
         changed = False
         for p in batch:
-            iri = _target_iri(p)
+            iri = p.target_iri
             if p.relation.is_slot:
                 values = fm.setdefault(p.relation.name, [])
                 if not isinstance(values, list):
@@ -301,5 +315,8 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
         if changed:
             buf = io.StringIO()
             yaml_rt.dump(fm, buf)
-            path.write_text("---\n" + buf.getvalue() + "---" + body, encoding="utf-8")
+            path.write_text(
+                prefix + "---\n" + buf.getvalue() + "---" + remainder,
+                encoding="utf-8",
+            )
     return applied
