@@ -1,0 +1,2894 @@
+{
+    "$defs": {
+        "Agent": {
+            "additionalProperties": false,
+            "description": "A person or organization responsible for a concept.",
+            "properties": {
+                "email": {
+                    "description": "Contact email address.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "A name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Agent"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ],
+            "title": "Agent",
+            "type": "object"
+        },
+        "Citation": {
+            "additionalProperties": false,
+            "description": "A reference to an external source supporting a claim in a concept's body. Attached via the schema:citation predicate.",
+            "properties": {
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "url": {
+                    "description": "A URL.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Citation",
+            "type": "object"
+        },
+        "Concept": {
+            "additionalProperties": false,
+            "description": "A single unit of knowledge within a bundle, represented as one markdown document. The abstract base of every LOKF type. Its own IRI (`id`) is the RDF subject; the markdown body and typed relations become triples about that subject.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Concept"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Concept",
+            "type": "object"
+        },
+        "Dataset": {
+            "additionalProperties": false,
+            "description": "A collection of data, published or curated for access and reuse.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "distribution": {
+                    "description": "Accessible forms of the dataset.",
+                    "items": {
+                        "$ref": "#/$defs/Distribution"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "fields": {
+                    "description": "The columns / properties that make up a dataset's schema.",
+                    "items": {
+                        "$ref": "#/$defs/Field"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Dataset"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Dataset",
+            "type": "object"
+        },
+        "Distribution": {
+            "additionalProperties": false,
+            "description": "A specific accessible form of a Dataset (a file, feed, or endpoint). Maps to dcat:Distribution.",
+            "properties": {
+                "access_url": {
+                    "description": "A URL that gives access to a distribution.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "media_type": {
+                    "description": "The media (MIME) type of a distribution.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "description": "A name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Distribution",
+            "type": "object"
+        },
+        "Document": {
+            "additionalProperties": false,
+            "description": "A general knowledge document that does not fit a more specific type.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Document"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Document",
+            "type": "object"
+        },
+        "Field": {
+            "additionalProperties": false,
+            "description": "A single column / property within a Table or Dataset schema. Maps to schema:PropertyValue.",
+            "properties": {
+                "constraints": {
+                    "description": "Free-text or expression describing constraints on a field.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "datatype": {
+                    "$ref": "#/$defs/FieldType",
+                    "description": "The data type of a field."
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "is_key": {
+                    "description": "Whether the field is (part of) the primary key.",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "description": "A name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "unit": {
+                    "description": "The unit of measurement (e.g. USD, seconds, count).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Field",
+            "type": "object"
+        },
+        "FieldType": {
+            "description": "Datatypes for dataset/table fields, each mapped to its XSD (or RDF) type.",
+            "enum": [
+                "string",
+                "integer",
+                "number",
+                "boolean",
+                "date",
+                "datetime",
+                "time",
+                "uri",
+                "json"
+            ],
+            "title": "FieldType",
+            "type": "string"
+        },
+        "GlossaryTerm": {
+            "additionalProperties": false,
+            "description": "A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept.",
+            "properties": {
+                "abbreviation": {
+                    "description": "A short form or acronym for a term.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "definition": {
+                    "description": "The formal definition of a term.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "GlossaryTerm"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "GlossaryTerm",
+            "type": "object"
+        },
+        "KnowledgeBundle": {
+            "additionalProperties": false,
+            "description": "A self-contained, hierarchical collection of concept documents \u2014 the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass).",
+            "properties": {
+                "base_iri": {
+                    "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`.",
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "concepts": {
+                    "description": "The concepts contained in a bundle.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Dataset"
+                            },
+                            {
+                                "$ref": "#/$defs/Metric"
+                            },
+                            {
+                                "$ref": "#/$defs/Service"
+                            },
+                            {
+                                "$ref": "#/$defs/Playbook"
+                            },
+                            {
+                                "$ref": "#/$defs/Policy"
+                            },
+                            {
+                                "$ref": "#/$defs/GlossaryTerm"
+                            },
+                            {
+                                "$ref": "#/$defs/Reference"
+                            },
+                            {
+                                "$ref": "#/$defs/Document"
+                            },
+                            {
+                                "$ref": "#/$defs/Table"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "context": {
+                    "description": "The URL of the JSON-LD @context to attach to this bundle's concepts to interpret their frontmatter as Linked Data.",
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "lokf_version": {
+                    "description": "The LOKF version the bundle targets (e.g. \"0.1\").",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "okf_version": {
+                    "description": "The OKF version the bundle remains compatible with (e.g. \"0.1\").",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "publisher": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Person"
+                        },
+                        {
+                            "$ref": "#/$defs/Organization"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The agent responsible for making the bundle available."
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "KnowledgeBundle",
+            "type": "object"
+        },
+        "Metric": {
+            "additionalProperties": false,
+            "description": "A precisely defined, measurable quantity \u2014 the canonical definition of a business or operational metric.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "formula": {
+                    "description": "The calculation or definition expression for a metric.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "measures": {
+                    "description": "What the metric measures (a concept IRI or description).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Metric"
+                    ],
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "The unit of measurement (e.g. USD, seconds, count).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Metric",
+            "type": "object"
+        },
+        "Organization": {
+            "additionalProperties": false,
+            "description": "An organization, team, or group.",
+            "properties": {
+                "email": {
+                    "description": "Contact email address.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "A name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Organization"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ],
+            "title": "Organization",
+            "type": "object"
+        },
+        "Person": {
+            "additionalProperties": false,
+            "description": "An individual person.",
+            "properties": {
+                "email": {
+                    "description": "Contact email address.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "A name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Person"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ],
+            "title": "Person",
+            "type": "object"
+        },
+        "Playbook": {
+            "additionalProperties": false,
+            "description": "A procedure or runbook \u2014 an ordered set of steps to accomplish a task or respond to an event.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Playbook"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Playbook",
+            "type": "object"
+        },
+        "Policy": {
+            "additionalProperties": false,
+            "description": "A governance, compliance, or operational policy document.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Policy"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Policy",
+            "type": "object"
+        },
+        "Reference": {
+            "additionalProperties": false,
+            "description": "A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Reference"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Reference",
+            "type": "object"
+        },
+        "Relation": {
+            "additionalProperties": false,
+            "description": "A typed, reified relationship from the containing concept to a target, used when a predicate is not covered by one of the named relation slots. Modeled as an rdf:Statement (subject = the containing concept).",
+            "properties": {
+                "predicate": {
+                    "$ref": "#/$defs/RelationType",
+                    "description": "The relationship type. SHOULD be drawn from the RelationType vocabulary."
+                },
+                "relation_label": {
+                    "description": "An optional human-readable label for the relationship.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "target": {
+                    "description": "The IRI (or Concept ID) of the relationship's object.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "predicate",
+                "target"
+            ],
+            "title": "Relation",
+            "type": "object"
+        },
+        "RelationType": {
+            "description": "The recommended controlled vocabulary of relationship predicates for reified Relations. Each value carries a `meaning` mapping to its RDF predicate in schema.org, Dublin Core Terms, PROV-O, RDFS, or OWL.",
+            "enum": [
+                "isPartOf",
+                "hasPart",
+                "references",
+                "dependsOn",
+                "derivedFrom",
+                "about",
+                "sameAs",
+                "relatedTo",
+                "wasAttributedTo",
+                "definedBy",
+                "measures",
+                "joinsWith",
+                "source"
+            ],
+            "title": "RelationType",
+            "type": "string"
+        },
+        "Service": {
+            "additionalProperties": false,
+            "description": "A callable service or API endpoint.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "documentation": {
+                    "description": "A link to the service's documentation.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "endpoint": {
+                    "description": "The base URL or invocation endpoint of a service.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "http_method": {
+                    "description": "The HTTP method used to invoke the service, if applicable.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Service"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Service",
+            "type": "object"
+        },
+        "Table": {
+            "additionalProperties": false,
+            "description": "A structured, tabular dataset (e.g. a warehouse table or view) whose columns are described by Field objects under `fields`.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "distribution": {
+                    "description": "Accessible forms of the dataset.",
+                    "items": {
+                        "$ref": "#/$defs/Distribution"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "fields": {
+                    "description": "The columns / properties that make up a dataset's schema.",
+                    "items": {
+                        "$ref": "#/$defs/Field"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Table"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Table",
+            "type": "object"
+        }
+    },
+    "$id": "https://w3id.org/lokf/schema",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "additionalProperties": true,
+    "description": "A self-contained, hierarchical collection of concept documents \u2014 the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass).",
+    "metamodel_version": "1.11.0",
+    "properties": {
+        "base_iri": {
+            "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`.",
+            "format": "uri",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "concepts": {
+            "description": "The concepts contained in a bundle.",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/Dataset"
+                    },
+                    {
+                        "$ref": "#/$defs/Metric"
+                    },
+                    {
+                        "$ref": "#/$defs/Service"
+                    },
+                    {
+                        "$ref": "#/$defs/Playbook"
+                    },
+                    {
+                        "$ref": "#/$defs/Policy"
+                    },
+                    {
+                        "$ref": "#/$defs/GlossaryTerm"
+                    },
+                    {
+                        "$ref": "#/$defs/Reference"
+                    },
+                    {
+                        "$ref": "#/$defs/Document"
+                    },
+                    {
+                        "$ref": "#/$defs/Table"
+                    }
+                ]
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "context": {
+            "description": "The URL of the JSON-LD @context to attach to this bundle's concepts to interpret their frontmatter as Linked Data.",
+            "format": "uri",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "description": {
+            "description": "A single-sentence summary of the concept.",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "license": {
+            "description": "The license under which the concept or bundle is offered.",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "lokf_version": {
+            "description": "The LOKF version the bundle targets (e.g. \"0.1\").",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "okf_version": {
+            "description": "The OKF version the bundle remains compatible with (e.g. \"0.1\").",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "publisher": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/Person"
+                },
+                {
+                    "$ref": "#/$defs/Organization"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "description": "The agent responsible for making the bundle available."
+        },
+        "title": {
+            "description": "Human-readable display name.",
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    },
+    "title": "lokf",
+    "type": "object",
+    "version": "0.1.0"
+}
+

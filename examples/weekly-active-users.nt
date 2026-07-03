@@ -1,0 +1,22 @@
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "engagement" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/author> <https://acme.example/people/jsmith> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "growth" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "north-star" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/Metric> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/glossary/active-user> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/version> "2.1" .
+_:Na1920901c953462883f36555212ad1d3 <http://schema.org/name> "Metric definitions RFC" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/description> "Distinct users with at least one qualifying event in a trailing 7-day window." .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/citation> _:Na1920901c953462883f36555212ad1d3 .
+<https://acme.example/people/jsmith> <http://schema.org/email> "jsmith@acme.example" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateCreated> "2026-01-15T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/people/jsmith> <http://schema.org/name> "Jordan Smith" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasDerivedFrom> <https://acme.example/knowledge/tables/user-events> .
+_:Na1920901c953462883f36555212ad1d3 <http://schema.org/url> "https://wiki.acme.example/rfc/metric-defs"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/name> "Weekly Active Users" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateModified> "2026-06-30T12:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/formula> "COUNT(DISTINCT user_id) over trailing 7 days WHERE event_name IN qualifying_events" .
+<https://acme.example/people/jsmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/measures> <https://acme.example/knowledge/glossary/active-user> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/unitText> "users" .

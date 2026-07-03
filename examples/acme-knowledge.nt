@@ -1,0 +1,86 @@
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "engagement" .
+_:Nac2bcb45bbdc47e1b7fb40fecf3669cf <https://w3id.org/lokf/datatype> "string" .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/documentation> "https://developers.acme.example/analytics"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/Metric> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/glossary/active-user> .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/name> "Analytics API" .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/Playbook> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/measures> <https://acme.example/knowledge/glossary/active-user> .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/keywords> "oncall" .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:N22bd3673c652413097b420885276880d .
+_:N22bd3673c652413097b420885276880d <http://schema.org/description> "When the event occurred." .
+<https://acme.example/knowledge/glossary/active-user> <http://schema.org/keywords> "glossary" .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/text> "# Overview\n\nThe Analytics API returns aggregated values for metrics such as\n[Weekly Active Users](/metrics/weekly-active-users.md)." .
+_:N7ccd99f426184599b11b9753338a22ef <https://w3id.org/lokf/datatype> "string" .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/keywords> "events" .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/keywords> "incident" .
+_:N7ccd99f426184599b11b9753338a22ef <http://schema.org/name> "user_id" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+_:Nac2bcb45bbdc47e1b7fb40fecf3669cf <http://schema.org/description> "Globally unique event identifier." .
+<https://acme.example/knowledge/glossary/active-user> <http://schema.org/dateModified> "2026-03-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/tables/user-events> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/Table> .
+<https://acme.example/knowledge/tables/user-events> <http://purl.org/dc/terms/isPartOf> <https://acme.example/knowledge/datasets/events> .
+<https://acme.example/knowledge/tables/user-events> <http://schema.org/dateModified> "2026-06-28T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:N7ccd99f426184599b11b9753338a22ef .
+_:N7ecf2fab978c461ab3a52d30b687879c <http://schema.org/description> "The type of event (e.g. page_view, purchase)." .
+_:Neaa50db12e9e4f6ebe21dd4f10433706 <http://schema.org/url> "https://wiki.acme.example/rfc/metric-defs"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/people/jsmith> <http://schema.org/email> "jsmith@acme.example" .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/about> <https://acme.example/knowledge/tables/user-events> .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/keywords> "analytics" .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/httpMethod> "GET" .
+<https://acme.example/knowledge/tables/user-events> <http://schema.org/url> "https://console.cloud.google.com/bigquery?p=acme&d=events&t=user_events"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/url> "https://console.cloud.google.com/bigquery?p=acme&d=events"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+_:N7ecf2fab978c461ab3a52d30b687879c <https://w3id.org/lokf/datatype> "string" .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/description> "Triage steps when the events pipeline lags its freshness SLA." .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/description> "Distinct users with at least one qualifying event in a trailing 7-day window." .
+_:N7ecf2fab978c461ab3a52d30b687879c <http://schema.org/name> "event_name" .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/text> "# Trigger\n\nA freshness alert fires when [User Events](/tables/user-events.md) lags more than\n30 minutes behind its SLA.\n\n# Steps\n\n1. Check the ingestion job dashboard.\n2. Confirm whether [Weekly Active Users](/metrics/weekly-active-users.md) is affected.\n3. Escalate to the data platform on-call if lag exceeds 2 hours." .
+<https://acme.example/knowledge/tables/user-events> <http://schema.org/text> "# Schema\n\n| Column        | Type      | Description                          |\n|---------------|-----------|--------------------------------------|\n| `event_id`    | STRING    | Globally unique event identifier.    |\n| `user_id`     | STRING    | The user who produced the event.     |\n| `event_name`  | STRING    | The type of event.                   |\n| `occurred_at` | TIMESTAMP | When the event occurred.             |\n\nPart of the [Events dataset](/datasets/events.md)." .
+<https://acme.example/people/jsmith> <http://schema.org/name> "Jordan Smith" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/name> "Weekly Active Users" .
+<https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://wiki.acme.example/rfc/metric-defs> .
+<https://acme.example/knowledge/tables/user-events> <http://schema.org/description> "One row per product event emitted by a user." .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/dateModified> "2026-05-10T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/formula> "COUNT(DISTINCT user_id) over trailing 7 days WHERE event_name IN qualifying_events" .
+<https://acme.example/knowledge/tables/user-events> <http://schema.org/name> "User Events" .
+_:N7ccd99f426184599b11b9753338a22ef <http://schema.org/description> "The user who produced the event." .
+_:Nac2bcb45bbdc47e1b7fb40fecf3669cf <http://schema.org/name> "event_id" .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/url> "https://api.acme.example/v2/analytics"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/unitText> "users" .
+<https://acme.example/knowledge/tables/user-events> <http://schema.org/keywords> "events" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/citation> _:Neaa50db12e9e4f6ebe21dd4f10433706 .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/author> <https://acme.example/people/jsmith> .
+<https://acme.example/knowledge/glossary/active-user> <http://schema.org/text> "# Definition\n\nAn **active user** is any `user_id` that produced at least one *qualifying event*\nduring the period under consideration. Used by the\n[Weekly Active Users](/metrics/weekly-active-users.md) metric." .
+<https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/2004/02/skos/core#definition> "A user who has performed at least one qualifying event in the period of interest." .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/hasPart> <https://acme.example/knowledge/tables/user-events> .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/keywords> "analytics" .
+<https://acme.example/knowledge/glossary/active-user> <http://schema.org/name> "Active User" .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/description> "All product analytics events across web and mobile." .
+<https://acme.example/knowledge/tables/user-events> <http://schema.org/keywords> "analytics" .
+<https://acme.example/knowledge/services/analytics-api> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/WebAPI> .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/text> "The events dataset contains the raw and modeled event tables, including\n[User Events](/tables/user-events.md)." .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateModified> "2026-06-30T12:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/dateModified> "2026-06-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/people/jsmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:N7ecf2fab978c461ab3a52d30b687879c .
+_:N22bd3673c652413097b420885276880d <https://w3id.org/lokf/datatype> "datetime" .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/keywords> "api" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "growth" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "north-star" .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/dateModified> "2026-06-28T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/version> "2.1" .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/about> <https://acme.example/knowledge/metrics/weekly-active-users> .
+<https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/DefinedTerm> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/text> "# Definition\n\n**Weekly Active Users (WAU)** is the count of distinct `user_id`s that produced at\nleast one [qualifying event](/glossary/active-user.md) during the trailing 7-day\nwindow, computed from [User Events](/tables/user-events.md).\n\n# Notes\n\n- The window is rolling, not calendar-aligned.\n- Internal test accounts are excluded.\n\n# Citations\n\n[1] [Metric definitions RFC](https://wiki.acme.example/rfc/metric-defs)" .
+<https://acme.example/knowledge/datasets/events> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Dataset> .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://purl.org/dc/terms/references> <https://acme.example/knowledge/metrics/weekly-active-users> .
+_:N22bd3673c652413097b420885276880d <http://schema.org/name> "occurred_at" .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/description> "REST API for querying aggregated product metrics." .
+<https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/name> "Data freshness incident response" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateCreated> "2026-01-15T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:Neaa50db12e9e4f6ebe21dd4f10433706 <http://schema.org/name> "Metric definitions RFC" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasDerivedFrom> <https://acme.example/knowledge/tables/user-events> .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:Nac2bcb45bbdc47e1b7fb40fecf3669cf .
+<https://acme.example/knowledge/glossary/active-user> <http://schema.org/alternateName> "AU" .
+<https://acme.example/knowledge/datasets/events> <http://schema.org/name> "Events" .
+_:Nac2bcb45bbdc47e1b7fb40fecf3669cf <https://w3id.org/lokf/isKey> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
