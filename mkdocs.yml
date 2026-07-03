@@ -50,6 +50,9 @@ theme:
     - content.action.edit
     - content.action.view
 
+hooks:
+  - docs/hooks/lokf_hooks.py
+
 plugins:
   - search
   - git-revision-date-localized:
@@ -107,7 +110,12 @@ nav:
       - Type vocabulary: guide/types.md
       - Markdown to RDF: guide/markdown-to-rdf.md
       - Validation: guide/validation.md
+  - Toolkit:
+      - toolkit/index.md
+      - Build your own KB: toolkit/tutorial.md
+      - Relation proposer: toolkit/proposer.md
   - Example bundle: examples.md
+  - Knowledge graph: graph.md
   - Specification: specification.md
   - Reference:
       - Generated artifacts: reference/artifacts.md

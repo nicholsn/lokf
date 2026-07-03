@@ -1,0 +1,305 @@
+"""Propose typed relations from the markdown links in concept bodies.
+
+Concept prose often links to other concepts without asserting the
+relationship in frontmatter. This module extracts those links
+(:func:`extract_links`), classifies each one against a cue-phrase table
+(:func:`propose`), and can write accepted proposals back into the source
+files' frontmatter without disturbing formatting (:func:`apply`).
+"""
+from __future__ import annotations
+
+import io
+import pathlib
+import posixpath
+import re
+from dataclasses import dataclass
+
+from lokf.model import Bundle, Concept
+from lokf.schema import Relation, Vocabulary, vocabulary
+
+# Markdown inline link [text](target); the lookbehind skips images.
+_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)\s]+)\)")
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+_INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
+
+# Cue-phrase heuristics, in match-priority order: (regex, relation name,
+# base confidence). The first row whose regex matches the link's sentence
+# (and whose relation's domains admit the source concept's type) wins;
+# adjacency of the cue to the link text adds _ADJACENCY_BOOST.
+CUE_TABLE: tuple[tuple[re.Pattern, str, float], ...] = tuple(
+    (re.compile(pattern, re.IGNORECASE), name, confidence)
+    for pattern, name, confidence in (
+        (r"\bsame as\b|\balias(?:es)?\b", "sameAs", 0.8),
+        (r"\bderived\b|\bcomputed\b|\bbuilt from\b", "derivedFrom", 0.75),
+        (r"\bpart of\b|\bwithin\b", "isPartOf", 0.75),
+        (r"\bcontains?\b|\bincludes?\b|\bincluding\b", "hasPart", 0.7),
+        (r"\bdepends?\b|\brequires?\b|\bneeds?\b", "dependsOn", 0.7),
+        (r"\bdefined by\b|\bdefinitions?\b", "definedBy", 0.7),
+        (r"\bmeasures?\b|\bcounts?\b", "measures", 0.7),
+        (r"\babout\b|\bcovers?\b|\bdescribes?\b", "about", 0.6),
+        (r"\bsee\b|\brefer(?:s|ence)?\b|\bsee also\b|\bused by\b", "references", 0.55),
+        (r"\bsource\b|\bfrom\b", "source", 0.5),
+    )
+)
+_FALLBACK = ("relatedTo", 0.25)
+_ADJACENCY_BOOST = 0.15
+_ADJACENCY_GAP = 24  # max chars between cue and link text to count as adjacent
+_CONFIDENCE_CAP = 0.95
+
+
+@dataclass
+class Link:
+    """One markdown prose link, resolved (where possible) to a bundle concept."""
+
+    text: str
+    target_raw: str
+    target: Concept | None
+    sentence: str
+
+
+@dataclass
+class Proposal:
+    """A proposed relation from ``source`` to ``link.target``."""
+
+    source: Concept
+    link: Link
+    relation: Relation
+    confidence: float
+    rationale: str
+
+
+def _mask_code(text: str) -> str:
+    """Blank out fenced code blocks and inline code spans, preserving offsets."""
+    out, fence = [], None
+    for line in text.splitlines(keepends=True):
+        stripped = line.lstrip()
+        marker = stripped[:3]
+        if fence is None and marker in ("```", "~~~"):
+            fence = marker
+        elif fence is not None:
+            if stripped.startswith(fence):
+                fence = None
+            out.append(_blank(line))
+            continue
+        out.append(_blank(line) if fence is not None else line)
+    masked = "".join(out)
+    return _INLINE_CODE_RE.sub(lambda m: " " * len(m.group(0)), masked)
+
+
+def _blank(line: str) -> str:
+    content = line.rstrip("\n")
+    return " " * len(content) + line[len(content):]
+
+
+def _sentence_at(text: str, pos: int) -> str:
+    """The prose sentence (link markup flattened) around offset ``pos``."""
+    para_start = text.rfind("\n\n", 0, pos) + 2 if "\n\n" in text[:pos] else 0
+    para_end = text.find("\n\n", pos)
+    para_end = len(text) if para_end == -1 else para_end
+    start, end = para_start, para_end
+    for m in _SENTENCE_SPLIT_RE.finditer(text, para_start, para_end):
+        if m.end() <= pos:
+            start = m.end()
+        elif m.start() >= pos:
+            end = m.start()
+            break
+    sentence = _LINK_RE.sub(lambda m: m.group(1), text[start:end])
+    return " ".join(sentence.split())
+
+
+def _resolve_target(concept: Concept, bundle: Bundle, raw: str) -> Concept | None:
+    """Resolve a link target to a bundle concept, or None."""
+    target = raw.split("#", 1)[0]
+    if not target:
+        return None
+    found = bundle.get(target)
+    if found is not None or target.startswith(("http://", "https://", "urn:", "/")):
+        return found
+    joined = posixpath.normpath(
+        posixpath.join(posixpath.dirname(concept.concept_id), target)
+    )
+    return bundle.get(joined) if not joined.startswith("..") else None
+
+
+def extract_links(concept: Concept, bundle: Bundle) -> list[Link]:
+    """Markdown prose links in ``concept.body`` (code blocks/spans excluded)."""
+    masked = _mask_code(concept.body)
+    return [
+        Link(
+            text=m.group(1),
+            target_raw=m.group(2),
+            target=_resolve_target(concept, bundle, m.group(2)),
+            sentence=_sentence_at(masked, m.start()),
+        )
+        for m in _LINK_RE.finditer(masked)
+    ]
+
+
+def _asserted_iris(concept: Concept, bundle: Bundle, vocab: Vocabulary) -> set[str]:
+    """Target IRIs already asserted in frontmatter (slots + reified relations)."""
+    iris = set()
+    for name in vocab.relation_slots:
+        values = concept.data.get(name) or []
+        if isinstance(values, str):
+            values = [values]
+        iris.update(bundle.resolve(v) for v in values if isinstance(v, str))
+    for rel in concept.data.get("relations") or []:
+        if isinstance(rel, dict) and isinstance(rel.get("target"), str):
+            iris.add(bundle.resolve(rel["target"]))
+    return iris
+
+
+def _domain_ok(relation: Relation, source: Concept) -> bool:
+    return (
+        not relation.domains
+        or "Concept" in relation.domains
+        or source.type in relation.domains
+    )
+
+
+def _adjacent(sentence: str, link_text: str, cue: re.Match) -> bool:
+    """Whether the cue match sits next to (or inside) the link text."""
+    text = " ".join(link_text.split())
+    link_start = sentence.find(text)
+    if link_start == -1:
+        return False
+    link_end = link_start + len(text)
+    return (
+        cue.start() < link_end + _ADJACENCY_GAP
+        and cue.end() > link_start - _ADJACENCY_GAP
+    )
+
+
+def _classify(source: Concept, link: Link, vocab: Vocabulary) -> Proposal | None:
+    """Pick a relation for one link from the cue table (fallback: relatedTo)."""
+    for pattern, name, confidence in CUE_TABLE:
+        relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
+        if relation is None or not _domain_ok(relation, source):
+            continue
+        match = pattern.search(link.sentence)
+        if match is None:
+            continue
+        boosted = _adjacent(link.sentence, link.text, match)
+        return Proposal(
+            source=source,
+            link=link,
+            relation=relation,
+            confidence=min(
+                confidence + (_ADJACENCY_BOOST if boosted else 0), _CONFIDENCE_CAP
+            ),
+            rationale=f'cue "{match.group(0).lower()}" '
+            + ("adjacent to link" if boosted else "in sentence"),
+        )
+    name, confidence = _FALLBACK
+    relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
+    if relation is None or not _domain_ok(relation, source):
+        return None
+    return Proposal(
+        source=source,
+        link=link,
+        relation=relation,
+        confidence=confidence,
+        rationale="no cue phrase matched",
+    )
+
+
+def propose(
+    bundle: Bundle,
+    vocab: Vocabulary | None = None,
+    concept: Concept | None = None,
+) -> list[Proposal]:
+    """Propose relations for prose links not already asserted in frontmatter."""
+    vocab = vocab if vocab is not None else vocabulary()
+    proposals = []
+    for source in [concept] if concept is not None else bundle.concepts:
+        asserted = _asserted_iris(source, bundle, vocab)
+        for link in extract_links(source, bundle):
+            if link.target is None or bundle.iri(link.target) in asserted:
+                continue
+            proposal = _classify(source, link, vocab)
+            if proposal is not None:
+                proposals.append(proposal)
+    return proposals
+
+
+def _bundle_base_iri(concept: Concept) -> str:
+    """Recover the bundle's base IRI from the concept's file location."""
+    import yaml
+
+    root = concept.path
+    for _ in pathlib.PurePosixPath(concept.concept_id + ".md").parts:
+        root = root.parent
+    index = root / "index.md"
+    if not index.exists():
+        return ""
+    raw = index.read_text(encoding="utf-8")
+    if not raw.startswith("---"):
+        return ""
+    meta = yaml.safe_load(raw.split("---", 2)[1]) or {}
+    return meta.get("base_iri", "")
+
+
+def _target_iri(proposal: Proposal) -> str:
+    """The IRI of a proposal's link target."""
+    target = proposal.link.target
+    return target.data.get("id") or (
+        _bundle_base_iri(proposal.source) + target.concept_id
+    )
+
+
+def _rt_yaml():
+    from ruamel.yaml import YAML
+
+    y = YAML()
+    y.preserve_quotes = True
+    y.width = 100000
+    y.indent(mapping=2, sequence=4, offset=2)
+    return y
+
+
+def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Proposal]:
+    """Write accepted proposals into source frontmatter; return those written.
+
+    Slot relations append the target IRI under the slot key; non-slot
+    relations append ``{predicate, target}`` to ``relations``. Files are
+    edited with round-trip YAML so comments, key order, and quoting survive;
+    duplicates are never written and body text is untouched.
+    """
+    by_path: dict[pathlib.Path, list[Proposal]] = {}
+    for p in proposals:
+        if p.confidence >= min_confidence:
+            by_path.setdefault(p.source.path, []).append(p)
+    yaml_rt = _rt_yaml()
+    applied = []
+    for path, batch in by_path.items():
+        raw = path.read_text(encoding="utf-8")
+        _, front, body = raw.split("---", 2)
+        fm = yaml_rt.load(front)
+        changed = False
+        for p in batch:
+            iri = _target_iri(p)
+            if p.relation.is_slot:
+                values = fm.setdefault(p.relation.name, [])
+                if not isinstance(values, list):
+                    values = fm[p.relation.name] = [values]
+                if iri in values:
+                    continue
+                values.append(iri)
+            else:
+                entry = {"predicate": p.relation.name, "target": iri}
+                relations = fm.setdefault("relations", [])
+                if any(
+                    r.get("predicate") == entry["predicate"]
+                    and r.get("target") == entry["target"]
+                    for r in relations
+                    if isinstance(r, dict)
+                ):
+                    continue
+                relations.append(entry)
+            applied.append(p)
+            changed = True
+        if changed:
+            buf = io.StringIO()
+            yaml_rt.dump(fm, buf)
+            path.write_text("---\n" + buf.getvalue() + "---" + body, encoding="utf-8")
+    return applied

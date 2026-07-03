@@ -10,6 +10,10 @@ build:
 clean:
     rm -f examples/*.bundle.json lokf.context.base.jsonld *.err
 
+# Run the test suite
+test:
+    uv run --group dev pytest
+
 # Serve the docs locally with live reload
 docs:
     uv run --group docs mkdocs serve
