@@ -99,11 +99,7 @@ def assemble(root: pathlib.Path) -> dict:
     """Assemble all concept files (+ root index.md metadata) into one bundle."""
     b = load_bundle(root / "examples" / "acme-knowledge")
     bundle = dict(b.meta)
-    concepts = []
-    for c in b.concepts:
-        doc = dict(c.data)
-        doc.setdefault("id", b.iri(c))  # no-op where frontmatter has explicit id
-        concepts.append(doc)
+    concepts = b.docs()  # frontmatter + injected id (no-op where id is explicit)
     bundle["concepts"] = concepts
     json.dump(bundle, open(root / "examples" / "acme-knowledge.bundle.json", "w"), indent=2)
     print(f"== assembled bundle: {len(concepts)} concepts "

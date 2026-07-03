@@ -35,7 +35,7 @@ def to_cytoscape(bundle, vocab=None) -> dict:
     Non-dict ``relations`` entries are skipped; validation reports them.
     """
     vocab = vocab or vocabulary()
-    iris = {bundle.iri(c): c for c in bundle.concepts}
+    iris = bundle.by_iri()
     nodes = [
         {
             "data": {
