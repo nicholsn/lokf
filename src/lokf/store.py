@@ -55,6 +55,13 @@ def _uses_service(sparql: str) -> bool:
     not trip it. If rdflib cannot parse the query, returns False and lets the
     engine reject it — this only gates the federation vector, not validity.
     """
+    # SERVICE is the only spelling of the federation keyword, so a query with
+    # no "service" substring cannot contain one — skip the ~1ms parse. (A
+    # "service" inside a string literal still falls through to the algebra
+    # walk, which correctly ignores it.)
+    if "service" not in sparql.lower():
+        return False
+
     from rdflib.plugins.sparql import prepareQuery
     from rdflib.plugins.sparql.parserutils import CompValue
 
@@ -62,23 +69,17 @@ def _uses_service(sparql: str) -> bool:
         algebra = prepareQuery(sparql).algebra
     except Exception:  # noqa: BLE001 — parse failures fall through to the engine
         return False
-    found = []
 
-    def walk(node):
-        if isinstance(node, CompValue):
-            if node.name == "ServiceGraphPattern":
-                found.append(True)
-            for v in node.values():
-                walk(v)
-        elif isinstance(node, (list, tuple, set)):
-            for v in node:
-                walk(v)
-        elif isinstance(node, dict):
-            for v in node.values():
-                walk(v)
+    def walk(node) -> bool:
+        if isinstance(node, CompValue):  # note: CompValue is itself a dict
+            return node.name == "ServiceGraphPattern" or any(map(walk, node.values()))
+        if isinstance(node, (list, tuple, set)):
+            return any(map(walk, node))
+        if isinstance(node, dict):
+            return any(map(walk, node.values()))
+        return False
 
-    walk(algebra)
-    return bool(found)
+    return walk(algebra)
 
 
 class GraphStore:

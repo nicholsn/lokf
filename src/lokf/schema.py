@@ -88,6 +88,16 @@ class Relation:
     is_slot: bool  # True: usable as a frontmatter key; False: via `relations:`
     domains: frozenset[str] = frozenset()  # classes declaring the slot; "Concept" = all
 
+    def as_row(self) -> dict:
+        """A JSON-serializable row (the ``lokf vocab --json`` / MCP shape)."""
+        return {
+            "name": self.name,
+            "curie": self.curie,
+            "uri": self.uri,
+            "frontmatter_key": self.is_slot,
+            "description": self.description,
+        }
+
 
 class Vocabulary:
     """The LOKF vocabulary derived from the LinkML schema."""
