@@ -1,0 +1,36 @@
+[project]
+name = "lokf"
+version = "0.1.0"
+description = "Linked Open Knowledge Format (LOKF) — a semantic profile of Google's Open Knowledge Format, defined once in LinkML"
+readme = "README.md"
+license = { text = "CC-BY-4.0" }
+authors = [{ name = "Nolan Nichols" }]
+requires-python = ">=3.11"
+keywords = ["linkml", "json-ld", "rdf", "knowledge-graph", "okf", "dcat", "prov"]
+dependencies = [
+    "linkml>=1.8.5",
+    "rdflib>=7.0",
+    "pyyaml>=6.0",
+]
+
+[project.urls]
+Documentation = "https://nicholsn.github.io/lokf/"
+Repository = "https://github.com/nicholsn/lokf"
+Issues = "https://github.com/nicholsn/lokf/issues"
+
+[project.scripts]
+lokf-build = "lokf.build:main"
+
+[dependency-groups]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.26",
+    "mkdocs-git-revision-date-localized-plugin>=1.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lokf"]
