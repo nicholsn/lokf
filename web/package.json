@@ -3,7 +3,10 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "sync": "cd .. && uv run lokf export examples/acme-knowledge --out-dir web/public --source-base https://github.com/nicholsn/lokf/tree/main/examples/acme-knowledge",
+    "sync:data": "cd .. && uv run lokf export examples/acme-knowledge --out-dir web/public --source-base https://github.com/nicholsn/lokf/tree/main/examples/acme-knowledge",
+    "sync:content": "node scripts/sync-content.mjs",
+    "sync:api": "cd .. && uv run python web/scripts/gen_api_docs.py",
+    "sync": "npm run sync:data && npm run sync:api && npm run sync:content",
     "predev": "npm run sync",
     "dev": "astro dev",
     "start": "astro dev",
@@ -15,11 +18,12 @@
   "dependencies": {
     "@astrojs/starlight": "^0.41.2",
     "astro": "^7.0.2",
+    "astro-mermaid": "^2.1.0",
     "cytoscape": "^3.34.0",
+    "mermaid": "^11.16.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "@types/cytoscape": "^3.21.9",
-    "rehype-mermaid": "^3.0.0"
+    "@types/cytoscape": "^3.21.9"
   }
 }

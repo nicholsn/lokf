@@ -1,0 +1,19 @@
+---
+// Extends Starlight's default <head> to embed schema.org Dataset JSON-LD
+// (from `lokf export`) so Google Dataset Search can index the bundle's
+// datasets. Only added on the example-bundle and knowledge-graph pages.
+import Default from "@astrojs/starlight/components/Head.astro";
+import datasets from "../generated/datasets.json";
+
+const path = Astro.url.pathname.replace(/\/$/, "");
+const showJsonLd =
+  path.endsWith("/examples") || path.endsWith("/graph");
+---
+
+<Default><slot /></Default>
+{
+  showJsonLd &&
+    datasets.map((doc: unknown) => (
+      <script type="application/ld+json" set:html={JSON.stringify(doc)} />
+    ))
+}
