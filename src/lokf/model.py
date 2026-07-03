@@ -96,15 +96,9 @@ class Bundle:
         All concepts are parsed in a single pass (one ``@graph`` document) so
         the JSON-LD context is compiled once, not once per concept.
         """
-        from rdflib import Graph
+        from lokf.rdf import docs_to_graph
 
-        ctx = context if context is not None else load_context()
-        g = Graph()
-        g.parse(
-            data=json.dumps({"@context": ctx, "@graph": self.docs()}),
-            format="json-ld",
-        )
-        return g
+        return docs_to_graph(self.docs(), context)
 
 
 def load_bundle(path: str | pathlib.Path) -> Bundle:

@@ -1,40 +1,171 @@
-"""The ``lokf`` command-line interface.
+"""The ``lokf`` command-line interface (Typer).
 
-::
-
-    lokf propose examples/acme-knowledge                 # dry-run table
-    lokf propose examples/acme-knowledge --json          # machine-readable
-    lokf propose examples/acme-knowledge --apply         # write frontmatter
-    lokf propose examples/acme-knowledge --json --apply  # write + JSON with
-                                                         # per-proposal "applied"
+    lokf convert path/to/concept.md --format ttl      # markdown -> RDF
+    lokf query examples/acme-knowledge "SELECT ..."   # SPARQL over a bundle
+    lokf serve examples/acme-knowledge                # local SPARQL endpoint + viz
+    lokf propose examples/acme-knowledge --apply      # typed relations from links
+    lokf vocab                                        # the relation vocabulary
+    lokf skills                                        # bundled agent skills
+    lokf mcp                                           # run the MCP server
 """
 from __future__ import annotations
 
-import argparse
 import json
+import re
 import sys
+from pathlib import Path
+from typing import Optional
 
-from lokf.model import load_bundle
-from lokf.propose import apply, propose
-from lokf.schema import vocabulary
+import typer
+
+app = typer.Typer(
+    name="lokf",
+    help="LOKF toolkit — author, convert, query, serve, and automate "
+    "linked-open knowledge bundles.",
+    no_args_is_help=True,
+    add_completion=False,
+)
+
+# The SPARQL query form, ignoring any leading PREFIX/BASE declarations.
+_QUERY_FORM = re.compile(
+    r"^\s*(?:(?:prefix|base)\b[^\n]*\n\s*)*\s*(select|ask|construct|describe)\b",
+    re.IGNORECASE,
+)
 
 
-def cmd_propose(args: argparse.Namespace) -> int:
-    """Run the link-semantics proposer over a bundle directory."""
-    bundle = load_bundle(args.bundle_dir)
+def _err(message: str) -> None:
+    typer.echo(message, err=True)
+
+
+# ---------------------------------------------------------------------------
+# convert
+# ---------------------------------------------------------------------------
+@app.command()
+def convert(
+    source: Path = typer.Argument(
+        ..., exists=True, help="A concept .md file or a bundle directory."
+    ),
+    format: str = typer.Option(
+        "ttl", "--format", "-f", help="ttl | nt | jsonld | xml | n3 | trig."
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o", help="Write to this file instead of stdout."
+    ),
+) -> None:
+    """Convert markdown (a concept or whole bundle) to RDF."""
+    from lokf import rdf
+
+    try:
+        data = rdf.serialize(source, format)
+    except ValueError as exc:
+        _err(str(exc))
+        raise typer.Exit(2)
+    if output is not None:
+        output.write_text(data, encoding="utf-8")
+        typer.echo(f"wrote {output}")
+    else:
+        typer.echo(data, nl=False)
+
+
+# ---------------------------------------------------------------------------
+# query
+# ---------------------------------------------------------------------------
+@app.command()
+def query(
+    source: Path = typer.Argument(
+        ..., exists=True, help="A bundle directory or concept file to load."
+    ),
+    sparql: str = typer.Argument(..., help="A SPARQL query (schema prefixes preset)."),
+    format: str = typer.Option(
+        "table", "--format", "-f", help="table | json | csv | tsv | ttl (CONSTRUCT)."
+    ),
+) -> None:
+    """Run SPARQL over a knowledge base loaded into an in-memory store."""
+    from lokf.store import GraphStore
+
+    store = GraphStore.from_bundle(source)
+    match = _QUERY_FORM.match(sparql)
+    form = match.group(1).lower() if match else "select"
+    try:
+        if form in ("construct", "describe"):
+            fmt = "ttl" if format == "table" else format
+            typer.echo(store.construct(sparql, fmt=fmt), nl=False)
+        elif format == "table":
+            _print_rows(store.select(sparql))
+        else:
+            typer.echo(store.serialize_results(sparql, format).decode("utf-8"), nl=False)
+    except Exception as exc:  # noqa: BLE001 — surface SPARQL errors to the user
+        _err(f"query failed: {exc}")
+        raise typer.Exit(1)
+
+
+def _print_rows(rows: list[dict]) -> None:
+    if not rows:
+        typer.echo("(no results)")
+        return
+    cols = list(dict.fromkeys(k for row in rows for k in row))
+    widths = {c: max(len(c), *(len(str(r.get(c, ""))) for r in rows)) for c in cols}
+    typer.echo("  ".join(c.ljust(widths[c]) for c in cols))
+    for row in rows:
+        typer.echo("  ".join(str(row.get(c, "")).ljust(widths[c]) for c in cols))
+
+
+# ---------------------------------------------------------------------------
+# serve
+# ---------------------------------------------------------------------------
+@app.command()
+def serve(
+    source: Path = typer.Argument(
+        ..., exists=True, help="A bundle directory or concept file to publish."
+    ),
+    host: str = typer.Option("127.0.0.1", help="Bind host."),
+    port: int = typer.Option(8000, help="Bind port."),
+) -> None:
+    """Publish a knowledge base locally: SPARQL endpoint + live graph viz."""
+    from lokf.server import serve as run_server
+
+    run_server(source, host=host, port=port)
+
+
+# ---------------------------------------------------------------------------
+# propose
+# ---------------------------------------------------------------------------
+@app.command()
+def propose(
+    bundle_dir: Path = typer.Argument(
+        ..., exists=True, file_okay=False, help="A LOKF bundle directory."
+    ),
+    apply_: bool = typer.Option(
+        False, "--apply", help="Write accepted proposals into frontmatter."
+    ),
+    min_confidence: float = typer.Option(
+        0.0, "--min-confidence", metavar="F", help="Drop proposals below this."
+    ),
+    json_: bool = typer.Option(
+        False, "--json", help="Emit JSON instead of a table (composes with --apply)."
+    ),
+) -> None:
+    """Propose typed relations from markdown links in concept bodies."""
+    from lokf.model import load_bundle
+    from lokf.propose import apply
+    from lokf.propose import propose as propose_relations
+    from lokf.schema import vocabulary
+
+    bundle = load_bundle(bundle_dir)
     if not bundle.concepts:
-        print(f"no concepts found in {args.bundle_dir}", file=sys.stderr)
-        return 1
+        _err(f"no concepts found in {bundle_dir}")
+        raise typer.Exit(1)
     proposals = [
         p
-        for p in propose(bundle, vocabulary())
-        if p.confidence >= args.min_confidence
+        for p in propose_relations(bundle, vocabulary())
+        if p.confidence >= min_confidence
     ]
     applied: list = []
-    if args.apply:
-        applied = apply(proposals, min_confidence=args.min_confidence)
+    if apply_:
+        applied = apply(proposals, min_confidence=min_confidence)
     applied_ids = {id(p) for p in applied}
-    if args.json:
+
+    if json_:
         rows = []
         for p in proposals:
             row = {
@@ -46,25 +177,24 @@ def cmd_propose(args: argparse.Namespace) -> int:
                 "confidence": round(p.confidence, 2),
                 "rationale": p.rationale,
             }
-            if args.apply:
+            if apply_:
                 row["applied"] = id(p) in applied_ids
             rows.append(row)
-        print(json.dumps(rows, indent=2))
-        return 0
+        typer.echo(json.dumps(rows, indent=2))
+        return
+
     if not proposals:
-        print("no proposals.")
-        return 0
-    _print_table(proposals)
-    if args.apply:
-        print()
+        typer.echo("no proposals.")
+        return
+    _print_proposals(proposals)
+    if apply_:
+        typer.echo("")
         for p in applied:
-            print(f"wrote {p.relation.name} -> {p.target_iri} in {p.source.path}")
-        print(f"applied {len(applied)} of {len(proposals)} proposal(s).")
-    return 0
+            typer.echo(f"wrote {p.relation.name} -> {p.target_iri} in {p.source.path}")
+        typer.echo(f"applied {len(applied)} of {len(proposals)} proposal(s).")
 
 
-def _print_table(proposals) -> None:
-    """Print proposals as an aligned dry-run table."""
+def _print_proposals(proposals) -> None:
     header = ("SOURCE", "LINK", "PREDICATE", "CONF", "RATIONALE")
     rows = [
         (
@@ -79,44 +209,92 @@ def _print_table(proposals) -> None:
     widths = [max(len(r[i]) for r in (header, *rows)) for i in range(4)]
     for row in (header, *rows):
         cells = [row[i].ljust(widths[i]) for i in range(4)]
-        print("  ".join([*cells, row[4]]))
+        typer.echo("  ".join([*cells, row[4]]))
 
 
-def _add_propose(subparsers) -> None:
-    p = subparsers.add_parser(
-        "propose",
-        help="propose typed relations from markdown links in concept bodies",
-    )
-    p.add_argument("bundle_dir", help="path to a LOKF bundle directory")
-    p.add_argument(
-        "--apply",
-        action="store_true",
-        help="write accepted proposals into concept frontmatter "
-        "(composes with --json)",
-    )
-    p.add_argument(
-        "--min-confidence",
-        type=float,
-        default=0.0,
-        metavar="F",
-        help="drop proposals below this confidence (default: 0.0)",
-    )
-    p.add_argument(
-        "--json",
-        action="store_true",
-        help="emit proposals as JSON instead of a table; with --apply, each "
-        'proposal object gains an "applied" flag',
-    )
-    p.set_defaults(func=cmd_propose)
+# ---------------------------------------------------------------------------
+# vocab
+# ---------------------------------------------------------------------------
+@app.command()
+def vocab(
+    json_: bool = typer.Option(False, "--json", help="Emit JSON instead of a table."),
+) -> None:
+    """Show the typed-relation vocabulary derived from the schema."""
+    from lokf.schema import vocabulary
+
+    v = vocabulary()
+    relations = sorted(v.relation_types.values(), key=lambda r: r.name)
+    if json_:
+        typer.echo(
+            json.dumps(
+                [
+                    {
+                        "name": r.name,
+                        "curie": r.curie,
+                        "uri": r.uri,
+                        "frontmatter_key": r.is_slot,
+                        "description": r.description,
+                    }
+                    for r in relations
+                ],
+                indent=2,
+            )
+        )
+        return
+    name_w = max(len(r.name) for r in relations)
+    curie_w = max(len(r.curie) for r in relations)
+    for r in relations:
+        key = "slot" if r.is_slot else "rel "
+        typer.echo(
+            f"{r.name.ljust(name_w)}  {key}  {r.curie.ljust(curie_w)}  {r.description}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# skills
+# ---------------------------------------------------------------------------
+@app.command()
+def skills(
+    action: str = typer.Argument("list", help="list | path | install"),
+    dest: Optional[Path] = typer.Option(
+        None, "--dest", help="Target for `install` (default: .claude/skills)."
+    ),
+) -> None:
+    """List, locate, or install the bundled agent skills."""
+    from lokf import agentskills
+
+    if action == "path":
+        typer.echo(str(agentskills.skills_dir()))
+    elif action == "list":
+        for name, summary in agentskills.list_skills():
+            typer.echo(f"{name}\t{summary}")
+    elif action == "install":
+        target = agentskills.install(dest)
+        count = len(list(target.glob("*/SKILL.md")))
+        typer.echo(f"installed {count} skills into {target}")
+    else:
+        _err(f"unknown action {action!r}; choose list | path | install")
+        raise typer.Exit(2)
+
+
+# ---------------------------------------------------------------------------
+# mcp
+# ---------------------------------------------------------------------------
+@app.command()
+def mcp() -> None:
+    """Run the LOKF MCP server (stdio) so agents can drive the toolkit."""
+    from lokf.mcp_server import main as run_mcp
+
+    run_mcp()
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Entry point for the ``lokf`` console script."""
-    parser = argparse.ArgumentParser(prog="lokf", description="LOKF toolkit CLI")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    _add_propose(subparsers)  # re-add a registry when a second subcommand exists
-    args = parser.parse_args(argv)
-    return args.func(args)
+    """Programmatic entry point (tests use ``typer.testing.CliRunner``)."""
+    try:
+        app(args=argv, standalone_mode=False)
+        return 0
+    except SystemExit as exc:  # raised by typer.Exit
+        return int(exc.code or 0)
 
 
 if __name__ == "__main__":

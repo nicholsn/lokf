@@ -6,12 +6,24 @@ readme = "README.md"
 license = { text = "CC-BY-4.0" }
 authors = [{ name = "Nolan Nichols" }]
 requires-python = ">=3.11"
-keywords = ["linkml", "json-ld", "rdf", "knowledge-graph", "okf", "dcat", "prov"]
+keywords = ["linkml", "json-ld", "rdf", "knowledge-graph", "okf", "dcat", "prov", "sparql", "mcp"]
+# Core toolkit: the `lokf` CLI, RDF conversion, the pyoxigraph store + SPARQL,
+# the local server, and the MCP server. Deliberately excludes linkml (heavy;
+# only the artifact regenerator needs it — see the `build` extra).
 dependencies = [
-    "linkml>=1.8.5",
     "rdflib>=7.0",
     "pyyaml>=6.0",
     "ruamel-yaml>=0.18",
+    "typer>=0.15",
+    "pyoxigraph>=0.4",
+    "mcp>=1.2",
+]
+
+[project.optional-dependencies]
+# Regenerating the LinkML-derived artifacts (`lokf-build`). Not needed to run
+# the toolkit, which reads the committed schema/context directly.
+build = [
+    "linkml>=1.8.5",
 ]
 
 [project.urls]
@@ -20,12 +32,14 @@ Repository = "https://github.com/nicholsn/lokf"
 Issues = "https://github.com/nicholsn/lokf/issues"
 
 [project.scripts]
-lokf = "lokf.cli:main"
+lokf = "lokf.cli:app"
 lokf-build = "lokf.build:main"
+lokf-mcp = "lokf.mcp_server:main"
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "lokf[build]",
 ]
 docs = [
     "mkdocs-material>=9.5",
