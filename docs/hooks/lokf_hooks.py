@@ -53,11 +53,27 @@ def _graph_json() -> str:
     return _cache["graph_json"]
 
 
+def _ldjson_script(doc: dict) -> str:
+    """A JSON-LD ``<script>`` block, escaped so string content can't break out.
+
+    ``json.dumps`` does not escape ``<``/``>``/``&``, so a concept field
+    containing ``</script>`` would otherwise terminate the block and inject
+    markup into the page. The ``\\uXXXX`` forms stay valid JSON, so the
+    JSON-LD remains parseable.
+    """
+    payload = (
+        json.dumps(doc)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+    )
+    return '<script type="application/ld+json">' + payload + "</script>"
+
+
 def _jsonld_blocks() -> str:
     if "jsonld_blocks" not in _cache:
         _cache["jsonld_blocks"] = "\n".join(
-            '<script type="application/ld+json">' + json.dumps(doc) + "</script>"
-            for doc in dataset_search_jsonld(_bundle())
+            _ldjson_script(doc) for doc in dataset_search_jsonld(_bundle())
         )
     return _cache["jsonld_blocks"]
 
