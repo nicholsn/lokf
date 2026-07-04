@@ -88,3 +88,17 @@ def test_refuses_file_target(tmp_path):
     (tmp_path / "kb").write_text("i am a file")
     with pytest.raises(FileExistsError):
         scaffold.new("kb", path=tmp_path)
+
+
+def test_template_handles_real_authoring(tmp_path):
+    """Guards the adversarial-review fixes: nested reserved files, .md links,
+    relative relation targets, and literal-path ids."""
+    root = scaffold.new("kb", path=tmp_path)
+    cfg = (root / "src/content.config.ts").read_text()
+    assert "'!**/index.md'" in cfg and "'!**/log.md'" in cfg  # reserved at any depth
+    assert "generateId" in cfg                                # literal-path ids, no slugify
+    astro = (root / "astro.config.mjs").read_text()
+    assert "remarkLokfLinks" in astro                         # .md cross-links -> routes
+    assert (root / "remark-lokf-links.mjs").exists()
+    lib = (root / "src/lib/lokf.ts").read_text()
+    assert "resolveRef" in lib                                # relative relation targets

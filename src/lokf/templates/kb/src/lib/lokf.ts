@@ -29,7 +29,20 @@ export const REL_LABEL: Record<string, string> = {
 export const href = (path: string) =>
   import.meta.env.BASE_URL.replace(/\/$/, '') + '/' + path.replace(/^\//, '');
 
-export const iriOf = (e: Concept) => BASE_IRI + e.id;
+/**
+ * Resolve a relation target to a full IRI — mirrors the toolkit's
+ * `Bundle.resolve`: absolute IRIs (http(s)/urn) pass through; a bundle-relative
+ * Concept ID (`glossary/active-user` or `/glossary/active-user`) hangs off the
+ * base IRI so it matches the concept's own `iriOf`.
+ */
+export const resolveRef = (ref: string) =>
+  /^(https?:|urn:)/.test(ref) ? ref : BASE_IRI + ref.replace(/^\//, '');
+
+/** A concept's IRI: an explicit absolute frontmatter `id`, else base + path. */
+export const iriOf = (e: Concept) => {
+  const id = (e.data as Record<string, unknown>).id;
+  return typeof id === 'string' && /^(https?:|urn:)/.test(id) ? id : BASE_IRI + e.id;
+};
 export const hrefOf = (e: Concept) => href(e.id);
 export const titleOf = (e: Concept) => e.data.title ?? e.id;
 
@@ -48,11 +61,11 @@ export function relationsOf(e: Concept): { slot: string; target: string }[] {
     const v = d[slot];
     if (v === undefined) continue;
     for (const target of Array.isArray(v) ? v : [v]) {
-      if (typeof target === 'string') out.push({ slot, target });
+      if (typeof target === 'string') out.push({ slot, target: resolveRef(target) });
     }
   }
   for (const rel of (d.relations as { predicate?: string; target?: string }[] | undefined) ?? []) {
-    if (rel?.predicate && rel?.target) out.push({ slot: rel.predicate, target: rel.target });
+    if (rel?.predicate && rel?.target) out.push({ slot: rel.predicate, target: resolveRef(rel.target) });
   }
   return out;
 }
