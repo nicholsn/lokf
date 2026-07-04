@@ -1,4 +1,4 @@
-# Linked Open Knowledge Format (LOKF) — v0.1
+# Linked Open Knowledge Format (LOKF)
 
 A **semantic profile of Google's Open Knowledge Format (OKF)**. LOKF keeps OKF's
 markdown-plus-frontmatter authoring model but binds every concept, field, and
