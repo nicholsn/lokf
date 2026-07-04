@@ -42,6 +42,12 @@ dependencies = [
 build = [
     "linkml>=1.8.5",
 ]
+# Project a bundle to tables/DataFrames (`lokf tables`, lokf.tables). Optional:
+# only needed for the tabular writers, not for RDF/graph use.
+tables = [
+    "pandas>=2.0",
+    "pyarrow>=15",
+]
 
 [project.urls]
 Documentation = "https://lokf.nolan-nichols.com/"
@@ -57,6 +63,7 @@ lokf-mcp = "lokf.mcp_server:main"
 dev = [
     "pytest>=8.0",
     "lokf[build]",
+    "lokf[tables]",
 ]
 
 [build-system]

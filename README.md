@@ -164,6 +164,14 @@ Metric(id="https://acme.example/knowledge/metrics/wau",
        type="Metric", title="Weekly Active Users", unit="users")
 ```
 
+`lokf tables` projects a whole bundle to linked tables — one per type plus a
+`relations` edge table (needs `lokf[tables]`):
+
+```bash
+lokf tables examples/acme-knowledge --format parquet  --output build/tables
+lokf tables examples/acme-knowledge --format bigquery --location gs://bucket/lokf
+```
+
 ## Status
 
 LOKF v0.1 is a **draft profile** and is **not affiliated with or endorsed by

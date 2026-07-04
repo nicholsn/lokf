@@ -64,6 +64,57 @@ def convert(
 
 
 # ---------------------------------------------------------------------------
+# tables
+# ---------------------------------------------------------------------------
+@app.command()
+def tables(
+    source: Path = typer.Argument(
+        ..., exists=True, help="A bundle directory to project to tables."
+    ),
+    format: str = typer.Option(
+        "csv", "--format", "-f",
+        help="csv | parquet | sqlite | bigquery | athena",
+    ),
+    output: Path = typer.Option(
+        Path("lokf-tables"), "--output", "-o",
+        help="Output directory (or a .db path for sqlite).",
+    ),
+    engine: str = typer.Option("pandas", help="DataFrame engine: pandas | polars."),
+    location: str = typer.Option(
+        "gs://your-bucket/lokf", "--location",
+        help="Parquet location referenced by the bigquery/athena DDL.",
+    ),
+) -> None:
+    """Project a bundle to linked tables: one per concept type + a relations edge table.
+
+    csv/parquet/sqlite write the data; bigquery/athena write the Parquet and
+    print CREATE EXTERNAL TABLE DDL that registers it as a lakehouse.
+    """
+    from lokf import tables as t
+    from lokf.model import load_bundle
+
+    try:
+        frames = t.to_frames(load_bundle(source), engine=engine)
+    except ModuleNotFoundError as exc:
+        _err(str(exc))
+        raise typer.Exit(1)
+
+    if format == "csv":
+        typer.echo(f"wrote {t.write_csv(frames, output)}/")
+    elif format == "parquet":
+        typer.echo(f"wrote {t.write_parquet(frames, output)}/")
+    elif format == "sqlite":
+        typer.echo(f"wrote {t.to_sqlite(frames, output)}")
+    elif format in ("bigquery", "athena"):
+        t.write_parquet(frames, output)
+        _err(f"# wrote Parquet to {output}/ ; register it with the DDL below")
+        typer.echo(t.external_table_ddl(frames, format, location))
+    else:
+        _err(f"unknown format: {format} (csv | parquet | sqlite | bigquery | athena)")
+        raise typer.Exit(2)
+
+
+# ---------------------------------------------------------------------------
 # query
 # ---------------------------------------------------------------------------
 @app.command()
