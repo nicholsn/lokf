@@ -1,0 +1,14 @@
+# build output
+dist/
+.astro/
+build/
+lokf-tables/
+
+# dependencies
+node_modules/
+
+# python / os
+__pycache__/
+*.pyc
+.venv/
+.DS_Store

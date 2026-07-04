@@ -172,6 +172,21 @@ lokf tables examples/acme-knowledge --format parquet  --output build/tables
 lokf tables examples/acme-knowledge --format bigquery --location gs://bucket/lokf
 ```
 
+## Start your own
+
+`lokf new my-kb` scaffolds a complete knowledge-base repo — a starter bundle, a
+full Astro site with concept pages and the interactive **graph browser**
+(`/graph`, plus `graph.jsonld`), a GitHub Pages workflow, a `justfile`, and the
+bundled agent skills — so you (or an AI agent) can go from an idea to a
+published, queryable knowledge graph:
+
+```bash
+lokf new my-kb --title "My Knowledge Base"
+cd my-kb && just setup && just dev
+```
+
+See the [scaffold docs](https://lokf.nolan-nichols.com/toolkit/scaffold/).
+
 ## Status
 
 LOKF v0.1 is a **draft profile** and is **not affiliated with or endorsed by

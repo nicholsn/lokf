@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import {
+  loadBundle, iriOf, hrefOf, titleOf, relationsOf, conceptJsonLd,
+  REL_LABEL, href,
+} from '../lib/lokf';
+
+export async function getStaticPaths() {
+  const all = await getCollection('knowledge');
+  return all.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { concepts, byIri } = await loadBundle();
+const { Content } = await render(entry);
+const d = entry.data as Record<string, any>;
+const myIri = iriOf(entry);
+
+// Forward links, grouped by relation slot.
+const forward = new Map<string, { iri: string; target?: typeof entry }[]>();
+for (const { slot, target } of relationsOf(entry)) {
+  if (!forward.has(slot)) forward.set(slot, []);
+  forward.get(slot)!.push({ iri: target, target: byIri.get(target) });
+}
+
+// Backlinks: any concept whose typed relations point here.
+const back = concepts.filter(
+  (c) => c.id !== entry.id && relationsOf(c).some((r) => r.target === myIri),
+);
+---
+
+<Base title={titleOf(entry)} description={d.description} jsonld={conceptJsonLd(entry)}>
+  <p><span class="badge">{d.type}</span></p>
+  <h1>{titleOf(entry)}</h1>
+  {d.description && <p class="tagline">{d.description}</p>}
+  {d.tags && (
+    <div class="tags">{(d.tags as string[]).map((t) => <span>{t}</span>)}</div>
+  )}
+
+  <article><Content /></article>
+
+  {d.resource && (
+    <p class="lede-links"><a href={d.resource}>Visit resource ↗</a></p>
+  )}
+
+  {(forward.size > 0 || back.length > 0) && (
+    <div class="relations">
+      <h3>
+        Knowledge graph
+        <a class="rel-open" href={href(`/graph?focus=${entry.id}`)}>open in browser →</a>
+      </h3>
+      {[...forward.entries()].map(([slot, items]) => (
+        <div>
+          <span class="rel-kind">{REL_LABEL[slot] ?? slot}</span>
+          <ul>
+            {items.map((it) => (
+              <li>
+                {it.target
+                  ? <a href={hrefOf(it.target)}>{titleOf(it.target)}</a>
+                  : <a href={it.iri}>{it.iri}</a>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      {back.length > 0 && (
+        <div>
+          <span class="rel-kind">Referenced by</span>
+          <ul>
+            {back.map((c) => <li><a href={hrefOf(c)}>{titleOf(c)}</a></li>)}
+          </ul>
+        </div>
+      )}
+    </div>
+  )}
+</Base>

@@ -1,0 +1,67 @@
+---
+import '../styles/global.css';
+import { href } from '../lib/lokf';
+
+interface Props {
+  title: string;
+  description?: string;
+  jsonld?: unknown;
+  wide?: boolean;
+}
+const { title, description, jsonld, wide } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const nav = [
+  { href: href('/'), label: 'Home' },
+  { href: href('/graph'), label: 'Graph' },
+];
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (h: string) => (h.replace(/\/$/, '') || '/') === path;
+const graphs = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:type" content="website" />
+    <meta name="generator" content="Astro + LOKF" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    {graphs.map((g) => (
+      <script type="application/ld+json" set:html={JSON.stringify(g)} />
+    ))}
+  </head>
+  <body>
+    <div class="topbar" aria-hidden="true"></div>
+    <header class="site-header">
+      <a href={href('/')} class="brand">__KB_TITLE__</a>
+      <nav>
+        {nav.map((n) => (
+          <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined}>{n.label}</a>
+        ))}
+      </nav>
+    </header>
+    <main class={wide ? 'container wide' : 'container'}>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>
+        A <a href="https://lokf.nolan-nichols.com/">LOKF</a> knowledge base —
+        the same markdown is a queryable graph:
+        <a href={href('/graph')}>browser</a> ·
+        <a href={href('/graph.json')}>graph.json</a> ·
+        <a href={href('/graph.jsonld')}>graph.jsonld</a>
+      </p>
+    </footer>
+  </body>
+</html>

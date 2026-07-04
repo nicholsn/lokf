@@ -1,5 +1,6 @@
 """The ``lokf`` command-line interface (Typer).
 
+    lokf new my-kb                                    # scaffold a knowledge base
     lokf convert path/to/concept.md --format ttl      # markdown -> RDF
     lokf query examples/acme-knowledge "SELECT ..."   # SPARQL over a bundle
     lokf serve examples/acme-knowledge                # local SPARQL endpoint + viz
@@ -28,6 +29,36 @@ app = typer.Typer(
 
 def _err(message: str) -> None:
     typer.echo(message, err=True)
+
+
+# ---------------------------------------------------------------------------
+# new
+# ---------------------------------------------------------------------------
+@app.command()
+def new(
+    name: str = typer.Argument(..., help="Directory name for the new knowledge base."),
+    path: Path = typer.Option(Path("."), "--path", help="Where to create it."),
+    title: Optional[str] = typer.Option(
+        None, "--title", help="Human-readable title (default: derived from name)."
+    ),
+    base_iri: Optional[str] = typer.Option(
+        None, "--base-iri",
+        help="Bundle base IRI (default: https://example.org/<name>/).",
+    ),
+) -> None:
+    """Scaffold a knowledge-base repo: bundle + Astro site with the graph browser + agent skills."""
+    from lokf import scaffold
+
+    try:
+        root = scaffold.new(name, path=path, title=title, base_iri=base_iri)
+    except FileExistsError as exc:
+        _err(str(exc))
+        raise typer.Exit(1)
+    typer.echo(f"created {root}/")
+    typer.echo(
+        "next: cd in, `just setup && just dev` to preview (concept pages + /graph), "
+        "edit knowledge/, then push and enable GitHub Pages (Source: GitHub Actions)."
+    )
 
 
 # ---------------------------------------------------------------------------

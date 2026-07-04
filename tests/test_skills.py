@@ -9,10 +9,11 @@ SKILL_NAMES = {
     "query-knowledge-base",
     "publish-graph",
     "build-knowledge-base",
+    "scaffold-knowledge-base",
 }
 
 
-def test_skills_dir_has_the_five_skills():
+def test_skills_dir_has_the_bundled_skills():
     root = skills_dir()
     assert root.is_dir()
     dirs = {p.name for p in root.iterdir() if (p / "SKILL.md").is_file()}
@@ -21,7 +22,7 @@ def test_skills_dir_has_the_five_skills():
 
 def test_list_skills_names_match_dirs_and_descriptions_non_empty():
     skills = list_skills()
-    assert len(skills) == 5
+    assert len(skills) == len(SKILL_NAMES)
     names = {name for name, _ in skills}
     assert names == SKILL_NAMES
     for name, description in skills:
