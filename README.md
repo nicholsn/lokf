@@ -36,6 +36,8 @@ and every OKF bundle is valid LOKF with default mappings.
 | `lokf.schema.json` | Generated JSON Schema — validates frontmatter / bundles. | ⚙️ generated |
 | `lokf.shacl.ttl` | Generated SHACL shapes — validates the RDF graph. | ⚙️ generated |
 | `lokf.owl.ttl` | Generated OWL ontology — reasoning & alignment. | ⚙️ generated |
+| `lokf.sql` | Generated relational schema — `CREATE TABLE` DDL (FKs for typed relations). | ⚙️ generated |
+| `src/lokf/datamodel.py` | Generated Python bindings — `from lokf.datamodel import Metric`. | ⚙️ generated |
 | `examples/acme-knowledge/` | A conformant 6-concept reference bundle. | ✅ |
 | `examples/*.nt` | RDF triples produced from the example frontmatter. | ⚙️ generated |
 
@@ -140,6 +142,27 @@ print(rdf.serialize("examples/acme-knowledge/metrics/weekly-active-users.md", "t
 <!-- --8<-- [end:quickstart-rdf] -->
 
 This is the whole thesis: OKF authoring in, RDF knowledge graph out.
+
+## Two projections: a graph *and* tables
+
+Because LOKF is defined once in LinkML, a well-modeled bundle projects **two**
+ways — the *literal* knowledge graph and the *abstract* one (well-modeled,
+linked data you can put in tables):
+
+- **A graph** — markdown → JSON-LD → RDF, queryable with SPARQL, validatable
+  with SHACL, reason-able with OWL (shown above).
+- **Tables** — the same schema generates typed **Python bindings**
+  (`src/lokf/datamodel.py`) and a **relational schema** (`lokf.sql` — one table
+  per type, foreign keys for the typed relations). So the same well-modeled data
+  is either a queryable graph *or* a set of linked tables: DataFrames to analyze,
+  SQL to persist, a lakehouse to scale.
+
+```python
+from lokf.datamodel import Metric
+
+Metric(id="https://acme.example/knowledge/metrics/wau",
+       type="Metric", title="Weekly Active Users", unit="users")
+```
 
 ## Status
 

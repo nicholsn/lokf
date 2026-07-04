@@ -30,6 +30,10 @@ dependencies = [
     "typer>=0.15",
     "pyoxigraph>=0.4",
     "mcp>=1.2",
+    # Runtime for the generated dataclass bindings (src/lokf/datamodel.py).
+    # linkml_runtime is light; the heavy `linkml` generator stays in the
+    # `build` extra used only to regenerate artifacts.
+    "linkml-runtime>=1.8",
 ]
 
 [project.optional-dependencies]

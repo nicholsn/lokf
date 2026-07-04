@@ -834,6 +834,7 @@ name = "lokf"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "linkml-runtime" },
     { name = "mcp" },
     { name = "pyoxigraph" },
     { name = "pyyaml" },
@@ -856,6 +857,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "linkml", marker = "extra == 'build'", specifier = ">=1.8.5" },
+    { name = "linkml-runtime", specifier = ">=1.8" },
     { name = "mcp", specifier = ">=1.2" },
     { name = "pyoxigraph", specifier = ">=0.4" },
     { name = "pyyaml", specifier = ">=6.0" },

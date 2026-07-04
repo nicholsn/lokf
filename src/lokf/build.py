@@ -13,6 +13,8 @@ Outputs (regenerated in place):
     lokf.schema.json      JSON Schema
     lokf.shacl.ttl        SHACL shapes
     lokf.owl.ttl          OWL ontology
+    lokf.sql              relational schema (CREATE TABLE DDL)
+    src/lokf/datamodel.py LinkML dataclass bindings (from lokf.datamodel import ...)
     examples/acme-knowledge.bundle.json   assembled bundle (git-ignored)
     examples/acme-knowledge.nt            RDF triples for the whole bundle
     examples/weekly-active-users.nt       RDF triples for one concept
@@ -63,6 +65,12 @@ def generate(root: pathlib.Path) -> None:
     with open(root / "lokf.shacl.ttl", "w") as f:
         run(["gen-shacl", str(schema)], stdout=f)
 
+    # The relational projection of the schema: CREATE TABLE DDL with foreign
+    # keys auto-created for the typed relations. The instance-level counterpart
+    # (a bundle -> linked DataFrames/SQL) lives in ``lokf.tables``.
+    with open(root / "lokf.sql", "w") as f:
+        run(["gen-sqltables", str(schema)], stdout=f)
+
     base = root / "lokf.context.base.jsonld"
     with open(base, "w") as f:
         run(["gen-jsonld-context", str(schema)], stdout=f)
@@ -85,13 +93,19 @@ def generate(root: pathlib.Path) -> None:
     # is self-sufficient (see lokf.schema's resolution order). Only when run
     # inside the lokf repo itself: a downstream knowledge repo that satisfies
     # _find_root must not have a src/lokf/ tree planted in it.
-    outputs = "  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl"
+    outputs = "  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl, lokf.sql"
     if (root / "src" / "lokf" / "__init__.py").exists():
         data = root / "src" / "lokf" / "data"
         data.mkdir(parents=True, exist_ok=True)
         shutil.copy(root / "lokf.yaml", data / "lokf.yaml")
         shutil.copy(root / "lokf.context.jsonld", data / "lokf.context.jsonld")
-        outputs += " (+ src/lokf/data copies)"
+        # Typed Python bindings for the vocabulary: `from lokf.datamodel import
+        # Metric`, etc. LinkML dataclasses (backed by linkml_runtime) that
+        # validate required fields and round-trip to JSON / YAML / RDF.
+        # Committed so an installed wheel ships them.
+        with open(root / "src" / "lokf" / "datamodel.py", "w") as f:
+            run(["gen-python", str(schema)], stdout=f)
+        outputs += " (+ src/lokf/data copies + datamodel.py)"
     print(outputs)
 
 
