@@ -148,6 +148,15 @@ Google**. "Open Knowledge Format" / "OKF" refer to the format published by Googl
 Cloud (`github.com/GoogleCloudPlatform/knowledge-catalog`); LOKF extends it under
 its open terms.
 
+## AI assistance
+
+LOKF is developed openly and with substantial AI assistance (Claude) — including
+the toolkit, the LinkML schema, the documentation, and this README. Nolan
+Nichols reviews and takes full responsibility for everything committed. Per the
+project's [AI Covenant](AI_COVENANT.md), AI is a tool, not a co-author: it is
+never credited in commit messages, and every contribution is owned and defended
+by a human. See [CONTRIBUTING.md](CONTRIBUTING.md) to get involved.
+
 ## License
 
 CC-BY-4.0 — see [`LICENSE`](https://github.com/nicholsn/lokf/blob/main/LICENSE).
