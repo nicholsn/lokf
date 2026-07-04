@@ -66,6 +66,17 @@ dev = [
     "lokf[tables]",
 ]
 
+[tool.hatch.build.targets.sdist]
+# The docs site (web/) — with its node_modules and Astro cache — isn't needed to
+# build or use the package, and would push the sdist past PyPI's size limit.
+exclude = [
+    "/web",
+    "/site",
+    "**/node_modules",
+    "**/.astro",
+    "**/dist",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

@@ -1,11 +1,12 @@
 ---
 title: Scaffold a knowledge base (lokf new)
-description: Create a new, publishable LOKF knowledge-base repo — bundle, site, and agent skills — with one command.
+description: Create a new, publishable LOKF knowledge base — bundle, Astro site with the graph browser, and agent skills — with one command.
 ---
 
 `lokf new <name>` scaffolds a complete, publishable knowledge base — in the
 spirit of linkml-cookiecutter. One command, and you (or an AI agent) can go from
-an idea to a queryable knowledge graph *and* a website.
+an idea to a queryable knowledge graph *and* a full website with the
+interactive **graph browser**.
 
 ## Command
 
@@ -18,27 +19,40 @@ Creates `my-kb/`:
 ```
 my-kb/
   knowledge/                     # the LOKF bundle (index.md + example concepts)
-  mkdocs.yml                     # renders the bundle as a website
+  src/                           # the Astro site
+    pages/index.astro            #   home: concepts grouped by type
+    pages/[...slug].astro        #   one page per concept, with relations panels
+    pages/graph.astro            #   the interactive graph browser
+    pages/graph.json.ts          #   nodes + edges for the browser
+    pages/graph.jsonld.ts        #   the whole bundle as JSON-LD (the RDF view)
+  package.json · astro.config.mjs · tsconfig.json
   .github/workflows/pages.yml    # builds + publishes to GitHub Pages
-  justfile                       # `just serve | rdf | tables | site` (via uvx)
-  README.md
-  .gitignore
+  justfile                       # just setup | dev | site | serve | rdf | tables
+  README.md · .gitignore
   .claude/skills/                # the bundled agent skills
 ```
 
-Everything runs through [`uvx`](https://docs.astral.sh/uv/), so the only
-prerequisite is `uv` — no `pip install`.
+The `site` and `base` in `astro.config.mjs` are derived from `--base-iri`, so
+the site works at a domain root **or** as a GitHub *project* page
+(`https://user.github.io/repo/`).
 
 ## Then
 
 ```bash
 cd my-kb
-just serve     # explore the graph locally
+just setup     # npm install (once; commit package-lock.json)
+just dev       # live-preview: concept pages + the /graph browser
 ```
 
 Author concepts under `knowledge/` (see the two examples), listing each in
-`knowledge/index.md`. Push to GitHub and set **Settings → Pages → Source** to
-**GitHub Actions** to publish.
+`knowledge/index.md`. Typed relations become edges in the graph browser and
+"Knowledge graph" panels on the pages. The `lokf` toolkit recipes
+(`just serve | rdf | tables`) run via `uvx`, so they only need `uv`.
+
+## Publish
+
+Push to GitHub and set **Settings → Pages → Source** to **GitHub Actions** —
+the `pages` workflow builds the Astro site and deploys on every push to `main`.
 
 ## Idea → published site, with an agent
 

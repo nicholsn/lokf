@@ -1,0 +1,446 @@
+---
+import Base from '../layouts/Base.astro';
+import { href } from '../lib/lokf';
+
+// Interactive LOKF knowledge-graph browser (from the lokf toolkit's explorer).
+// Reads graph.json; nodes are concepts, edges are typed relations. Search dims
+// non-matches, filters toggle types/predicates, clicking a node opens a detail
+// card linking to its page. `?focus=<concept_id>` selects and zooms a node.
+---
+
+<Base
+  title="Knowledge graph — __KB_TITLE__"
+  description="An interactive browser over this knowledge base: every concept and typed relation as a navigable graph."
+  wide
+>
+  <h1>Knowledge graph</h1>
+  <p class="tagline">
+    Drag, scroll to zoom, click a node to inspect and jump to its page.
+    Raw data: <a href={href('/graph.json')}><code>graph.json</code></a> ·
+    <a href={href('/graph.jsonld')}><code>graph.jsonld</code></a>.
+  </p>
+
+  <div class="lokf-graph" data-graph-src={href('/graph.json')}>
+    <div class="lokf-graph__controls">
+      <input
+        type="search"
+        class="lokf-graph__search"
+        placeholder="Search nodes by label…"
+        autocomplete="off"
+      />
+      <div class="lokf-graph__filters">
+        <fieldset class="lokf-graph__fieldset" data-filter="type">
+          <legend>Node types</legend>
+        </fieldset>
+        <fieldset class="lokf-graph__fieldset" data-filter="predicate">
+          <legend>Relations</legend>
+        </fieldset>
+      </div>
+    </div>
+    <div class="lokf-graph__stage">
+      <div class="lokf-graph__toolbar">
+        <button type="button" class="lokf-graph__btn" data-action="fit" title="Fit graph to view">
+          ⤢ Fit
+        </button>
+        <button
+          type="button"
+          class="lokf-graph__btn"
+          data-action="fullscreen"
+          title="Open the full-screen graph browser"
+        >
+          ⛶ Full screen
+        </button>
+      </div>
+      <div class="lokf-graph__canvas"></div>
+      <aside class="lokf-graph__detail" hidden>
+        <button type="button" class="lokf-graph__close" aria-label="Close">&times;</button>
+        <h3 class="lokf-graph__detail-title"></h3>
+        <dl>
+          <dt>Type</dt><dd class="lokf-graph__detail-type"></dd>
+          <dt>IRI</dt><dd class="lokf-graph__detail-iri lokf-graph__mono"></dd>
+        </dl>
+        <a class="lokf-graph__detail-page" href="#">Open page →</a>
+      </aside>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import cytoscape from 'cytoscape';
+  import fcose from 'cytoscape-fcose';
+
+  cytoscape.use(fcose);
+
+  // Stable colors for the LOKF core types; extras fall back to the palette.
+  const TYPE_COLORS: Record<string, string> = {
+    Person: '#c96f3b',
+    Organization: '#5b8def',
+    Role: '#2ea77d',
+    Document: '#9b6dd6',
+    Reference: '#d2a53a',
+    Dataset: '#4bacc6',
+    Table: '#3f8f96',
+    Metric: '#c1558b',
+    Service: '#7f8c4f',
+    GlossaryTerm: '#d2a53a',
+    Playbook: '#d05b5b',
+  };
+  const FALLBACK = ['#5b8def', '#2ea77d', '#c1558b', '#9b6dd6', '#d2a53a', '#4bacc6'];
+
+  function themeColor(name: string, fallback: string): string {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  type Elements = {
+    nodes: { data: Record<string, string> }[];
+    edges: { data: Record<string, string> }[];
+  };
+
+  function init(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    fetch(root.dataset.graphSrc!)
+      .then((r) => r.json())
+      .then((graph: Elements) => render(root, graph))
+      .catch((e) => {
+        (root.querySelector('.lokf-graph__canvas') as HTMLElement).textContent =
+          'Could not load graph: ' + e;
+      });
+  }
+
+  function render(root: HTMLElement, graph: Elements) {
+    const mount = root.querySelector('.lokf-graph__canvas') as HTMLElement;
+
+    const types = [...new Set(graph.nodes.map((n) => n.data.type))].sort();
+    const colorOf: Record<string, string> = {};
+    let spare = 0;
+    types.forEach((t) => (colorOf[t] = TYPE_COLORS[t] ?? FALLBACK[spare++ % FALLBACK.length]));
+    graph.nodes.forEach((n) => (n.data.color = colorOf[n.data.type]));
+    const predicates = [...new Set(graph.edges.map((e) => e.data.predicate))].sort();
+
+    const fg = themeColor('--text', '#333');
+    const line = themeColor('--muted', '#888');
+
+    const cy = cytoscape({
+      container: mount,
+      elements: graph,
+      minZoom: 0.2,
+      maxZoom: 2.5,
+      wheelSensitivity: 0.3,
+      layout: {
+        name: 'fcose',
+        quality: 'proof',
+        animate: false,
+        padding: 50,
+        nodeSeparation: 160,
+        idealEdgeLength: 130,
+        nodeRepulsion: 8000,
+        gravity: 0.25,
+        fit: true,
+      } as any,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': 'data(color)',
+            label: 'data(label)',
+            color: fg,
+            'font-size': '11px',
+            'text-wrap': 'wrap',
+            'text-max-width': '120px',
+            'text-valign': 'bottom',
+            'text-margin-y': 4,
+            width: 26,
+            height: 26,
+          },
+        },
+        {
+          selector: 'edge',
+          style: {
+            label: 'data(predicate)',
+            'font-size': '9px',
+            color: line,
+            'line-color': line,
+            'line-opacity': 0.55,
+            'target-arrow-color': line,
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+            width: 1.5,
+            'text-rotation': 'autorotate',
+          },
+        },
+        {
+          selector: 'node:selected',
+          style: { 'border-width': 4, 'border-color': fg },
+        },
+        { selector: '.dim', style: { opacity: 0.15 } },
+        { selector: '.hidden', style: { display: 'none' } },
+      ],
+    });
+
+    // Filters: a checkbox per type and per predicate.
+    const typeBox = root.querySelector('[data-filter="type"]') as HTMLElement;
+    const predBox = root.querySelector('[data-filter="predicate"]') as HTMLElement;
+    const checkbox = (value: string, swatch?: string) => {
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = true;
+      input.value = value;
+      label.append(input);
+      if (swatch) {
+        const dot = document.createElement('span');
+        dot.className = 'lokf-graph__swatch';
+        dot.style.background = swatch;
+        label.append(dot);
+      }
+      label.append(document.createTextNode(' ' + value));
+      input.addEventListener('change', applyFilters);
+      return label;
+    };
+    types.forEach((t) => typeBox.append(checkbox(t, colorOf[t])));
+    predicates.forEach((p) => predBox.append(checkbox(p)));
+
+    const checkedValues = (box: HTMLElement) =>
+      new Set([...box.querySelectorAll<HTMLInputElement>('input:checked')].map((i) => i.value));
+    function applyFilters() {
+      const okTypes = checkedValues(typeBox);
+      const okPreds = checkedValues(predBox);
+      cy.nodes().forEach((n) => n.toggleClass('hidden', !okTypes.has(n.data('type'))));
+      cy.edges().forEach((e) => e.toggleClass('hidden', !okPreds.has(e.data('predicate'))));
+    }
+
+    // Search dims non-matching nodes.
+    const search = root.querySelector('.lokf-graph__search') as HTMLInputElement;
+    search.addEventListener('input', () => {
+      const q = search.value.trim().toLowerCase();
+      cy.nodes().forEach((n) =>
+        n.toggleClass('dim', q !== '' && !n.data('label').toLowerCase().includes(q)),
+      );
+    });
+
+    // Detail panel on node click, linking to the node's page.
+    const detail = root.querySelector('.lokf-graph__detail') as HTMLElement;
+    const set = (sel: string, text: string) => {
+      (root.querySelector(sel) as HTMLElement).textContent = text;
+    };
+    const showDetail = (d: Record<string, string>) => {
+      set('.lokf-graph__detail-title', d.label);
+      set('.lokf-graph__detail-type', d.type);
+      set('.lokf-graph__detail-iri', d.id);
+      (root.querySelector('.lokf-graph__detail-page') as HTMLAnchorElement).href = d.href;
+      detail.hidden = false;
+    };
+    cy.on('tap', 'node', (evt) => showDetail(evt.target.data()));
+    (root.querySelector('.lokf-graph__close') as HTMLElement).addEventListener(
+      'click',
+      () => (detail.hidden = true),
+    );
+
+    const fit = () => cy.fit(undefined, 45);
+
+    // ?focus=<concept_id> — select and zoom a node (deep links from pages).
+    // resize() first so fit/center use the container's final size; a timeout
+    // fallback re-settles once fonts/layout have stopped shifting things.
+    const focusId = new URLSearchParams(location.search).get('focus');
+    let settled = false;
+    const settle = () => {
+      cy.resize();
+      const target = focusId
+        ? cy.nodes().filter((n) => n.data('concept_id') === focusId)
+        : cy.collection();
+      if (target.length) {
+        if (!settled) {
+          target.select();
+          showDetail(target.first().data());
+        }
+        cy.animate({ center: { eles: target }, zoom: 1.5, duration: settled ? 0 : 350 });
+      } else {
+        fit();
+      }
+      settled = true;
+    };
+    cy.one('layoutstop', () => requestAnimationFrame(settle));
+    setTimeout(settle, 500);
+
+    // Toolbar: fit + a full-screen graph browser.
+    const stage = root.querySelector('.lokf-graph__stage') as HTMLElement;
+    root.querySelector('[data-action="fit"]')!.addEventListener('click', fit);
+    const fsBtn = root.querySelector('[data-action="fullscreen"]') as HTMLButtonElement;
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else stage.requestFullscreen?.();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const full = document.fullscreenElement === stage;
+      stage.classList.toggle('is-fullscreen', full);
+      fsBtn.textContent = full ? '⛶ Exit full screen' : '⛶ Full screen';
+      requestAnimationFrame(() => {
+        cy.resize();
+        fit();
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('.lokf-graph').forEach(init);
+</script>
+
+<style is:global>
+  /* Global (not scoped): filter labels/swatches are created in JS and wouldn't
+     carry Astro's scope hash. All selectors are namespaced .lokf-graph__* . */
+  .lokf-graph {
+    margin: 1.5rem 0 2rem;
+  }
+  .lokf-graph__controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+  .lokf-graph__search {
+    width: 100%;
+    padding: 0.55rem 0.8rem;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+  }
+  .lokf-graph__search:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .lokf-graph__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+  .lokf-graph__fieldset {
+    flex: 1 1 13rem;
+    min-width: 12rem;
+    padding: 0.4rem 0.8rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+  }
+  .lokf-graph__fieldset legend {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 0.3rem;
+  }
+  .lokf-graph__fieldset label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    line-height: 1.9;
+    cursor: pointer;
+    margin-right: 0.9rem;
+  }
+  .lokf-graph__fieldset input {
+    accent-color: var(--accent);
+  }
+  .lokf-graph__swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    flex: none;
+  }
+  .lokf-graph__stage {
+    position: relative;
+  }
+  .lokf-graph__toolbar {
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    z-index: 3;
+    display: flex;
+    gap: 0.4rem;
+  }
+  .lokf-graph__btn {
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.65rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .lokf-graph__btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .lokf-graph__canvas {
+    width: 100%;
+    height: 62vh;
+    min-height: 460px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background:
+      radial-gradient(circle at 25% 15%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 55%),
+      var(--surface);
+  }
+  .lokf-graph__stage.is-fullscreen {
+    background: var(--bg);
+  }
+  .lokf-graph__stage.is-fullscreen .lokf-graph__canvas {
+    height: 100vh;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+  .lokf-graph__detail {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    width: min(20rem, 82%);
+    padding: 0.9rem 1.1rem 1rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    z-index: 4;
+  }
+  .lokf-graph__detail h3 {
+    margin: 0 1.5rem 0.6rem 0;
+    font-size: 1rem;
+  }
+  .lokf-graph__detail dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.6rem;
+    margin: 0 0 0.7rem;
+  }
+  .lokf-graph__detail dt {
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .lokf-graph__detail dd {
+    margin: 0;
+    word-break: break-all;
+  }
+  .lokf-graph__mono {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+  }
+  .lokf-graph__close {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.5rem;
+    border: 0;
+    background: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--muted);
+  }
+</style>

@@ -27,8 +27,11 @@ the repository, then hands off to `author-concept` / `build-knowledge-base` /
    lokf new my-kb --title "My Knowledge Base" --base-iri https://myorg.github.io/my-kb/
    ```
 
-   This creates `my-kb/` with a starter bundle (`knowledge/`), a MkDocs site, a
-   GitHub Pages workflow, a `justfile`, and these skills under `.claude/skills/`.
+   This creates `my-kb/` with a starter bundle (`knowledge/`), a full Astro
+   site (concept pages + the interactive `/graph` browser + `graph.jsonld`),
+   a GitHub Pages workflow, a `justfile`, and these skills under
+   `.claude/skills/`. Pass the real published URL as `--base-iri` when known —
+   it configures both the concept IRIs and the site's base path.
 
 2. **Understand the domain.** Ask the human what concepts matter and how they
    relate. Sketch the types (`Metric`, `Dataset`, `Table`, `GlossaryTerm`,
@@ -48,12 +51,15 @@ the repository, then hands off to `author-concept` / `build-knowledge-base` /
    uvx --from lokf lokf convert knowledge --format ttl | tail
    ```
 
-   Explore it interactively with `just serve`; get the tabular projection with
-   `just tables`.
+   Preview the website with `just setup && just dev` (concept pages + the
+   `/graph` browser); explore with the toolkit via `just serve`; get the
+   tabular projection with `just tables`.
 
-5. **Publish.** Set `base_iri` in `knowledge/index.md` to the real URL, commit,
-   push to GitHub, and set **Settings → Pages → Source** to **GitHub Actions**.
-   The `pages` workflow builds and deploys on every push to `main`.
+5. **Publish.** Confirm `base_iri` in `knowledge/index.md` and `site`/`base` in
+   `astro.config.mjs` match the real URL, run `just setup` once and commit
+   `package-lock.json`, push to GitHub, and set **Settings → Pages → Source**
+   to **GitHub Actions**. The `pages` workflow builds and deploys on every
+   push to `main`.
 
 ## Done when
 

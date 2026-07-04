@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadBundle, hrefOf, titleOf, href } from '../lib/lokf';
+
+const { concepts } = await loadBundle();
+const types = [...new Set(concepts.map((c) => c.data.type))].sort();
+const byType = (t: string) => concepts.filter((c) => c.data.type === t);
+---
+
+<Base title="__KB_TITLE__" description="A LOKF knowledge base — markdown concepts that are also a queryable knowledge graph." wide>
+  <h1>__KB_TITLE__</h1>
+  <p class="tagline">
+    A <a href="https://lokf.nolan-nichols.com/">LOKF</a> knowledge base:
+    every page below is one markdown concept, and together they form a
+    queryable knowledge graph.
+  </p>
+  <div class="lede-links">
+    <a href={href('/graph')}>Explore the graph →</a>
+    <a href={href('/graph.jsonld')}>JSON-LD</a>
+  </div>
+
+  {types.map((t) => (
+    <>
+      <h2>{t}</h2>
+      <div class="grid">
+        {byType(t).map((c) => (
+          <a class="card" href={hrefOf(c)}>
+            <h3>{titleOf(c)}</h3>
+            {c.data.description && <p>{c.data.description}</p>}
+          </a>
+        ))}
+      </div>
+    </>
+  ))}
+</Base>

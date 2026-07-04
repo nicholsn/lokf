@@ -1,5 +1,6 @@
 """The ``lokf`` command-line interface (Typer).
 
+    lokf new my-kb                                    # scaffold a knowledge base
     lokf convert path/to/concept.md --format ttl      # markdown -> RDF
     lokf query examples/acme-knowledge "SELECT ..."   # SPARQL over a bundle
     lokf serve examples/acme-knowledge                # local SPARQL endpoint + viz
@@ -45,7 +46,7 @@ def new(
         help="Bundle base IRI (default: https://example.org/<name>/).",
     ),
 ) -> None:
-    """Scaffold a new knowledge-base repo: bundle + site + Pages workflow + agent skills."""
+    """Scaffold a knowledge-base repo: bundle + Astro site with the graph browser + agent skills."""
     from lokf import scaffold
 
     try:
@@ -55,7 +56,8 @@ def new(
         raise typer.Exit(1)
     typer.echo(f"created {root}/")
     typer.echo(
-        "next: cd in, edit knowledge/, then `just serve` — or push and enable GitHub Pages."
+        "next: cd in, `just setup && just dev` to preview (concept pages + /graph), "
+        "edit knowledge/, then push and enable GitHub Pages (Source: GitHub Actions)."
     )
 
 
