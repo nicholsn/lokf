@@ -31,6 +31,35 @@ def _err(message: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# new
+# ---------------------------------------------------------------------------
+@app.command()
+def new(
+    name: str = typer.Argument(..., help="Directory name for the new knowledge base."),
+    path: Path = typer.Option(Path("."), "--path", help="Where to create it."),
+    title: Optional[str] = typer.Option(
+        None, "--title", help="Human-readable title (default: derived from name)."
+    ),
+    base_iri: Optional[str] = typer.Option(
+        None, "--base-iri",
+        help="Bundle base IRI (default: https://example.org/<name>/).",
+    ),
+) -> None:
+    """Scaffold a new knowledge-base repo: bundle + site + Pages workflow + agent skills."""
+    from lokf import scaffold
+
+    try:
+        root = scaffold.new(name, path=path, title=title, base_iri=base_iri)
+    except FileExistsError as exc:
+        _err(str(exc))
+        raise typer.Exit(1)
+    typer.echo(f"created {root}/")
+    typer.echo(
+        "next: cd in, edit knowledge/, then `just serve` — or push and enable GitHub Pages."
+    )
+
+
+# ---------------------------------------------------------------------------
 # convert
 # ---------------------------------------------------------------------------
 @app.command()
