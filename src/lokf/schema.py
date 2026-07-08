@@ -67,6 +67,17 @@ def _load_context(resolved: str) -> dict:
     return json.loads(pathlib.Path(resolved).read_text(encoding="utf-8"))["@context"]
 
 
+def schema_path(path: str | pathlib.Path | None = None) -> pathlib.Path:
+    """Resolve the LOKF schema file (``lokf.yaml``) to a filesystem path.
+
+    Resolution order (same as every other reader here): an explicit *path*, a
+    ``lokf.yaml`` found in the current directory or an ancestor, the the copy
+    shipped inside the installed ``lokf`` package - so a bundle can be
+    validated without a schema file of its own.
+    """
+    return _resolve(_SCHEMA_NAME, path)
+
+
 def load_schema(path: str | pathlib.Path | None = None) -> dict:
     """Return the LOKF LinkML schema as a plain dict (cached per file)."""
     return _load_schema(str(_resolve(_SCHEMA_NAME, path)))

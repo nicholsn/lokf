@@ -65,6 +65,20 @@ def test_convert_output_writes_file(tmp_path):
     assert "lokf:Metric" in text
 
 
+# -- validate ---------------------------------------------------------------
+def test_validate_reference_bundle_ok():
+    """validate <bundle> assembles and validates against KnowledgeBundle."""
+    result = runner.invoke(app, ["validate", str(BUNDLE)])
+    assert result.exit_code == 0
+    assert "validate against KnowledgeBundle" in result.stdout
+
+
+def test_validate_missing_bundle_nonzero_exit():
+    """A non-existent bundle directory is rejected before validation."""
+    result = runner.invoke(app, ["validate", "does-not-exist"])
+    assert result.exit_code != 0
+
+
 # -- query ------------------------------------------------------------------
 def test_query_select_table_contains_wau():
     """query <bundle> <SELECT> prints a table with the metric name."""
