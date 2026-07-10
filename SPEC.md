@@ -388,7 +388,122 @@ graph using the *same* vocabularies the public web already speaks.
 
 ---
 
-## 11. Versioning
+## 11. Federation: registries of bundles
+
+A single LOKF bundle is self-contained, but knowledge rarely is: one team's
+`Metric` `dependsOn` another team's `GlossaryTerm`, whose canonical definition
+lives in a *different* bundle in a *different* repository. A **registry**
+(*meta-lokf*) aggregates a set of independent bundles into one navigable graph
+**without a central database**, so an agent can follow a relation out of one
+bundle into another and read the target concept's source document. A registry is
+itself just linked data — a DCAT catalog of catalogs — so it is built with the
+same vocabularies and tooling as the bundles it indexes.
+
+### 11.1 The producer contract
+
+A bundle becomes federatable by publishing the artifacts `lokf export` writes to
+a location a registry can read (GitHub Pages, a w3id-fronted host, or a sibling
+checkout). Its **`base_iri`** (from the root `index.md`, §4) is its identity in
+the registry.
+
+| Artifact           | Role in federation                                                     |
+|--------------------|------------------------------------------------------------------------|
+| `graph.nt`         | The whole bundle as N-Triples — the RDF a registry loads for SPARQL.    |
+| `concepts.jsonld`  | Every concept's frontmatter + body under one `@context`/`@graph` — offline access to a concept's *source document* without re-fetching markdown. |
+| `graph.json`       | cytoscape.js elements — drives the (multi-bundle) graph explorer.       |
+| `datasets.jsonld`  | schema.org `Dataset` docs — discovery via Google Dataset Search.        |
+
+### 11.2 The registry manifest
+
+A registry is a git-committed `lokf-registry.yaml` — a `dcat:Catalog` of
+`void:Dataset` entries, one per member bundle, keyed by `base_iri`
+(== `void:uriSpace`). Each entry records where the member's artifacts live, a
+lightweight `void` planning index (triple and per-type counts, so an agent can
+pick a bundle *without* dereferencing it), and harvest `status`. It parses with a
+plain YAML reader — no LinkML on the read path — and round-trips to a crawlable
+`registry.jsonld`.
+
+```yaml
+lokf_registry_version: "0.1"
+type: dcat:Catalog
+id: https://w3id.org/lokf/registry/example
+repos:
+  - base_iri: https://acme.example/knowledge/       # routing key == void:uriSpace
+    title: Acme Knowledge Bundle
+    repo: git+https://github.com/acme/knowledge.git@main
+    source_base: https://raw.githubusercontent.com/acme/knowledge/main
+    distribution:
+      rdf:      https://acme.example/knowledge/graph.nt        # SPARQL harvest source
+      concepts: https://acme.example/knowledge/concepts.jsonld # offline document access
+    void: { triples: 86, class_partition: { Metric: 1, Dataset: 1, GlossaryTerm: 1 } }
+    id_index: [ ]                                    # explicit `id:` IRIs outside base_iri
+    status: ok
+```
+
+### 11.3 Cross-bundle resolution
+
+The load-bearing operation is **`owner(iri)`**: the registered `base_iri` that is
+the **longest string prefix** of the IRI. This is the exact inverse of IRI
+minting (§7): a concept's IRI is `base_iri + concept_id`, so given any IRI,
+`concept_id = iri[len(base_iri):]` and the owning bundle is its longest-prefix
+match. Resolution is therefore **pure string arithmetic — no network, no shared
+database** — and a cross-bundle relation whose author wrote a full `https://…`
+target is *already* a correct triple. Three rules keep it trustworthy:
+
+1. **Explicit-id index.** A concept's frontmatter `id:` may diverge from
+   `base_iri + concept_id` (§5). Such IRIs are harvested into the entry's
+   `id_index` and checked as an exact-match fallback before an IRI is declared
+   external, so they still route.
+2. **Namespace precedence & non-nesting.** The packaged vocabulary namespace
+   (`https://w3id.org/lokf/`) always resolves to the built-in schema; registered
+   `base_iri`s must be strictly longer and may not nest inside one another, so
+   routing is unambiguous.
+3. **Ownership validation.** At registration a member's sampled concept IRIs must
+   actually start with its declared `base_iri`, so a bundle cannot claim a
+   namespace it does not own.
+
+An IRI owned by no entry is returned as a tolerated **dangling link**, not an
+error — preserving OKF's permissive stance on broken cross-references.
+
+### 11.4 Traversal and access *(informative — delivered in phases)*
+
+The intended runtime model, layered on the primitives above:
+
+- **Federated graph.** A registry loads each member's `graph.nt` into a
+  **named graph whose IRI is its `base_iri`**. Union queries make a cross-bundle
+  edge resolve transparently once both members are loaded, while `GRAPH ?g`
+  recovers *which* bundle asserted a triple for free (`?g` binds the `base_iri`).
+  Members load **lazily** — only as a walk reaches into their namespace — so an
+  agent never pays to materialize the whole federation to answer a local
+  question.
+- **Document access.** A concept's source markdown is fetched by
+  `source_base + concept_id + ".md"` through an offline-first chain: a local
+  checkout, else the cached `concepts.jsonld`, else a live fetch — every path
+  yielding the same `{frontmatter, body}` shape.
+- **Agent surface.** A `lokf registry` CLI and a `lokf-registry` MCP server
+  expose `resolve_iri`, `neighbors`, `subgraph`, `federated_sparql`, and
+  `read_document`, each depth/breadth-bounded so a cross-bundle hop is a single
+  token-frugal call rather than a chatty chain.
+
+### 11.5 Governance
+
+- **Membership is public-artifact or local-checkout only** in v0.1; credentials
+  never enter the shared manifest. Federating a private or perimeter-bound bundle
+  is a future extension, not a v0.1 capability.
+- **Metadata only, never row-level data.** A registry aggregates schema- and
+  concept-level knowledge; it does not move records. A per-entry `sensitivity`
+  gate lets `harvest` refuse un-cleared members, because metadata each cleared
+  *individually* can be *jointly* re-identifying and even `void` counts can leak
+  small cells — so aggregating sensitive-domain bundles requires explicit
+  clearance from the registry's owner.
+- **Freshness is best-effort.** The federated store reflects the last harvest,
+  guarded by conditional requests and a surfaced per-entry `status`; there is no
+  live-HEAD guarantee, and an unreachable member degrades to its last-good state
+  rather than failing a walk.
+
+---
+
+## 12. Versioning
 
 LOKF versions are `<major>.<minor>`, tracking OKF's scheme. A minor bump adds
 backward-compatible fields, types, relation predicates, or mappings; a major bump
@@ -419,6 +534,7 @@ README.md               How the pieces fit and how to regenerate them.
 | `lokf`    | `https://w3id.org/lokf/`                       |
 | `schema`  | `http://schema.org/`                           |
 | `dcat`    | `http://www.w3.org/ns/dcat#`                   |
+| `void`    | `http://rdfs.org/ns/void#`                     |
 | `dcterms` | `http://purl.org/dc/terms/`                    |
 | `prov`    | `http://www.w3.org/ns/prov#`                   |
 | `skos`    | `http://www.w3.org/2004/02/skos/core#`         |
