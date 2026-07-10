@@ -392,6 +392,120 @@ def mcp() -> None:
     run_mcp()
 
 
+# ---------------------------------------------------------------------------
+# registry — federate multiple bundles (meta-lokf); see SPEC §11
+# ---------------------------------------------------------------------------
+registry_app = typer.Typer(
+    help="Federate bundles: a registry of LOKF bundles (meta-lokf).",
+    no_args_is_help=True,
+)
+app.add_typer(registry_app, name="registry")
+
+
+@registry_app.command("init")
+def registry_init(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest path to create."
+    ),
+    catalog_id: str = typer.Option("", "--id", help="Registry IRI (dcat:Catalog @id)."),
+    title: str = typer.Option("", "--title", help="Registry title."),
+) -> None:
+    """Scaffold an empty registry manifest."""
+    from lokf.registry import Registry
+
+    if registry.exists():
+        _err(f"{registry} already exists")
+        raise typer.Exit(1)
+    Registry(path=registry, id=catalog_id, title=title).save()
+    typer.echo(f"wrote {registry}")
+
+
+@registry_app.command("add")
+def registry_add(
+    bundle_dir: Path = typer.Argument(
+        ..., exists=True, file_okay=False, help="A local LOKF bundle directory."
+    ),
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to append to."
+    ),
+    source_base: Optional[str] = typer.Option(
+        None,
+        "--source-base",
+        help="URL prefix for source .md files (defaults to the bundle's file:// path).",
+    ),
+) -> None:
+    """Register a local bundle: derive its base_iri, VoID index, and id_index."""
+    from lokf.registry import entry_for_bundle, load_registry
+
+    if not registry.exists():
+        _err(f"{registry} not found — run `lokf registry init` first")
+        raise typer.Exit(1)
+    reg = load_registry(registry)
+    try:
+        entry = entry_for_bundle(bundle_dir, source_base=source_base)
+        reg.add(entry)
+    except ValueError as exc:
+        _err(f"cannot register {bundle_dir}: {exc}")
+        raise typer.Exit(1)
+    reg.save()
+    typer.echo(
+        f"registered {entry.base_iri} "
+        f"({entry.void.get('triples', 0)} triples) in {registry}"
+    )
+
+
+@registry_app.command("list")
+def registry_list(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+) -> None:
+    """Print the routing table: base_iri, title, triples, status."""
+    from lokf.registry import load_registry
+
+    if not registry.exists():
+        _err(f"{registry} not found — run `lokf registry init` first")
+        raise typer.Exit(1)
+    reg = load_registry(registry)
+    if not reg.repos:
+        typer.echo("(no members registered)")
+        return
+    for e in sorted(reg.repos, key=lambda e: e.base_iri):
+        triples = e.void.get("triples", "?")
+        typer.echo(f"{e.base_iri}\t{e.title}\t{triples} triples\t{e.status}")
+
+
+@registry_app.command("resolve")
+def registry_resolve(
+    iri: str = typer.Argument(..., help="An absolute concept IRI to resolve."),
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+) -> None:
+    """Resolve an IRI to its owning bundle, Concept ID, and source URL (offline).
+
+    Exits non-zero for an IRI no member owns — a tolerated dangling cross-link,
+    not owned here.
+    """
+    from lokf.registry import load_registry
+
+    if not registry.exists():
+        _err(f"{registry} not found — run `lokf registry init` first")
+        raise typer.Exit(1)
+    res = load_registry(registry).resolve(iri)
+    if res.external:
+        typer.echo(f"{iri}\n  external: not owned by any registered bundle")
+        raise typer.Exit(1)
+    typer.echo(iri)
+    typer.echo(f"  owner:      {res.entry.base_iri} ({res.entry.title})")
+    if res.concept_id:
+        typer.echo(f"  concept_id: {res.concept_id}")
+        typer.echo(f"  source_url: {res.source_url or '(none)'}")
+    else:
+        typer.echo("  concept_id: (namespace root — not a concept)")
+    typer.echo(f"  via:        {res.via}")
+
+
 def main(argv: list[str] | None = None) -> int:
     """Programmatic entry point (tests use ``typer.testing.CliRunner``).
 
