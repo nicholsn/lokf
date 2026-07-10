@@ -127,3 +127,28 @@ def test_export_writes_graph_and_datasets(tmp_path):
     assert graph["meta"]["source_base"] == "https://x/"
     datasets = json.loads((tmp_path / "datasets.jsonld").read_text())
     assert len(datasets) == 2 and all(d["@type"] == "Dataset" for d in datasets)
+
+
+def test_export_writes_registry_producer_contract(tmp_path):
+    """export also writes graph.nt + concepts.jsonld (the registry harvest source)."""
+    result = runner.invoke(app, ["export", str(BUNDLE), "--out-dir", str(tmp_path)])
+    assert result.exit_code == 0
+
+    # graph.nt is the whole bundle as N-Triples (one statement per line).
+    nt = (tmp_path / "graph.nt").read_text()
+    assert nt.strip() and all(
+        line.endswith(" .") for line in nt.strip().splitlines()
+    )
+
+    # concepts.jsonld is one @context/@graph document carrying frontmatter + body,
+    # each concept keyed by its IRI, and it round-trips to the same triples as nt.
+    doc = json.loads((tmp_path / "concepts.jsonld").read_text())
+    assert set(doc) == {"@context", "@graph"}
+    assert len(doc["@graph"]) == 6
+    assert all(c.get("id", "").startswith("http") and "body" in c for c in doc["@graph"])
+
+    from rdflib import Graph
+
+    g_nt = Graph().parse(str(tmp_path / "graph.nt"), format="nt")
+    g_jsonld = Graph().parse(str(tmp_path / "concepts.jsonld"), format="json-ld")
+    assert len(g_nt) and g_nt.isomorphic(g_jsonld)

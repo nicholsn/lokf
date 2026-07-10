@@ -337,20 +337,32 @@ def export(
         ..., exists=True, file_okay=False, help="A LOKF bundle directory."
     ),
     out_dir: Path = typer.Option(
-        ..., "--out-dir", "-d", help="Directory to write graph.json + datasets.jsonld."
+        ...,
+        "--out-dir",
+        "-d",
+        help="Directory to write graph.json, datasets.jsonld, graph.nt, concepts.jsonld.",
     ),
     source_base: Optional[str] = typer.Option(
         None, "--source-base", help="URL prefix for a node's source file (graph meta)."
     ),
 ) -> None:
-    """Export a bundle's graph + Dataset JSON-LD for a static site to consume.
+    """Export a bundle's artifacts for a static site — and a registry — to consume.
 
-    Writes ``graph.json`` (cytoscape.js elements, typed-relation edges, plus
-    ``meta.source_base``) and ``datasets.jsonld`` (schema.org Dataset docs for
-    Google Dataset Search). This is the data step behind the docs site.
+    Writes four files (the *producer contract* a meta-lokf registry harvests):
+
+    - ``graph.json`` — cytoscape.js elements (typed-relation edges) plus
+      ``meta.source_base``; drives the docs-site graph explorer.
+    - ``datasets.jsonld`` — schema.org Dataset docs for Google Dataset Search.
+    - ``graph.nt`` — the whole bundle as N-Triples; the RDF a registry loads
+      into its federated store for cross-bundle SPARQL.
+    - ``concepts.jsonld`` — every concept's frontmatter + body under one
+      ``@context``/``@graph``; lets a registry read a foreign concept's source
+      document offline, without re-fetching the markdown.
     """
+    from lokf import rdf
     from lokf.export import dataset_search_jsonld, to_cytoscape
     from lokf.model import load_bundle
+    from lokf.schema import load_context
 
     bundle = load_bundle(bundle_dir)
     graph = to_cytoscape(bundle)
@@ -360,9 +372,15 @@ def export(
     (out_dir / "datasets.jsonld").write_text(
         json.dumps(dataset_search_jsonld(bundle), indent=2), encoding="utf-8"
     )
+    (out_dir / "graph.nt").write_text(rdf.serialize(bundle_dir, "nt"), encoding="utf-8")
+    (out_dir / "concepts.jsonld").write_text(
+        json.dumps({"@context": load_context(), "@graph": bundle.docs()}, indent=2),
+        encoding="utf-8",
+    )
     typer.echo(
         f"wrote {out_dir}/graph.json ({len(graph['nodes'])} nodes, "
-        f"{len(graph['edges'])} edges) and {out_dir}/datasets.jsonld"
+        f"{len(graph['edges'])} edges), datasets.jsonld, graph.nt, "
+        f"and concepts.jsonld ({len(bundle.concepts)} concepts)"
     )
 
 
