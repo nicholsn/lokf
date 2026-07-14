@@ -23,6 +23,7 @@ MODULES = [
     "lokf.server",
     "lokf.propose",
     "lokf.export",
+    "lokf.registry",
     "lokf.agentskills",
     "lokf.mcp_server",
     "lokf.build",

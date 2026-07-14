@@ -436,7 +436,8 @@ repos:
       rdf:      https://acme.example/knowledge/graph.nt        # SPARQL harvest source
       concepts: https://acme.example/knowledge/concepts.jsonld # offline document access
     void: { triples: 86, class_partition: { Metric: 1, Dataset: 1, GlossaryTerm: 1 } }
-    id_index: [ ]                                    # explicit `id:` IRIs outside base_iri
+    id_index:                                        # explicit `id:` IRIs outside base_iri → Concept ID
+      https://acme.example/legacy/wau: metrics/weekly-active-users
     status: ok
 ```
 
@@ -452,12 +453,15 @@ target is *already* a correct triple. Three rules keep it trustworthy:
 
 1. **Explicit-id index.** A concept's frontmatter `id:` may diverge from
    `base_iri + concept_id` (§5). Such IRIs are harvested into the entry's
-   `id_index` and checked as an exact-match fallback before an IRI is declared
-   external, so they still route.
-2. **Namespace precedence & non-nesting.** The packaged vocabulary namespace
-   (`https://w3id.org/lokf/`) always resolves to the built-in schema; registered
-   `base_iri`s must be strictly longer and may not nest inside one another, so
-   routing is unambiguous.
+   `id_index` — a map from the explicit IRI to its Concept ID — and checked as
+   an exact-match fallback before an IRI is declared external, so they still
+   route (to the right source document).
+2. **Boundaries, namespace precedence & non-nesting.** A member `base_iri` must
+   end in a path separator (`/` or `#`) so prefix routing respects segment
+   boundaries — `…/team/` never captures `…/team-archive/`. It must be strictly
+   longer than, and may not capture, the packaged vocabulary namespace
+   (`https://w3id.org/lokf/`), which is reserved for the built-in schema; and no
+   two `base_iri`s may nest, so at most one prefixes any IRI.
 3. **Ownership validation.** At registration a member's sampled concept IRIs must
    actually start with its declared `base_iri`, so a bundle cannot claim a
    namespace it does not own.
