@@ -2,6 +2,7 @@
 
     lokf new my-kb                                    # scaffold a knowledge base
     lokf convert path/to/concept.md --format ttl      # markdown -> RDF
+    lokf validate knowledge                           # assemble + validate a bundle
     lokf query examples/acme-knowledge "SELECT ..."   # SPARQL over a bundle
     lokf serve examples/acme-knowledge                # local SPARQL endpoint + viz
     lokf propose examples/acme-knowledge --apply      # typed relations from links
@@ -92,6 +93,62 @@ def convert(
         typer.echo(f"wrote {output}")
     else:
         typer.echo(data, nl=False)
+
+
+# ---------------------------------------------------------------------------
+# validate
+# ---------------------------------------------------------------------------
+@app.command()
+def validate(
+    bundle_dir: Path = typer.Argument(
+        Path("knowledge"), exists=True, file_okay=False,
+        help="A LOKF bundle directory to assemble and validate.",
+    ),
+    schema: Optional[Path] = typer.Option(
+        None, "--schema", "-s",
+        help="Schema file (default: a local lokf.yaml checkout, else the copy "
+        "packaged with lokf).",
+    ),
+) -> None:
+    """Assemble a bundle and validate it against the LOKF schema.
+
+    Works on any bundle directory. The schema is resolved from ``--schema`` if
+    passed, otherwise from a ``lokf.yaml`` found in the current directory or an
+    ancestor, otherwise from the copy shipped inside the installed ``lokf``
+    package - so a bundle needs  no schema file of its own to be validated.
+    """
+    import os
+    import subprocess
+    import tempfile
+
+    from lokf.model import load_bundle
+    from lokf.schema import schema_path
+
+    try:
+        sch = schema_path(schema)
+    except FileNotFoundError as exc:
+        _err(str(exc))
+        raise typer.Exit(1)
+
+    bundle = load_bundle(bundle_dir)
+    doc = dict(bundle.meta)
+    doc["concepts"] = bundle.docs()
+
+    fd, tmp = tempfile.mkstemp(suffix=".bundle.json")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(doc, f)
+        proc = subprocess.run(
+            ["linkml-validate", "-s", str(sch), "-C", "KnowledgeBundle", tmp]
+        )
+    finally:
+        os.remove(tmp)
+    if proc.returncode != 0:
+        raise typer.Exit(proc.returncode)
+    typer.echo(
+        f"OK — {len(bundle.concepts)} concepts in {bundle_dir} validate "
+        "against KnowledgeBundle."
+    )
 
 
 # ---------------------------------------------------------------------------
