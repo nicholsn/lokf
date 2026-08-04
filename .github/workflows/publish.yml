@@ -22,6 +22,19 @@ jobs:
         with:
           enable-cache: true
 
+      # A release tag whose version was never bumped in pyproject.toml only
+      # surfaces at upload time, as an opaque PyPI "400 File already exists".
+      # Fail here instead, before the tests even run.
+      - name: Check the release tag matches the package version
+        if: github.event_name == 'release'
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          packaged="$(uv version --short)"
+          if [ "$tag" != "$packaged" ]; then
+            echo "::error::Release tag v$tag does not match pyproject.toml version $packaged — bump the version, merge, then re-tag."
+            exit 1
+          fi
+
       - name: Test (gate the release)
         run: uv run --group dev pytest -q
 
