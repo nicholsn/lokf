@@ -9,6 +9,7 @@
     lokf vocab                                        # the relation vocabulary
     lokf skills                                        # bundled agent skills
     lokf mcp                                           # run the MCP server
+    lokf --version                                     # print the lokf version
 """
 from __future__ import annotations
 
@@ -30,6 +31,28 @@ app = typer.Typer(
 
 def _err(message: str) -> None:
     typer.echo(message, err=True)
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        from importlib.metadata import version
+
+        typer.echo(f"lokf {version('lokf')}")
+        raise typer.Exit()
+
+
+@app.callback()
+def _root(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        "-V",
+        help="Show the lokf version and exit.",
+        callback=_version_callback,
+        is_eager=True,
+    ),
+) -> None:
+    pass
 
 
 # ---------------------------------------------------------------------------

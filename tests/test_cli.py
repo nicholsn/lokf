@@ -23,6 +23,18 @@ _CONSTRUCT = (
 runner = CliRunner()
 
 
+# -- version ----------------------------------------------------------------
+def test_version_prints_package_version():
+    """--version (and -V) print the installed lokf version and exit 0."""
+    from importlib.metadata import version
+
+    expected = f"lokf {version('lokf')}"
+    for flag in ("--version", "-V"):
+        result = runner.invoke(app, [flag])
+        assert result.exit_code == 0
+        assert result.stdout.strip() == expected
+
+
 # -- convert ----------------------------------------------------------------
 def test_convert_ttl_contains_metric_curie():
     """convert <metric> -f ttl emits Turtle carrying lokf:Metric."""
