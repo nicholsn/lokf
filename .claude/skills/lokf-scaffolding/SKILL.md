@@ -57,12 +57,12 @@ The templates below are generic and use placeholders. **Before writing any file,
 | `<PROJ_NAME>` | Human-readable project name | the project manifest `name` (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `composer.json`, ...), the root `README.md` title, a service-catalog entry, or the repo name |
 | `<PROJ_DESC>` | One-sentence project description | the project manifest `description`, the README intro, or a service-catalog entry |
 | `<PROJ_SLUG>` | lowercase-hyphenated slug for the Python package name | derive from `<PROJ_NAME>` (e.g. `Acme Platform` -> `acme-platform`) |
-| `<BASE_IRI>` | Bundle base IRI - **must end with `/`** | in priority order: (1) a stable project URL the project already commits to (docs site, service-catalog entry, GitHub/GitLab Pages) + `/knowledge/`; (2) the repo's remote URL - run `git remote get-url origin`, normalize to `https://` form and strip any trailing `.git`, then append `/knowledge/`; (3) if neither exists, `https://<PROJ_SLUG>.example/knowledge/` and flag it for review |
+| `<BASE_IRI>` | Bundle base IRI - **must end with `/`** | in priority order: (1) a persistent-identifier namespace the project already publishes under (schema/ontology `id` declarations using w3id.org, purl.org, or a project-owned domain) + `/knowledge/`; (2) a stable project URL the project controls (docs `site_url`, GitHub/GitLab Pages, service-catalog entry) + `/knowledge/`; (3) if neither exists, `https://<PROJ_SLUG>.example/knowledge/` and flag it for review. **Never** use the code-host repo URL (e.g. `https://github.com/<org>/<repo>/knowledge/`): that path space belongs to the host's routing, so the minted IDs can never be made to resolve and misattribute naming authority to the host |
 | `<OWNER_NAME>` | Owning team/org display name | `CODEOWNERS`, the manifest's authors/owner, a service-catalog entry, or the README |
 | `<OWNER_SLUG>` | lowercase-hyphenated slug for the owner | derive from `<OWNER_NAME>` |
 | `<TODAY>` | Today's date, `YYYY-MM-DD` | the system clock (used in `log.md`) |
 
-`<BASE_IRI>` is load-bearing: `base_iri` + a concept's path mints its RDF `@id`, so pick a value the project can commit to (it does not need to resolve on the web, but it should be stable). Keep the trailing slash.
+`<BASE_IRI>` is load-bearing: `base_iri` + a concept's path mints its `@id` - a globally unique identifier that happens to look like a URL. It does not need to resolve in a browser today, but it must be stable *and* live in a namespace the project controls so it *can* be made to resolve later (see the lokf-librarian skill's Rule 2 for the full authority test and how to migrate a wrong base). Keep the trailing slash.
 
 If the host is a plain directory tree with none of the sources above (no manifest,
 no `CODEOWNERS`, no repo): fall back to the directory name for `<PROJ_NAME>`, any
@@ -106,7 +106,8 @@ version = "0.1.0"
 description = "LOKF knowledge-bundle tooling for <PROJ_NAME>."
 requires-python = ">=3.11"
 dependencies = [
-    "lokf",
+    "linkml>=1.11.1",
+    "lokf[build]>=0.3.0",
 ]
 
 [tool.uv]
