@@ -38,7 +38,7 @@ def test_iri_resolution(bundle):
 
 def test_graph_matches_committed_projection(bundle):
     g = bundle.graph()
-    assert len(g) == 86  # examples/acme-knowledge.nt
+    assert len(g) == 87  # examples/acme-knowledge.nt
 
     from rdflib import URIRef
 

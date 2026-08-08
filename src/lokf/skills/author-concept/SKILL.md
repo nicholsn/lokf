@@ -31,7 +31,9 @@ Pick the `type` that fits (from `lokf vocab` classes):
 | `Table`       | One tabular resource, usually with `fields`.        |
 | `GlossaryTerm`| A defined term of art.                              |
 | `Service`     | An API or running service.                          |
-| `Playbook`    | A runbook / procedure.                              |
+| `Playbook`    | A runbook / procedure (Diátaxis how-to).            |
+| `Tutorial`    | A learning-oriented lesson (Diátaxis tutorial).     |
+| `Explanation` | A background / conceptual discussion (Diátaxis).    |
 | `Policy`      | A rule or governance statement.                     |
 | `Document`    | A prose document.                                   |
 | `Reference`   | An external citation-like reference.                |
@@ -65,7 +67,26 @@ Run `lokf vocab` first if you are unsure which relation slots a type supports.
    Add type-appropriate fields: `Metric` takes `unit`/`formula`/`version`;
    `Table` takes a `fields:` list (`name`, `datatype`, `description`,
    `is_key`); `Service` takes `endpoint`/`http_method`/`documentation`;
-   `GlossaryTerm` takes `definition`/`abbreviation`.
+   `GlossaryTerm` takes `definition`/`abbreviation`. Any type may add the
+   optional `genre` facet to tag the Diátaxis mode of its body — orthogonal
+   to `type`; keep one mode per concept. Pick the value with the Diátaxis
+   compass — two questions about the reader the body serves:
+
+   | the reader is…          | …doing (action)   | …thinking (cognition) |
+   |-------------------------|-------------------|-----------------------|
+   | studying (acquisition)  | `genre: tutorial` | `genre: explanation`  |
+   | working (application)   | `genre: how-to`   | `genre: reference`    |
+
+   This table is not hardcoded lore: every `DiataxisMode` value in the
+   schema carries its quadrant as `diataxis_action_cognition` /
+   `diataxis_acquisition_application` annotations, so you can derive or
+   verify it from the installed schema:
+
+   ```bash
+   python3 -c "import yaml, importlib.resources as r; \
+   pv = yaml.safe_load((r.files('lokf')/'data'/'lokf.yaml').read_text())['enums']['DiataxisMode']['permissible_values']; \
+   [print(k.ljust(12), v['annotations']) for k, v in pv.items()]"
+   ```
 
 3. **Add typed relations as frontmatter keys** where the link is precise. These
    are the `slot`-flagged rows from `lokf vocab`, each ranged on other
