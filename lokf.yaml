@@ -59,7 +59,6 @@ subsets:
 # Classes
 # ---------------------------------------------------------------------------
 classes:
-
   KnowledgeBundle:
     description: >-
       A self-contained, hierarchical collection of concept documents — the unit
@@ -119,6 +118,7 @@ classes:
       - relatedTo
       - definedBy
       - source
+      - genre
 
   Dataset:
     is_a: Concept
@@ -169,10 +169,65 @@ classes:
     is_a: Concept
     description: >-
       A procedure or runbook — an ordered set of steps to accomplish a task or
-      respond to an event.
+      respond to an event. Serves the Diátaxis how-to (goal-oriented) mode.
     class_uri: lokf:Playbook
     exact_mappings:
       - schema:HowTo
+    aliases:
+      - runbook
+      - how-to guide
+    see_also:
+      - https://diataxis.fr/how-to-guides/
+    comments:
+      - >-
+        Pair with `genre: how-to`. Assumes competence and targets one specific
+        goal; to teach a beginner use a Tutorial, and keep background in an
+        Explanation linked via `references`/`about` rather than explaining
+        inline.
+
+  Tutorial:
+    is_a: Concept
+    description: >-
+      A learning-oriented lesson: a guided, end-to-end practical activity
+      through which a reader acquires a skill by doing. The Diátaxis tutorial
+      mode as a first-class concept type; typically links to the reference and
+      explanation it draws on with `references`.
+    class_uri: lokf:Tutorial
+    close_mappings:
+      - schema:LearningResource
+      - schema:HowTo
+    aliases:
+      - lesson
+      - getting started guide
+    see_also:
+      - https://diataxis.fr/tutorials/
+    comments:
+      - >-
+        Pair with `genre: tutorial`. Unlike a Playbook/how-to it assumes no
+        prior competence and aims at learning, not completing a particular
+        task.
+
+  Explanation:
+    is_a: Concept
+    description: >-
+      An understanding-oriented, discursive treatment of a topic that permits
+      reflection. The Diátaxis explanation mode as a first-class concept type;
+      typically links to its subject matter with `about`.
+    class_uri: lokf:Explanation
+    close_mappings:
+      - schema:Article
+      - schema:CreativeWork
+    aliases:
+      - discussion
+      - background
+      - conceptual guide
+      - topics
+    see_also:
+      - https://diataxis.fr/explanation/
+    comments:
+      - >-
+        Pair with `genre: explanation`. Keep task steps and reference facts
+        out - link those rather than folding them in.
 
   Policy:
     is_a: Concept
@@ -322,7 +377,6 @@ classes:
 # Slots
 # ---------------------------------------------------------------------------
 slots:
-
   # --- Identity & core OKF fields ------------------------------------------
   id:
     description: >-
@@ -573,6 +627,40 @@ slots:
     in_subset:
       - lokf_semantic
 
+  # --- Documentation genre (Diátaxis) --------------------------------------
+  genre:
+    description: >-
+      The Diátaxis documentation mode of the concept's markdown body
+      (tutorial, how-to, reference, or explanation). An optional facet that is
+      orthogonal to `type`: `type` says what the concept is *about*, `genre`
+      says how its prose *serves the reader*. Consumers MUST tolerate absent
+      or unknown values.
+    range: DiataxisMode
+    slot_uri: schema:genre
+    aliases:
+      - diataxis_mode
+      - documentation_mode
+    see_also:
+      - https://diataxis.fr/
+    comments:
+      - >-
+        Orthogonal to `type`, so the same subject can appear in several modes:
+        a `Dataset` whose body lists its columns is `genre: reference`, while
+        an `Explanation` *about* that dataset is `genre: explanation`. Keep one
+        mode per concept - if a body drifts between teaching, task steps, and
+        background, split it and link the parts with `references`/`about`.
+    examples:
+      - value: tutorial
+        description: A Tutorial whose body walks a newcomer end-to-end through authoring their first concept.
+      - value: how-to
+        description: A Playbook whose body walks through resolving a data-freshness incident.
+      - value: reference
+        description: A Table whose body austerely describes each column.
+      - value: explanation
+        description: An Explanation discussing why a metric is defined the way it is.
+    in_subset:
+      - lokf_semantic
+
   # --- Relation (reified) fields -------------------------------------------
   predicate:
     description: The relationship type. SHOULD be drawn from the RelationType vocabulary.
@@ -807,7 +895,6 @@ slots:
 # Enums
 # ---------------------------------------------------------------------------
 enums:
-
   RelationType:
     description: >-
       The recommended controlled vocabulary of relationship predicates for
@@ -859,6 +946,90 @@ enums:
       holder:
         description: The target agent holds this concept (a role).
         meaning: org:member
+
+  DiataxisMode:
+    description: >-
+      The Diátaxis documentation mode of a concept's body - an orthogonal facet
+      describing *how* the prose serves the reader, distinct from the concept's
+      `type` (what it is *about*). Each value maps to a schema.org term.
+      Optional: an absent value simply means the mode is unclassified, and
+      consumers MUST treat an unknown value the same way rather than fail.
+    see_also:
+      - https://diataxis.fr/
+    comments:
+      - >-
+        Diátaxis is a widely-adopted framework that sorts documentation into
+        four modes along two axes: action vs. cognition (doing vs. thinking)
+        and acquisition vs. application (studying vs. working). Each
+        permissible value carries its quadrant as machine-readable
+        annotations (`diataxis_action_cognition`,
+        `diataxis_acquisition_application`) so tools can reason about the
+        map - e.g. a reader who is working and doing needs `how-to`.
+    permissible_values:
+      tutorial:
+        description: Learning-oriented; a lesson that lets a beginner acquire a skill by doing.
+        meaning: schema:LearningResource
+        aliases:
+          - lesson
+          - getting started
+        see_also:
+          - https://diataxis.fr/tutorials/
+        annotations:
+          diataxis_action_cognition: action
+          diataxis_acquisition_application: acquisition
+        notes:
+          - Answers "Can you teach me to…?" - reader is *studying* by *doing*. Choose over how-to when the reader is a novice and the aim is learning, not a specific task. A tutorial is not the place for explanation - link an Explanation instead.
+      how-to:
+        description: >-
+          Goal-oriented; directions that guide an already-competent reader
+          through a problem or towards a result.
+        meaning: schema:HowTo
+        aliases:
+          - guide
+          - recipe
+          - runbook
+        see_also:
+          - https://diataxis.fr/how-to-guides/
+        annotations:
+          diataxis_action_cognition: action
+          diataxis_acquisition_application: application
+        notes:
+          - Answers "How do I…?" - reader is *working* by *doing*. A recipe, not a lesson; it assumes competence and solves one real-world problem.
+      reference:
+        description: Information-oriented; austere, authoritative description of the machinery.
+        meaning: schema:APIReference
+        aliases:
+          - specification
+          - technical description
+        see_also:
+          - https://diataxis.fr/reference/
+        annotations:
+          diataxis_action_cognition: cognition
+          diataxis_acquisition_application: application
+        notes:
+          - Answers "What is…?" - reader is *working* by *thinking*, consulting facts rather than performing steps - describe and only describe, no teaching or opinion.
+          - >-
+            schema.org has no genre for reference documentation in general;
+            schema:APIReference is the nearest term but is narrower than the
+            Diátaxis mode, which covers any technical description of the
+            machinery, not only APIs.
+      explanation:
+        description: >-
+          Understanding-oriented; discursive treatment of a subject, that
+          permits reflection and deepens comprehension.
+        meaning: schema:Article
+        aliases:
+          - discussion
+          - background
+          - conceptual guide
+          - topics
+        see_also:
+          - https://diataxis.fr/explanation/
+        annotations:
+          diataxis_action_cognition: cognition
+          diataxis_acquisition_application: acquisition
+        notes:
+          - Answers "Why…?" / "Can you tell me about…?" - reader is *studying* by *thinking*. The mode you can read away from the keyboard, and the place for alternatives, counter-examples, and context.
 
   FieldType:
     description: >-

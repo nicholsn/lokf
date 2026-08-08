@@ -49,7 +49,7 @@ The LOKF **format** is defined once in LinkML (`lokf.yaml`); the JSON Schema, JS
    publisher: { type: Organization, id: https://acme.example/knowledge/org/platform-team, name: Acme Platform Team }
    ```
    `base_iri` + concept ID mints each concept's IRI (`@id`); `context` maps frontmatter keys to IRIs. Do not remove these or the bundle degrades to plain OKF.
-3. **Use a class from the LOKF type vocabulary** (consumers tolerate unknowns as `lokf:Concept`): `Dataset`, `Table`, `Metric`, `Service`, `Playbook`, `Policy`, `GlossaryTerm`, `Reference`, `Document`, `Person`, `Organization`. Type-specific fields: `Table/Dataset` -> `fields`, `distribution`; `Metric` -> `unit`, `formula`, `measures`; `Service` -> `endpoint`, `http_method`, `documentation`; `GlossaryTerm` -> `definition`, `abbreviation`.
+3. **Use a class from the LOKF type vocabulary** (consumers tolerate unknowns as `lokf:Concept`): `Dataset`, `Table`, `Metric`, `Service`, `Playbook`, `Tutorial`, `Explanation`, `Policy`, `GlossaryTerm`, `Reference`, `Document`, `Person`, `Organization`. Type-specific fields: `Table/Dataset` -> `fields`, `distribution`; `Metric` -> `unit`, `formula`, `measures`; `Service` -> `endpoint`, `http_method`, `documentation`; `GlossaryTerm` -> `definition`, `abbreviation`. Optional Diátaxis facet `genre` (`tutorial`|`how-to`|`reference`|`explanation`) tags how a concept's *prose* serves the reader - orthogonal to `type`; keep one mode per concept (split and link with `references`/`about` if it drifts).
 4. **Prefer typed relationships over bare links** - this is LOKF's core upgrade. Each maps to a fixed RDF predicate; values are Concept IRIs (or IDs resolved against `base_iri`), all optional and multivalued:
 
    | field | predicate | meaning |
@@ -82,7 +82,7 @@ Sweep the repository with generic heuristics and map what you find to LOKF class
 | manifests (`package.json`, `pyproject.toml`, `go.mod`, ...), entry points, `Dockerfile`/compose files, CI config | APIs, CLIs, UIs, workers, databases | `Service` |
 | data and schema files (CSV/YAML/JSON/SQL), fixtures, migrations | datasets, tables | `Dataset` / `Table` (use `fields`, `distribution`) |
 | external standards, specs, and ontologies the code or data encodes | upstream authorities | `Reference` (wire `derivedFrom` from the encoding `Dataset`) |
-| README and docs install/run/operate guides | how-tos | `Playbook` |
+| README and docs guides - split by reader need (Diátaxis) | getting-started lessons / task recipes / why-and-context discussions | `Tutorial` (learning) / `Playbook` (how-to) / `Explanation` (understanding); set `genre` to match |
 | domain terms recurring across code, data, and docs | vocabulary | `GlossaryTerm` |
 | ownership files (`CODEOWNERS`, manifest authors), publishers named inside data files | owners, publishers | `Organization` / `Person` - add only when another concept links to them (e.g. `Reference` -> `Organization` via `source`) |
 
