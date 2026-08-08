@@ -24,50 +24,11 @@ lokf:schema.owl.ttl a owl:Ontology ;
 lokf:KnowledgeBundle a owl:Class ;
     rdfs:label "KnowledgeBundle" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:base_iri ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
+            owl:allValuesFrom xsd:anyURI ;
             owl:onProperty lokf:base_iri ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:publisher ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:context ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:license ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:okf_version ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Agent ;
-            owl:onProperty lokf:publisher ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
             owl:onProperty lokf:lokf_version ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:title ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:okf_version ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:context ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:license ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:lokf_version ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:publisher ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:title ],
@@ -75,32 +36,71 @@ lokf:KnowledgeBundle a owl:Class ;
             owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:concepts ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:context ],
+        [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:concepts ],
+            owl:onProperty lokf:title ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:okf_version ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:license ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:license ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:title ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:base_iri ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Agent ;
+            owl:onProperty lokf:publisher ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:context ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:okf_version ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:lokf_version ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:base_iri ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:publisher ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:context ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:description ],
+            owl:onProperty lokf:okf_version ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:title ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:lokf_version ],
         [ a owl:Restriction ;
-            owl:minCardinality 0 ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:description ],
         [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:okf_version ],
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:publisher ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:license ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:base_iri ] ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:concepts ] ;
     skos:closeMatch schema1:Collection,
         dcat:Catalog ;
     skos:definition "A self-contained, hierarchical collection of concept documents — the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass)." ;
@@ -131,6 +131,18 @@ dcterms:source a owl:Class ;
     rdfs:label "source" ;
     rdfs:subClassOf lokf:RelationType ;
     skos:definition "The concept is sourced from the target." .
+
+schema1:APIReference a owl:Class ;
+    rdfs:label "reference" ;
+    rdfs:seeAlso <https://diataxis.fr/reference/> ;
+    rdfs:subClassOf lokf:DiataxisMode ;
+    skos:altLabel "specification",
+        "technical description" ;
+    skos:definition "Information-oriented; austere, authoritative description of the machinery." ;
+    skos:editorialNote "Answers \"What is…?\" - reader is *working* by *thinking*, consulting facts rather than performing steps - describe and only describe, no teaching or opinion.",
+        "schema.org has no genre for reference documentation in general; schema:APIReference is the nearest term but is narrower than the Diátaxis mode, which covers any technical description of the machinery, not only APIs." ;
+    lokf:diataxis_acquisition_application "application" ;
+    lokf:diataxis_action_cognition "cognition" .
 
 schema1:about a owl:Class ;
     rdfs:label "about" ;
@@ -186,7 +198,16 @@ lokf:Citation a owl:Class ;
     rdfs:label "Citation" ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:title ],
+            owl:onProperty lokf:url ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:url ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:title ],
@@ -195,21 +216,12 @@ lokf:Citation a owl:Class ;
             owl:onProperty lokf:description ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:url ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:url ],
+            owl:onProperty lokf:title ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty lokf:url ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:title ] ;
     skos:closeMatch dcterms:BibliographicResource ;
     skos:definition "A reference to an external source supporting a claim in a concept's body. Attached via the schema:citation predicate." ;
@@ -225,35 +237,35 @@ lokf:Distribution a owl:Class ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:access_url ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:media_type ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:name ],
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:access_url ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:media_type ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
             owl:onProperty lokf:description ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:access_url ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:media_type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:name ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:name ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:access_url ] ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:media_type ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:description ] ;
     skos:definition "A specific accessible form of a Dataset (a file, feed, or endpoint). Maps to dcat:Distribution." ;
     skos:exactMatch dcat:Distribution ;
     skos:inScheme lokf:schema .
@@ -261,14 +273,14 @@ lokf:Distribution a owl:Class ;
 lokf:Field a owl:Class ;
     rdfs:label "Field" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:name ],
         [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
+            owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:unit ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:unit ],
@@ -276,44 +288,44 @@ lokf:Field a owl:Class ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:constraints ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
+            owl:allValuesFrom xsd:boolean ;
             owl:onProperty lokf:is_key ],
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:FieldType ;
             owl:onProperty lokf:datatype ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:unit ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:unit ],
+            owl:onProperty lokf:is_key ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:constraints ],
+            owl:onProperty lokf:name ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:datatype ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:is_key ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:constraints ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:description ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:constraints ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:name ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:name ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:is_key ],
+            owl:onProperty lokf:description ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:datatype ] ;
+            owl:onProperty lokf:datatype ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:unit ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:name ] ;
     skos:definition "A single column / property within a Table or Dataset schema. Maps to schema:PropertyValue." ;
     skos:exactMatch schema1:PropertyValue ;
     skos:inScheme lokf:schema .
@@ -321,32 +333,32 @@ lokf:Field a owl:Class ;
 lokf:Relation a owl:Class ;
     rdfs:label "Relation" ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:relation_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:relation_label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:predicate ],
+        [ a owl:Restriction ;
             owl:minCardinality 1 ;
+            owl:onProperty lokf:target ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:predicate ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:target ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:relation_label ],
         [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:target ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:target ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:relation_label ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:relation_label ],
-        [ a owl:Restriction ;
             owl:allValuesFrom lokf:RelationType ;
             owl:onProperty lokf:predicate ],
         [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty lokf:predicate ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:predicate ] ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:target ] ;
     skos:definition "A typed, reified relationship from the containing concept to a target, used when a predicate is not covered by one of the named relation slots. Modeled as an rdf:Statement (subject = the containing concept)." ;
     skos:exactMatch rdf:Statement ;
     skos:inScheme lokf:schema .
@@ -473,6 +485,30 @@ lokf:tags a owl:DatatypeProperty ;
     skos:definition "Short cross-cutting keywords for categorization." ;
     skos:inScheme lokf:schema .
 
+schema1:Article a owl:Class ;
+    rdfs:label "explanation" ;
+    rdfs:seeAlso <https://diataxis.fr/explanation/> ;
+    rdfs:subClassOf lokf:DiataxisMode ;
+    skos:altLabel "background",
+        "conceptual guide",
+        "discussion",
+        "topics" ;
+    skos:definition "Understanding-oriented; discursive treatment of a subject, that permits reflection and deepens comprehension." ;
+    skos:editorialNote "Answers \"Why…?\" / \"Can you tell me about…?\" - reader is *studying* by *thinking*. The mode you can read away from the keyboard, and the place for alternatives, counter-examples, and context." ;
+    lokf:diataxis_acquisition_application "acquisition" ;
+    lokf:diataxis_action_cognition "cognition" .
+
+schema1:LearningResource a owl:Class ;
+    rdfs:label "tutorial" ;
+    rdfs:seeAlso <https://diataxis.fr/tutorials/> ;
+    rdfs:subClassOf lokf:DiataxisMode ;
+    skos:altLabel "getting started",
+        "lesson" ;
+    skos:definition "Learning-oriented; a lesson that lets a beginner acquire a skill by doing." ;
+    skos:editorialNote "Answers \"Can you teach me to…?\" - reader is *studying* by *doing*. Choose over how-to when the reader is a novice and the aim is learning, not a specific task. A tutorial is not the place for explanation - link an Explanation instead." ;
+    lokf:diataxis_acquisition_application "acquisition" ;
+    lokf:diataxis_action_cognition "action" .
+
 owl:sameAs a owl:Class ;
     rdfs:label "sameAs" ;
     rdfs:subClassOf lokf:RelationType ;
@@ -486,22 +522,22 @@ prov:wasAttributedTo a owl:Class ;
 lokf:GlossaryTerm a owl:Class ;
     rdfs:label "GlossaryTerm" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:abbreviation ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:abbreviation ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:definition ],
-        [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:definition ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:abbreviation ],
         [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:abbreviation ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:abbreviation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:definition ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:definition ],
         lokf:Concept ;
     skos:definition "A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept." ;
@@ -532,44 +568,44 @@ lokf:Person a owl:Class ;
 lokf:Role a owl:Class ;
     rdfs:label "Role" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:startDate ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:startDate ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:roleName ],
-        [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:startDate ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:roleName ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:roleName ],
+            owl:onProperty lokf:memberOf ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:endDate ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:memberOf ],
+            owl:onProperty lokf:roleName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:startDate ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:holder ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:roleName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:roleName ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:startDate ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:startDate ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:endDate ],
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:holder ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:memberOf ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:holder ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
             owl:onProperty lokf:endDate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:holder ],
         lokf:Concept ;
     skos:closeMatch schema1:Role,
         vivo:Position,
@@ -581,32 +617,32 @@ lokf:Role a owl:Class ;
 lokf:Service a owl:Class ;
     rdfs:label "Service" ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:http_method ],
+        [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:http_method ],
         [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:http_method ],
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:documentation ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty lokf:endpoint ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:documentation ],
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:endpoint ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:documentation ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:documentation ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
             owl:onProperty lokf:endpoint ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:http_method ],
         [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:endpoint ],
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:documentation ],
         lokf:Concept ;
     skos:closeMatch schema1:SoftwareApplication ;
     skos:definition "A callable service or API endpoint." ;
@@ -706,6 +742,16 @@ lokf:formula a owl:DatatypeProperty ;
     skos:definition "The calculation or definition expression for a metric." ;
     skos:inScheme lokf:schema .
 
+lokf:genre a owl:ObjectProperty ;
+    rdfs:label "genre" ;
+    rdfs:range lokf:DiataxisMode ;
+    rdfs:seeAlso <https://diataxis.fr/> ;
+    skos:altLabel "diataxis_mode",
+        "documentation_mode" ;
+    skos:definition "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values." ;
+    skos:inScheme lokf:schema ;
+    skos:note "Orthogonal to `type`, so the same subject can appear in several modes: a `Dataset` whose body lists its columns is `genre: reference`, while an `Explanation` *about* that dataset is `genre: explanation`. Keep one mode per concept - if a body drifts between teaching, task steps, and background, split it and link the parts with `references`/`about`." .
+
 lokf:http_method a owl:DatatypeProperty ;
     rdfs:label "http_method" ;
     skos:definition "The HTTP method used to invoke the service, if applicable." ;
@@ -794,6 +840,18 @@ lokf:version a owl:DatatypeProperty ;
     skos:definition "A version string for the concept's content." ;
     skos:inScheme lokf:schema .
 
+schema1:HowTo a owl:Class ;
+    rdfs:label "how-to" ;
+    rdfs:seeAlso <https://diataxis.fr/how-to-guides/> ;
+    rdfs:subClassOf lokf:DiataxisMode ;
+    skos:altLabel "guide",
+        "recipe",
+        "runbook" ;
+    skos:definition "Goal-oriented; directions that guide an already-competent reader through a problem or towards a result." ;
+    skos:editorialNote "Answers \"How do I…?\" - reader is *working* by *doing*. A recipe, not a lesson; it assumes competence and solves one real-world problem." ;
+    lokf:diataxis_acquisition_application "application" ;
+    lokf:diataxis_action_cognition "action" .
+
 xsd:boolean a owl:Class ;
     rdfs:label "boolean" ;
     rdfs:subClassOf lokf:FieldType .
@@ -804,14 +862,14 @@ lokf:Dataset a owl:Class ;
             owl:allValuesFrom lokf:Field ;
             owl:onProperty lokf:fields ],
         [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:fields ],
+        [ a owl:Restriction ;
             owl:allValuesFrom lokf:Distribution ;
             owl:onProperty lokf:distribution ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:distribution ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:fields ],
         lokf:Concept ;
     skos:definition "A collection of data, published or curated for access and reuse." ;
     skos:exactMatch schema1:Dataset,
@@ -826,32 +884,47 @@ lokf:Document a owl:Class ;
     skos:exactMatch lokf:Document ;
     skos:inScheme lokf:schema .
 
+lokf:Explanation a owl:Class ;
+    rdfs:label "Explanation" ;
+    rdfs:seeAlso <https://diataxis.fr/explanation/> ;
+    rdfs:subClassOf lokf:Concept ;
+    skos:altLabel "background",
+        "conceptual guide",
+        "discussion",
+        "topics" ;
+    skos:closeMatch schema1:Article,
+        schema1:CreativeWork ;
+    skos:definition "An understanding-oriented, discursive treatment of a topic that permits reflection. The Diátaxis explanation mode as a first-class concept type; typically links to its subject matter with `about`." ;
+    skos:exactMatch lokf:Explanation ;
+    skos:inScheme lokf:schema ;
+    skos:note "Pair with `genre: explanation`. Keep task steps and reference facts out - link those rather than folding them in." .
+
 lokf:Metric a owl:Class ;
     rdfs:label "Metric" ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:unit ],
         [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:unit ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:formula ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:formula ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:unit ],
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:measures ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:unit ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:formula ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:unit ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:measures ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:formula ],
         lokf:Concept ;
     skos:closeMatch schema1:Observation,
         skos:Concept ;
@@ -861,11 +934,15 @@ lokf:Metric a owl:Class ;
 
 lokf:Playbook a owl:Class ;
     rdfs:label "Playbook" ;
+    rdfs:seeAlso <https://diataxis.fr/how-to-guides/> ;
     rdfs:subClassOf lokf:Concept ;
-    skos:definition "A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event." ;
+    skos:altLabel "how-to guide",
+        "runbook" ;
+    skos:definition "A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event. Serves the Diátaxis how-to (goal-oriented) mode." ;
     skos:exactMatch schema1:HowTo,
         lokf:Playbook ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    skos:note "Pair with `genre: how-to`. Assumes competence and targets one specific goal; to teach a beginner use a Tutorial, and keep background in an Explanation linked via `references`/`about` rather than explaining inline." .
 
 lokf:Policy a owl:Class ;
     rdfs:label "Policy" ;
@@ -885,6 +962,19 @@ lokf:Reference a owl:Class ;
     skos:exactMatch lokf:Reference ;
     skos:inScheme lokf:schema .
 
+lokf:Tutorial a owl:Class ;
+    rdfs:label "Tutorial" ;
+    rdfs:seeAlso <https://diataxis.fr/tutorials/> ;
+    rdfs:subClassOf lokf:Concept ;
+    skos:altLabel "getting started guide",
+        "lesson" ;
+    skos:closeMatch schema1:HowTo,
+        schema1:LearningResource ;
+    skos:definition "A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by doing. The Diátaxis tutorial mode as a first-class concept type; typically links to the reference and explanation it draws on with `references`." ;
+    skos:exactMatch lokf:Tutorial ;
+    skos:inScheme lokf:schema ;
+    skos:note "Pair with `genre: tutorial`. Unlike a Playbook/how-to it assumes no prior competence and aims at learning, not completing a particular task." .
+
 lokf:body a owl:DatatypeProperty ;
     rdfs:label "body" ;
     skos:closeMatch lokf:body ;
@@ -903,6 +993,18 @@ lokf:measures a owl:Class,
 xsd:dateTime a owl:Class ;
     rdfs:label "datetime" ;
     rdfs:subClassOf lokf:FieldType .
+
+lokf:DiataxisMode a owl:Class ;
+    rdfs:label "DiataxisMode" ;
+    rdfs:seeAlso <https://diataxis.fr/> ;
+    owl:unionOf ( schema1:LearningResource schema1:HowTo schema1:APIReference schema1:Article ) ;
+    skos:definition "The Diátaxis documentation mode of a concept's body - an orthogonal facet describing *how* the prose serves the reader, distinct from the concept's `type` (what it is *about*). Each value maps to a schema.org term. Optional: an absent value simply means the mode is unclassified, and consumers MUST treat an unknown value the same way rather than fail." ;
+    skos:inScheme lokf:schema ;
+    skos:note "Diátaxis is a widely-adopted framework that sorts documentation into four modes along two axes: action vs. cognition (doing vs. thinking) and acquisition vs. application (studying vs. working). Each permissible value carries its quadrant as machine-readable annotations (`diataxis_action_cognition`, `diataxis_acquisition_application`) so tools can reason about the map - e.g. a reader who is working and doing needs `how-to`." ;
+    linkml:permissible_values schema1:APIReference,
+        schema1:Article,
+        schema1:HowTo,
+        schema1:LearningResource .
 
 lokf:id a owl:DatatypeProperty ;
     rdfs:label "id" ;
@@ -924,41 +1026,41 @@ lokf:unit a owl:DatatypeProperty ;
 lokf:Agent a owl:Class ;
     rdfs:label "Agent" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty lokf:type ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
+            owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:email ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:name ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:id ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:type ],
-        [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty lokf:id ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:name ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:name ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
             owl:onProperty lokf:id ],
         [ owl:unionOf ( lokf:Organization lokf:Person ) ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:type ],
         [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:type ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:email ],
+            owl:onProperty lokf:type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:id ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:name ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
+            owl:onProperty lokf:email ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:name ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:id ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
             owl:onProperty lokf:email ] ;
     skos:closeMatch schema1:Agent,
         foaf:Agent ;
@@ -1020,15 +1122,15 @@ lokf:RelationType a owl:Class ;
         lokf:joinsWith,
         lokf:measures .
 
+xsd:anyURI a owl:Class ;
+    rdfs:label "uri" ;
+    rdfs:subClassOf lokf:FieldType .
+
 lokf:type a owl:DatatypeProperty ;
     rdfs:label "type" ;
     rdfs:range xsd:string ;
     skos:definition "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept." ;
     skos:inScheme lokf:schema .
-
-xsd:anyURI a owl:Class ;
-    rdfs:label "uri" ;
-    rdfs:subClassOf lokf:FieldType .
 
 xsd:string a owl:Class ;
     rdfs:label "string" ;
@@ -1037,180 +1139,189 @@ xsd:string a owl:Class ;
 lokf:Concept a owl:Class ;
     rdfs:label "Concept" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:type ],
-        [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty lokf:id ],
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:license ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:resource ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:isPartOf ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:body ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:citations ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty lokf:created ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:source ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
             owl:onProperty lokf:timestamp ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:created ],
+            owl:onProperty lokf:timestamp ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:resource ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:title ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:description ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:body ],
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:about ],
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:sameAs ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty lokf:created ],
+        [ a owl:Restriction ;
             owl:minCardinality 0 ;
+            owl:onProperty lokf:created ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:isPartOf ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:sameAs ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:tags ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:id ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:source ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:resource ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:id ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:hasPart ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:title ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:license ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:genre ],
+        [ owl:unionOf ( lokf:Dataset lokf:Document lokf:Explanation lokf:GlossaryTerm lokf:Metric lokf:Playbook lokf:Policy lokf:Reference lokf:Role lokf:Service lokf:Tutorial ) ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:body ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:DiataxisMode ;
+            owl:onProperty lokf:genre ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:title ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:about ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:references ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:title ],
+            owl:onProperty lokf:genre ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:license ],
+            owl:onProperty lokf:created ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:resource ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
-            owl:onProperty lokf:relatedTo ],
+            owl:onProperty lokf:definedBy ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:type ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:tags ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:dependsOn ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty lokf:id ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:body ],
+        [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:hasPart ],
+            owl:onProperty lokf:references ],
         [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:isPartOf ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:relatedTo ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:type ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:author ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
             owl:onProperty lokf:version ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:timestamp ],
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:Citation ;
             owl:onProperty lokf:citations ],
         [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:hasPart ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:relations ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:resource ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:isPartOf ],
-        [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty lokf:type ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:sameAs ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:license ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:version ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:title ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Agent ;
-            owl:onProperty lokf:author ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Relation ;
-            owl:onProperty lokf:relations ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:body ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:author ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:derivedFrom ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:derivedFrom ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:timestamp ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:definedBy ],
-        [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:definedBy ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:license ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:dependsOn ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:about ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:relatedTo ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:source ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty lokf:id ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:tags ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom lokf:Concept ;
-            owl:onProperty lokf:references ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:id ],
-        [ owl:unionOf ( lokf:Dataset lokf:Document lokf:GlossaryTerm lokf:Metric lokf:Playbook lokf:Policy lokf:Reference lokf:Role lokf:Service ) ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:created ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:tags ],
-        [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:dependsOn ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:relatedTo ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:version ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:description ] ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:derivedFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Agent ;
+            owl:onProperty lokf:author ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:citations ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty lokf:timestamp ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:hasPart ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:license ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:resource ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:version ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:relations ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Relation ;
+            owl:onProperty lokf:relations ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:body ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:derivedFrom ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:title ] ;
     skos:broadMatch schema1:CreativeWork,
         prov:Entity ;
     skos:definition "A single unit of knowledge within a bundle, represented as one markdown document. The abstract base of every LOKF type. Its own IRI (`id`) is the RDF subject; the markdown body and typed relations become triples about that subject." ;
@@ -1223,34 +1334,9 @@ lokf:Concept a owl:Class ;
     owl:someValuesFrom lokf:Table .
 
 [] a owl:Restriction ;
-    rdfs:subClassOf lokf:Document ;
-    owl:onProperty lokf:type ;
-    owl:someValuesFrom lokf:Document .
-
-[] a owl:Restriction ;
-    rdfs:subClassOf lokf:Agent ;
-    owl:onProperty lokf:type ;
-    owl:someValuesFrom lokf:Agent .
-
-[] a owl:Restriction ;
-    rdfs:subClassOf lokf:Dataset ;
-    owl:onProperty lokf:type ;
-    owl:someValuesFrom lokf:Dataset .
-
-[] a owl:Restriction ;
     rdfs:subClassOf lokf:Policy ;
     owl:onProperty lokf:type ;
     owl:someValuesFrom lokf:Policy .
-
-[] a owl:Restriction ;
-    rdfs:subClassOf lokf:GlossaryTerm ;
-    owl:onProperty lokf:type ;
-    owl:someValuesFrom lokf:GlossaryTerm .
-
-[] a owl:Restriction ;
-    rdfs:subClassOf lokf:Playbook ;
-    owl:onProperty lokf:type ;
-    owl:someValuesFrom lokf:Playbook .
 
 [] a owl:Restriction ;
     rdfs:subClassOf lokf:Organization ;
@@ -1258,9 +1344,19 @@ lokf:Concept a owl:Class ;
     owl:someValuesFrom lokf:Organization .
 
 [] a owl:Restriction ;
+    rdfs:subClassOf lokf:Dataset ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:Dataset .
+
+[] a owl:Restriction ;
     rdfs:subClassOf lokf:Role ;
     owl:onProperty lokf:type ;
     owl:someValuesFrom lokf:Role .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf lokf:Agent ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:Agent .
 
 [] a owl:Restriction ;
     rdfs:subClassOf lokf:Service ;
@@ -1268,19 +1364,44 @@ lokf:Concept a owl:Class ;
     owl:someValuesFrom lokf:Service .
 
 [] a owl:Restriction ;
-    rdfs:subClassOf lokf:Person ;
-    owl:onProperty lokf:type ;
-    owl:someValuesFrom lokf:Person .
-
-[] a owl:Restriction ;
     rdfs:subClassOf lokf:Concept ;
     owl:onProperty lokf:type ;
     owl:someValuesFrom lokf:Concept .
 
 [] a owl:Restriction ;
+    rdfs:subClassOf lokf:GlossaryTerm ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:GlossaryTerm .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf lokf:Document ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:Document .
+
+[] a owl:Restriction ;
     rdfs:subClassOf lokf:Metric ;
     owl:onProperty lokf:type ;
     owl:someValuesFrom lokf:Metric .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf lokf:Tutorial ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:Tutorial .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf lokf:Person ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:Person .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf lokf:Explanation ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:Explanation .
+
+[] a owl:Restriction ;
+    rdfs:subClassOf lokf:Playbook ;
+    owl:onProperty lokf:type ;
+    owl:someValuesFrom lokf:Playbook .
 
 [] a owl:Restriction ;
     rdfs:subClassOf lokf:Reference ;

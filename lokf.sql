@@ -19,6 +19,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 --     * Slot: KnowledgeBundle_id Description: Autocreated FK slot
 -- # Class: Dataset Description: A collection of data, published or curated for access and reuse.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -31,6 +32,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: Table Description: A structured, tabular dataset (e.g. a warehouse table or view) whose columns are described by Field objects under `fields`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
@@ -42,6 +44,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: Metric Description: A precisely defined, measurable quantity — the canonical definition of a business or operational metric.
 --     * Slot: unit Description: The unit of measurement (e.g. USD, seconds, count).
 --     * Slot: formula Description: The calculation or definition expression for a metric.
@@ -55,6 +58,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: Service Description: A callable service or API endpoint.
 --     * Slot: endpoint Description: The base URL or invocation endpoint of a service.
 --     * Slot: http_method Description: The HTTP method used to invoke the service, if applicable.
@@ -69,7 +73,8 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
--- # Class: Playbook Description: A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
+-- # Class: Playbook Description: A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event. Serves the Diátaxis how-to (goal-oriented) mode.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
 --     * Slot: title Description: Human-readable display name.
@@ -80,6 +85,31 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
+-- # Class: Tutorial Description: A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by doing. The Diátaxis tutorial mode as a first-class concept type; typically links to the reference and explanation it draws on with `references`.
+--     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
+--     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: title Description: Human-readable display name.
+--     * Slot: description Description: A single-sentence summary of the concept.
+--     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
+--     * Slot: timestamp Description: ISO 8601 datetime of the last meaningful change.
+--     * Slot: created Description: ISO 8601 datetime the concept was created.
+--     * Slot: version Description: A version string for the concept's content.
+--     * Slot: license Description: The license under which the concept or bundle is offered.
+--     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
+-- # Class: Explanation Description: An understanding-oriented, discursive treatment of a topic that permits reflection. The Diátaxis explanation mode as a first-class concept type; typically links to its subject matter with `about`.
+--     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
+--     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: title Description: Human-readable display name.
+--     * Slot: description Description: A single-sentence summary of the concept.
+--     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
+--     * Slot: timestamp Description: ISO 8601 datetime of the last meaningful change.
+--     * Slot: created Description: ISO 8601 datetime the concept was created.
+--     * Slot: version Description: A version string for the concept's content.
+--     * Slot: license Description: The license under which the concept or bundle is offered.
+--     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: Policy Description: A governance, compliance, or operational policy document.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
@@ -91,6 +121,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: GlossaryTerm Description: A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept.
 --     * Slot: definition Description: The formal definition of a term.
 --     * Slot: abbreviation Description: A short form or acronym for a term.
@@ -104,6 +135,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: Reference Description: A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
@@ -115,6 +147,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: Document Description: A general knowledge document that does not fit a more specific type.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
@@ -126,6 +159,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Class: Role Description: A role an agent holds within an organization over a period of time — a job, appointment, or position. Reifies the agent–organization link so it can carry a title (roleName) and a start/end interval, following the schema.org Role and W3C ORG Membership patterns.
 --     * Slot: roleName Description: The name/title of the role held (e.g. a job title).
 --     * Slot: startDate Description: The date the role began (ISO 8601 date or year).
@@ -140,6 +174,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 -- # Abstract Class: Agent Description: A person or organization responsible for a concept.
 --     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -151,6 +186,8 @@
 --     * Slot: Metric_id Description: Autocreated FK slot
 --     * Slot: Service_id Description: Autocreated FK slot
 --     * Slot: Playbook_id Description: Autocreated FK slot
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: Explanation_id Description: Autocreated FK slot
 --     * Slot: Policy_id Description: Autocreated FK slot
 --     * Slot: GlossaryTerm_id Description: Autocreated FK slot
 --     * Slot: Reference_id Description: Autocreated FK slot
@@ -169,6 +206,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 -- # Class: Organization Description: An organization, team, or group. Usable both as an inline Agent value (publisher) and as a standalone Concept document with a body and typed relations.
@@ -182,6 +220,7 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 -- # Class: Field Description: A single column / property within a Table or Dataset schema. Maps to schema:PropertyValue.
@@ -213,6 +252,8 @@
 --     * Slot: Metric_id Description: Autocreated FK slot
 --     * Slot: Service_id Description: Autocreated FK slot
 --     * Slot: Playbook_id Description: Autocreated FK slot
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: Explanation_id Description: Autocreated FK slot
 --     * Slot: Policy_id Description: Autocreated FK slot
 --     * Slot: GlossaryTerm_id Description: Autocreated FK slot
 --     * Slot: Reference_id Description: Autocreated FK slot
@@ -231,6 +272,8 @@
 --     * Slot: Metric_id Description: Autocreated FK slot
 --     * Slot: Service_id Description: Autocreated FK slot
 --     * Slot: Playbook_id Description: Autocreated FK slot
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: Explanation_id Description: Autocreated FK slot
 --     * Slot: Policy_id Description: Autocreated FK slot
 --     * Slot: GlossaryTerm_id Description: Autocreated FK slot
 --     * Slot: Reference_id Description: Autocreated FK slot
@@ -438,6 +481,72 @@
 --     * Slot: definedBy_id Description: A resource that formally defines this concept.
 -- # Class: Playbook_source
 --     * Slot: Playbook_id Description: Autocreated FK slot
+--     * Slot: source_id Description: A resource from which this concept is derived or sourced.
+-- # Class: Tutorial_tags
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: tags Description: Short cross-cutting keywords for categorization.
+-- # Class: Tutorial_isPartOf
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: isPartOf_id Description: The target concept that this concept is a part of.
+-- # Class: Tutorial_hasPart
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: hasPart_id Description: A concept that is a part of this concept.
+-- # Class: Tutorial_references
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: references_id Description: A concept or resource this concept refers to.
+-- # Class: Tutorial_dependsOn
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: dependsOn_id Description: A concept this concept depends on.
+-- # Class: Tutorial_derivedFrom
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Tutorial_about
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: about_id Description: The subject matter this concept is about.
+-- # Class: Tutorial_sameAs
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: sameAs_id Description: An IRI asserting this concept is the same entity as another.
+-- # Class: Tutorial_relatedTo
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: relatedTo_id Description: A generic association to another concept.
+-- # Class: Tutorial_definedBy
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: definedBy_id Description: A resource that formally defines this concept.
+-- # Class: Tutorial_source
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: source_id Description: A resource from which this concept is derived or sourced.
+-- # Class: Explanation_tags
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: tags Description: Short cross-cutting keywords for categorization.
+-- # Class: Explanation_isPartOf
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: isPartOf_id Description: The target concept that this concept is a part of.
+-- # Class: Explanation_hasPart
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: hasPart_id Description: A concept that is a part of this concept.
+-- # Class: Explanation_references
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: references_id Description: A concept or resource this concept refers to.
+-- # Class: Explanation_dependsOn
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: dependsOn_id Description: A concept this concept depends on.
+-- # Class: Explanation_derivedFrom
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Explanation_about
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: about_id Description: The subject matter this concept is about.
+-- # Class: Explanation_sameAs
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: sameAs_id Description: An IRI asserting this concept is the same entity as another.
+-- # Class: Explanation_relatedTo
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: relatedTo_id Description: A generic association to another concept.
+-- # Class: Explanation_definedBy
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: definedBy_id Description: A resource that formally defines this concept.
+-- # Class: Explanation_source
+--     * Slot: Explanation_id Description: Autocreated FK slot
 --     * Slot: source_id Description: A resource from which this concept is derived or sourced.
 -- # Class: Policy_tags
 --     * Slot: Policy_id Description: Autocreated FK slot
@@ -703,6 +812,7 @@ CREATE TABLE "Concept" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	"KnowledgeBundle_id" INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY("KnowledgeBundle_id") REFERENCES "KnowledgeBundle" (id)
@@ -720,6 +830,7 @@ CREATE TABLE "Dataset" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Dataset_id" ON "Dataset" (id);
@@ -735,6 +846,7 @@ CREATE TABLE "Table" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Table_id" ON "Table" (id);
@@ -752,6 +864,7 @@ CREATE TABLE "Metric" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Metric_id" ON "Metric" (id);
@@ -770,6 +883,7 @@ CREATE TABLE "Service" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Service_id" ON "Service" (id);
@@ -785,9 +899,42 @@ CREATE TABLE "Playbook" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Playbook_id" ON "Playbook" (id);
+
+CREATE TABLE "Tutorial" (
+	id TEXT NOT NULL,
+	type TEXT NOT NULL,
+	title TEXT,
+	description TEXT,
+	resource TEXT,
+	timestamp DATETIME,
+	created DATETIME,
+	version TEXT,
+	license TEXT,
+	body TEXT,
+	genre VARCHAR(11),
+	PRIMARY KEY (id)
+);
+CREATE INDEX "ix_Tutorial_id" ON "Tutorial" (id);
+
+CREATE TABLE "Explanation" (
+	id TEXT NOT NULL,
+	type TEXT NOT NULL,
+	title TEXT,
+	description TEXT,
+	resource TEXT,
+	timestamp DATETIME,
+	created DATETIME,
+	version TEXT,
+	license TEXT,
+	body TEXT,
+	genre VARCHAR(11),
+	PRIMARY KEY (id)
+);
+CREATE INDEX "ix_Explanation_id" ON "Explanation" (id);
 
 CREATE TABLE "Policy" (
 	id TEXT NOT NULL,
@@ -800,6 +947,7 @@ CREATE TABLE "Policy" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Policy_id" ON "Policy" (id);
@@ -817,6 +965,7 @@ CREATE TABLE "GlossaryTerm" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_GlossaryTerm_id" ON "GlossaryTerm" (id);
@@ -832,6 +981,7 @@ CREATE TABLE "Reference" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Reference_id" ON "Reference" (id);
@@ -847,6 +997,7 @@ CREATE TABLE "Document" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Document_id" ON "Document" (id);
@@ -865,6 +1016,7 @@ CREATE TABLE "Role" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	PRIMARY KEY (id)
 );
 CREATE INDEX "ix_Role_id" ON "Role" (id);
@@ -880,6 +1032,8 @@ CREATE TABLE "Agent" (
 	"Metric_id" TEXT,
 	"Service_id" TEXT,
 	"Playbook_id" TEXT,
+	"Tutorial_id" TEXT,
+	"Explanation_id" TEXT,
 	"Policy_id" TEXT,
 	"GlossaryTerm_id" TEXT,
 	"Reference_id" TEXT,
@@ -894,6 +1048,8 @@ CREATE TABLE "Agent" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
@@ -915,6 +1071,7 @@ CREATE TABLE "Person" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	name TEXT,
 	email TEXT,
 	PRIMARY KEY (id)
@@ -932,6 +1089,7 @@ CREATE TABLE "Organization" (
 	version TEXT,
 	license TEXT,
 	body TEXT,
+	genre VARCHAR(11),
 	name TEXT,
 	email TEXT,
 	PRIMARY KEY (id)
@@ -979,6 +1137,8 @@ CREATE TABLE "Relation" (
 	"Metric_id" TEXT,
 	"Service_id" TEXT,
 	"Playbook_id" TEXT,
+	"Tutorial_id" TEXT,
+	"Explanation_id" TEXT,
 	"Policy_id" TEXT,
 	"GlossaryTerm_id" TEXT,
 	"Reference_id" TEXT,
@@ -994,6 +1154,8 @@ CREATE TABLE "Relation" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
@@ -1015,6 +1177,8 @@ CREATE TABLE "Citation" (
 	"Metric_id" TEXT,
 	"Service_id" TEXT,
 	"Playbook_id" TEXT,
+	"Tutorial_id" TEXT,
+	"Explanation_id" TEXT,
 	"Policy_id" TEXT,
 	"GlossaryTerm_id" TEXT,
 	"Reference_id" TEXT,
@@ -1029,6 +1193,8 @@ CREATE TABLE "Citation" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
@@ -1065,8 +1231,8 @@ CREATE TABLE "Concept_hasPart" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_hasPart_Concept_id" ON "Concept_hasPart" ("Concept_id");
 CREATE INDEX "ix_Concept_hasPart_hasPart_id" ON "Concept_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Concept_hasPart_Concept_id" ON "Concept_hasPart" ("Concept_id");
 
 CREATE TABLE "Concept_references" (
 	"Concept_id" TEXT,
@@ -1095,8 +1261,8 @@ CREATE TABLE "Concept_derivedFrom" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_derivedFrom_Concept_id" ON "Concept_derivedFrom" ("Concept_id");
 CREATE INDEX "ix_Concept_derivedFrom_derivedFrom_id" ON "Concept_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Concept_derivedFrom_Concept_id" ON "Concept_derivedFrom" ("Concept_id");
 
 CREATE TABLE "Concept_about" (
 	"Concept_id" TEXT,
@@ -1115,8 +1281,8 @@ CREATE TABLE "Concept_sameAs" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_sameAs_Concept_id" ON "Concept_sameAs" ("Concept_id");
 CREATE INDEX "ix_Concept_sameAs_sameAs_id" ON "Concept_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Concept_sameAs_Concept_id" ON "Concept_sameAs" ("Concept_id");
 
 CREATE TABLE "Concept_relatedTo" (
 	"Concept_id" TEXT,
@@ -1125,8 +1291,8 @@ CREATE TABLE "Concept_relatedTo" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_relatedTo_relatedTo_id" ON "Concept_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Concept_relatedTo_Concept_id" ON "Concept_relatedTo" ("Concept_id");
+CREATE INDEX "ix_Concept_relatedTo_relatedTo_id" ON "Concept_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Concept_definedBy" (
 	"Concept_id" TEXT,
@@ -1135,8 +1301,8 @@ CREATE TABLE "Concept_definedBy" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_definedBy_definedBy_id" ON "Concept_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Concept_definedBy_Concept_id" ON "Concept_definedBy" ("Concept_id");
+CREATE INDEX "ix_Concept_definedBy_definedBy_id" ON "Concept_definedBy" ("definedBy_id");
 
 CREATE TABLE "Concept_source" (
 	"Concept_id" TEXT,
@@ -1145,8 +1311,8 @@ CREATE TABLE "Concept_source" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_source_Concept_id" ON "Concept_source" ("Concept_id");
 CREATE INDEX "ix_Concept_source_source_id" ON "Concept_source" (source_id);
+CREATE INDEX "ix_Concept_source_Concept_id" ON "Concept_source" ("Concept_id");
 
 CREATE TABLE "Dataset_tags" (
 	"Dataset_id" TEXT,
@@ -1184,8 +1350,8 @@ CREATE TABLE "Dataset_references" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_references_references_id" ON "Dataset_references" (references_id);
 CREATE INDEX "ix_Dataset_references_Dataset_id" ON "Dataset_references" ("Dataset_id");
+CREATE INDEX "ix_Dataset_references_references_id" ON "Dataset_references" (references_id);
 
 CREATE TABLE "Dataset_dependsOn" (
 	"Dataset_id" TEXT,
@@ -1234,8 +1400,8 @@ CREATE TABLE "Dataset_relatedTo" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_relatedTo_Dataset_id" ON "Dataset_relatedTo" ("Dataset_id");
 CREATE INDEX "ix_Dataset_relatedTo_relatedTo_id" ON "Dataset_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Dataset_relatedTo_Dataset_id" ON "Dataset_relatedTo" ("Dataset_id");
 
 CREATE TABLE "Dataset_definedBy" (
 	"Dataset_id" TEXT,
@@ -1244,8 +1410,8 @@ CREATE TABLE "Dataset_definedBy" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_definedBy_definedBy_id" ON "Dataset_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Dataset_definedBy_Dataset_id" ON "Dataset_definedBy" ("Dataset_id");
+CREATE INDEX "ix_Dataset_definedBy_definedBy_id" ON "Dataset_definedBy" ("definedBy_id");
 
 CREATE TABLE "Dataset_source" (
 	"Dataset_id" TEXT,
@@ -1263,8 +1429,8 @@ CREATE TABLE "Table_tags" (
 	PRIMARY KEY ("Table_id", tags),
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id)
 );
-CREATE INDEX "ix_Table_tags_Table_id" ON "Table_tags" ("Table_id");
 CREATE INDEX "ix_Table_tags_tags" ON "Table_tags" (tags);
+CREATE INDEX "ix_Table_tags_Table_id" ON "Table_tags" ("Table_id");
 
 CREATE TABLE "Table_isPartOf" (
 	"Table_id" TEXT,
@@ -1343,8 +1509,8 @@ CREATE TABLE "Table_relatedTo" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_relatedTo_relatedTo_id" ON "Table_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Table_relatedTo_Table_id" ON "Table_relatedTo" ("Table_id");
+CREATE INDEX "ix_Table_relatedTo_relatedTo_id" ON "Table_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Table_definedBy" (
 	"Table_id" TEXT,
@@ -1353,8 +1519,8 @@ CREATE TABLE "Table_definedBy" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_definedBy_definedBy_id" ON "Table_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Table_definedBy_Table_id" ON "Table_definedBy" ("Table_id");
+CREATE INDEX "ix_Table_definedBy_definedBy_id" ON "Table_definedBy" ("definedBy_id");
 
 CREATE TABLE "Table_source" (
 	"Table_id" TEXT,
@@ -1363,8 +1529,8 @@ CREATE TABLE "Table_source" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_source_source_id" ON "Table_source" (source_id);
 CREATE INDEX "ix_Table_source_Table_id" ON "Table_source" ("Table_id");
+CREATE INDEX "ix_Table_source_source_id" ON "Table_source" (source_id);
 
 CREATE TABLE "Metric_measures" (
 	"Metric_id" TEXT,
@@ -1402,8 +1568,8 @@ CREATE TABLE "Metric_hasPart" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_hasPart_Metric_id" ON "Metric_hasPart" ("Metric_id");
 CREATE INDEX "ix_Metric_hasPart_hasPart_id" ON "Metric_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Metric_hasPart_Metric_id" ON "Metric_hasPart" ("Metric_id");
 
 CREATE TABLE "Metric_references" (
 	"Metric_id" TEXT,
@@ -1422,8 +1588,8 @@ CREATE TABLE "Metric_dependsOn" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_dependsOn_dependsOn_id" ON "Metric_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Metric_dependsOn_Metric_id" ON "Metric_dependsOn" ("Metric_id");
+CREATE INDEX "ix_Metric_dependsOn_dependsOn_id" ON "Metric_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Metric_derivedFrom" (
 	"Metric_id" TEXT,
@@ -1442,8 +1608,8 @@ CREATE TABLE "Metric_about" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_about_Metric_id" ON "Metric_about" ("Metric_id");
 CREATE INDEX "ix_Metric_about_about_id" ON "Metric_about" (about_id);
+CREATE INDEX "ix_Metric_about_Metric_id" ON "Metric_about" ("Metric_id");
 
 CREATE TABLE "Metric_sameAs" (
 	"Metric_id" TEXT,
@@ -1452,8 +1618,8 @@ CREATE TABLE "Metric_sameAs" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_sameAs_sameAs_id" ON "Metric_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Metric_sameAs_Metric_id" ON "Metric_sameAs" ("Metric_id");
+CREATE INDEX "ix_Metric_sameAs_sameAs_id" ON "Metric_sameAs" ("sameAs_id");
 
 CREATE TABLE "Metric_relatedTo" (
 	"Metric_id" TEXT,
@@ -1462,8 +1628,8 @@ CREATE TABLE "Metric_relatedTo" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_relatedTo_relatedTo_id" ON "Metric_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Metric_relatedTo_Metric_id" ON "Metric_relatedTo" ("Metric_id");
+CREATE INDEX "ix_Metric_relatedTo_relatedTo_id" ON "Metric_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Metric_definedBy" (
 	"Metric_id" TEXT,
@@ -1482,8 +1648,8 @@ CREATE TABLE "Metric_source" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_source_Metric_id" ON "Metric_source" ("Metric_id");
 CREATE INDEX "ix_Metric_source_source_id" ON "Metric_source" (source_id);
+CREATE INDEX "ix_Metric_source_Metric_id" ON "Metric_source" ("Metric_id");
 
 CREATE TABLE "Service_tags" (
 	"Service_id" TEXT,
@@ -1491,8 +1657,8 @@ CREATE TABLE "Service_tags" (
 	PRIMARY KEY ("Service_id", tags),
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id)
 );
-CREATE INDEX "ix_Service_tags_tags" ON "Service_tags" (tags);
 CREATE INDEX "ix_Service_tags_Service_id" ON "Service_tags" ("Service_id");
+CREATE INDEX "ix_Service_tags_tags" ON "Service_tags" (tags);
 
 CREATE TABLE "Service_isPartOf" (
 	"Service_id" TEXT,
@@ -1501,8 +1667,8 @@ CREATE TABLE "Service_isPartOf" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_isPartOf_Service_id" ON "Service_isPartOf" ("Service_id");
 CREATE INDEX "ix_Service_isPartOf_isPartOf_id" ON "Service_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Service_isPartOf_Service_id" ON "Service_isPartOf" ("Service_id");
 
 CREATE TABLE "Service_hasPart" (
 	"Service_id" TEXT,
@@ -1531,8 +1697,8 @@ CREATE TABLE "Service_dependsOn" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_dependsOn_Service_id" ON "Service_dependsOn" ("Service_id");
 CREATE INDEX "ix_Service_dependsOn_dependsOn_id" ON "Service_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Service_dependsOn_Service_id" ON "Service_dependsOn" ("Service_id");
 
 CREATE TABLE "Service_derivedFrom" (
 	"Service_id" TEXT,
@@ -1551,8 +1717,8 @@ CREATE TABLE "Service_about" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_about_Service_id" ON "Service_about" ("Service_id");
 CREATE INDEX "ix_Service_about_about_id" ON "Service_about" (about_id);
+CREATE INDEX "ix_Service_about_Service_id" ON "Service_about" ("Service_id");
 
 CREATE TABLE "Service_sameAs" (
 	"Service_id" TEXT,
@@ -1600,8 +1766,8 @@ CREATE TABLE "Playbook_tags" (
 	PRIMARY KEY ("Playbook_id", tags),
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id)
 );
-CREATE INDEX "ix_Playbook_tags_tags" ON "Playbook_tags" (tags);
 CREATE INDEX "ix_Playbook_tags_Playbook_id" ON "Playbook_tags" ("Playbook_id");
+CREATE INDEX "ix_Playbook_tags_tags" ON "Playbook_tags" (tags);
 
 CREATE TABLE "Playbook_isPartOf" (
 	"Playbook_id" TEXT,
@@ -1630,8 +1796,8 @@ CREATE TABLE "Playbook_references" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_references_Playbook_id" ON "Playbook_references" ("Playbook_id");
 CREATE INDEX "ix_Playbook_references_references_id" ON "Playbook_references" (references_id);
+CREATE INDEX "ix_Playbook_references_Playbook_id" ON "Playbook_references" ("Playbook_id");
 
 CREATE TABLE "Playbook_dependsOn" (
 	"Playbook_id" TEXT,
@@ -1640,8 +1806,8 @@ CREATE TABLE "Playbook_dependsOn" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_dependsOn_Playbook_id" ON "Playbook_dependsOn" ("Playbook_id");
 CREATE INDEX "ix_Playbook_dependsOn_dependsOn_id" ON "Playbook_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Playbook_dependsOn_Playbook_id" ON "Playbook_dependsOn" ("Playbook_id");
 
 CREATE TABLE "Playbook_derivedFrom" (
 	"Playbook_id" TEXT,
@@ -1700,8 +1866,226 @@ CREATE TABLE "Playbook_source" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_source_Playbook_id" ON "Playbook_source" ("Playbook_id");
 CREATE INDEX "ix_Playbook_source_source_id" ON "Playbook_source" (source_id);
+CREATE INDEX "ix_Playbook_source_Playbook_id" ON "Playbook_source" ("Playbook_id");
+
+CREATE TABLE "Tutorial_tags" (
+	"Tutorial_id" TEXT,
+	tags TEXT,
+	PRIMARY KEY ("Tutorial_id", tags),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id)
+);
+CREATE INDEX "ix_Tutorial_tags_tags" ON "Tutorial_tags" (tags);
+CREATE INDEX "ix_Tutorial_tags_Tutorial_id" ON "Tutorial_tags" ("Tutorial_id");
+
+CREATE TABLE "Tutorial_isPartOf" (
+	"Tutorial_id" TEXT,
+	"isPartOf_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "isPartOf_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_isPartOf_isPartOf_id" ON "Tutorial_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Tutorial_isPartOf_Tutorial_id" ON "Tutorial_isPartOf" ("Tutorial_id");
+
+CREATE TABLE "Tutorial_hasPart" (
+	"Tutorial_id" TEXT,
+	"hasPart_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "hasPart_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_hasPart_Tutorial_id" ON "Tutorial_hasPart" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_hasPart_hasPart_id" ON "Tutorial_hasPart" ("hasPart_id");
+
+CREATE TABLE "Tutorial_references" (
+	"Tutorial_id" TEXT,
+	references_id TEXT,
+	PRIMARY KEY ("Tutorial_id", references_id),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_references_references_id" ON "Tutorial_references" (references_id);
+CREATE INDEX "ix_Tutorial_references_Tutorial_id" ON "Tutorial_references" ("Tutorial_id");
+
+CREATE TABLE "Tutorial_dependsOn" (
+	"Tutorial_id" TEXT,
+	"dependsOn_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "dependsOn_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_dependsOn_dependsOn_id" ON "Tutorial_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Tutorial_dependsOn_Tutorial_id" ON "Tutorial_dependsOn" ("Tutorial_id");
+
+CREATE TABLE "Tutorial_derivedFrom" (
+	"Tutorial_id" TEXT,
+	"derivedFrom_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "derivedFrom_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_derivedFrom_Tutorial_id" ON "Tutorial_derivedFrom" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_derivedFrom_derivedFrom_id" ON "Tutorial_derivedFrom" ("derivedFrom_id");
+
+CREATE TABLE "Tutorial_about" (
+	"Tutorial_id" TEXT,
+	about_id TEXT,
+	PRIMARY KEY ("Tutorial_id", about_id),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_about_about_id" ON "Tutorial_about" (about_id);
+CREATE INDEX "ix_Tutorial_about_Tutorial_id" ON "Tutorial_about" ("Tutorial_id");
+
+CREATE TABLE "Tutorial_sameAs" (
+	"Tutorial_id" TEXT,
+	"sameAs_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "sameAs_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_sameAs_Tutorial_id" ON "Tutorial_sameAs" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_sameAs_sameAs_id" ON "Tutorial_sameAs" ("sameAs_id");
+
+CREATE TABLE "Tutorial_relatedTo" (
+	"Tutorial_id" TEXT,
+	"relatedTo_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "relatedTo_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_relatedTo_relatedTo_id" ON "Tutorial_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Tutorial_relatedTo_Tutorial_id" ON "Tutorial_relatedTo" ("Tutorial_id");
+
+CREATE TABLE "Tutorial_definedBy" (
+	"Tutorial_id" TEXT,
+	"definedBy_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "definedBy_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_definedBy_Tutorial_id" ON "Tutorial_definedBy" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_definedBy_definedBy_id" ON "Tutorial_definedBy" ("definedBy_id");
+
+CREATE TABLE "Tutorial_source" (
+	"Tutorial_id" TEXT,
+	source_id TEXT,
+	PRIMARY KEY ("Tutorial_id", source_id),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Tutorial_source_Tutorial_id" ON "Tutorial_source" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_source_source_id" ON "Tutorial_source" (source_id);
+
+CREATE TABLE "Explanation_tags" (
+	"Explanation_id" TEXT,
+	tags TEXT,
+	PRIMARY KEY ("Explanation_id", tags),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id)
+);
+CREATE INDEX "ix_Explanation_tags_tags" ON "Explanation_tags" (tags);
+CREATE INDEX "ix_Explanation_tags_Explanation_id" ON "Explanation_tags" ("Explanation_id");
+
+CREATE TABLE "Explanation_isPartOf" (
+	"Explanation_id" TEXT,
+	"isPartOf_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "isPartOf_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_isPartOf_isPartOf_id" ON "Explanation_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Explanation_isPartOf_Explanation_id" ON "Explanation_isPartOf" ("Explanation_id");
+
+CREATE TABLE "Explanation_hasPart" (
+	"Explanation_id" TEXT,
+	"hasPart_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "hasPart_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_hasPart_Explanation_id" ON "Explanation_hasPart" ("Explanation_id");
+CREATE INDEX "ix_Explanation_hasPart_hasPart_id" ON "Explanation_hasPart" ("hasPart_id");
+
+CREATE TABLE "Explanation_references" (
+	"Explanation_id" TEXT,
+	references_id TEXT,
+	PRIMARY KEY ("Explanation_id", references_id),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_references_references_id" ON "Explanation_references" (references_id);
+CREATE INDEX "ix_Explanation_references_Explanation_id" ON "Explanation_references" ("Explanation_id");
+
+CREATE TABLE "Explanation_dependsOn" (
+	"Explanation_id" TEXT,
+	"dependsOn_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "dependsOn_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_dependsOn_Explanation_id" ON "Explanation_dependsOn" ("Explanation_id");
+CREATE INDEX "ix_Explanation_dependsOn_dependsOn_id" ON "Explanation_dependsOn" ("dependsOn_id");
+
+CREATE TABLE "Explanation_derivedFrom" (
+	"Explanation_id" TEXT,
+	"derivedFrom_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "derivedFrom_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_derivedFrom_Explanation_id" ON "Explanation_derivedFrom" ("Explanation_id");
+CREATE INDEX "ix_Explanation_derivedFrom_derivedFrom_id" ON "Explanation_derivedFrom" ("derivedFrom_id");
+
+CREATE TABLE "Explanation_about" (
+	"Explanation_id" TEXT,
+	about_id TEXT,
+	PRIMARY KEY ("Explanation_id", about_id),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_about_about_id" ON "Explanation_about" (about_id);
+CREATE INDEX "ix_Explanation_about_Explanation_id" ON "Explanation_about" ("Explanation_id");
+
+CREATE TABLE "Explanation_sameAs" (
+	"Explanation_id" TEXT,
+	"sameAs_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "sameAs_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_sameAs_Explanation_id" ON "Explanation_sameAs" ("Explanation_id");
+CREATE INDEX "ix_Explanation_sameAs_sameAs_id" ON "Explanation_sameAs" ("sameAs_id");
+
+CREATE TABLE "Explanation_relatedTo" (
+	"Explanation_id" TEXT,
+	"relatedTo_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "relatedTo_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_relatedTo_relatedTo_id" ON "Explanation_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Explanation_relatedTo_Explanation_id" ON "Explanation_relatedTo" ("Explanation_id");
+
+CREATE TABLE "Explanation_definedBy" (
+	"Explanation_id" TEXT,
+	"definedBy_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "definedBy_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_definedBy_Explanation_id" ON "Explanation_definedBy" ("Explanation_id");
+CREATE INDEX "ix_Explanation_definedBy_definedBy_id" ON "Explanation_definedBy" ("definedBy_id");
+
+CREATE TABLE "Explanation_source" (
+	"Explanation_id" TEXT,
+	source_id TEXT,
+	PRIMARY KEY ("Explanation_id", source_id),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
+);
+CREATE INDEX "ix_Explanation_source_Explanation_id" ON "Explanation_source" ("Explanation_id");
+CREATE INDEX "ix_Explanation_source_source_id" ON "Explanation_source" (source_id);
 
 CREATE TABLE "Policy_tags" (
 	"Policy_id" TEXT,
@@ -1709,8 +2093,8 @@ CREATE TABLE "Policy_tags" (
 	PRIMARY KEY ("Policy_id", tags),
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id)
 );
-CREATE INDEX "ix_Policy_tags_Policy_id" ON "Policy_tags" ("Policy_id");
 CREATE INDEX "ix_Policy_tags_tags" ON "Policy_tags" (tags);
+CREATE INDEX "ix_Policy_tags_Policy_id" ON "Policy_tags" ("Policy_id");
 
 CREATE TABLE "Policy_isPartOf" (
 	"Policy_id" TEXT,
@@ -1729,8 +2113,8 @@ CREATE TABLE "Policy_hasPart" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_hasPart_hasPart_id" ON "Policy_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Policy_hasPart_Policy_id" ON "Policy_hasPart" ("Policy_id");
+CREATE INDEX "ix_Policy_hasPart_hasPart_id" ON "Policy_hasPart" ("hasPart_id");
 
 CREATE TABLE "Policy_references" (
 	"Policy_id" TEXT,
@@ -1739,8 +2123,8 @@ CREATE TABLE "Policy_references" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_references_references_id" ON "Policy_references" (references_id);
 CREATE INDEX "ix_Policy_references_Policy_id" ON "Policy_references" ("Policy_id");
+CREATE INDEX "ix_Policy_references_references_id" ON "Policy_references" (references_id);
 
 CREATE TABLE "Policy_dependsOn" (
 	"Policy_id" TEXT,
@@ -1769,8 +2153,8 @@ CREATE TABLE "Policy_about" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_about_Policy_id" ON "Policy_about" ("Policy_id");
 CREATE INDEX "ix_Policy_about_about_id" ON "Policy_about" (about_id);
+CREATE INDEX "ix_Policy_about_Policy_id" ON "Policy_about" ("Policy_id");
 
 CREATE TABLE "Policy_sameAs" (
 	"Policy_id" TEXT,
@@ -1799,8 +2183,8 @@ CREATE TABLE "Policy_definedBy" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_definedBy_Policy_id" ON "Policy_definedBy" ("Policy_id");
 CREATE INDEX "ix_Policy_definedBy_definedBy_id" ON "Policy_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Policy_definedBy_Policy_id" ON "Policy_definedBy" ("Policy_id");
 
 CREATE TABLE "Policy_source" (
 	"Policy_id" TEXT,
@@ -1809,8 +2193,8 @@ CREATE TABLE "Policy_source" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_source_source_id" ON "Policy_source" (source_id);
 CREATE INDEX "ix_Policy_source_Policy_id" ON "Policy_source" ("Policy_id");
+CREATE INDEX "ix_Policy_source_source_id" ON "Policy_source" (source_id);
 
 CREATE TABLE "GlossaryTerm_tags" (
 	"GlossaryTerm_id" TEXT,
@@ -1818,8 +2202,8 @@ CREATE TABLE "GlossaryTerm_tags" (
 	PRIMARY KEY ("GlossaryTerm_id", tags),
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_tags_GlossaryTerm_id" ON "GlossaryTerm_tags" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_tags_tags" ON "GlossaryTerm_tags" (tags);
+CREATE INDEX "ix_GlossaryTerm_tags_GlossaryTerm_id" ON "GlossaryTerm_tags" ("GlossaryTerm_id");
 
 CREATE TABLE "GlossaryTerm_isPartOf" (
 	"GlossaryTerm_id" TEXT,
@@ -1828,8 +2212,8 @@ CREATE TABLE "GlossaryTerm_isPartOf" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_isPartOf_isPartOf_id" ON "GlossaryTerm_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_GlossaryTerm_isPartOf_GlossaryTerm_id" ON "GlossaryTerm_isPartOf" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_isPartOf_isPartOf_id" ON "GlossaryTerm_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "GlossaryTerm_hasPart" (
 	"GlossaryTerm_id" TEXT,
@@ -1838,8 +2222,8 @@ CREATE TABLE "GlossaryTerm_hasPart" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_hasPart_hasPart_id" ON "GlossaryTerm_hasPart" ("hasPart_id");
 CREATE INDEX "ix_GlossaryTerm_hasPart_GlossaryTerm_id" ON "GlossaryTerm_hasPart" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_hasPart_hasPart_id" ON "GlossaryTerm_hasPart" ("hasPart_id");
 
 CREATE TABLE "GlossaryTerm_references" (
 	"GlossaryTerm_id" TEXT,
@@ -1858,8 +2242,8 @@ CREATE TABLE "GlossaryTerm_dependsOn" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_dependsOn_GlossaryTerm_id" ON "GlossaryTerm_dependsOn" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_dependsOn_dependsOn_id" ON "GlossaryTerm_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_GlossaryTerm_dependsOn_GlossaryTerm_id" ON "GlossaryTerm_dependsOn" ("GlossaryTerm_id");
 
 CREATE TABLE "GlossaryTerm_derivedFrom" (
 	"GlossaryTerm_id" TEXT,
@@ -1888,8 +2272,8 @@ CREATE TABLE "GlossaryTerm_sameAs" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_sameAs_GlossaryTerm_id" ON "GlossaryTerm_sameAs" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_sameAs_sameAs_id" ON "GlossaryTerm_sameAs" ("sameAs_id");
+CREATE INDEX "ix_GlossaryTerm_sameAs_GlossaryTerm_id" ON "GlossaryTerm_sameAs" ("GlossaryTerm_id");
 
 CREATE TABLE "GlossaryTerm_relatedTo" (
 	"GlossaryTerm_id" TEXT,
@@ -1908,8 +2292,8 @@ CREATE TABLE "GlossaryTerm_definedBy" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_definedBy_definedBy_id" ON "GlossaryTerm_definedBy" ("definedBy_id");
 CREATE INDEX "ix_GlossaryTerm_definedBy_GlossaryTerm_id" ON "GlossaryTerm_definedBy" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_definedBy_definedBy_id" ON "GlossaryTerm_definedBy" ("definedBy_id");
 
 CREATE TABLE "GlossaryTerm_source" (
 	"GlossaryTerm_id" TEXT,
@@ -1918,8 +2302,8 @@ CREATE TABLE "GlossaryTerm_source" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_source_GlossaryTerm_id" ON "GlossaryTerm_source" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_source_source_id" ON "GlossaryTerm_source" (source_id);
+CREATE INDEX "ix_GlossaryTerm_source_GlossaryTerm_id" ON "GlossaryTerm_source" ("GlossaryTerm_id");
 
 CREATE TABLE "Reference_tags" (
 	"Reference_id" TEXT,
@@ -1927,8 +2311,8 @@ CREATE TABLE "Reference_tags" (
 	PRIMARY KEY ("Reference_id", tags),
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id)
 );
-CREATE INDEX "ix_Reference_tags_tags" ON "Reference_tags" (tags);
 CREATE INDEX "ix_Reference_tags_Reference_id" ON "Reference_tags" ("Reference_id");
+CREATE INDEX "ix_Reference_tags_tags" ON "Reference_tags" (tags);
 
 CREATE TABLE "Reference_isPartOf" (
 	"Reference_id" TEXT,
@@ -1937,8 +2321,8 @@ CREATE TABLE "Reference_isPartOf" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_isPartOf_isPartOf_id" ON "Reference_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Reference_isPartOf_Reference_id" ON "Reference_isPartOf" ("Reference_id");
+CREATE INDEX "ix_Reference_isPartOf_isPartOf_id" ON "Reference_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Reference_hasPart" (
 	"Reference_id" TEXT,
@@ -1947,8 +2331,8 @@ CREATE TABLE "Reference_hasPart" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_hasPart_hasPart_id" ON "Reference_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Reference_hasPart_Reference_id" ON "Reference_hasPart" ("Reference_id");
+CREATE INDEX "ix_Reference_hasPart_hasPart_id" ON "Reference_hasPart" ("hasPart_id");
 
 CREATE TABLE "Reference_references" (
 	"Reference_id" TEXT,
@@ -1957,8 +2341,8 @@ CREATE TABLE "Reference_references" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_references_references_id" ON "Reference_references" (references_id);
 CREATE INDEX "ix_Reference_references_Reference_id" ON "Reference_references" ("Reference_id");
+CREATE INDEX "ix_Reference_references_references_id" ON "Reference_references" (references_id);
 
 CREATE TABLE "Reference_dependsOn" (
 	"Reference_id" TEXT,
@@ -1977,8 +2361,8 @@ CREATE TABLE "Reference_derivedFrom" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_derivedFrom_Reference_id" ON "Reference_derivedFrom" ("Reference_id");
 CREATE INDEX "ix_Reference_derivedFrom_derivedFrom_id" ON "Reference_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Reference_derivedFrom_Reference_id" ON "Reference_derivedFrom" ("Reference_id");
 
 CREATE TABLE "Reference_about" (
 	"Reference_id" TEXT,
@@ -1987,8 +2371,8 @@ CREATE TABLE "Reference_about" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_about_about_id" ON "Reference_about" (about_id);
 CREATE INDEX "ix_Reference_about_Reference_id" ON "Reference_about" ("Reference_id");
+CREATE INDEX "ix_Reference_about_about_id" ON "Reference_about" (about_id);
 
 CREATE TABLE "Reference_sameAs" (
 	"Reference_id" TEXT,
@@ -2007,8 +2391,8 @@ CREATE TABLE "Reference_relatedTo" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_relatedTo_relatedTo_id" ON "Reference_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Reference_relatedTo_Reference_id" ON "Reference_relatedTo" ("Reference_id");
+CREATE INDEX "ix_Reference_relatedTo_relatedTo_id" ON "Reference_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Reference_definedBy" (
 	"Reference_id" TEXT,
@@ -2017,8 +2401,8 @@ CREATE TABLE "Reference_definedBy" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_definedBy_Reference_id" ON "Reference_definedBy" ("Reference_id");
 CREATE INDEX "ix_Reference_definedBy_definedBy_id" ON "Reference_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Reference_definedBy_Reference_id" ON "Reference_definedBy" ("Reference_id");
 
 CREATE TABLE "Reference_source" (
 	"Reference_id" TEXT,
@@ -2027,8 +2411,8 @@ CREATE TABLE "Reference_source" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_source_source_id" ON "Reference_source" (source_id);
 CREATE INDEX "ix_Reference_source_Reference_id" ON "Reference_source" ("Reference_id");
+CREATE INDEX "ix_Reference_source_source_id" ON "Reference_source" (source_id);
 
 CREATE TABLE "Document_tags" (
 	"Document_id" TEXT,
@@ -2036,8 +2420,8 @@ CREATE TABLE "Document_tags" (
 	PRIMARY KEY ("Document_id", tags),
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id)
 );
-CREATE INDEX "ix_Document_tags_tags" ON "Document_tags" (tags);
 CREATE INDEX "ix_Document_tags_Document_id" ON "Document_tags" ("Document_id");
+CREATE INDEX "ix_Document_tags_tags" ON "Document_tags" (tags);
 
 CREATE TABLE "Document_isPartOf" (
 	"Document_id" TEXT,
@@ -2056,8 +2440,8 @@ CREATE TABLE "Document_hasPart" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_hasPart_hasPart_id" ON "Document_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Document_hasPart_Document_id" ON "Document_hasPart" ("Document_id");
+CREATE INDEX "ix_Document_hasPart_hasPart_id" ON "Document_hasPart" ("hasPart_id");
 
 CREATE TABLE "Document_references" (
 	"Document_id" TEXT,
@@ -2066,8 +2450,8 @@ CREATE TABLE "Document_references" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_references_Document_id" ON "Document_references" ("Document_id");
 CREATE INDEX "ix_Document_references_references_id" ON "Document_references" (references_id);
+CREATE INDEX "ix_Document_references_Document_id" ON "Document_references" ("Document_id");
 
 CREATE TABLE "Document_dependsOn" (
 	"Document_id" TEXT,
@@ -2076,8 +2460,8 @@ CREATE TABLE "Document_dependsOn" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_dependsOn_dependsOn_id" ON "Document_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Document_dependsOn_Document_id" ON "Document_dependsOn" ("Document_id");
+CREATE INDEX "ix_Document_dependsOn_dependsOn_id" ON "Document_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Document_derivedFrom" (
 	"Document_id" TEXT,
@@ -2106,8 +2490,8 @@ CREATE TABLE "Document_sameAs" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_sameAs_sameAs_id" ON "Document_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Document_sameAs_Document_id" ON "Document_sameAs" ("Document_id");
+CREATE INDEX "ix_Document_sameAs_sameAs_id" ON "Document_sameAs" ("sameAs_id");
 
 CREATE TABLE "Document_relatedTo" (
 	"Document_id" TEXT,
@@ -2116,8 +2500,8 @@ CREATE TABLE "Document_relatedTo" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_relatedTo_Document_id" ON "Document_relatedTo" ("Document_id");
 CREATE INDEX "ix_Document_relatedTo_relatedTo_id" ON "Document_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Document_relatedTo_Document_id" ON "Document_relatedTo" ("Document_id");
 
 CREATE TABLE "Document_definedBy" (
 	"Document_id" TEXT,
@@ -2126,8 +2510,8 @@ CREATE TABLE "Document_definedBy" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_definedBy_definedBy_id" ON "Document_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Document_definedBy_Document_id" ON "Document_definedBy" ("Document_id");
+CREATE INDEX "ix_Document_definedBy_definedBy_id" ON "Document_definedBy" ("definedBy_id");
 
 CREATE TABLE "Document_source" (
 	"Document_id" TEXT,
@@ -2165,8 +2549,8 @@ CREATE TABLE "Role_tags" (
 	PRIMARY KEY ("Role_id", tags),
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id)
 );
-CREATE INDEX "ix_Role_tags_Role_id" ON "Role_tags" ("Role_id");
 CREATE INDEX "ix_Role_tags_tags" ON "Role_tags" (tags);
+CREATE INDEX "ix_Role_tags_Role_id" ON "Role_tags" ("Role_id");
 
 CREATE TABLE "Role_isPartOf" (
 	"Role_id" TEXT,
@@ -2205,8 +2589,8 @@ CREATE TABLE "Role_dependsOn" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_dependsOn_dependsOn_id" ON "Role_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Role_dependsOn_Role_id" ON "Role_dependsOn" ("Role_id");
+CREATE INDEX "ix_Role_dependsOn_dependsOn_id" ON "Role_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Role_derivedFrom" (
 	"Role_id" TEXT,
@@ -2225,8 +2609,8 @@ CREATE TABLE "Role_about" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_about_Role_id" ON "Role_about" ("Role_id");
 CREATE INDEX "ix_Role_about_about_id" ON "Role_about" (about_id);
+CREATE INDEX "ix_Role_about_Role_id" ON "Role_about" ("Role_id");
 
 CREATE TABLE "Role_sameAs" (
 	"Role_id" TEXT,
@@ -2235,8 +2619,8 @@ CREATE TABLE "Role_sameAs" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_sameAs_Role_id" ON "Role_sameAs" ("Role_id");
 CREATE INDEX "ix_Role_sameAs_sameAs_id" ON "Role_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Role_sameAs_Role_id" ON "Role_sameAs" ("Role_id");
 
 CREATE TABLE "Role_relatedTo" (
 	"Role_id" TEXT,
@@ -2255,8 +2639,8 @@ CREATE TABLE "Role_definedBy" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_definedBy_definedBy_id" ON "Role_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Role_definedBy_Role_id" ON "Role_definedBy" ("Role_id");
+CREATE INDEX "ix_Role_definedBy_definedBy_id" ON "Role_definedBy" ("definedBy_id");
 
 CREATE TABLE "Role_source" (
 	"Role_id" TEXT,
@@ -2265,8 +2649,8 @@ CREATE TABLE "Role_source" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_source_Role_id" ON "Role_source" ("Role_id");
 CREATE INDEX "ix_Role_source_source_id" ON "Role_source" (source_id);
+CREATE INDEX "ix_Role_source_Role_id" ON "Role_source" ("Role_id");
 
 CREATE TABLE "Person_tags" (
 	"Person_id" TEXT,
@@ -2284,8 +2668,8 @@ CREATE TABLE "Person_isPartOf" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_isPartOf_isPartOf_id" ON "Person_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Person_isPartOf_Person_id" ON "Person_isPartOf" ("Person_id");
+CREATE INDEX "ix_Person_isPartOf_isPartOf_id" ON "Person_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Person_hasPart" (
 	"Person_id" TEXT,
@@ -2314,8 +2698,8 @@ CREATE TABLE "Person_dependsOn" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_dependsOn_dependsOn_id" ON "Person_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Person_dependsOn_Person_id" ON "Person_dependsOn" ("Person_id");
+CREATE INDEX "ix_Person_dependsOn_dependsOn_id" ON "Person_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Person_derivedFrom" (
 	"Person_id" TEXT,
@@ -2324,8 +2708,8 @@ CREATE TABLE "Person_derivedFrom" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_derivedFrom_derivedFrom_id" ON "Person_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Person_derivedFrom_Person_id" ON "Person_derivedFrom" ("Person_id");
+CREATE INDEX "ix_Person_derivedFrom_derivedFrom_id" ON "Person_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Person_about" (
 	"Person_id" TEXT,
@@ -2334,8 +2718,8 @@ CREATE TABLE "Person_about" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_about_Person_id" ON "Person_about" ("Person_id");
 CREATE INDEX "ix_Person_about_about_id" ON "Person_about" (about_id);
+CREATE INDEX "ix_Person_about_Person_id" ON "Person_about" ("Person_id");
 
 CREATE TABLE "Person_sameAs" (
 	"Person_id" TEXT,
@@ -2354,8 +2738,8 @@ CREATE TABLE "Person_relatedTo" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_relatedTo_relatedTo_id" ON "Person_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Person_relatedTo_Person_id" ON "Person_relatedTo" ("Person_id");
+CREATE INDEX "ix_Person_relatedTo_relatedTo_id" ON "Person_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Person_definedBy" (
 	"Person_id" TEXT,
@@ -2364,8 +2748,8 @@ CREATE TABLE "Person_definedBy" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_definedBy_Person_id" ON "Person_definedBy" ("Person_id");
 CREATE INDEX "ix_Person_definedBy_definedBy_id" ON "Person_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Person_definedBy_Person_id" ON "Person_definedBy" ("Person_id");
 
 CREATE TABLE "Person_source" (
 	"Person_id" TEXT,
@@ -2374,8 +2758,8 @@ CREATE TABLE "Person_source" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_source_source_id" ON "Person_source" (source_id);
 CREATE INDEX "ix_Person_source_Person_id" ON "Person_source" ("Person_id");
+CREATE INDEX "ix_Person_source_source_id" ON "Person_source" (source_id);
 
 CREATE TABLE "Organization_tags" (
 	"Organization_id" TEXT,
@@ -2383,8 +2767,8 @@ CREATE TABLE "Organization_tags" (
 	PRIMARY KEY ("Organization_id", tags),
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id)
 );
-CREATE INDEX "ix_Organization_tags_tags" ON "Organization_tags" (tags);
 CREATE INDEX "ix_Organization_tags_Organization_id" ON "Organization_tags" ("Organization_id");
+CREATE INDEX "ix_Organization_tags_tags" ON "Organization_tags" (tags);
 
 CREATE TABLE "Organization_isPartOf" (
 	"Organization_id" TEXT,
@@ -2393,8 +2777,8 @@ CREATE TABLE "Organization_isPartOf" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_isPartOf_isPartOf_id" ON "Organization_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Organization_isPartOf_Organization_id" ON "Organization_isPartOf" ("Organization_id");
+CREATE INDEX "ix_Organization_isPartOf_isPartOf_id" ON "Organization_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Organization_hasPart" (
 	"Organization_id" TEXT,
@@ -2443,8 +2827,8 @@ CREATE TABLE "Organization_about" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_about_about_id" ON "Organization_about" (about_id);
 CREATE INDEX "ix_Organization_about_Organization_id" ON "Organization_about" ("Organization_id");
+CREATE INDEX "ix_Organization_about_about_id" ON "Organization_about" (about_id);
 
 CREATE TABLE "Organization_sameAs" (
 	"Organization_id" TEXT,
@@ -2453,8 +2837,8 @@ CREATE TABLE "Organization_sameAs" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_sameAs_sameAs_id" ON "Organization_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Organization_sameAs_Organization_id" ON "Organization_sameAs" ("Organization_id");
+CREATE INDEX "ix_Organization_sameAs_sameAs_id" ON "Organization_sameAs" ("sameAs_id");
 
 CREATE TABLE "Organization_relatedTo" (
 	"Organization_id" TEXT,
@@ -2473,8 +2857,8 @@ CREATE TABLE "Organization_definedBy" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_definedBy_definedBy_id" ON "Organization_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Organization_definedBy_Organization_id" ON "Organization_definedBy" ("Organization_id");
+CREATE INDEX "ix_Organization_definedBy_definedBy_id" ON "Organization_definedBy" ("definedBy_id");
 
 CREATE TABLE "Organization_source" (
 	"Organization_id" TEXT,
