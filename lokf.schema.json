@@ -159,6 +159,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -407,6 +411,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -542,6 +550,17 @@
             "title": "Dataset",
             "type": "object"
         },
+        "DiataxisMode": {
+            "description": "The Di\u00e1taxis documentation mode of a concept's body - an orthogonal facet describing *how* the prose serves the reader, distinct from the concept's `type` (what it is *about*). Each value maps to a schema.org term. Optional: an absent value simply means the mode is unclassified, and consumers MUST treat an unknown value the same way rather than fail.",
+            "enum": [
+                "tutorial",
+                "how-to",
+                "reference",
+                "explanation"
+            ],
+            "title": "DiataxisMode",
+            "type": "string"
+        },
         "Distribution": {
             "additionalProperties": false,
             "description": "A specific accessible form of a Dataset (a file, feed, or endpoint). Maps to dcat:Distribution.",
@@ -670,6 +689,10 @@
                         "string",
                         "null"
                     ]
+                },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -804,6 +827,238 @@
                 "type"
             ],
             "title": "Document",
+            "type": "object"
+        },
+        "Explanation": {
+            "additionalProperties": false,
+            "description": "An understanding-oriented, discursive treatment of a topic that permits reflection. The Di\u00e1taxis explanation mode as a first-class concept type; typically links to its subject matter with `about`.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Explanation"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Explanation",
             "type": "object"
         },
         "Field": {
@@ -976,6 +1231,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -1138,6 +1397,12 @@
                             },
                             {
                                 "$ref": "#/$defs/Playbook"
+                            },
+                            {
+                                "$ref": "#/$defs/Tutorial"
+                            },
+                            {
+                                "$ref": "#/$defs/Explanation"
                             },
                             {
                                 "$ref": "#/$defs/Policy"
@@ -1330,6 +1595,10 @@
                         "string",
                         "null"
                     ]
+                },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -1583,6 +1852,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -1825,6 +2098,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -1969,7 +2246,7 @@
         },
         "Playbook": {
             "additionalProperties": false,
-            "description": "A procedure or runbook \u2014 an ordered set of steps to accomplish a task or respond to an event.",
+            "description": "A procedure or runbook \u2014 an ordered set of steps to accomplish a task or respond to an event. Serves the Di\u00e1taxis how-to (goal-oriented) mode.",
             "properties": {
                 "about": {
                     "description": "The subject matter this concept is about.",
@@ -2059,6 +2336,10 @@
                         "string",
                         "null"
                     ]
+                },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -2288,6 +2569,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -2515,6 +2800,10 @@
                         "string",
                         "null"
                     ]
+                },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -2800,6 +3089,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -3076,6 +3369,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -3331,6 +3628,10 @@
                         "null"
                     ]
                 },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
                     "items": {
@@ -3465,6 +3766,238 @@
             ],
             "title": "Table",
             "type": "object"
+        },
+        "Tutorial": {
+            "additionalProperties": false,
+            "description": "A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by doing. The Di\u00e1taxis tutorial mode as a first-class concept type; typically links to the reference and explanation it draws on with `references`.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "Tutorial"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Tutorial",
+            "type": "object"
         }
     },
     "$id": "https://w3id.org/lokf/schema",
@@ -3496,6 +4029,12 @@
                     },
                     {
                         "$ref": "#/$defs/Playbook"
+                    },
+                    {
+                        "$ref": "#/$defs/Tutorial"
+                    },
+                    {
+                        "$ref": "#/$defs/Explanation"
                     },
                     {
                         "$ref": "#/$defs/Policy"

@@ -60,7 +60,10 @@ directory as one RDF graph.
    `description`/`timestamp` plus type-specific fields), write a body with
    headings, link to sibling concepts in prose, and add a bullet for it under
    the matching `index.md` heading. Author foundational concepts first
-   (glossary terms, tables) so later ones can reference them.
+   (glossary terms, tables) so later ones can reference them. Where a body is
+   documentation-shaped, set the `genre` facet using the Diátaxis compass in
+   `author-concept` (the quadrants are annotations on the schema's
+   `DiataxisMode` values, so agents can derive them rather than guess).
 
 3. **Check the vocabulary** so you use real relation names and know which types
    support which slots:

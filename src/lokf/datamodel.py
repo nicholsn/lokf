@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-07-04T07:42:18
+# Generation date: 2026-08-08T20:43:30
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
@@ -105,6 +105,14 @@ class ServiceId(ConceptId):
 
 
 class PlaybookId(ConceptId):
+    pass
+
+
+class TutorialId(ConceptId):
+    pass
+
+
+class ExplanationId(ConceptId):
     pass
 
 
@@ -232,6 +240,7 @@ class Concept(YAMLRoot):
     relatedTo: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     definedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
+    genre: Optional[Union[str, "DiataxisMode"]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -318,6 +327,9 @@ class Concept(YAMLRoot):
         if not isinstance(self.source, list):
             self.source = [self.source] if self.source is not None else []
         self.source = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.source]
+
+        if self.genre is not None and not isinstance(self.genre, DiataxisMode):
+            self.genre = DiataxisMode(self.genre)
 
         super().__post_init__(**kwargs)
 
@@ -486,7 +498,8 @@ class Service(Concept):
 @dataclass(repr=False)
 class Playbook(Concept):
     """
-    A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event.
+    A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event. Serves the Diátaxis
+    how-to (goal-oriented) mode.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -503,6 +516,63 @@ class Playbook(Concept):
             self.MissingRequiredField("id")
         if not isinstance(self.id, PlaybookId):
             self.id = PlaybookId(self.id)
+
+        super().__post_init__(**kwargs)
+        if self._is_empty(self.type):
+            self.MissingRequiredField("type")
+        self.type = str(self.class_name)
+
+
+@dataclass(repr=False)
+class Tutorial(Concept):
+    """
+    A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by
+    doing. The Diátaxis tutorial mode as a first-class concept type; typically links to the reference and explanation
+    it draws on with `references`.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Tutorial"]
+    class_class_curie: ClassVar[str] = "lokf:Tutorial"
+    class_name: ClassVar[str] = "Tutorial"
+    class_model_uri: ClassVar[URIRef] = LOKF.Tutorial
+
+    id: Union[str, TutorialId] = None
+    type: str = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.id):
+            self.MissingRequiredField("id")
+        if not isinstance(self.id, TutorialId):
+            self.id = TutorialId(self.id)
+
+        super().__post_init__(**kwargs)
+        if self._is_empty(self.type):
+            self.MissingRequiredField("type")
+        self.type = str(self.class_name)
+
+
+@dataclass(repr=False)
+class Explanation(Concept):
+    """
+    An understanding-oriented, discursive treatment of a topic that permits reflection. The Diátaxis explanation mode
+    as a first-class concept type; typically links to its subject matter with `about`.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Explanation"]
+    class_class_curie: ClassVar[str] = "lokf:Explanation"
+    class_name: ClassVar[str] = "Explanation"
+    class_model_uri: ClassVar[URIRef] = LOKF.Explanation
+
+    id: Union[str, ExplanationId] = None
+    type: str = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.id):
+            self.MissingRequiredField("id")
+        if not isinstance(self.id, ExplanationId):
+            self.id = ExplanationId(self.id)
 
         super().__post_init__(**kwargs)
         if self._is_empty(self.type):
@@ -768,6 +838,7 @@ class Person(Agent):
     relatedTo: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     definedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
+    genre: Optional[Union[str, "DiataxisMode"]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -855,6 +926,9 @@ class Person(Agent):
             self.source = [self.source] if self.source is not None else []
         self.source = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.source]
 
+        if self.genre is not None and not isinstance(self.genre, DiataxisMode):
+            self.genre = DiataxisMode(self.genre)
+
         super().__post_init__(**kwargs)
 
 
@@ -895,6 +969,7 @@ class Organization(Agent):
     relatedTo: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     definedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
+    genre: Optional[Union[str, "DiataxisMode"]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -981,6 +1056,9 @@ class Organization(Agent):
         if not isinstance(self.source, list):
             self.source = [self.source] if self.source is not None else []
         self.source = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.source]
+
+        if self.genre is not None and not isinstance(self.genre, DiataxisMode):
+            self.genre = DiataxisMode(self.genre)
 
         super().__post_init__(**kwargs)
 
@@ -1195,6 +1273,39 @@ class RelationType(EnumDefinitionImpl):
         description="""The recommended controlled vocabulary of relationship predicates for reified Relations. Each value carries a `meaning` mapping to its RDF predicate in schema.org, Dublin Core Terms, PROV-O, RDFS, or OWL.""",
     )
 
+class DiataxisMode(EnumDefinitionImpl):
+    """
+    The Diátaxis documentation mode of a concept's body - an orthogonal facet describing *how* the prose serves the
+    reader, distinct from the concept's `type` (what it is *about*). Each value maps to a schema.org term. Optional:
+    an absent value simply means the mode is unclassified, and consumers MUST treat an unknown value the same way
+    rather than fail.
+    """
+    tutorial = PermissibleValue(
+        text="tutorial",
+        description="Learning-oriented; a lesson that lets a beginner acquire a skill by doing.",
+        meaning=SCHEMA["LearningResource"])
+    reference = PermissibleValue(
+        text="reference",
+        description="Information-oriented; austere, authoritative description of the machinery.",
+        meaning=SCHEMA["APIReference"])
+    explanation = PermissibleValue(
+        text="explanation",
+        description="""Understanding-oriented; discursive treatment of a subject, that permits reflection and deepens comprehension.""",
+        meaning=SCHEMA["Article"])
+
+    _defn = EnumDefinition(
+        name="DiataxisMode",
+        description="""The Diátaxis documentation mode of a concept's body - an orthogonal facet describing *how* the prose serves the reader, distinct from the concept's `type` (what it is *about*). Each value maps to a schema.org term. Optional: an absent value simply means the mode is unclassified, and consumers MUST treat an unknown value the same way rather than fail.""",
+    )
+
+    @classmethod
+    def _addvals(cls):
+        setattr(cls, "how-to",
+            PermissibleValue(
+                text="how-to",
+                description="""Goal-oriented; directions that guide an already-competent reader through a problem or towards a result.""",
+                meaning=SCHEMA["HowTo"]))
+
 class FieldType(EnumDefinitionImpl):
     """
     Datatypes for dataset/table fields, each mapped to its XSD (or RDF) type.
@@ -1313,6 +1424,9 @@ slots.definedBy = Slot(uri=RDFS.isDefinedBy, name="definedBy", curie=RDFS.curie(
 
 slots.source = Slot(uri=DCTERMS.source, name="source", curie=DCTERMS.curie('source'),
                    model_uri=LOKF.source, domain=None, range=Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]])
+
+slots.genre = Slot(uri=SCHEMA.genre, name="genre", curie=SCHEMA.curie('genre'),
+                   model_uri=LOKF.genre, domain=None, range=Optional[Union[str, "DiataxisMode"]])
 
 slots.predicate = Slot(uri=RDF.predicate, name="predicate", curie=RDF.curie('predicate'),
                    model_uri=LOKF.predicate, domain=None, range=Union[str, "RelationType"])

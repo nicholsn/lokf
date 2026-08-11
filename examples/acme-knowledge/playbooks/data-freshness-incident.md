@@ -3,6 +3,7 @@ type: Playbook
 id: https://acme.example/knowledge/playbooks/data-freshness-incident
 title: Data freshness incident response
 description: Triage steps when the events pipeline lags its freshness SLA.
+genre: how-to
 tags: [oncall, incident]
 timestamp: 2026-05-10T00:00:00Z
 about:

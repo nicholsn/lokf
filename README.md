@@ -14,7 +14,7 @@ ontology are all generated from that single source.
 ## Why
 
 OKF v0.1 is deliberately minimal — the only required field is `type`, links are
-untyped, and there's no shared vocabulary. LOKF adds exactly three things while
+untyped, and there's no shared vocabulary. LOKF adds exactly four things while
 keeping OKF's ergonomics:
 
 1. **Shared meaning** — types and fields map to public ontology terms.
@@ -22,6 +22,9 @@ keeping OKF's ergonomics:
    to an RDF predicate, instead of one untyped markdown link.
 3. **A real graph** — the same bundle is queryable with SPARQL, validatable with
    SHACL, and reason-able with OWL.
+4. **Documentation modes** - an optional `genre` facet (and `Tutorial`/`Explanation`
+   types) aligns each concept's prose to the four [Diátaxis](https://diataxis.fr/)
+   modes, on an axis orthogonal to `type`.
 
 It stays **bidirectionally compatible**: every LOKF bundle is a valid OKF bundle,
 and every OKF bundle is valid LOKF with default mappings.

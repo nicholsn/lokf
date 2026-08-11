@@ -35,7 +35,8 @@ the repository, then hands off to `author-concept` / `build-knowledge-base` /
 
 2. **Understand the domain.** Ask the human what concepts matter and how they
    relate. Sketch the types (`Metric`, `Dataset`, `Table`, `GlossaryTerm`,
-   `Service`, `Playbook`, `Document`, `Reference`, `Person`, `Organization`,
+   `Service`, `Playbook`, `Tutorial`, `Explanation`, `Document`, `Reference`,
+   `Person`, `Organization`,
    `Role`) and the typed relations between them (`measures`, `dependsOn`,
    `derivedFrom`, `isPartOf`, `about`, `memberOf`, …).
 

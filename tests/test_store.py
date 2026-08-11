@@ -20,8 +20,8 @@ def _store():
 
 
 def test_from_bundle_triple_count():
-    """Loading the acme bundle gives 86 triples."""
-    assert len(_store()) == 86
+    """Loading the acme bundle gives 87 triples."""
+    assert len(_store()) == 87
 
 
 def test_select_returns_dict_rows_with_lexical_values():
@@ -88,19 +88,19 @@ def test_prefixes_auto_applied_without_prefix_block():
     assert len(rows) == 1
 
 
-def test_rdflib_graph_round_trips_to_86_triples():
-    """rdflib_graph() with no query returns the full 86-triple store."""
+def test_rdflib_graph_round_trips_to_87_triples():
+    """rdflib_graph() with no query returns the full 87-triple store."""
     g = _store().rdflib_graph()
     assert isinstance(g, Graph)
-    assert len(g) == 86
+    assert len(g) == 87
 
 
 def test_from_graph_and_from_rdf():
     """from_graph and from_rdf build equivalent stores to from_bundle."""
     g = rdf.graph_of(BUNDLE)
     from_graph = GraphStore.from_graph(g)
-    assert len(from_graph) == 86
+    assert len(from_graph) == 87
 
     from_rdf = GraphStore.from_rdf(g.serialize(format="nt"))
-    assert len(from_rdf) == 86
+    assert len(from_rdf) == 87
     assert from_rdf.select(_METRIC_NAME) == [{"name": "Weekly Active Users"}]

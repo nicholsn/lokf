@@ -153,6 +153,7 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 | `version`     |     | `schema:version`                   | string  |                                                   |
 | `license`     |     | `schema:license`                   | IRI     |                                                   |
 | `author`      |     | `schema:author`                    | Agent*  | close: `dcterms:creator`, `prov:wasAttributedTo`  |
+| `genre`       |     | `schema:genre`                     | enum    | Diátaxis documentation mode of the body (§6.1). `DiataxisMode`: tutorial \| how-to \| reference \| explanation. |
 | `body`        |  ✅ | `schema:text`                      | string  | The markdown after the frontmatter.               |
 | `citations`   |     | `schema:citation`                  | Citation*|                                                  |
 <!-- --8<-- [end:core-fields-table] -->
@@ -218,6 +219,8 @@ generic `lokf:Concept` (OKF §4.1 / §9).
 | `Metric`       | `lokf:Metric`         | close: `schema:Observation`, `skos:Concept`  |
 | `Service`      | `schema:WebAPI`       | close: `schema:SoftwareApplication`          |
 | `Playbook`     | `lokf:Playbook`       | exact: `schema:HowTo`                         |
+| `Tutorial`     | `lokf:Tutorial`       | close: `schema:LearningResource`, `schema:HowTo` |
+| `Explanation`  | `lokf:Explanation`    | close: `schema:Article`, `schema:CreativeWork` |
 | `Policy`       | `lokf:Policy`         | close: `schema:DigitalDocument`              |
 | `GlossaryTerm` | `schema:DefinedTerm`  | exact: `skos:Concept`                         |
 | `Reference`    | `lokf:Reference`      | close: `schema:CreativeWork`, `schema:WebPage`|
@@ -240,6 +243,39 @@ generic `lokf:Concept` (OKF §4.1 / §9).
 The complete, authoritative definitions — including value objects `Field`,
 `Distribution`, `Relation`, `Citation`, and `Agent`/`Person`/`Organization` — are
 in `lokf.yaml`.
+
+### 6.1 Documentation modes (Diátaxis)
+
+LOKF aligns a concept's *prose* with the four [Diátaxis](https://diataxis.fr/)
+documentation modes, on an axis **orthogonal** to `type`: `type` says what a
+concept is *about*; the optional **`genre`** facet says how its body *serves the
+reader*. `genre` draws from the `DiataxisMode` enum, each value bound to a
+schema.org term:
+
+> **New to Diátaxis?** It is a widely-adopted framework that sorts documentation
+> by two questions about the reader: are they *studying* or *working*, and are
+> they *doing* or *thinking*? Those two axes yield exactly four modes - tutorial
+> (study + do), how-to (work + do), reference (work + think), explanation
+> (study + think).
+
+<!-- --8<-- [start:diataxis-table] -->
+| `genre`       | Serves        | Aligned to                | Home type(s)                              |
+|---------------|---------------|---------------------------|-------------------------------------------|
+| `tutorial`    | learning      | `schema:LearningResource` | `Tutorial`                                |
+| `how-to`      | goals         | `schema:HowTo`            | `Playbook`                                |
+| `reference`   | information   | `schema:APIReference`     | `Reference`, `GlossaryTerm`, `Dataset`, … |
+| `explanation` | understanding | `schema:Article`          | `Explanation`                             |
+<!-- --8<-- [end:diataxis-table] -->
+
+`genre` is optional - schema validation admits only the four modes, but
+consumers MUST tolerate an absent or unknown value (treating the concept as
+unclassified) rather than fail. Because the facet is orthogonal, any concept may carry it: a `Dataset`
+whose body describes its columns is `genre: reference`, while an `Explanation`
+*about* that dataset is `genre: explanation` and links to it with `about`.
+
+Following Diátaxis's separation principle, a concept body SHOULD stay in a single
+mode; where prose would span modes, split it into separate concepts and connect
+them with typed relations (`references`, `about`).
 
 ---
 
