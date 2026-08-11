@@ -205,6 +205,7 @@ by a human. See [CONTRIBUTING.md](CONTRIBUTING.md) to get involved.
 
 ## License
 
-CC-BY-4.0 — see [`LICENSE`](https://github.com/nicholsn/lokf/blob/main/LICENSE).
-It's a spec + vocabulary; if you'd rather put the scripts under a code license,
-swap in MIT or Apache-2.0.
+Software licensed under Apache License 2.0
+
+The [SPEC](./SPEC.md) and [SCHEMA](./lokf.yaml) are licensed under CC-BY-4.0.
+
