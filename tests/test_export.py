@@ -60,7 +60,7 @@ def test_cytoscape_matches_rdf_projection():
     vocab = lokf.vocabulary()
     cyto = to_cytoscape(bundle, vocab)
 
-    assert len(cyto["nodes"]) == 6
+    assert len(cyto["nodes"]) == 8
 
     iris = {bundle.iri(c) for c in bundle.concepts}
     g = bundle.graph()

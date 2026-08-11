@@ -37,10 +37,13 @@ def test_seven_tools_registered():
 
 def test_list_concepts():
     concepts = mcp.list_concepts(BUNDLE)
-    assert len(concepts) == 6
+    assert len(concepts) == 8
     assert all(
-        set(c) == {"concept_id", "type", "title", "iri"} for c in concepts
+        set(c) == {"concept_id", "type", "title", "iri", "status", "trust_tier"}
+        for c in concepts
     )
+    # No trust frontmatter in the bundle yet ⇒ the specified defaults.
+    assert all(c["status"] == "stable" for c in concepts)
 
 
 def test_describe_concept():
@@ -119,9 +122,9 @@ def test_get_vocabulary():
 
 def test_bundle_summary():
     summary = mcp.bundle_summary(BUNDLE)
-    assert summary["triple_count"] == 87
-    assert summary["concept_count"] == 6
-    assert summary["relation_edge_count"] == 8
+    assert summary["triple_count"] == 153
+    assert summary["concept_count"] == 8
+    assert summary["relation_edge_count"] == 12
 
 
 def test_all_tool_results_json_serializable():

@@ -45,6 +45,7 @@
       <h3 class="lokf-graph__detail-title"></h3>
       <dl>
         <dt>Type</dt><dd class="lokf-graph__detail-type"></dd>
+        <dt>Trust</dt><dd class="lokf-graph__detail-trust"></dd>
         <dt>IRI</dt><dd class="lokf-graph__detail-iri lokf-graph__mono"></dd>
         <dt>Concept ID</dt><dd class="lokf-graph__detail-cid lokf-graph__mono"></dd>
       </dl>
@@ -208,6 +209,11 @@
       const d = evt.target.data();
       set(".lokf-graph__detail-title", d.label);
       set(".lokf-graph__detail-type", d.type);
+      // OKF v0.2 trust signals: "human-reviewed · stable" (+ " · stale").
+      const trust = [d.trust_tier, d.status, d.stale ? "stale" : ""]
+        .filter(Boolean)
+        .join(" · ");
+      set(".lokf-graph__detail-trust", trust || "—");
       set(".lokf-graph__detail-iri", d.id);
       set(".lokf-graph__detail-cid", d.concept_id);
       const link = root.querySelector(".lokf-graph__detail-src") as HTMLAnchorElement;

@@ -35,6 +35,8 @@ prefixes:
   pav: http://purl.org/pav/
   org: http://www.w3.org/ns/org#
   vivo: http://vivoweb.org/ontology/core#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
 
 default_prefix: lokf
 default_range: string
@@ -54,6 +56,15 @@ subsets:
     description: >-
       Extensions LOKF layers on top of OKF to achieve JSON-LD / RDF grounding,
       typed relationships, and ontology alignment.
+  okf_v02:
+    description: >-
+      Fields and structural rules introduced by OKF v0.2 — the provenance
+      (`sources`, `usage_window`), trust (`generated`, `verified`), lifecycle
+      (`status`, `stale_after`), and attested-computation (`runtime`,
+      `parameters`, `computation`, `executor`, `attester`) families. A bundle
+      using okf_core + okf_v02 features is a valid OKF v0.2 bundle; okf_core
+      alone remains the OKF v0.1 surface, so v0.1 compatibility stays
+      checkable. okf_core is deliberately not widened.
 
 # ---------------------------------------------------------------------------
 # Classes
@@ -119,6 +130,12 @@ classes:
       - definedBy
       - source
       - genre
+      - sources
+      - usage_window
+      - generated
+      - verified
+      - status
+      - stale_after
 
   Dataset:
     is_a: Concept
@@ -285,6 +302,37 @@ classes:
       - memberOf
       - holder
 
+  AttestedComputation:
+    is_a: Concept
+    description: >-
+      A sanctioned, immutable recipe for computing a value (OKF v0.2 §10),
+      carried as its own concept type. The frontmatter is the contract: the
+      agent may only bind the declared `parameters`, the `executor` runs the
+      bound computation and returns a receipt, and the `attester`
+      deterministically compares what actually ran against this recipe. The
+      computation text lives in the body's `# Computation` fenced block or in
+      the file named by `computation`. Semantically a prov:Plan with an
+      attestation contract layered on.
+    class_uri: lokf:AttestedComputation
+    broad_mappings:
+      - prov:Plan
+    close_mappings:
+      - schema:HowTo
+    aliases:
+      - Attested Computation
+    comments:
+      - >-
+        Plain OKF writes `type: Attested Computation` (with a space). LOKF
+        loaders MUST normalize the spaced form to this class name when
+        resolving the type designator (the alias records the written form);
+        LOKF-authored bundles SHOULD write `type: AttestedComputation`.
+    slots:
+      - runtime
+      - parameters
+      - computation
+      - executor
+      - attester
+
   # --- Value / supporting classes ------------------------------------------
 
   Agent:
@@ -365,6 +413,9 @@ classes:
     description: >-
       A reference to an external source supporting a claim in a concept's body.
       Attached via the schema:citation predicate.
+    deprecated: >-
+      Superseded in OKF v0.2 by Source (attached via `sources`). Remains
+      functional for v0.1 documents.
     class_uri: schema:CreativeWork
     close_mappings:
       - dcterms:BibliographicResource
@@ -372,6 +423,169 @@ classes:
       - title
       - url
       - description
+
+  Source:
+    description: >-
+      A material a concept derives from (OKF v0.2 §5.1) — a pointer
+      (`resource`) plus objective per-source credibility signals (`author`,
+      `usage_count`, `last_modified`) from which consumers infer trust; OKF
+      stores signals, never a score. Markdown footnotes whose label equals
+      `id` attribute individual claims to this entry. Supersedes Citation.
+    class_uri: schema:CreativeWork
+    close_mappings:
+      - prov:Entity
+      - dcterms:BibliographicResource
+    attributes:
+      id:
+        description: >-
+          Optional stable key joining markdown footnote labels to this entry
+          (e.g. `ga4-schema`). Declared as a class-local attribute rather
+          than the global identifier slot so it stays optional (LinkML's
+          falsy-merge silently drops an `identifier: false` slot_usage
+          override and generation then fails). Under the published flat
+          context `id` maps to @id, so the value resolves against the bundle
+          base and mints the source node's IRI — the same id used across
+          concepts merges into one RDF node; schema:identifier applies only
+          on the LinkML RDF-dump path.
+        range: string
+        slot_uri: schema:identifier
+    slots:
+      - resource
+      - title
+      - author
+      - usage_count
+      - last_modified
+      - usage_window
+    slot_usage:
+      resource:
+        required: true
+        range: string
+        description: >-
+          REQUIRED. An absolute URL, a bundle-relative path, or a
+          population/scope descriptor string (e.g. "all queries in BigQuery
+          project X"). Range is widened to string to admit scope
+          descriptors; non-URI values are lossy on the RDF projection
+          (they serialize as xsd:anyURI-typed literals).
+      author:
+        range: string
+        multivalued: false
+        inlined_as_list: false
+        description: >-
+          Who or what produced the source, as an OKF §7 actor string
+          (e.g. `team:ga4-docs`) — an authority signal carried as a plain
+          literal, not an inlined Agent object.
+
+  UsageWindow:
+    description: >-
+      The `{ from, to }` date range framing every `usage_count` signal
+      (OKF v0.2 §5.1). Written once as a sibling of `sources`; a single
+      Source entry MAY carry its own override.
+    class_uri: dcterms:PeriodOfTime
+    slots:
+      - from
+      - to
+
+  Generation:
+    description: >-
+      How and when the current content was produced (OKF v0.2 `generated`,
+      §5.2). Modeled as the PROV activity that generated the concept, so
+      "who wrote this, when" is a one-hop join from the concept via
+      prov:wasGeneratedBy, with both slots keeping PROV's activity-side
+      semantics (prov:wasAssociatedWith, prov:endedAtTime) — domain/range
+      correct with no reasoner or subproperty entailment required.
+    class_uri: prov:Activity
+    close_mappings:
+      - schema:CreateAction
+    slots:
+      - by
+      - at
+
+  Verification:
+    description: >-
+      One verification event (OKF v0.2 `verified`, §5.2): an actor confirmed
+      the content against its sources or resource at a time. Independent
+      checks accumulate as separate events; trust tiers (unverified /
+      machine-confirmed / human-reviewed) are derived from the actors, never
+      stored. PROV has no Verification class, so the class IRI is honestly
+      lokf-minted; the generated ontology declares it a subclass of
+      prov:Activity.
+    class_uri: lokf:Verification
+    close_mappings:
+      - prov:Activity
+      - schema:CheckAction
+    slots:
+      - by
+      - at
+
+  Parameter:
+    description: >-
+      A typed, named hole in an Attested Computation that the agent may fill
+      (OKF v0.2 §10.2). Binding semantics (SQL bind variable, dbt var,
+      Python argument) follow the concept's `runtime`. The `type` key
+      deliberately shares the global JSON-LD @type alias — see the attribute
+      comment for the exact triple that results.
+    class_uri: lokf:Parameter
+    close_mappings:
+      - schema:PropertyValueSpecification
+    attributes:
+      type:
+        description: >-
+          The parameter's datatype, written with the authoring key `type`
+          verbatim and drawn from ParameterType. Declared as a class-local
+          attribute rather than slot_usage over the global type slot,
+          because LinkML's falsy-merge silently drops a
+          `designates_type: false` override and gen-python then hard-fails.
+          Because the flat context aliases `type` to @type, the value
+          expands as the node's rdf:type; every ParameterType value
+          therefore means a designed lokf Parameter-kind class, so
+          `type: integer` yields the true, OWL-DL-safe triple
+          `_:p rdf:type lokf:IntegerParameter`. slot_uri rdf:type makes the
+          LinkML RDF-dump path emit the same triple (enum meanings expand
+          to their IRIs).
+        range: ParameterType
+        slot_uri: rdf:type
+    slots:
+      - name
+      - required
+    slot_usage:
+      name:
+        required: true
+        description: The parameter's name, as the runtime addresses it.
+
+  Executor:
+    description: >-
+      How an Attested Computation is run (OKF v0.2 §10.2): `resource` names
+      run instructions or code a runner follows; `receipt` declares the
+      field names a run must return — the evidence surface the attester
+      inspects. No established vocabulary has an execution-interface class,
+      so the IRI is honestly lokf-minted; schema:EntryPoint (an invocation
+      specification) is the nearest real term.
+    class_uri: lokf:Executor
+    close_mappings:
+      - schema:EntryPoint
+    slots:
+      - resource
+      - receipt
+    slot_usage:
+      resource:
+        required: true
+        description: Path or URL to the run instructions or code.
+
+  Attester:
+    description: >-
+      The deterministic, non-LLM check for an Attested Computation (OKF v0.2
+      §10.2): `resource` names code that takes a run's receipt and returns a
+      verdict, run consumer-side. Honestly lokf-minted.
+    class_uri: lokf:Attester
+    close_mappings:
+      - schema:SoftwareSourceCode
+      - schema:EntryPoint
+    slots:
+      - resource
+    slot_usage:
+      resource:
+        required: true
+        description: Path or URL to the deterministic verdict code.
 
 # ---------------------------------------------------------------------------
 # Slots
@@ -442,6 +656,10 @@ slots:
 
   timestamp:
     description: ISO 8601 datetime of the last meaningful change.
+    deprecated: >-
+      Superseded in OKF v0.2 by `generated.at` (the `at` of the Generation
+      event attached via `generated`). Remains functional; consumers MAY
+      fall back to `timestamp` when `generated` is absent.
     range: datetime
     slot_uri: schema:dateModified
     exact_mappings:
@@ -508,6 +726,11 @@ slots:
 
   citations:
     description: External sources supporting claims in the body.
+    deprecated: >-
+      Superseded in OKF v0.2 by `sources`, which adds the stable `id`
+      footnote-join key and per-source credibility signals (author,
+      usage_count, last_modified). Remains functional; consumers SHOULD
+      read `sources` and MAY still parse `citations` for v0.1 documents.
     range: Citation
     multivalued: true
     inlined_as_list: true
@@ -891,6 +1114,276 @@ slots:
     in_subset:
       - lokf_semantic
 
+  # --- Provenance (OKF v0.2 §5.1) -------------------------------------------
+  sources:
+    description: >-
+      The materials this concept derives from, each carrying objective
+      credibility signals. Markdown footnotes join to entries via
+      `sources[].id`. Supersedes `citations` and the body `# Citations`
+      convention.
+    range: Source
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: schema:isBasedOn
+    close_mappings:
+      - dcterms:source
+      - prov:wasDerivedFrom
+    comments:
+      - >-
+        schema:isBasedOn is primary rather than prov:wasDerivedFrom because
+        the existing `derivedFrom` slot already owns that predicate; two
+        frontmatter keys sharing one IRI would make JSON-LD compaction and
+        round-tripping ambiguous. prov:wasDerivedFrom is recorded as a
+        close mapping, and the derivation reading stays queryable via it.
+    in_subset:
+      - okf_v02
+
+  usage_window:
+    description: >-
+      The `{ from, to }` date range framing every `usage_count`. Attached
+      both to Concept (the shared window, sibling of `sources`) and to
+      Source (a per-entry override).
+    range: UsageWindow
+    inlined: true
+    slot_uri: lokf:usageWindow
+    close_mappings:
+      - dcterms:temporal
+    comments:
+      - >-
+        Minted in lokf: dcterms:temporal (and schema:temporalCoverage)
+        assert the resource's own temporal coverage, not the measurement
+        window of its usage signals — borrowing either would be a category
+        error. dcterms:temporal is the nearest real term, kept as a close
+        mapping.
+    in_subset:
+      - okf_v02
+
+  from:
+    description: Start date (inclusive, YYYY-MM-DD) of a usage window.
+    range: date
+    slot_uri: dcat:startDate
+    close_mappings:
+      - schema:startDate
+    comments:
+      - >-
+        dcat:startDate is defined by DCAT 2 precisely for
+        dcterms:PeriodOfTime — exactly this shape. `from` is a Python
+        reserved word: the authored YAML key and JSON-LD term stay `from`,
+        but generated Python needs the induced attribute aliased (see
+        build tooling).
+    in_subset:
+      - okf_v02
+
+  to:
+    description: End date (inclusive, YYYY-MM-DD) of a usage window.
+    range: date
+    slot_uri: dcat:endDate
+    close_mappings:
+      - schema:endDate
+    in_subset:
+      - okf_v02
+
+  usage_count:
+    description: >-
+      How often the source's resource was exercised (views, executions,
+      reads) over the governing usage_window. An adoption/liveness signal
+      read as order-of-magnitude and trend, not a score. Minted in lokf: no
+      established vocabulary has a bare-integer usage property
+      (schema:userInteractionCount is domained to the InteractionCounter
+      reification).
+    range: integer
+    slot_uri: lokf:usageCount
+    close_mappings:
+      - schema:userInteractionCount
+    in_subset:
+      - okf_v02
+
+  last_modified:
+    description: >-
+      When the SOURCE itself last changed (YYYY-MM-DD). A recency signal
+      about the source, distinct from `generated.at`, which records when
+      this concept's content was produced. Same predicate as the deprecated
+      `timestamp`, on a different subject node (source vs concept).
+    range: date
+    slot_uri: schema:dateModified
+    exact_mappings:
+      - dcterms:modified
+    in_subset:
+      - okf_v02
+
+  # --- Trust (OKF v0.2 §5.2) ------------------------------------------------
+  generated:
+    description: >-
+      How and when the current content was produced: `by` (REQUIRED actor)
+      and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field;
+      consumers MAY fall back to `timestamp` when `generated` is absent.
+    range: Generation
+    inlined: true
+    slot_uri: prov:wasGeneratedBy
+    in_subset:
+      - okf_v02
+
+  verified:
+    description: >-
+      Verification events confirming the content against its sources or
+      resource. Independent of `generated`: who wrote a concept need not be
+      who confirmed it. Trust tiers derive from the actors: absent =
+      unverified; only non-human actors = machine-confirmed; any
+      `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST
+      be read as a one-element list; the LOKF loader normalizes the bare
+      form before LinkML validation. Minted in lokf: no established
+      vocabulary has an entity-to-verification-event property.
+    range: Verification
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: lokf:verified
+    close_mappings:
+      - prov:wasInfluencedBy
+    in_subset:
+      - okf_v02
+
+  by:
+    description: >-
+      The actor that performed the event, as a plain OKF §7 actor string
+      (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal,
+      never an IRI. Trust tiers derive from the `human:` prefix via string
+      inspection (SPARQL STRSTARTS).
+    required: true
+    range: string
+    slot_uri: prov:wasAssociatedWith
+    close_mappings:
+      - schema:agent
+    comments:
+      - >-
+        prov:wasAssociatedWith is an object property (range prov:Agent);
+        carrying a literal actor designator is a documented, RDF-consistent
+        pragmatic flattening — chosen over coined actor IRIs because a flat
+        JSON-LD context cannot rewrite strings into IRIs, and
+        "reference_agent/gemini-2.5-pro" (no colon) would resolve as an
+        unstable document-base-relative IRI, while "human:kliu" would
+        silently become an absolute IRI in an unregistered URI scheme.
+    in_subset:
+      - okf_v02
+
+  at:
+    description: ISO 8601 datetime at which the event completed.
+    range: datetime
+    slot_uri: prov:endedAtTime
+    close_mappings:
+      - prov:atTime
+      - schema:endTime
+    in_subset:
+      - okf_v02
+
+  # --- Lifecycle (OKF v0.2 §5.4, §5.5) --------------------------------------
+  status:
+    description: >-
+      Lifecycle status of the concept: draft | stable | deprecated. Absent
+      means stable (consumer-side default; absence is deliberately
+      distinguishable from an explicit `status: stable`, so no ifabsent).
+      Advisory, never access control.
+    range: ConceptStatus
+    slot_uri: schema:creativeWorkStatus
+    close_mappings:
+      - adms:status
+    comments:
+      - >-
+        schema:creativeWorkStatus is text-valued by design, so the flat
+        JSON-LD context path emitting the literal is exactly conformant
+        schema.org usage; the enum's ADMS meaning IRIs surface on the
+        LinkML RDF/OWL/SHACL path.
+    in_subset:
+      - okf_v02
+
+  stale_after:
+    description: >-
+      Absolute date (YYYY-MM-DD) on or after which the concept is stale
+      (stale when today >= stale_after). schema:expires is the exact
+      concept — a planned future expiry; prov:invalidatedAtTime would
+      falsely assert the entity WAS invalidated, and dcterms:valid names a
+      validity period only ambiguously.
+    range: date
+    slot_uri: schema:expires
+    close_mappings:
+      - dcterms:valid
+    in_subset:
+      - okf_v02
+
+  # --- Attested Computation contract (OKF v0.2 §10) -------------------------
+  runtime:
+    description: >-
+      REQUIRED on an Attested Computation. How to run the computation
+      (bigquery | postgres | dbt | python | Looker | ...); defines what
+      `parameters` mean and how the executor and attester interpret the
+      contract.
+    required: true
+    range: string
+    slot_uri: schema:runtimePlatform
+    in_subset:
+      - okf_v02
+
+  parameters:
+    description: >-
+      The typed, named holes the agent may fill — the ONLY surface the agent
+      may bind. Binding semantics follow `runtime`. Minted in lokf,
+      mirroring the existing `fields` -> lokf:field idiom: schema.org
+      attaches PropertyValueSpecifications only through the Actions
+      -input/-output annotation syntax, which is not a reusable property.
+    range: Parameter
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: lokf:parameter
+    in_subset:
+      - okf_v02
+
+  required:
+    description: Whether a value for the parameter must be supplied.
+    range: boolean
+    slot_uri: schema:valueRequired
+    in_subset:
+      - okf_v02
+
+  computation:
+    description: >-
+      Optional path to a file holding the computation; absent means the
+      body's `# Computation` fenced block IS the computation. Minted in
+      lokf: schema:contentUrl is the nearest real property but is scoped to
+      MediaObject bytes.
+    range: uriorcurie
+    slot_uri: lokf:computation
+    close_mappings:
+      - schema:contentUrl
+    in_subset:
+      - okf_v02
+
+  executor:
+    description: How the computation is run and what evidence a run must return.
+    range: Executor
+    inlined: true
+    slot_uri: lokf:executor
+    in_subset:
+      - okf_v02
+
+  receipt:
+    description: >-
+      The field names a run must return (e.g. job_id, executed_sql,
+      result) — the evidence the attester inspects. Receipts themselves are
+      runtime artifacts, never stored in the bundle. Minted in lokf: no
+      established vocabulary describes a receipt-shape declaration.
+    multivalued: true
+    range: string
+    slot_uri: lokf:receipt
+    in_subset:
+      - okf_v02
+
+  attester:
+    description: The deterministic, non-LLM verdict check over a receipt.
+    range: Attester
+    inlined: true
+    slot_uri: lokf:attester
+    in_subset:
+      - okf_v02
+
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
@@ -1053,3 +1546,79 @@ enums:
         meaning: xsd:anyURI
       json:
         meaning: rdf:JSON
+
+  ConceptStatus:
+    description: >-
+      Lifecycle status of a concept (OKF v0.2 §5.4). Absent means stable.
+      Each value maps to a real IRI in the ADMS status controlled vocabulary
+      (http://purl.org/adms/status/, the vocabulary DCAT-AP mandates for
+      adms:status). On the flat-context path the value serializes as a text
+      literal — sanctioned usage of schema:creativeWorkStatus, which is
+      deliberately text-valued; the IRIs surface on the LinkML RDF/OWL path.
+    permissible_values:
+      draft:
+        description: Not yet reviewed; possibly incomplete.
+        meaning: adms_status:UnderDevelopment
+        notes:
+          - >-
+            Nearest real term, not an exact synonym: ADMS has no "draft"
+            member, and UnderDevelopment (still being worked on, not yet
+            complete) is the closest governed IRI. Treat ADMS round-trips
+            as lossy.
+      stable:
+        description: The default; ready for consumption.
+        meaning: adms_status:Completed
+      deprecated:
+        description: Kept for links and history; no longer current.
+        meaning: adms_status:Deprecated
+
+  ParameterType:
+    description: >-
+      Datatypes for Attested Computation parameters. The permissible values
+      mirror FieldType's authoring surface exactly (one datatype vocabulary
+      for authors), but the meanings deliberately diverge: ParameterType
+      values are written under the `type` key, whose flat-context alias is
+      @type, so each value means a designed lokf Parameter-kind CLASS
+      rather than an XSD datatype — `_:p rdf:type xsd:integer` would
+      falsely type a non-literal node with a datatype (a class of
+      literals), while `_:p rdf:type lokf:IntegerParameter` is true and
+      OWL-DL-safe. Each value's XSD value space is carried as an annotation
+      and asserted in the generated ontology, where every Parameter-kind
+      class is declared a subclass of lokf:Parameter.
+    permissible_values:
+      string:
+        meaning: lokf:StringParameter
+        annotations:
+          xsd_value_space: xsd:string
+      integer:
+        meaning: lokf:IntegerParameter
+        annotations:
+          xsd_value_space: xsd:integer
+      number:
+        meaning: lokf:NumberParameter
+        annotations:
+          xsd_value_space: xsd:decimal
+      boolean:
+        meaning: lokf:BooleanParameter
+        annotations:
+          xsd_value_space: xsd:boolean
+      date:
+        meaning: lokf:DateParameter
+        annotations:
+          xsd_value_space: xsd:date
+      datetime:
+        meaning: lokf:DatetimeParameter
+        annotations:
+          xsd_value_space: xsd:dateTime
+      time:
+        meaning: lokf:TimeParameter
+        annotations:
+          xsd_value_space: xsd:time
+      uri:
+        meaning: lokf:UriParameter
+        annotations:
+          xsd_value_space: xsd:anyURI
+      json:
+        meaning: lokf:JsonParameter
+        annotations:
+          xsd_value_space: rdf:JSON

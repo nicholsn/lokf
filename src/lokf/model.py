@@ -98,7 +98,7 @@ class Bundle:
         """
         from lokf.rdf import docs_to_graph
 
-        return docs_to_graph(self.docs(), context)
+        return docs_to_graph(self.docs(), context, base=self.base_iri or None)
 
 
 def load_bundle(path: str | pathlib.Path) -> Bundle:

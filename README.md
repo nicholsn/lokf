@@ -192,7 +192,7 @@ See the [scaffold docs](https://lokf.nolan-nichols.com/toolkit/scaffold/).
 
 ## Status
 
-LOKF v0.1 is a **draft profile** and is **not affiliated with or endorsed by
+LOKF v0.2 is a **draft profile** and is **not affiliated with or endorsed by
 Google**. "Open Knowledge Format" / "OKF" refer to the format published by Google
 Cloud (`github.com/GoogleCloudPlatform/knowledge-catalog`); LOKF extends it under
 its open terms.

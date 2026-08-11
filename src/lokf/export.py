@@ -34,6 +34,8 @@ def to_cytoscape(bundle, vocab=None) -> dict:
     concept-to-concept triples) and are marked ``data.reified = True``.
     Non-dict ``relations`` entries are skipped; validation reports them.
     """
+    from lokf import trust
+
     vocab = vocab or vocabulary()
     iris = bundle.by_iri()
     nodes = [
@@ -43,6 +45,11 @@ def to_cytoscape(bundle, vocab=None) -> dict:
                 "label": c.title,
                 "type": c.type,
                 "concept_id": c.concept_id,
+                # OKF v0.2 trust signals (§5), derived per node so the graph
+                # explorer can show status / trust tier / staleness.
+                "status": trust.effective_status(c.data),
+                "trust_tier": trust.trust_tier(c.data),
+                "stale": trust.is_stale(c.data),
             }
         }
         for iri, c in iris.items()

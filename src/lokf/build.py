@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -62,6 +63,34 @@ def generate(root: pathlib.Path) -> None:
         run(["gen-json-schema", str(schema)], stdout=f)
     with open(root / "lokf.owl.ttl", "w") as f:
         run(["gen-owl", str(schema)], stdout=f)
+    # LinkML materializes enum meanings as IRIs but does not declare class
+    # axioms for them: assert each Parameter-kind class (ParameterType
+    # meanings) as a subclass of lokf:Parameter with its XSD value space, and
+    # lokf:Verification as a subclass of prov:Activity (its class_uri is
+    # lokf-minted; the PROV alignment lives here).
+    with open(root / "lokf.owl.ttl", "a") as f:
+        f.write(
+            "\n### OKF v0.2 post-generation axioms (lokf-build) ###\n"
+            "@prefix lokf: <https://w3id.org/lokf/> .\n"
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+            "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n"
+            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n"
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+            "@prefix prov: <http://www.w3.org/ns/prov#> .\n\n"
+            "lokf:Verification rdfs:subClassOf prov:Activity .\n\n"
+        )
+        for cls, space in {
+            "StringParameter": "xsd:string", "IntegerParameter": "xsd:integer",
+            "NumberParameter": "xsd:decimal", "BooleanParameter": "xsd:boolean",
+            "DateParameter": "xsd:date", "DatetimeParameter": "xsd:dateTime",
+            "TimeParameter": "xsd:time", "UriParameter": "xsd:anyURI",
+            "JsonParameter": "rdf:JSON",
+        }.items():
+            f.write(
+                f"lokf:{cls} a owl:Class ;\n"
+                f"    rdfs:subClassOf lokf:Parameter ;\n"
+                f"    lokf:xsd_value_space {space} .\n"
+            )
     with open(root / "lokf.shacl.ttl", "w") as f:
         run(["gen-shacl", str(schema)], stdout=f)
 
@@ -79,9 +108,27 @@ def generate(root: pathlib.Path) -> None:
     # behave as Linked Data: `type` designates the RDF class, `id` the subject.
     ctx["@context"]["type"] = "@type"
     ctx["@context"]["id"] = "@id"
+    # ParameterType values sit in @type position (Parameter's `type` key shares
+    # the alias above), so each authoring value must expand to its designed
+    # lokf Parameter-kind class — gen-jsonld-context does not emit enum-meaning
+    # terms. Same mechanism by which class names like "Metric" expand as @type.
+    for value, cls in {
+        "string": "StringParameter", "integer": "IntegerParameter",
+        "number": "NumberParameter", "boolean": "BooleanParameter",
+        "date": "DateParameter", "datetime": "DatetimeParameter",
+        "time": "TimeParameter", "uri": "UriParameter", "json": "JsonParameter",
+    }.items():
+        ctx["@context"][value] = {"@id": f"https://w3id.org/lokf/{cls}"}
+    # `author` must NOT be @id-coerced: OKF §7 actor strings ("team:ga4-docs",
+    # "human:kliu") are literals, and coercion would silently mint IRIs in
+    # unregistered URI schemes. Inlined Agent objects are unaffected.
+    if isinstance(ctx["@context"].get("author"), dict):
+        ctx["@context"]["author"].pop("@type", None)
     ctx.setdefault("comments", {})["note"] = (
         "Authoring context: `type`->@type and `id`->@id aliased so OKF "
-        "frontmatter is valid JSON-LD."
+        "frontmatter is valid JSON-LD; ParameterType values expand to "
+        "lokf Parameter-kind classes; `author` is uncoerced (actor strings "
+        "are literals)."
     )
     json.dump(ctx, open(root / "lokf.context.jsonld", "w"), indent=2)
     try:
@@ -105,6 +152,19 @@ def generate(root: pathlib.Path) -> None:
         # Committed so an installed wheel ships them.
         with open(root / "src" / "lokf" / "datamodel.py", "w") as f:
             run(["gen-python", str(schema)], stdout=f)
+        # The OKF v0.2 `from` slot (UsageWindow.from) is a Python keyword;
+        # gen-python emits it verbatim, which is a SyntaxError. Alias the
+        # generated attribute to `from_` — the YAML key and JSON-LD term
+        # stay `from`.
+        dm = root / "src" / "lokf" / "datamodel.py"
+        text = dm.read_text(encoding="utf-8")
+        # `self.from` accesses and the `from:`-annotated dataclass field, in
+        # code positions only (docstrings/comments talk about "from" freely).
+        patched = re.sub(r"\b(\w+)\.from\b", r"\1.from_", text)  # self.from, slots.from
+        patched = re.sub(r"^(\s+)from(: .*=.*)$", r"\1from_\2", patched, flags=re.M)
+        if patched != text:
+            dm.write_text(patched, encoding="utf-8")
+        compile(dm.read_text(encoding="utf-8"), str(dm), "exec")  # fail loudly
         outputs += " (+ src/lokf/data copies + datamodel.py)"
     print(outputs)
 
@@ -137,10 +197,12 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
     # Same single-parse projection as lokf.model.Bundle.graph(): the
     # assembled concepts already carry injected ids, so one @graph document
     # (context compiled once) covers the whole bundle.
+    base = bundle.get("base_iri") or None  # anchors relative @ids (sources[].id)
     whole = Graph()
     whole.parse(
         data=json.dumps({"@context": ctx, "@graph": bundle["concepts"]}),
         format="json-ld",
+        publicID=base,
     )
     whole.serialize(destination=str(ex / "acme-knowledge.nt"), format="nt")
 
@@ -148,7 +210,7 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
     mdoc = {k: v for k, v in metric.items() if k != "body"}
     mdoc["@context"] = ctx
     mg = Graph()
-    mg.parse(data=json.dumps(mdoc), format="json-ld")
+    mg.parse(data=json.dumps(mdoc), format="json-ld", publicID=base)
     mg.serialize(destination=str(ex / "weekly-active-users.nt"), format="nt")
     print(f"== RDF projection: {len(whole)} triples (bundle), "
           f"{len(mg)} triples (metric) ==")

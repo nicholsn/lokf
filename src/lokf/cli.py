@@ -453,8 +453,14 @@ def export(
         json.dumps(dataset_search_jsonld(bundle), indent=2), encoding="utf-8"
     )
     (out_dir / "graph.nt").write_text(rdf.serialize(bundle_dir, "nt"), encoding="utf-8")
+    # The context is paired with an @base entry (the bundle's base_iri) so the
+    # document is self-contained: relative @ids like OKF v0.2 `sources[].id`
+    # resolve identically for any consumer, matching graph.nt.
+    ctx = load_context()
+    if bundle.base_iri:
+        ctx = [ctx, {"@base": bundle.base_iri}]
     (out_dir / "concepts.jsonld").write_text(
-        json.dumps({"@context": load_context(), "@graph": bundle.docs()}, indent=2),
+        json.dumps({"@context": ctx, "@graph": bundle.docs()}, indent=2),
         encoding="utf-8",
     )
     typer.echo(

@@ -98,9 +98,9 @@ def test_add_rejects_empty_base_iri():
 def test_entry_for_bundle_indexes_the_example():
     entry = entry_for_bundle(BUNDLE, source_base="https://x/")
     assert entry.base_iri == "https://acme.example/knowledge/"
-    assert entry.void["triples"] == 87
+    assert entry.void["triples"] == 153
     # Six concepts, each a distinct type; all route by prefix, so id_index empty.
-    assert sum(entry.void["class_partition"].values()) == 6
+    assert sum(entry.void["class_partition"].values()) == 8
     assert entry.id_index == {}
 
 
@@ -131,7 +131,7 @@ def test_cli_init_add_list_resolve(tmp_path):
         app,
         ["registry", "add", str(BUNDLE), "-r", str(manifest), "--source-base", "https://x/"],
     )
-    assert add.exit_code == 0 and "87 triples" in add.output
+    assert add.exit_code == 0 and "153 triples" in add.output
 
     listed = runner.invoke(app, ["registry", "list", "-r", str(manifest)])
     assert "https://acme.example/knowledge/" in listed.output

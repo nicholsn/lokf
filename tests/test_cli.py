@@ -149,7 +149,7 @@ def test_export_writes_graph_and_datasets(tmp_path):
     )
     assert result.exit_code == 0
     graph = json.loads((tmp_path / "graph.json").read_text())
-    assert len(graph["nodes"]) == 6 and len(graph["edges"]) == 8
+    assert len(graph["nodes"]) == 8 and len(graph["edges"]) == 12
     assert graph["meta"]["source_base"] == "https://x/"
     datasets = json.loads((tmp_path / "datasets.jsonld").read_text())
     assert len(datasets) == 2 and all(d["@type"] == "Dataset" for d in datasets)
@@ -170,7 +170,7 @@ def test_export_writes_registry_producer_contract(tmp_path):
     # each concept keyed by its IRI, and it round-trips to the same triples as nt.
     doc = json.loads((tmp_path / "concepts.jsonld").read_text())
     assert set(doc) == {"@context", "@graph"}
-    assert len(doc["@graph"]) == 6
+    assert len(doc["@graph"]) == 8
     assert all(c.get("id", "").startswith("http") and "body" in c for c in doc["@graph"])
 
     from rdflib import Graph

@@ -58,12 +58,17 @@ def _strip_context(obj):
     return obj
 
 
-def docs_to_graph(docs: list[dict], context: dict | None = None):
+def docs_to_graph(docs: list[dict], context: dict | None = None, base: str | None = None):
     """Parse a list of concept docs into one :class:`rdflib.Graph`.
 
     The docs are wrapped in a single ``@graph`` JSON-LD document so the
     context is compiled once. This is the shared seam behind
     :meth:`lokf.model.Bundle.graph` and :func:`graph_of`.
+
+    ``base`` (normally the bundle's ``base_iri``) anchors relative ``@id``
+    values — concept ids are injected absolute, but OKF v0.2 ``sources[].id``
+    keys are relative and would otherwise resolve against the local file
+    system.
     """
     from rdflib import Graph
 
@@ -72,6 +77,7 @@ def docs_to_graph(docs: list[dict], context: dict | None = None):
     g.parse(
         data=json.dumps({"@context": ctx, "@graph": [_strip_context(d) for d in docs]}),
         format="json-ld",
+        publicID=base or None,
     )
     return g
 
@@ -108,7 +114,7 @@ def graph_of(source: str | pathlib.Path, context: dict | None = None):
         if concept is not None:
             doc = dict(concept.data)
             doc.setdefault("id", bundle.iri(concept))
-            return docs_to_graph([doc], context)
+            return docs_to_graph([doc], context, base=bundle.base_iri or None)
 
     # Standalone concept file: honor an explicit id, else mint a file:// IRI.
     doc = parse_concept(str(path))
