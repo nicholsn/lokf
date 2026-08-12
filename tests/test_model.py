@@ -14,15 +14,16 @@ def bundle():
 
 
 def test_loads_six_concepts_skipping_reserved(bundle):
-    assert len(bundle.concepts) == 6
+    assert len(bundle.concepts) == 8
     assert sorted(c.type for c in bundle.concepts) == [
-        "Dataset", "GlossaryTerm", "Metric", "Playbook", "Service", "Table",
+        "AttestedComputation", "Dataset", "GlossaryTerm", "Metric", "Playbook",
+        "Reference", "Service", "Table",
     ]
 
 
 def test_bundle_meta(bundle):
     assert bundle.base_iri == "https://acme.example/knowledge/"
-    assert bundle.meta["lokf_version"] == "0.1"
+    assert bundle.meta["lokf_version"] == "0.2"
 
 
 def test_iri_resolution(bundle):
@@ -38,7 +39,7 @@ def test_iri_resolution(bundle):
 
 def test_graph_matches_committed_projection(bundle):
     g = bundle.graph()
-    assert len(g) == 87  # examples/acme-knowledge.nt
+    assert len(g) == 153  # examples/acme-knowledge.nt
 
     from rdflib import URIRef
 
@@ -50,7 +51,7 @@ def test_graph_matches_committed_projection(bundle):
 
 def test_to_jsonld_injects_id_and_context(bundle):
     docs = bundle.to_jsonld()
-    assert len(docs) == 6
+    assert len(docs) == 8
     for doc in docs:
         assert "@context" in doc
         assert doc["id"].startswith("https://acme.example/knowledge/")

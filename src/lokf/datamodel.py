@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-08T20:43:30
+# Generation date: 2026-08-12T10:27:47
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
@@ -56,13 +56,15 @@ from rdflib import (
     URIRef
 )
 
-from linkml_runtime.linkml_model.types import Boolean, Datetime, String, Uri, Uriorcurie
-from linkml_runtime.utils.metamodelcore import Bool, URI, URIorCURIE, XSDDateTime
+from linkml_runtime.linkml_model.types import Boolean, Date, Datetime, Integer, String, Uri, Uriorcurie
+from linkml_runtime.utils.metamodelcore import Bool, URI, URIorCURIE, XSDDate, XSDDateTime
 
 metamodel_version = "1.11.0"
-version = "0.1.0"
+version = "0.5.0"
 
 # Namespaces
+ADMS = CurieNamespace('adms', 'http://www.w3.org/ns/adms#')
+ADMS_STATUS = CurieNamespace('adms_status', 'http://purl.org/adms/status/')
 DCAT = CurieNamespace('dcat', 'http://www.w3.org/ns/dcat#')
 DCTERMS = CurieNamespace('dcterms', 'http://purl.org/dc/terms/')
 FOAF = CurieNamespace('foaf', 'http://xmlns.com/foaf/0.1/')
@@ -133,6 +135,10 @@ class DocumentId(ConceptId):
 
 
 class RoleId(ConceptId):
+    pass
+
+
+class AttestedComputationId(ConceptId):
     pass
 
 
@@ -241,6 +247,12 @@ class Concept(YAMLRoot):
     definedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     genre: Optional[Union[str, "DiataxisMode"]] = None
+    sources: Optional[Union[Union[dict, "Source"], list[Union[dict, "Source"]]]] = empty_list()
+    usage_window: Optional[Union[dict, "UsageWindow"]] = None
+    generated: Optional[Union[dict, "Generation"]] = None
+    verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
+    status: Optional[Union[str, "ConceptStatus"]] = None
+    stale_after: Optional[Union[str, XSDDate]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -330,6 +342,22 @@ class Concept(YAMLRoot):
 
         if self.genre is not None and not isinstance(self.genre, DiataxisMode):
             self.genre = DiataxisMode(self.genre)
+
+        self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
+
+        if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
+
+        if self.generated is not None and not isinstance(self.generated, Generation):
+            self.generated = Generation(**as_dict(self.generated))
+
+        self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
+
+        if self.status is not None and not isinstance(self.status, ConceptStatus):
+            self.status = ConceptStatus(self.status)
+
+        if self.stale_after is not None and not isinstance(self.stale_after, XSDDate):
+            self.stale_after = XSDDate(self.stale_after)
 
         super().__post_init__(**kwargs)
 
@@ -749,6 +777,58 @@ class Role(Concept):
 
 
 @dataclass(repr=False)
+class AttestedComputation(Concept):
+    """
+    A sanctioned, immutable recipe for computing a value (OKF v0.2 §10), carried as its own concept type. The
+    frontmatter is the contract: the agent may only bind the declared `parameters`, the `executor` runs the bound
+    computation and returns a receipt, and the `attester` deterministically compares what actually ran against this
+    recipe. The computation text lives in the body's `# Computation` fenced block or in the file named by
+    `computation`. Semantically a prov:Plan with an attestation contract layered on.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["AttestedComputation"]
+    class_class_curie: ClassVar[str] = "lokf:AttestedComputation"
+    class_name: ClassVar[str] = "AttestedComputation"
+    class_model_uri: ClassVar[URIRef] = LOKF.AttestedComputation
+
+    id: Union[str, AttestedComputationId] = None
+    type: str = None
+    runtime: str = None
+    parameters: Optional[Union[Union[dict, "Parameter"], list[Union[dict, "Parameter"]]]] = empty_list()
+    computation: Optional[Union[str, URIorCURIE]] = None
+    executor: Optional[Union[dict, "Executor"]] = None
+    attester: Optional[Union[dict, "Attester"]] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.id):
+            self.MissingRequiredField("id")
+        if not isinstance(self.id, AttestedComputationId):
+            self.id = AttestedComputationId(self.id)
+
+        if self._is_empty(self.runtime):
+            self.MissingRequiredField("runtime")
+        if not isinstance(self.runtime, str):
+            self.runtime = str(self.runtime)
+
+        self._normalize_inlined_as_list(slot_name="parameters", slot_type=Parameter, key_name="name", keyed=False)
+
+        if self.computation is not None and not isinstance(self.computation, URIorCURIE):
+            self.computation = URIorCURIE(self.computation)
+
+        if self.executor is not None and not isinstance(self.executor, Executor):
+            self.executor = Executor(**as_dict(self.executor))
+
+        if self.attester is not None and not isinstance(self.attester, Attester):
+            self.attester = Attester(**as_dict(self.attester))
+
+        super().__post_init__(**kwargs)
+        if self._is_empty(self.type):
+            self.MissingRequiredField("type")
+        self.type = str(self.class_name)
+
+
+@dataclass(repr=False)
 class Agent(YAMLRoot):
     """
     A person or organization responsible for a concept.
@@ -839,6 +919,12 @@ class Person(Agent):
     definedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     genre: Optional[Union[str, "DiataxisMode"]] = None
+    sources: Optional[Union[Union[dict, "Source"], list[Union[dict, "Source"]]]] = empty_list()
+    usage_window: Optional[Union[dict, "UsageWindow"]] = None
+    generated: Optional[Union[dict, "Generation"]] = None
+    verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
+    status: Optional[Union[str, "ConceptStatus"]] = None
+    stale_after: Optional[Union[str, XSDDate]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -929,6 +1015,22 @@ class Person(Agent):
         if self.genre is not None and not isinstance(self.genre, DiataxisMode):
             self.genre = DiataxisMode(self.genre)
 
+        self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
+
+        if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
+
+        if self.generated is not None and not isinstance(self.generated, Generation):
+            self.generated = Generation(**as_dict(self.generated))
+
+        self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
+
+        if self.status is not None and not isinstance(self.status, ConceptStatus):
+            self.status = ConceptStatus(self.status)
+
+        if self.stale_after is not None and not isinstance(self.stale_after, XSDDate):
+            self.stale_after = XSDDate(self.stale_after)
+
         super().__post_init__(**kwargs)
 
 
@@ -970,6 +1072,12 @@ class Organization(Agent):
     definedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     genre: Optional[Union[str, "DiataxisMode"]] = None
+    sources: Optional[Union[Union[dict, "Source"], list[Union[dict, "Source"]]]] = empty_list()
+    usage_window: Optional[Union[dict, "UsageWindow"]] = None
+    generated: Optional[Union[dict, "Generation"]] = None
+    verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
+    status: Optional[Union[str, "ConceptStatus"]] = None
+    stale_after: Optional[Union[str, XSDDate]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -1059,6 +1167,22 @@ class Organization(Agent):
 
         if self.genre is not None and not isinstance(self.genre, DiataxisMode):
             self.genre = DiataxisMode(self.genre)
+
+        self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
+
+        if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
+
+        if self.generated is not None and not isinstance(self.generated, Generation):
+            self.generated = Generation(**as_dict(self.generated))
+
+        self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
+
+        if self.status is not None and not isinstance(self.status, ConceptStatus):
+            self.status = ConceptStatus(self.status)
+
+        if self.stale_after is not None and not isinstance(self.stale_after, XSDDate):
+            self.stale_after = XSDDate(self.stale_after)
 
         super().__post_init__(**kwargs)
 
@@ -1197,6 +1321,230 @@ class Citation(YAMLRoot):
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Source(YAMLRoot):
+    """
+    A material a concept derives from (OKF v0.2 §5.1) — a pointer (`resource`) plus objective per-source credibility
+    signals (`author`, `usage_count`, `last_modified`) from which consumers infer trust; OKF stores signals, never a
+    score. Markdown footnotes whose label equals `id` attribute individual claims to this entry. Supersedes Citation.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = SCHEMA["CreativeWork"]
+    class_class_curie: ClassVar[str] = "schema:CreativeWork"
+    class_name: ClassVar[str] = "Source"
+    class_model_uri: ClassVar[URIRef] = LOKF.Source
+
+    resource: str = None
+    title: Optional[str] = None
+    author: Optional[Union[str, list[str]]] = empty_list()
+    usage_count: Optional[int] = None
+    last_modified: Optional[Union[str, XSDDate]] = None
+    usage_window: Optional[Union[dict, "UsageWindow"]] = None
+    id: Optional[str] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.resource):
+            self.MissingRequiredField("resource")
+        if not isinstance(self.resource, str):
+            self.resource = str(self.resource)
+
+        if self.title is not None and not isinstance(self.title, str):
+            self.title = str(self.title)
+
+        if not isinstance(self.author, list):
+            self.author = [self.author] if self.author is not None else []
+        self.author = [v if isinstance(v, str) else str(v) for v in self.author]
+
+        if self.usage_count is not None and not isinstance(self.usage_count, int):
+            self.usage_count = int(self.usage_count)
+
+        if self.last_modified is not None and not isinstance(self.last_modified, XSDDate):
+            self.last_modified = XSDDate(self.last_modified)
+
+        if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
+
+        if self.id is not None and not isinstance(self.id, str):
+            self.id = str(self.id)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class UsageWindow(YAMLRoot):
+    """
+    The `{ from, to }` date range framing every `usage_count` signal (OKF v0.2 §5.1). Written once as a sibling of
+    `sources`; a single Source entry MAY carry its own override.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = DCTERMS["PeriodOfTime"]
+    class_class_curie: ClassVar[str] = "dcterms:PeriodOfTime"
+    class_name: ClassVar[str] = "UsageWindow"
+    class_model_uri: ClassVar[URIRef] = LOKF.UsageWindow
+
+    from_: Optional[Union[str, XSDDate]] = None
+    to: Optional[Union[str, XSDDate]] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self.from_ is not None and not isinstance(self.from_, XSDDate):
+            self.from_ = XSDDate(self.from_)
+
+        if self.to is not None and not isinstance(self.to, XSDDate):
+            self.to = XSDDate(self.to)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Generation(YAMLRoot):
+    """
+    How and when the current content was produced (OKF v0.2 `generated`, §5.2). Modeled as the PROV activity that
+    generated the concept, so "who wrote this, when" is a one-hop join from the concept via prov:wasGeneratedBy, with
+    both slots keeping PROV's activity-side semantics (prov:wasAssociatedWith, prov:endedAtTime) — domain/range
+    correct with no reasoner or subproperty entailment required.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = PROV["Activity"]
+    class_class_curie: ClassVar[str] = "prov:Activity"
+    class_name: ClassVar[str] = "Generation"
+    class_model_uri: ClassVar[URIRef] = LOKF.Generation
+
+    by: str = None
+    at: Optional[Union[str, XSDDateTime]] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.by):
+            self.MissingRequiredField("by")
+        if not isinstance(self.by, str):
+            self.by = str(self.by)
+
+        if self.at is not None and not isinstance(self.at, XSDDateTime):
+            self.at = XSDDateTime(self.at)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Verification(YAMLRoot):
+    """
+    One verification event (OKF v0.2 `verified`, §5.2): an actor confirmed the content against its sources or resource
+    at a time. Independent checks accumulate as separate events; trust tiers (unverified / machine-confirmed /
+    human-reviewed) are derived from the actors, never stored. PROV has no Verification class, so the class IRI is
+    honestly lokf-minted; the generated ontology declares it a subclass of prov:Activity.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Verification"]
+    class_class_curie: ClassVar[str] = "lokf:Verification"
+    class_name: ClassVar[str] = "Verification"
+    class_model_uri: ClassVar[URIRef] = LOKF.Verification
+
+    by: str = None
+    at: Optional[Union[str, XSDDateTime]] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.by):
+            self.MissingRequiredField("by")
+        if not isinstance(self.by, str):
+            self.by = str(self.by)
+
+        if self.at is not None and not isinstance(self.at, XSDDateTime):
+            self.at = XSDDateTime(self.at)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Parameter(YAMLRoot):
+    """
+    A typed, named hole in an Attested Computation that the agent may fill (OKF v0.2 §10.2). Binding semantics (SQL
+    bind variable, dbt var, Python argument) follow the concept's `runtime`. The `type` key deliberately shares the
+    global JSON-LD @type alias — see the attribute comment for the exact triple that results.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Parameter"]
+    class_class_curie: ClassVar[str] = "lokf:Parameter"
+    class_name: ClassVar[str] = "Parameter"
+    class_model_uri: ClassVar[URIRef] = LOKF.Parameter
+
+    name: str = None
+    required: Optional[Union[bool, Bool]] = None
+    type: Optional[Union[str, "ParameterType"]] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.name):
+            self.MissingRequiredField("name")
+        if not isinstance(self.name, str):
+            self.name = str(self.name)
+
+        if self.required is not None and not isinstance(self.required, Bool):
+            self.required = Bool(self.required)
+
+        if self.type is not None and not isinstance(self.type, ParameterType):
+            self.type = ParameterType(self.type)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Executor(YAMLRoot):
+    """
+    How an Attested Computation is run (OKF v0.2 §10.2): `resource` names run instructions or code a runner follows;
+    `receipt` declares the field names a run must return — the evidence surface the attester inspects. No established
+    vocabulary has an execution-interface class, so the IRI is honestly lokf-minted; schema:EntryPoint (an invocation
+    specification) is the nearest real term.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Executor"]
+    class_class_curie: ClassVar[str] = "lokf:Executor"
+    class_name: ClassVar[str] = "Executor"
+    class_model_uri: ClassVar[URIRef] = LOKF.Executor
+
+    resource: Union[str, URIorCURIE] = None
+    receipt: Optional[Union[str, list[str]]] = empty_list()
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.resource):
+            self.MissingRequiredField("resource")
+        if not isinstance(self.resource, URIorCURIE):
+            self.resource = URIorCURIE(self.resource)
+
+        if not isinstance(self.receipt, list):
+            self.receipt = [self.receipt] if self.receipt is not None else []
+        self.receipt = [v if isinstance(v, str) else str(v) for v in self.receipt]
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Attester(YAMLRoot):
+    """
+    The deterministic, non-LLM check for an Attested Computation (OKF v0.2 §10.2): `resource` names code that takes a
+    run's receipt and returns a verdict, run consumer-side. Honestly lokf-minted.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Attester"]
+    class_class_curie: ClassVar[str] = "lokf:Attester"
+    class_name: ClassVar[str] = "Attester"
+    class_model_uri: ClassVar[URIRef] = LOKF.Attester
+
+    resource: Union[str, URIorCURIE] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.resource):
+            self.MissingRequiredField("resource")
+        if not isinstance(self.resource, URIorCURIE):
+            self.resource = URIorCURIE(self.resource)
 
         super().__post_init__(**kwargs)
 
@@ -1341,6 +1689,74 @@ class FieldType(EnumDefinitionImpl):
     _defn = EnumDefinition(
         name="FieldType",
         description="Datatypes for dataset/table fields, each mapped to its XSD (or RDF) type.",
+    )
+
+class ConceptStatus(EnumDefinitionImpl):
+    """
+    Lifecycle status of a concept (OKF v0.2 §5.4). Absent means stable. Each value maps to a real IRI in the ADMS
+    status controlled vocabulary (http://purl.org/adms/status/, the vocabulary DCAT-AP mandates for adms:status). On
+    the flat-context path the value serializes as a text literal — sanctioned usage of schema:creativeWorkStatus,
+    which is deliberately text-valued; the IRIs surface on the LinkML RDF/OWL path.
+    """
+    draft = PermissibleValue(
+        text="draft",
+        description="Not yet reviewed; possibly incomplete.",
+        meaning=ADMS_STATUS["UnderDevelopment"])
+    stable = PermissibleValue(
+        text="stable",
+        description="The default; ready for consumption.",
+        meaning=ADMS_STATUS["Completed"])
+    deprecated = PermissibleValue(
+        text="deprecated",
+        description="Kept for links and history; no longer current.",
+        meaning=ADMS_STATUS["Deprecated"])
+
+    _defn = EnumDefinition(
+        name="ConceptStatus",
+        description="""Lifecycle status of a concept (OKF v0.2 §5.4). Absent means stable. Each value maps to a real IRI in the ADMS status controlled vocabulary (http://purl.org/adms/status/, the vocabulary DCAT-AP mandates for adms:status). On the flat-context path the value serializes as a text literal — sanctioned usage of schema:creativeWorkStatus, which is deliberately text-valued; the IRIs surface on the LinkML RDF/OWL path.""",
+    )
+
+class ParameterType(EnumDefinitionImpl):
+    """
+    Datatypes for Attested Computation parameters. The permissible values mirror FieldType's authoring surface exactly
+    (one datatype vocabulary for authors), but the meanings deliberately diverge: ParameterType values are written
+    under the `type` key, whose flat-context alias is @type, so each value means a designed lokf Parameter-kind CLASS
+    rather than an XSD datatype — `_:p rdf:type xsd:integer` would falsely type a non-literal node with a datatype (a
+    class of literals), while `_:p rdf:type lokf:IntegerParameter` is true and OWL-DL-safe. Each value's XSD value
+    space is carried as an annotation and asserted in the generated ontology, where every Parameter-kind class is
+    declared a subclass of lokf:Parameter.
+    """
+    string = PermissibleValue(
+        text="string",
+        meaning=LOKF["StringParameter"])
+    integer = PermissibleValue(
+        text="integer",
+        meaning=LOKF["IntegerParameter"])
+    number = PermissibleValue(
+        text="number",
+        meaning=LOKF["NumberParameter"])
+    boolean = PermissibleValue(
+        text="boolean",
+        meaning=LOKF["BooleanParameter"])
+    date = PermissibleValue(
+        text="date",
+        meaning=LOKF["DateParameter"])
+    datetime = PermissibleValue(
+        text="datetime",
+        meaning=LOKF["DatetimeParameter"])
+    time = PermissibleValue(
+        text="time",
+        meaning=LOKF["TimeParameter"])
+    uri = PermissibleValue(
+        text="uri",
+        meaning=LOKF["UriParameter"])
+    json = PermissibleValue(
+        text="json",
+        meaning=LOKF["JsonParameter"])
+
+    _defn = EnumDefinition(
+        name="ParameterType",
+        description="""Datatypes for Attested Computation parameters. The permissible values mirror FieldType's authoring surface exactly (one datatype vocabulary for authors), but the meanings deliberately diverge: ParameterType values are written under the `type` key, whose flat-context alias is @type, so each value means a designed lokf Parameter-kind CLASS rather than an XSD datatype — `_:p rdf:type xsd:integer` would falsely type a non-literal node with a datatype (a class of literals), while `_:p rdf:type lokf:IntegerParameter` is true and OWL-DL-safe. Each value's XSD value space is carried as an annotation and asserted in the generated ontology, where every Parameter-kind class is declared a subclass of lokf:Parameter.""",
     )
 
 # Slots
@@ -1517,4 +1933,82 @@ slots.base_iri = Slot(uri=LOKF.baseIri, name="base_iri", curie=LOKF.curie('baseI
 
 slots.context = Slot(uri=LOKF.context, name="context", curie=LOKF.curie('context'),
                    model_uri=LOKF.context, domain=None, range=Optional[Union[str, URI]])
+
+slots.sources = Slot(uri=SCHEMA.isBasedOn, name="sources", curie=SCHEMA.curie('isBasedOn'),
+                   model_uri=LOKF.sources, domain=None, range=Optional[Union[Union[dict, Source], list[Union[dict, Source]]]])
+
+slots.usage_window = Slot(uri=LOKF.usageWindow, name="usage_window", curie=LOKF.curie('usageWindow'),
+                   model_uri=LOKF.usage_window, domain=None, range=Optional[Union[dict, UsageWindow]])
+
+slots.from_ = Slot(uri=DCAT.startDate, name="from", curie=DCAT.curie('startDate'),
+                   model_uri=LOKF.from_, domain=None, range=Optional[Union[str, XSDDate]])
+
+slots.to = Slot(uri=DCAT.endDate, name="to", curie=DCAT.curie('endDate'),
+                   model_uri=LOKF.to, domain=None, range=Optional[Union[str, XSDDate]])
+
+slots.usage_count = Slot(uri=LOKF.usageCount, name="usage_count", curie=LOKF.curie('usageCount'),
+                   model_uri=LOKF.usage_count, domain=None, range=Optional[int])
+
+slots.last_modified = Slot(uri=SCHEMA.dateModified, name="last_modified", curie=SCHEMA.curie('dateModified'),
+                   model_uri=LOKF.last_modified, domain=None, range=Optional[Union[str, XSDDate]])
+
+slots.generated = Slot(uri=PROV.wasGeneratedBy, name="generated", curie=PROV.curie('wasGeneratedBy'),
+                   model_uri=LOKF.generated, domain=None, range=Optional[Union[dict, Generation]])
+
+slots.verified = Slot(uri=LOKF.verified, name="verified", curie=LOKF.curie('verified'),
+                   model_uri=LOKF.verified, domain=None, range=Optional[Union[Union[dict, Verification], list[Union[dict, Verification]]]])
+
+slots.by = Slot(uri=PROV.wasAssociatedWith, name="by", curie=PROV.curie('wasAssociatedWith'),
+                   model_uri=LOKF.by, domain=None, range=str)
+
+slots.at = Slot(uri=PROV.endedAtTime, name="at", curie=PROV.curie('endedAtTime'),
+                   model_uri=LOKF.at, domain=None, range=Optional[Union[str, XSDDateTime]])
+
+slots.status = Slot(uri=SCHEMA.creativeWorkStatus, name="status", curie=SCHEMA.curie('creativeWorkStatus'),
+                   model_uri=LOKF.status, domain=None, range=Optional[Union[str, "ConceptStatus"]])
+
+slots.stale_after = Slot(uri=SCHEMA.expires, name="stale_after", curie=SCHEMA.curie('expires'),
+                   model_uri=LOKF.stale_after, domain=None, range=Optional[Union[str, XSDDate]])
+
+slots.runtime = Slot(uri=SCHEMA.runtimePlatform, name="runtime", curie=SCHEMA.curie('runtimePlatform'),
+                   model_uri=LOKF.runtime, domain=None, range=str)
+
+slots.parameters = Slot(uri=LOKF.parameter, name="parameters", curie=LOKF.curie('parameter'),
+                   model_uri=LOKF.parameters, domain=None, range=Optional[Union[Union[dict, Parameter], list[Union[dict, Parameter]]]])
+
+slots.required = Slot(uri=SCHEMA.valueRequired, name="required", curie=SCHEMA.curie('valueRequired'),
+                   model_uri=LOKF.required, domain=None, range=Optional[Union[bool, Bool]])
+
+slots.computation = Slot(uri=LOKF.computation, name="computation", curie=LOKF.curie('computation'),
+                   model_uri=LOKF.computation, domain=None, range=Optional[Union[str, URIorCURIE]])
+
+slots.executor = Slot(uri=LOKF.executor, name="executor", curie=LOKF.curie('executor'),
+                   model_uri=LOKF.executor, domain=None, range=Optional[Union[dict, Executor]])
+
+slots.receipt = Slot(uri=LOKF.receipt, name="receipt", curie=LOKF.curie('receipt'),
+                   model_uri=LOKF.receipt, domain=None, range=Optional[Union[str, list[str]]])
+
+slots.attester = Slot(uri=LOKF.attester, name="attester", curie=LOKF.curie('attester'),
+                   model_uri=LOKF.attester, domain=None, range=Optional[Union[dict, Attester]])
+
+slots.source__id = Slot(uri=SCHEMA.identifier, name="source__id", curie=SCHEMA.curie('identifier'),
+                   model_uri=LOKF.source__id, domain=None, range=Optional[str])
+
+slots.parameter__type = Slot(uri=RDF.type, name="parameter__type", curie=RDF.curie('type'),
+                   model_uri=LOKF.parameter__type, domain=None, range=Optional[Union[str, "ParameterType"]])
+
+slots.Source_resource = Slot(uri=SCHEMA.url, name="Source_resource", curie=SCHEMA.curie('url'),
+                   model_uri=LOKF.Source_resource, domain=Source, range=str)
+
+slots.Source_author = Slot(uri=SCHEMA.author, name="Source_author", curie=SCHEMA.curie('author'),
+                   model_uri=LOKF.Source_author, domain=Source, range=Optional[Union[str, list[str]]])
+
+slots.Parameter_name = Slot(uri=SCHEMA.name, name="Parameter_name", curie=SCHEMA.curie('name'),
+                   model_uri=LOKF.Parameter_name, domain=Parameter, range=str)
+
+slots.Executor_resource = Slot(uri=SCHEMA.url, name="Executor_resource", curie=SCHEMA.curie('url'),
+                   model_uri=LOKF.Executor_resource, domain=Executor, range=Union[str, URIorCURIE])
+
+slots.Attester_resource = Slot(uri=SCHEMA.url, name="Attester_resource", curie=SCHEMA.curie('url'),
+                   model_uri=LOKF.Attester_resource, domain=Attester, range=Union[str, URIorCURIE])
 

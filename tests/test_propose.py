@@ -141,7 +141,7 @@ def test_apply_writes_slot_and_preserves_formatting(tmp_bundle, vocab):
 
     after = term.read_text(encoding="utf-8")
     assert "# taxonomy tags" in after  # comment intact
-    assert "timestamp: 2026-03-01T00:00:00Z" in after  # scalar formatting intact
+    assert "generated: {by: reference_agent/gemini-2.5-pro, at: 2026-03-01T00:00:00Z}" in after  # flow mapping intact
     assert f"{proposals[0].relation.name}:" in after
     assert WAU_IRI in after
     assert after.split("---", 2)[2] == before.split("---", 2)[2]  # body untouched

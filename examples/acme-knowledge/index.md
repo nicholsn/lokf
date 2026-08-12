@@ -1,6 +1,6 @@
 ---
-lokf_version: "0.1"
-okf_version: "0.1"
+lokf_version: "0.2"
+okf_version: "0.2"
 base_iri: https://acme.example/knowledge/
 context: https://w3id.org/lokf/context.jsonld
 title: Acme Knowledge Bundle
@@ -24,6 +24,14 @@ publisher:
 # Glossary
 
 * [Active User](glossary/active-user.md) - A user with at least one qualifying event.
+
+# Computations
+
+* [Weekly Active Users count](computations/weekly-active-users-count.md) - The sanctioned, attestable WAU computation.
+
+# References
+
+* [Run on BigQuery](references/skills/run-on-bq.md) - Executor instructions for attested computations.
 
 # Playbooks
 

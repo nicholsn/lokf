@@ -1,7 +1,7 @@
 # Linked Open Knowledge Format (LOKF)
 
-**Version 0.1 — Draft**
-**Status:** Proposal · Profile of Google Open Knowledge Format (OKF) v0.1
+**Version 0.2 — Draft**
+**Status:** Proposal · Profile of Google Open Knowledge Format (OKF) v0.2
 **Model:** Defined entirely in LinkML (`lokf.yaml`); all other artifacts are generated from it.
 
 LOKF is a semantic, ontology-grounded **profile of the Google Open Knowledge
@@ -110,8 +110,8 @@ already permits frontmatter in an index):
 
 ```yaml
 ---
-lokf_version: "0.1"          # LOKF version this bundle targets
-okf_version: "0.1"           # OKF version it remains compatible with
+lokf_version: "0.2"          # LOKF version this bundle targets
+okf_version: "0.2"           # OKF version it remains compatible with
 base_iri: https://acme.example/knowledge/     # resolves Concept IDs to Concept IRIs
 context: https://w3id.org/lokf/context.jsonld # the @context to attach to concepts
 title: Acme Knowledge Bundle
@@ -148,14 +148,14 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 | `description` |  ✅ | `schema:description`               | string  | close: `dcterms:description`                       |
 | `resource`    |  ✅ | `schema:url`                       | IRI     | The underlying asset. close: `dcat:landingPage`, `prov:specializationOf` |
 | `tags`        |  ✅ | `schema:keywords`                  | string* | close: `dcat:keyword`                             |
-| `timestamp`   |  ✅ | `schema:dateModified`              | dateTime| exact: `dcterms:modified`                          |
+| `timestamp`   |  ✅ | `schema:dateModified`              | dateTime| exact: `dcterms:modified`. **Superseded** in v0.2 by `generated.at` (§5.4); consumers MAY fall back. |
 | `created`     |     | `schema:dateCreated`               | dateTime| exact: `dcterms:created`                           |
 | `version`     |     | `schema:version`                   | string  |                                                   |
 | `license`     |     | `schema:license`                   | IRI     |                                                   |
 | `author`      |     | `schema:author`                    | Agent*  | close: `dcterms:creator`, `prov:wasAttributedTo`  |
 | `genre`       |     | `schema:genre`                     | enum    | Diátaxis documentation mode of the body (§6.1). `DiataxisMode`: tutorial \| how-to \| reference \| explanation. |
 | `body`        |  ✅ | `schema:text`                      | string  | The markdown after the frontmatter.               |
-| `citations`   |     | `schema:citation`                  | Citation*|                                                  |
+| `citations`   |     | `schema:citation`                  | Citation*| **Superseded** in v0.2 by `sources` (§5.4); still parsed for v0.1 docs. |
 <!-- --8<-- [end:core-fields-table] -->
 
 (`*` = multivalued.) Producers MAY add any other keys; consumers MUST preserve
@@ -200,7 +200,56 @@ the typed fields are the machine-readable layer that carries the *kind* of link.
 
 Unchanged from OKF §4.2. Standard markdown, structural headings preferred. The
 conventional headings `# Schema`, `# Examples`, and `# Citations` retain their OKF
-meaning. The body is mapped to `schema:text` in the RDF projection.
+meaning (v0.2 adds `# Computation`, §5.4). The body is mapped to `schema:text` in
+the RDF projection.
+
+### 5.4 Trust, provenance, and lifecycle (OKF v0.2)
+
+OKF v0.2 adds optional frontmatter families answering "where did this come
+from," "how much should I trust it," and "is it still current." LOKF binds each
+to a formal vocabulary so trust signals are *queryable RDF*, not just YAML. All
+families are optional; their absence carries meaning (an unverified concept is
+distinguishable, never rejected).
+
+<!-- --8<-- [start:trust-fields-table] -->
+| Field          | OKF v0.2 | RDF property (`slot_uri`) | Range        | Notes |
+|----------------|:---:|---------------------------------|--------------|-------|
+| `sources`      |  ✅ | `schema:isBasedOn`              | Source*      | close: `dcterms:source`, `prov:wasDerivedFrom` (primary IRI is owned by `derivedFrom`). |
+| `usage_window` |  ✅ | `lokf:usageWindow`              | UsageWindow  | `{from, to}` → `dcat:startDate`/`dcat:endDate` on a `dcterms:PeriodOfTime`. Sibling of `sources`; a Source entry MAY override. |
+| `generated`    |  ✅ | `prov:wasGeneratedBy`           | Generation   | `{by, at}` → `prov:wasAssociatedWith` + `prov:endedAtTime` on a `prov:Activity`. Supersedes `timestamp`. |
+| `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`). A bare mapping MUST be read as a one-element list. |
+| `status`       |  ✅ | `schema:creativeWorkStatus`     | enum         | `draft \| stable \| deprecated`; absent ⇒ stable. Enum meanings: ADMS status IRIs. |
+| `stale_after`  |  ✅ | `schema:expires`                | date         | Stale when `today >= stale_after`; plain date comparison. |
+<!-- --8<-- [end:trust-fields-table] -->
+
+**Source entries** (`sources[]`): `resource` (REQUIRED → `schema:url`; a URL,
+bundle-relative path, or scope descriptor), `id` (footnote join key; resolves
+against `base_iri` to mint the source node's IRI, so the same id shared across
+concepts merges into one node), `title` (`schema:name`), `author`
+(`schema:author`, an actor literal), `usage_count` (`lokf:usageCount`),
+`last_modified` (`schema:dateModified` — the *source's* recency, distinct from
+`generated.at`).
+
+**Actors** (`generated.by`, `verified[].by`, `sources[].author`) follow OKF §7
+(`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain
+literals — never coerced to IRIs, since `human:x` would silently mint an IRI in
+an unregistered URI scheme and `a/b` would resolve document-relative. Trust
+tiers derive from the `human:` prefix: absent `verified` ⇒ **unverified**;
+non-human actors only ⇒ **machine-confirmed**; any `human:` actor ⇒
+**human-reviewed**.
+
+**Attested Computations** (`type: AttestedComputation`; OKF writes
+`Attested Computation`) carry a sanctioned, immutable recipe — semantically a
+`prov:Plan`. Contract fields: `runtime` (REQUIRED → `schema:runtimePlatform`),
+`parameters` (→ `lokf:parameter`; each `{name, type, required}` →
+`schema:name`, a designed Parameter-kind class, `schema:valueRequired`),
+`computation` (optional file path → `lokf:computation`), `executor`
+(`{resource, receipt}` → `lokf:executor`), `attester` (`{resource}` →
+`lokf:attester`). Because the `type` key inside a parameter shares the global
+`@type` alias, ParameterType values expand to designed classes — `type: integer`
+yields the true triple `_:p rdf:type lokf:IntegerParameter` (each such class is
+declared a subclass of `lokf:Parameter` carrying its XSD value space), not a
+false `xsd:integer` typing of a non-literal node.
 
 ---
 
@@ -224,6 +273,7 @@ generic `lokf:Concept` (OKF §4.1 / §9).
 | `Policy`       | `lokf:Policy`         | close: `schema:DigitalDocument`              |
 | `GlossaryTerm` | `schema:DefinedTerm`  | exact: `skos:Concept`                         |
 | `Reference`    | `lokf:Reference`      | close: `schema:CreativeWork`, `schema:WebPage`|
+| `AttestedComputation` | `lokf:AttestedComputation` | broad: `prov:Plan`; close: `schema:HowTo`. OKF's `Attested Computation` (spaced) normalizes to this. |
 | `Document`     | `lokf:Document`       | close: `schema:DigitalDocument`              |
 | `Person`       | `schema:Person`       | exact: `foaf:Person`, `prov:Person`          |
 | `Organization` | `schema:Organization` | exact: `foaf:Organization`, `prov:Organization`|
@@ -368,16 +418,23 @@ directly from the model.
 
 ## 8. Conformance
 
-A bundle is **LOKF v0.1 conformant** if:
+A bundle is **LOKF v0.2 conformant** if:
 
-1. It is a conformant **OKF v0.1** bundle (OKF §9): every non-reserved `.md` file
+1. It is a conformant **OKF v0.2** bundle (OKF §11): every non-reserved `.md` file
    has parseable YAML frontmatter with a non-empty `type`.
 2. Every `type` value that names a LOKF class (§6) is used consistently with that
    class's mappings; unknown types are permitted and treated as `lokf:Concept`.
+   OKF's spaced type spellings (`Attested Computation`) are recognized as their
+   LOKF class names (`AttestedComputation`).
 3. The bundle-root `index.md` declares `base_iri` and `context` if the bundle is to
    be consumed as Linked Data. (A bundle without them is still LOKF-conformant, but
    is consumed as plain OKF.)
 4. Typed relation fields (§5.2), when present, use the predicates defined here.
+5. When the trust, lifecycle, provenance, or computation families (§5.4) are
+   present, they follow OKF v0.2 §5–§10. Consumers MUST treat a bare `verified`
+   mapping as a one-element list, MUST NOT reject a concept for missing any
+   optional family, and SHOULD derive trust tiers and staleness only from the
+   fields specified there.
 
 As in OKF, consumers MUST be permissive: missing optional fields, unknown `type`
 values, unknown frontmatter keys, and broken cross-links MUST NOT cause rejection.
@@ -574,6 +631,8 @@ README.md               How the pieces fit and how to regenerate them.
 | `lokf`    | `https://w3id.org/lokf/`                       |
 | `schema`  | `http://schema.org/`                           |
 | `dcat`    | `http://www.w3.org/ns/dcat#`                   |
+| `adms`    | `http://www.w3.org/ns/adms#`                   |
+| `adms_status` | `http://purl.org/adms/status/`             |
 | `void`    | `http://rdfs.org/ns/void#`                     |
 | `dcterms` | `http://purl.org/dc/terms/`                    |
 | `prov`    | `http://www.w3.org/ns/prov#`                   |
@@ -583,6 +642,6 @@ README.md               How the pieces fit and how to regenerate them.
 | `owl`     | `http://www.w3.org/2002/07/owl#`               |
 | `xsd`     | `http://www.w3.org/2001/XMLSchema#`            |
 
-*LOKF v0.1 is a draft profile and is not affiliated with or endorsed by Google.
+*LOKF v0.2 is a draft profile and is not affiliated with or endorsed by Google.
 "Open Knowledge Format" and "OKF" refer to the format published by Google Cloud;
 LOKF builds on it under its open terms.*

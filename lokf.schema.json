@@ -37,6 +37,351 @@
             "title": "Agent",
             "type": "object"
         },
+        "AttestedComputation": {
+            "additionalProperties": false,
+            "description": "A sanctioned, immutable recipe for computing a value (OKF v0.2 \u00a710), carried as its own concept type. The frontmatter is the contract: the agent may only bind the declared `parameters`, the `executor` runs the bound computation and returns a receipt, and the `attester` deterministically compares what actually ran against this recipe. The computation text lives in the body's `# Computation` fenced block or in the file named by `computation`. Semantically a prov:Plan with an attestation contract layered on.",
+            "properties": {
+                "about": {
+                    "description": "The subject matter this concept is about.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attester": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Attester"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The deterministic, non-LLM verdict check over a receipt."
+                },
+                "author": {
+                    "description": "The agent(s) responsible for authoring the concept.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Person"
+                            },
+                            {
+                                "$ref": "#/$defs/Organization"
+                            }
+                        ]
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "body": {
+                    "description": "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "citations": {
+                    "description": "External sources supporting claims in the body.",
+                    "items": {
+                        "$ref": "#/$defs/Citation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "computation": {
+                    "description": "Optional path to a file holding the computation; absent means the body's `# Computation` fenced block IS the computation. Minted in lokf: schema:contentUrl is the nearest real property but is scoped to MediaObject bytes.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "created": {
+                    "description": "ISO 8601 datetime the concept was created.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "definedBy": {
+                    "description": "A resource that formally defines this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dependsOn": {
+                    "description": "A concept this concept depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "derivedFrom": {
+                    "description": "An entity this concept was derived from (provenance).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "executor": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Executor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How the computation is run and what evidence a run must return."
+                },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
+                "genre": {
+                    "$ref": "#/$defs/DiataxisMode",
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
+                },
+                "hasPart": {
+                    "description": "A concept that is a part of this concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "license": {
+                    "description": "The license under which the concept or bundle is offered.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "parameters": {
+                    "description": "The typed, named holes the agent may fill \u2014 the ONLY surface the agent may bind. Binding semantics follow `runtime`. Minted in lokf, mirroring the existing `fields` -> lokf:field idiom: schema.org attaches PropertyValueSpecifications only through the Actions -input/-output annotation syntax, which is not a reusable property.",
+                    "items": {
+                        "$ref": "#/$defs/Parameter"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "description": "A concept or resource this concept refers to.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relatedTo": {
+                    "description": "A generic association to another concept.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "relations": {
+                    "description": "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target).",
+                    "items": {
+                        "$ref": "#/$defs/Relation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "runtime": {
+                    "description": "REQUIRED on an Attested Computation. How to run the computation (bigquery | postgres | dbt | python | Looker | ...); defines what `parameters` mean and how the executor and attester interpret the contract.",
+                    "type": "string"
+                },
+                "sameAs": {
+                    "description": "An IRI asserting this concept is the same entity as another.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "A resource from which this concept is derived or sourced.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
+                "tags": {
+                    "description": "Short cross-cutting keywords for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "timestamp": {
+                    "description": "ISO 8601 datetime of the last meaningful change.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "description": "The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.",
+                    "enum": [
+                        "AttestedComputation"
+                    ],
+                    "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "A version string for the concept's content.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "runtime",
+                "id",
+                "type"
+            ],
+            "title": "AttestedComputation",
+            "type": "object"
+        },
+        "Attester": {
+            "additionalProperties": false,
+            "description": "The deterministic, non-LLM check for an Attested Computation (OKF v0.2 \u00a710.2): `resource` names code that takes a run's receipt and returns a verdict, run consumer-side. Honestly lokf-minted.",
+            "properties": {
+                "resource": {
+                    "description": "Path or URL to the deterministic verdict code.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "resource"
+            ],
+            "title": "Attester",
+            "type": "object"
+        },
         "Citation": {
             "additionalProperties": false,
             "description": "A reference to an external source supporting a claim in a concept's body. Attached via the schema:citation predicate.",
@@ -159,6 +504,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -251,6 +607,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -283,6 +661,27 @@
                     ],
                     "type": "string"
                 },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "version": {
                     "description": "A version string for the concept's content.",
                     "type": [
@@ -297,6 +696,16 @@
             ],
             "title": "Concept",
             "type": "object"
+        },
+        "ConceptStatus": {
+            "description": "Lifecycle status of a concept (OKF v0.2 \u00a75.4). Absent means stable. Each value maps to a real IRI in the ADMS status controlled vocabulary (http://purl.org/adms/status/, the vocabulary DCAT-AP mandates for adms:status). On the flat-context path the value serializes as a text literal \u2014 sanctioned usage of schema:creativeWorkStatus, which is deliberately text-valued; the IRIs surface on the LinkML RDF/OWL path.",
+            "enum": [
+                "draft",
+                "stable",
+                "deprecated"
+            ],
+            "title": "ConceptStatus",
+            "type": "string"
         },
         "Dataset": {
             "additionalProperties": false,
@@ -411,6 +820,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -503,6 +923,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -534,6 +976,27 @@
                         "Dataset"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -690,6 +1153,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -782,6 +1256,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -814,6 +1310,27 @@
                     ],
                     "type": "string"
                 },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "version": {
                     "description": "A version string for the concept's content.",
                     "type": [
@@ -827,6 +1344,31 @@
                 "type"
             ],
             "title": "Document",
+            "type": "object"
+        },
+        "Executor": {
+            "additionalProperties": false,
+            "description": "How an Attested Computation is run (OKF v0.2 \u00a710.2): `resource` names run instructions or code a runner follows; `receipt` declares the field names a run must return \u2014 the evidence surface the attester inspects. No established vocabulary has an execution-interface class, so the IRI is honestly lokf-minted; schema:EntryPoint (an invocation specification) is the nearest real term.",
+            "properties": {
+                "receipt": {
+                    "description": "The field names a run must return (e.g. job_id, executed_sql, result) \u2014 the evidence the attester inspects. Receipts themselves are runtime artifacts, never stored in the bundle. Minted in lokf: no established vocabulary describes a receipt-shape declaration.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "Path or URL to the run instructions or code.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "resource"
+            ],
+            "title": "Executor",
             "type": "object"
         },
         "Explanation": {
@@ -922,6 +1464,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -1014,6 +1567,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -1045,6 +1620,27 @@
                         "Explanation"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -1123,6 +1719,29 @@
             ],
             "title": "FieldType",
             "type": "string"
+        },
+        "Generation": {
+            "additionalProperties": false,
+            "description": "How and when the current content was produced (OKF v0.2 `generated`, \u00a75.2). Modeled as the PROV activity that generated the concept, so \"who wrote this, when\" is a one-hop join from the concept via prov:wasGeneratedBy, with both slots keeping PROV's activity-side semantics (prov:wasAssociatedWith, prov:endedAtTime) \u2014 domain/range correct with no reasoner or subproperty entailment required.",
+            "properties": {
+                "at": {
+                    "description": "ISO 8601 datetime at which the event completed.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "by": {
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "by"
+            ],
+            "title": "Generation",
+            "type": "object"
         },
         "GlossaryTerm": {
             "additionalProperties": false,
@@ -1231,6 +1850,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -1323,6 +1953,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -1354,6 +2006,27 @@
                         "GlossaryTerm"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -1418,6 +2091,9 @@
                             },
                             {
                                 "$ref": "#/$defs/Role"
+                            },
+                            {
+                                "$ref": "#/$defs/AttestedComputation"
                             },
                             {
                                 "$ref": "#/$defs/Person"
@@ -1596,6 +2272,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -1698,6 +2385,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -1734,6 +2443,27 @@
                     "description": "The unit of measurement (e.g. USD, seconds, count).",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -1852,6 +2582,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -1951,6 +2692,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -1983,6 +2746,27 @@
                     ],
                     "type": "string"
                 },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "version": {
                     "description": "A version string for the concept's content.",
                     "type": [
@@ -1997,6 +2781,48 @@
             ],
             "title": "Organization",
             "type": "object"
+        },
+        "Parameter": {
+            "additionalProperties": false,
+            "description": "A typed, named hole in an Attested Computation that the agent may fill (OKF v0.2 \u00a710.2). Binding semantics (SQL bind variable, dbt var, Python argument) follow the concept's `runtime`. The `type` key deliberately shares the global JSON-LD @type alias \u2014 see the attribute comment for the exact triple that results.",
+            "properties": {
+                "name": {
+                    "description": "The parameter's name, as the runtime addresses it.",
+                    "type": "string"
+                },
+                "required": {
+                    "description": "Whether a value for the parameter must be supplied.",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "$ref": "#/$defs/ParameterType",
+                    "description": "The parameter's datatype, written with the authoring key `type` verbatim and drawn from ParameterType. Declared as a class-local attribute rather than slot_usage over the global type slot, because LinkML's falsy-merge silently drops a `designates_type: false` override and gen-python then hard-fails. Because the flat context aliases `type` to @type, the value expands as the node's rdf:type; every ParameterType value therefore means a designed lokf Parameter-kind class, so `type: integer` yields the true, OWL-DL-safe triple `_:p rdf:type lokf:IntegerParameter`. slot_uri rdf:type makes the LinkML RDF-dump path emit the same triple (enum meanings expand to their IRIs)."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "title": "Parameter",
+            "type": "object"
+        },
+        "ParameterType": {
+            "description": "Datatypes for Attested Computation parameters. The permissible values mirror FieldType's authoring surface exactly (one datatype vocabulary for authors), but the meanings deliberately diverge: ParameterType values are written under the `type` key, whose flat-context alias is @type, so each value means a designed lokf Parameter-kind CLASS rather than an XSD datatype \u2014 `_:p rdf:type xsd:integer` would falsely type a non-literal node with a datatype (a class of literals), while `_:p rdf:type lokf:IntegerParameter` is true and OWL-DL-safe. Each value's XSD value space is carried as an annotation and asserted in the generated ontology, where every Parameter-kind class is declared a subclass of lokf:Parameter.",
+            "enum": [
+                "string",
+                "integer",
+                "number",
+                "boolean",
+                "date",
+                "datetime",
+                "time",
+                "uri",
+                "json"
+            ],
+            "title": "ParameterType",
+            "type": "string"
         },
         "Person": {
             "additionalProperties": false,
@@ -2098,6 +2924,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -2197,6 +3034,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -2228,6 +3087,27 @@
                         "Person"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -2337,6 +3217,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -2429,6 +3320,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -2460,6 +3373,27 @@
                         "Playbook"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -2569,6 +3503,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -2661,6 +3606,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -2692,6 +3659,27 @@
                         "Policy"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -2801,6 +3789,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -2893,6 +3892,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -2924,6 +3945,27 @@
                         "Reference"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -3089,6 +4131,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -3208,12 +4261,34 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "startDate": {
                     "description": "The date the role began (ISO 8601 date or year).",
                     "type": [
                         "string",
                         "null"
                     ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
                 },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
@@ -3246,6 +4321,27 @@
                         "Role"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -3369,6 +4465,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -3468,6 +4575,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -3500,6 +4629,27 @@
                     ],
                     "type": "string"
                 },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "version": {
                     "description": "A version string for the concept's content.",
                     "type": [
@@ -3513,6 +4663,68 @@
                 "type"
             ],
             "title": "Service",
+            "type": "object"
+        },
+        "Source": {
+            "additionalProperties": false,
+            "description": "A material a concept derives from (OKF v0.2 \u00a75.1) \u2014 a pointer (`resource`) plus objective per-source credibility signals (`author`, `usage_count`, `last_modified`) from which consumers infer trust; OKF stores signals, never a score. Markdown footnotes whose label equals `id` attribute individual claims to this entry. Supersedes Citation.",
+            "properties": {
+                "author": {
+                    "description": "Who or what produced the source, as an OKF \u00a77 actor string (e.g. `team:ga4-docs`) \u2014 an authority signal carried as a plain literal, not an inlined Agent object.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`). Declared as a class-local attribute rather than the global identifier slot so it stays optional (LinkML's falsy-merge silently drops an `identifier: false` slot_usage override and generation then fails). Under the published flat context `id` maps to @id, so the value resolves against the bundle base and mints the source node's IRI \u2014 the same id used across concepts merges into one RDF node; schema:identifier applies only on the LinkML RDF-dump path.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "last_modified": {
+                    "description": "When the SOURCE itself last changed (YYYY-MM-DD). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept).",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "resource": {
+                    "description": "REQUIRED. An absolute URL, a bundle-relative path, or a population/scope descriptor string (e.g. \"all queries in BigQuery project X\"). Range is widened to string to admit scope descriptors; non-URI values are lossy on the RDF projection (they serialize as xsd:anyURI-typed literals).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Human-readable display name.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "usage_count": {
+                    "description": "How often the source's resource was exercised (views, executions, reads) over the governing usage_window. An adoption/liveness signal read as order-of-magnitude and trend, not a score. Minted in lokf: no established vocabulary has a bare-integer usage property (schema:userInteractionCount is domained to the InteractionCounter reification).",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                }
+            },
+            "required": [
+                "resource"
+            ],
+            "title": "Source",
             "type": "object"
         },
         "Table": {
@@ -3628,6 +4840,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -3720,6 +4943,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -3751,6 +4996,27 @@
                         "Table"
                     ],
                     "type": "string"
+                },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 },
                 "version": {
                     "description": "A version string for the concept's content.",
@@ -3860,6 +5126,17 @@
                         "null"
                     ]
                 },
+                "generated": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Generation"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
+                },
                 "genre": {
                     "$ref": "#/$defs/DiataxisMode",
                     "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values."
@@ -3952,6 +5229,28 @@
                         "null"
                     ]
                 },
+                "sources": {
+                    "description": "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention.",
+                    "items": {
+                        "$ref": "#/$defs/Source"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stale_after": {
+                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept \u2014 a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "$ref": "#/$defs/ConceptStatus",
+                    "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control."
+                },
                 "tags": {
                     "description": "Short cross-cutting keywords for categorization.",
                     "items": {
@@ -3984,6 +5283,27 @@
                     ],
                     "type": "string"
                 },
+                "usage_window": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/UsageWindow"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)."
+                },
+                "verified": {
+                    "description": "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed. A bare `{ by, at }` mapping MUST be read as a one-element list; the LOKF loader normalizes the bare form before LinkML validation. Minted in lokf: no established vocabulary has an entity-to-verification-event property.",
+                    "items": {
+                        "$ref": "#/$defs/Verification"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "version": {
                     "description": "A version string for the concept's content.",
                     "type": [
@@ -3997,6 +5317,53 @@
                 "type"
             ],
             "title": "Tutorial",
+            "type": "object"
+        },
+        "UsageWindow": {
+            "additionalProperties": false,
+            "description": "The `{ from, to }` date range framing every `usage_count` signal (OKF v0.2 \u00a75.1). Written once as a sibling of `sources`; a single Source entry MAY carry its own override.",
+            "properties": {
+                "from": {
+                    "description": "Start date (inclusive, YYYY-MM-DD) of a usage window.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "to": {
+                    "description": "End date (inclusive, YYYY-MM-DD) of a usage window.",
+                    "format": "date",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "UsageWindow",
+            "type": "object"
+        },
+        "Verification": {
+            "additionalProperties": false,
+            "description": "One verification event (OKF v0.2 `verified`, \u00a75.2): an actor confirmed the content against its sources or resource at a time. Independent checks accumulate as separate events; trust tiers (unverified / machine-confirmed / human-reviewed) are derived from the actors, never stored. PROV has no Verification class, so the class IRI is honestly lokf-minted; the generated ontology declares it a subclass of prov:Activity.",
+            "properties": {
+                "at": {
+                    "description": "ISO 8601 datetime at which the event completed.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "by": {
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "by"
+            ],
+            "title": "Verification",
             "type": "object"
         }
     },
@@ -4050,6 +5417,9 @@
                     },
                     {
                         "$ref": "#/$defs/Role"
+                    },
+                    {
+                        "$ref": "#/$defs/AttestedComputation"
                     },
                     {
                         "$ref": "#/$defs/Person"
@@ -4127,6 +5497,6 @@
     },
     "title": "lokf",
     "type": "object",
-    "version": "0.1.0"
+    "version": "0.5.0"
 }
 

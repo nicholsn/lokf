@@ -28,11 +28,13 @@ server = FastMCP("lokf", instructions=_INSTRUCTIONS)
 
 @server.tool()
 def list_concepts(bundle: str) -> list[dict]:
-    """List every concept in a bundle as {concept_id, type, title, iri}.
+    """List every concept as {concept_id, type, title, iri, status, trust_tier}.
 
     ``bundle`` is a LOKF bundle directory. A fast index of what the knowledge
-    base contains; use describe_concept for the full record of any one.
+    base contains — including each concept's OKF v0.2 lifecycle status and
+    derived trust tier — use describe_concept for the full record of any one.
     """
+    from lokf import trust
     from lokf.model import load_bundle
 
     b = load_bundle(bundle)
@@ -42,6 +44,8 @@ def list_concepts(bundle: str) -> list[dict]:
             "type": c.type,
             "title": c.title,
             "iri": b.iri(c),
+            "status": trust.effective_status(c.data),
+            "trust_tier": trust.trust_tier(c.data),
         }
         for c in b.concepts
     ]
@@ -55,7 +59,7 @@ def describe_concept(bundle: str, concept_id: str) -> dict:
     with or without ``.md``). ``turtle`` is the concept's RDF projection.
     Returns {error: ...} if no concept matches.
     """
-    from lokf import rdf
+    from lokf import rdf, trust
     from lokf.model import load_bundle
 
     b = load_bundle(bundle)
@@ -69,6 +73,7 @@ def describe_concept(bundle: str, concept_id: str) -> dict:
         "title": concept.title,
         "body": concept.body,
         "frontmatter": concept.data,
+        "trust": trust.trust_summary(concept.data),
         "turtle": rdf.serialize(concept.path, "ttl"),
     }
 
@@ -169,18 +174,26 @@ def get_vocabulary() -> dict:
 def bundle_summary(bundle: str) -> dict:
     """Summarize a bundle for quick orientation.
 
-    Returns {concept_count, types, triple_count, relation_edge_count}: the
-    number of concepts, a per-type count, the size of the RDF projection, and
-    the number of typed-relation edges between concepts.
+    Returns {concept_count, types, triple_count, relation_edge_count,
+    trust_tiers, stale_count}: the number of concepts, a per-type count, the
+    size of the RDF projection, the number of typed-relation edges between
+    concepts, a per-trust-tier count (OKF v0.2 §5.3), and how many concepts
+    are past their ``stale_after`` date.
     """
+    from lokf import trust
     from lokf.export import to_cytoscape
     from lokf.model import load_bundle
     from lokf.store import GraphStore
 
     b = load_bundle(bundle)
     types: dict[str, int] = {}
+    tiers: dict[str, int] = {}
+    stale = 0
     for c in b.concepts:
         types[c.type] = types.get(c.type, 0) + 1
+        tier = trust.trust_tier(c.data)
+        tiers[tier] = tiers.get(tier, 0) + 1
+        stale += trust.is_stale(c.data)
     edges = to_cytoscape(b)["edges"]
     return {
         "concept_count": len(b.concepts),
@@ -188,6 +201,8 @@ def bundle_summary(bundle: str) -> dict:
         # Reuse the already-loaded bundle instead of re-reading it from disk.
         "triple_count": len(GraphStore.from_graph(b.graph())),
         "relation_edge_count": len(edges),
+        "trust_tiers": tiers,
+        "stale_count": stale,
     }
 
 

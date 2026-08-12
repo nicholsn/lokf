@@ -87,3 +87,22 @@ def test_ancestor_schema_wins_over_packaged(tmp_path, monkeypatch):
     (tmp_path / "lokf.yaml").write_text(yaml.safe_dump(doctored), encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     assert load_schema()["name"] == "lokf-local-edit"
+
+
+def test_datamodel_usage_window_from_keyword():
+    """The generated dataclasses accept a raw `from`-keyed usage_window dict.
+
+    `from` is a Python keyword (the field is generated as `from_`), but
+    reconstruction from YAML/JSON-LD dicts still carries the authored key —
+    the build patch must bridge it (regression: TypeError on the example).
+    """
+    from lokf.datamodel import Metric, UsageWindow
+
+    m = Metric(
+        id="https://acme.example/knowledge/metrics/wau",
+        type="Metric",
+        usage_window={"from": "2026-06-01", "to": "2026-06-30"},
+    )
+    assert isinstance(m.usage_window, UsageWindow)
+    assert str(m.usage_window.from_) == "2026-06-01"
+    assert str(m.usage_window.to) == "2026-06-30"

@@ -34,9 +34,9 @@ def test_graph_of_single_file_has_wau_subject_and_relations():
 
 
 def test_graph_of_bundle_dir_triple_count():
-    """The whole acme bundle projects to exactly 87 triples."""
+    """The whole acme bundle projects to exactly 153 triples."""
     g = rdf.graph_of(BUNDLE)
-    assert len(g) == 87
+    assert len(g) == 153
 
 
 def test_unknown_format_raises_value_error():

@@ -9,6 +9,16 @@ from __future__ import annotations
 
 import datetime as dt
 
+#: OKF type spellings normalized to their LOKF class names. OKF v0.2 writes
+#: ``type: Attested Computation`` (§10); LOKF classes are single-word (the
+#: GlossaryTerm precedent), and a spaced @type would not expand to a valid
+#: vocab IRI. Applied in :func:`parse_concept`, so every consumer sees the
+#: canonical form while authors may use either spelling.
+OKF_TYPE_ALIASES = {
+    "Attested Computation": "AttestedComputation",
+    "Glossary Term": "GlossaryTerm",
+}
+
 
 def isoify(o):
     """Recursively convert ``datetime``/``date`` values to ISO-8601 strings.
@@ -40,4 +50,11 @@ def parse_concept(path: str) -> dict:
     _, front, body = parts
     d = yaml.safe_load(front) or {}
     d["body"] = body.strip()
+    if d.get("type") in OKF_TYPE_ALIASES:
+        d["type"] = OKF_TYPE_ALIASES[d["type"]]
+    # OKF v0.2 §5.2: a bare `verified: { by, at }` mapping MUST be read as a
+    # one-element list. Normalized here so validation, RDF projection, and
+    # trust derivation all see the canonical list form.
+    if isinstance(d.get("verified"), dict):
+        d["verified"] = [d["verified"]]
     return isoify(d)
