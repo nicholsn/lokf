@@ -93,13 +93,16 @@ def is_stale(data: dict, today: dt.date | None = None) -> bool:
 def generated_at(data: dict) -> str | None:
     """When the content last meaningfully changed.
 
-    ``generated.at`` when present; else the superseded v0.1 ``timestamp``
-    (the §13.1 consumer fallback); else None. Returned as the ISO string
-    the frontmatter carries.
+    ``generated.at`` when present. The superseded v0.1 ``timestamp`` is
+    consulted **only when ``generated`` is absent** — §13.1 licenses the
+    fallback for absence alone, so a ``generated`` that carries no ``at``
+    (legal: only ``by`` is required) yields None rather than an unrelated
+    legacy timestamp. Returned as the ISO string the frontmatter carries.
     """
     gen = data.get("generated")
-    if isinstance(gen, dict) and gen.get("at"):
-        return str(gen["at"])
+    if gen is not None:
+        at = gen.get("at") if isinstance(gen, dict) else None
+        return str(at) if at else None
     ts = data.get("timestamp")
     return str(ts) if ts else None
 

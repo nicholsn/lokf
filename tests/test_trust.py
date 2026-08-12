@@ -71,6 +71,14 @@ def test_generated_at_prefers_generated_then_timestamp():
     assert trust.generated_at({}) is None
 
 
+def test_generated_present_without_at_blocks_timestamp_fallback():
+    """§13.1: the timestamp fallback applies only when `generated` is ABSENT."""
+    d = {"generated": {"by": "human:x"}, "timestamp": "2020-01-01T00:00:00Z"}
+    assert trust.generated_at(d) is None
+    # malformed-but-present generated is likewise not "absent"
+    assert trust.generated_at({"generated": "oops", "timestamp": "2020-01-01T00:00:00Z"}) is None
+
+
 # -- summary shape -----------------------------------------------------------
 def test_trust_summary_shape():
     s = trust.trust_summary(

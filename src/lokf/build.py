@@ -162,6 +162,13 @@ def generate(root: pathlib.Path) -> None:
         # code positions only (docstrings/comments talk about "from" freely).
         patched = re.sub(r"\b(\w+)\.from\b", r"\1.from_", text)  # self.from, slots.from
         patched = re.sub(r"^(\s+)from(: .*=.*)$", r"\1from_\2", patched, flags=re.M)
+        # Reconstruction call sites rebuild UsageWindow from raw dicts still
+        # keyed `from` (the YAML/JSON-LD term); rename the key at the call.
+        patched = patched.replace(
+            "UsageWindow(**as_dict(self.usage_window))",
+            'UsageWindow(**{("from_" if k == "from" else k): v'
+            " for k, v in as_dict(self.usage_window).items()})",
+        )
         if patched != text:
             dm.write_text(patched, encoding="utf-8")
         compile(dm.read_text(encoding="utf-8"), str(dm), "exec")  # fail loudly

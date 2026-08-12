@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-12T08:35:27
+# Generation date: 2026-08-12T10:27:47
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
@@ -346,7 +346,7 @@ class Concept(YAMLRoot):
         self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
-            self.usage_window = UsageWindow(**as_dict(self.usage_window))
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
 
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
@@ -1018,7 +1018,7 @@ class Person(Agent):
         self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
-            self.usage_window = UsageWindow(**as_dict(self.usage_window))
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
 
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
@@ -1171,7 +1171,7 @@ class Organization(Agent):
         self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
-            self.usage_window = UsageWindow(**as_dict(self.usage_window))
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
 
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
@@ -1367,7 +1367,7 @@ class Source(YAMLRoot):
             self.last_modified = XSDDate(self.last_modified)
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
-            self.usage_window = UsageWindow(**as_dict(self.usage_window))
+            self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
 
         if self.id is not None and not isinstance(self.id, str):
             self.id = str(self.id)
