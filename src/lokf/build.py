@@ -226,6 +226,15 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
 def main() -> int:
     """Entry point for the ``lokf-build`` console script."""
     root = _find_root()
+    # generate() opens each artifact for writing *before* its generator runs, so
+    # a missing generator would truncate a committed artifact on the way to a
+    # traceback. Check once, up front.
+    if shutil.which("gen-json-schema") is None:
+        sys.exit(
+            "the LinkML generators are not on PATH: lokf-build needs the "
+            "`build` extra.\n  install:  uv sync   "
+            "(or: uv pip install 'lokf[build]')"
+        )
     generate(root)
     bundle = assemble(root)
     validate(root)
