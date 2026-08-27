@@ -3,7 +3,7 @@ name: lokf
 title: Linked Open Knowledge Format (LOKF)
 description: >-
   LOKF is a semantic, ontology-grounded profile of the Google Open Knowledge
-  Format (OKF v0.1). It preserves OKF's authoring model — a directory of
+  Format (OKF v0.2). It preserves OKF's authoring model — a directory of
   markdown files, each with a small YAML frontmatter block describing one
   concept — but binds every concept, field, and relationship to established
   web vocabularies (schema.org, W3C DCAT, and W3C PROV-O). Because the
@@ -1085,13 +1085,13 @@ slots:
 
   # --- Bundle metadata ------------------------------------------------------
   lokf_version:
-    description: The LOKF version the bundle targets (e.g. "0.1").
+    description: The LOKF version the bundle targets (e.g. "0.2").
     slot_uri: lokf:lokfVersion
     in_subset:
       - lokf_semantic
 
   okf_version:
-    description: The OKF version the bundle remains compatible with (e.g. "0.1").
+    description: The OKF version the bundle remains compatible with (e.g. "0.2").
     slot_uri: lokf:okfVersion
     in_subset:
       - okf_core

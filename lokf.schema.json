@@ -2134,14 +2134,14 @@
                     ]
                 },
                 "lokf_version": {
-                    "description": "The LOKF version the bundle targets (e.g. \"0.1\").",
+                    "description": "The LOKF version the bundle targets (e.g. \"0.2\").",
                     "type": [
                         "string",
                         "null"
                     ]
                 },
                 "okf_version": {
-                    "description": "The OKF version the bundle remains compatible with (e.g. \"0.1\").",
+                    "description": "The OKF version the bundle remains compatible with (e.g. \"0.2\").",
                     "type": [
                         "string",
                         "null"
@@ -5460,14 +5460,14 @@
             ]
         },
         "lokf_version": {
-            "description": "The LOKF version the bundle targets (e.g. \"0.1\").",
+            "description": "The LOKF version the bundle targets (e.g. \"0.2\").",
             "type": [
                 "string",
                 "null"
             ]
         },
         "okf_version": {
-            "description": "The OKF version the bundle remains compatible with (e.g. \"0.1\").",
+            "description": "The OKF version the bundle remains compatible with (e.g. \"0.2\").",
             "type": [
                 "string",
                 "null"
