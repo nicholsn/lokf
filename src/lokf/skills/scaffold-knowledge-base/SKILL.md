@@ -56,8 +56,11 @@ the repository, then hands off to `author-concept` / `build-knowledge-base` /
    `/graph` browser); explore with the toolkit via `just serve`; get the
    tabular projection with `just tables`.
 
-5. **Publish.** Confirm `base_iri` in `knowledge/index.md` and `site`/`base` in
-   `astro.config.mjs` match the real URL, run `just setup` once and commit
+5. **Publish.** Confirm the base IRI matches the real URL everywhere it is
+   held — `base_iri` in `knowledge/index.md`, `site`/`base` (and the
+   `remarkLokfLinks` `base`) in `astro.config.mjs`, `BASE_IRI` in
+   `src/lib/lokf.ts`, and the starter concept's `measures:` cross-reference —
+   then run `just setup` once and commit
    `package-lock.json`, push to GitHub, and set **Settings → Pages → Source**
    to **GitHub Actions**. The `pages` workflow builds and deploys on every
    push to `main`.

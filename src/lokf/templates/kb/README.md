@@ -35,9 +35,19 @@ The `lokf` recipes use [`uvx`](https://docs.astral.sh/uv/), so they only need
 
 ## Publish to GitHub Pages
 
-1. Set `base_iri` in `knowledge/index.md` — and `site`/`base` in
-   `astro.config.mjs` — to the URL you will publish at (already done if you
-   passed `--base-iri` to `lokf new`).
+1. Point the repo at the URL you will publish at. `lokf new --base-iri
+   https://you.example/my-kb/` does this for you, so if you scaffolded without
+   the flag the simplest fix is to re-scaffold with it. Set by hand, it lives in
+   four files:
+
+   - `knowledge/index.md` — `base_iri`
+   - `astro.config.mjs` — `site`, `base`, and the `base` passed to `remarkLokfLinks`
+   - `src/lib/lokf.ts` — `BASE_IRI`
+   - `knowledge/metrics/weekly-active-users.md` — the `measures:` cross-reference
+
+   Missing one is silent: a concept carrying an absolute `id` never reaches the
+   `BASE_IRI` fallback, so the graph looks right until a concept without one —
+   or a bundle-relative reference — mints an IRI that does not match the rest.
 2. Push to GitHub; in **Settings → Pages**, set the source to **GitHub Actions**.
 3. The `pages` workflow builds the site and publishes it on every push to `main`.
 
