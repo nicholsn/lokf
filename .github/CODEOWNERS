@@ -1,0 +1,10 @@
+# Review is required for every path; these lines exist so the release-critical
+# ones are explicit once branch protection is on.
+*                       @nicholsn
+
+/.github/               @nicholsn
+/pyproject.toml         @nicholsn
+/uv.lock                @nicholsn
+
+# lokf.yaml is the single source of truth; everything generated from it follows.
+/lokf.yaml              @nicholsn

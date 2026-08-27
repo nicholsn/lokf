@@ -4,10 +4,14 @@ name: publish
 # published — no API token is stored. Configure the trusted publisher once on
 # PyPI: project "lokf", owner "nicholsn", repo "lokf", workflow "publish.yml",
 # environment "pypi".
+#
+# `release: published` is the ONLY trigger on purpose. The PyPI trusted-publisher
+# claim binds the workflow filename and the environment, not the ref, so a
+# `workflow_dispatch` of any branch would satisfy PyPI and receive a valid
+# attestation for unreviewed content. Re-publish the GitHub Release to retry.
 on:
   release:
     types: [published]
-  workflow_dispatch:
 
 permissions: {}
 
@@ -17,16 +21,20 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          enable-cache: true
+          persist-credentials: false
+      # Caching is off here (setup-uv enables it by default): this job produces
+      # the released artifacts, and a cache another workflow can write is an
+      # input we don't want them to have.
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          enable-cache: false
 
       # A release tag whose version was never bumped in pyproject.toml only
       # surfaces at upload time, as an opaque PyPI "400 File already exists".
       # Fail here instead, before the tests even run.
       - name: Check the release tag matches the package version
-        if: github.event_name == 'release'
         run: |
           tag="${GITHUB_REF_NAME#v}"
           packaged="$(uv version --short)"
@@ -36,12 +44,12 @@ jobs:
           fi
 
       - name: Test (gate the release)
-        run: uv run --group dev pytest -q
+        run: uv run --locked --group dev pytest -q
 
       - name: Build sdist + wheel
         run: uv build
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
           path: dist/
@@ -55,10 +63,14 @@ jobs:
     permissions:
       id-token: write # OIDC token for Trusted Publishing
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist/
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          # Default is already true; stated so a default change can't silently
+          # drop PEP 740 provenance from a release.
+          attestations: true

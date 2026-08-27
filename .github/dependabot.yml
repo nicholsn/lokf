@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # Actions are pinned to commit SHAs, which is what makes an updater necessary:
+  # a pinned SHA never picks up a security fix on its own. Dependabot rewrites
+  # the SHA and keeps the `# vX.Y.Z` comment in step.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+
+  # The docs site (web/) is not shipped in the package, so its dependencies are
+  # a build-time surface only — grouped, and separate from the package's.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    groups:
+      docs:
+        patterns: ["*"]

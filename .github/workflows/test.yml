@@ -1,0 +1,57 @@
+name: test
+
+# The suite previously ran only as a release gate, so a PR could go green with
+# nothing having run it. This is what branch protection can require.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor and the ceiling of the supported range, per pyproject's
+        # requires-python and classifiers.
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      # --locked fails if uv.lock has drifted from pyproject.toml, so the tests
+      # and the release build resolve the same dependency set.
+      - run: uv run --locked --group dev pytest -q
+
+  workflows:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          enable-cache: true
+      # Guards the hardening in this directory: unpinned actions, persisted
+      # credentials, cache poisoning, template injection. Pinned so a zizmor
+      # release cannot fail an unrelated PR — bump deliberately. The token is
+      # what enables the online audits (stale/known-vulnerable action refs);
+      # without it zizmor silently runs offline and skips them.
+      - run: uvx zizmor@1.29.0 .github/workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
