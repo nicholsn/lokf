@@ -22,7 +22,7 @@ out to `lokf query`.
 ## Start the server
 
 ```bash
-lokf serve examples/acme-knowledge --host 127.0.0.1 --port 8000
+lokf serve <bundle> --host 127.0.0.1 --port 8000
 ```
 
 Defaults are host `127.0.0.1`, port `8000`. The process runs in the foreground;
@@ -48,7 +48,7 @@ GET with the query URL-encoded, requesting SPARQL JSON results:
 
 ```bash
 curl -sG http://127.0.0.1:8000/sparql \
-  --data-urlencode 'query=SELECT ?s ?title WHERE { ?s a lokf:Metric ; dcterms:title ?title }' \
+  --data-urlencode 'query=SELECT ?s ?title WHERE { ?s a lokf:Metric ; schema:name ?title }' \
   -H 'Accept: application/sparql-results+json'
 ```
 

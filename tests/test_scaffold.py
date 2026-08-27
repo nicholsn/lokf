@@ -102,3 +102,54 @@ def test_template_handles_real_authoring(tmp_path):
     assert (root / "remark-lokf-links.mjs").exists()
     lib = (root / "src/lib/lokf.ts").read_text()
     assert "resolveRef" in lib                                # relative relation targets
+
+
+def test_scaffolded_skills_point_at_a_path_that_exists(tmp_path):
+    """The installed skills must not send an agent at `examples/acme-knowledge`.
+
+    That is this repo's own bundle; a scaffolded repo's is `knowledge/`.
+    """
+    root = scaffold.new("kb", path=tmp_path)
+    skills = sorted((root / ".claude" / "skills").glob("*/SKILL.md"))
+    assert skills
+    for md in skills:
+        assert "examples/acme-knowledge" not in md.read_text(), md
+    assert (root / "knowledge").is_dir()
+
+
+def test_scaffolded_readme_names_every_base_iri_holder(tmp_path):
+    """The publish step must name all four files that hold the base IRI.
+
+    Naming only two leaves `BASE_IRI` and the starter concept's cross-reference
+    on `example.org`, which fails silently.
+    """
+    root = scaffold.new("kb", path=tmp_path)
+    readme = (root / "README.md").read_text()
+    for held_in in [
+        "knowledge/index.md",
+        "astro.config.mjs",
+        "src/lib/lokf.ts",
+        "knowledge/metrics/weekly-active-users.md",
+    ]:
+        assert held_in in readme, held_in
+
+
+def test_explicit_base_iri_leaves_no_placeholder_domain(tmp_path):
+    """--base-iri must reach every holder: no `example.org` left anywhere."""
+    root = scaffold.new("kb", path=tmp_path, base_iri="https://you.example/mykb/")
+    for f in root.rglob("*"):
+        if f.is_file() and ".claude" not in f.parts:
+            assert "example.org" not in f.read_text(), f
+
+
+def test_prose_links_carry_a_non_colour_cue(tmp_path):
+    """WCAG 1.4.1: an in-sentence link can't be marked by colour alone.
+
+    --accent-ink is under 3:1 against body text in both themes, so the prose
+    anchors are underlined, and footer links no longer resolve to the footer
+    text's own token (1.00:1).
+    """
+    css = (scaffold.new("kb", path=tmp_path) / "src/styles/global.css").read_text()
+    assert "article a, .tagline a, .site-footer a { text-decoration: underline; }" in css
+    assert ".site-footer a { color: var(--muted)" not in css
+

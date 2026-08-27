@@ -32,7 +32,7 @@ overwrites an existing frontmatter relation.
 1. **Dry-run first (no writes).** Review every proposal as a table:
 
    ```bash
-   lokf propose examples/acme-knowledge
+   lokf propose <bundle>
    ```
 
    Columns: `SOURCE`, `LINK`, `PREDICATE` (the CURIE it would write), `CONF`,
@@ -43,14 +43,14 @@ overwrites an existing frontmatter relation.
    confidence to decide a threshold:
 
    ```bash
-   lokf propose examples/acme-knowledge --json
+   lokf propose <bundle> --json
    ```
 
 3. **Set a confidence floor** to drop weak guesses. Inspect the distribution,
    then filter:
 
    ```bash
-   lokf propose examples/acme-knowledge --min-confidence 0.6
+   lokf propose <bundle> --min-confidence 0.6
    ```
 
 4. **Apply the accepted proposals.** `--apply` writes each surviving proposal
@@ -58,7 +58,7 @@ overwrites an existing frontmatter relation.
    only trusted edges land:
 
    ```bash
-   lokf propose examples/acme-knowledge --min-confidence 0.6 --apply
+   lokf propose <bundle> --min-confidence 0.6 --apply
    ```
 
    The command reports `wrote <relation> -> <target> in <file>` per edge and a
@@ -73,7 +73,7 @@ overwrites an existing frontmatter relation.
    are present:
 
    ```bash
-   lokf convert examples/acme-knowledge --format ttl | grep -E "prov:|dcterms:|schema:"
+   lokf convert <bundle> --format ttl | grep -E "prov:|dcterms:|schema:"
    ```
 
    Re-running `lokf propose` (dry) should now show fewer proposals, since

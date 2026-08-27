@@ -56,3 +56,20 @@ def test_install_reruns_without_error(tmp_path):
     assert sorted(p.parent.name for p in dest.glob("*/SKILL.md")) == sorted(
         SKILL_NAMES
     )
+
+
+def test_packaged_skills_name_no_repo_specific_bundle():
+    """No skill hardcodes this repo's own bundle path.
+
+    `lokf skills install` drops these into any project, and `lokf new` into a
+    scaffolded repo whose bundle is `knowledge/` — neither has this repo's
+    `examples/acme-knowledge`, so the skills use the `<bundle>` placeholder
+    they already use elsewhere. This checks the path only; it does not run the
+    commands.
+    """
+    for skill in sorted(skills_dir().iterdir()):
+        md = skill / "SKILL.md"
+        if not md.is_file():
+            continue
+        assert "examples/acme-knowledge" not in md.read_text(encoding="utf-8"), md
+

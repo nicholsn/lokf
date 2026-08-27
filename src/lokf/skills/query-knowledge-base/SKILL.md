@@ -40,19 +40,20 @@ CONSTRUCT/DESCRIBE emits `ttl` (or another RDF format). Example:
 
 ## Worked patterns
 
-Run these against `examples/acme-knowledge`.
+`<bundle>` is the bundle directory you are working in — `knowledge/` in a
+repo scaffolded by `lokf new`.
 
 **1. Everything of a type** — list all metrics with their titles:
 
 ```bash
-lokf query examples/acme-knowledge \
-  "SELECT ?s ?title WHERE { ?s a lokf:Metric ; dcterms:title ?title }"
+lokf query <bundle> \
+  "SELECT ?s ?title WHERE { ?s a lokf:Metric ; schema:name ?title }"
 ```
 
 **2. Follow a relation** — what each concept depends on:
 
 ```bash
-lokf query examples/acme-knowledge \
+lokf query <bundle> \
   "SELECT ?s ?target WHERE { ?s dcterms:requires ?target }"
 ```
 
@@ -63,7 +64,7 @@ metric's `measures`.)
 **3. Counts / aggregation** — how many concepts of each type:
 
 ```bash
-lokf query examples/acme-knowledge \
+lokf query <bundle> \
   "SELECT ?type (COUNT(?s) AS ?n) WHERE { ?s a ?type } GROUP BY ?type ORDER BY DESC(?n)"
 ```
 
@@ -71,17 +72,17 @@ lokf query examples/acme-knowledge \
 `derivedFrom`, and check existence with ASK:
 
 ```bash
-lokf query examples/acme-knowledge \
+lokf query <bundle> \
   "SELECT ?metric ?table WHERE { ?metric a lokf:Metric ; prov:wasDerivedFrom ?table }"
 
-lokf query examples/acme-knowledge \
+lokf query <bundle> \
   "ASK { ?m a lokf:Metric ; prov:wasDerivedFrom ?t . ?t a lokf:Table }"
 ```
 
 **5. Extract a subgraph** — CONSTRUCT one concept's outgoing edges as Turtle:
 
 ```bash
-lokf query examples/acme-knowledge \
+lokf query <bundle> \
   "CONSTRUCT { ?s ?p ?o } WHERE { ?s a lokf:Metric ; ?p ?o }" --format ttl
 ```
 
