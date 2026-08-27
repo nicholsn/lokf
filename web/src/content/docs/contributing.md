@@ -70,3 +70,17 @@ The full policy is the
 [AI Covenant](https://github.com/nicholsn/lokf/blob/main/AI_COVENANT.md),
 adapted from the
 [LinkML AI Covenant](https://github.com/linkml/linkml/blob/main/AI_COVENANT.md).
+
+## License
+
+Contributions follow the project's two-license split (inbound = outbound):
+
+- The **software** — the `lokf` toolkit, the tests, and the build tooling — is
+  licensed under the [Apache License 2.0](https://github.com/nicholsn/lokf/blob/main/LICENSE).
+- The **specification and vocabulary** — `SPEC.md`, the LinkML schema
+  `lokf.yaml`, and the artifacts generated from it — are licensed under
+  [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).
+
+The published package declares `Apache-2.0`; the CC-BY-4.0 `license:` value you
+will see inside `lokf.yaml` and its generated headers is the schema's own
+license, not the package's.

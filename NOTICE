@@ -1,3 +1,21 @@
+LOKF (Linked Open Knowledge Format)
+Copyright 2026 Nolan Nichols
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The specification (SPEC.md), the LinkML schema (lokf.yaml), and the data
+artifacts generated from that schema (lokf.context.jsonld, lokf.schema.json,
+lokf.shacl.ttl, lokf.owl.ttl, lokf.sql) are licensed under CC-BY-4.0.
+
+The generated Python bindings (src/lokf/datamodel.py) are part of this package
+and ship under Apache-2.0, even though their header comment transcribes the
+schema's own CC-BY-4.0 `license:` value. Wherever you see CC-BY-4.0 named
+inside a generated file, it is the schema's license, not the package's.
+
 "Open Knowledge Format" and "OKF" refer to the format published by Google Cloud
 (github.com/GoogleCloudPlatform/knowledge-catalog). LOKF is an independent,
 unaffiliated profile built upon it.
+
+This product bundles Cytoscape.js (src/lokf/static/cytoscape.min.js),
+Copyright (c) 2016-2024 The Cytoscape Consortium, licensed under the MIT
+License. Its full license header is retained in that file.
