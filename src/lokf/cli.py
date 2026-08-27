@@ -139,13 +139,29 @@ def validate(
     passed, otherwise from a ``lokf.yaml`` found in the current directory or an
     ancestor, otherwise from the copy shipped inside the installed ``lokf``
     package - so a bundle needs  no schema file of its own to be validated.
-    """
-    import os
-    import subprocess
-    import tempfile
 
+    Needs LinkML, which the core install leaves out: ``pip install
+    'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
+    """
     from lokf.model import load_bundle
     from lokf.schema import schema_path
+
+    # LinkML is deliberately not a core dependency (see pyproject's `build`
+    # extra), so validation is opt-in. Import the validator rather than shelling
+    # out to `linkml-validate`: an import resolves in the interpreter running
+    # lokf, while the binary only resolves if that environment's bin/ happens to
+    # be on PATH - so a correct `lokf[build]` install invoked as
+    # `.venv/bin/lokf` used to fail the same way a missing one did.
+    try:
+        from linkml.validator import validate as linkml_validate
+        from linkml.validator.report import Severity
+    except ModuleNotFoundError:
+        _err(
+            "validation needs LinkML, which the core install leaves out.\n"
+            "  install:  uv pip install 'lokf[build]'\n"
+            "  one-off:  uvx --from 'lokf[build]' lokf validate <bundle>"
+        )
+        raise typer.Exit(1)
 
     try:
         sch = schema_path(schema)
@@ -157,17 +173,14 @@ def validate(
     doc = dict(bundle.meta)
     doc["concepts"] = bundle.docs()
 
-    fd, tmp = tempfile.mkstemp(suffix=".bundle.json")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(doc, f)
-        proc = subprocess.run(
-            ["linkml-validate", "-s", str(sch), "-C", "KnowledgeBundle", tmp]
-        )
-    finally:
-        os.remove(tmp)
-    if proc.returncode != 0:
-        raise typer.Exit(proc.returncode)
+    report = linkml_validate(doc, str(sch), "KnowledgeBundle")
+    for result in report.results:
+        _err(f"[{result.severity.name}] {result.message}")
+    # Fail on ERROR/FATAL only, which is what `linkml-validate` exits non-zero
+    # on (its exit code is `1 if severity_counter[Severity.ERROR] > 0`) - a
+    # warning is reported without failing the command.
+    if any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results):
+        raise typer.Exit(1)
     typer.echo(
         f"OK — {len(bundle.concepts)} concepts in {bundle_dir} validate "
         "against KnowledgeBundle."
