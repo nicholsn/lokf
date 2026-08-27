@@ -78,5 +78,7 @@ exclude = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+# Bounded so a hatchling major can't change what the release build produces
+# without a deliberate bump.
+requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
