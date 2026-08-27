@@ -104,20 +104,15 @@ fallback for `<BASE_IRI>` - and flag every guessed value for review in the Step 
 name = "<PROJ_SLUG>-knowledge"
 version = "0.1.0"
 description = "LOKF knowledge-bundle tooling for <PROJ_NAME>."
+# >=3.11 because that is what every published lokf release requires; it can
+# follow lokf down to >=3.10 once a release ships the lower floor.
 requires-python = ">=3.11"
 dependencies = [
-    "linkml>=1.11.1",
-    "lokf[build]>=0.3.0",
+    "lokf[build]>=0.5.0",
 ]
 
 [tool.uv]
 package = false
-
-# `lokf validate` is a recent toolkit addition; if your `lokf` is not on a public
-# package index yet, pin it here instead of the plain `lokf` dependency above -
-# a git ref is the most portable option:
-#   [tool.uv.sources]
-#   lokf = { git = "https://github.com/nicholsn/lokf.git", rev = "<tag-or-sha>" }
 ```
 
 ### `.lokf/.gitignore`
