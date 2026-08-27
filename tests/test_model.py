@@ -13,7 +13,7 @@ def bundle():
     return load_bundle(BUNDLE)
 
 
-def test_loads_six_concepts_skipping_reserved(bundle):
+def test_loads_eight_concepts_skipping_reserved(bundle):
     assert len(bundle.concepts) == 8
     assert sorted(c.type for c in bundle.concepts) == [
         "AttestedComputation", "Dataset", "GlossaryTerm", "Metric", "Playbook",
