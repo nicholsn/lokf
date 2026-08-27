@@ -22,7 +22,8 @@ classifiers = [
 ]
 # Core toolkit: the `lokf` CLI, RDF conversion, the pyoxigraph store + SPARQL,
 # the local server, and the MCP server. Deliberately excludes linkml (heavy;
-# only the artifact regenerator needs it — see the `build` extra).
+# only the artifact regenerator and `lokf validate` need it — see the `build`
+# extra).
 dependencies = [
     "rdflib>=7.0",
     "pyyaml>=6.0",
@@ -37,8 +38,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Regenerating the LinkML-derived artifacts (`lokf-build`). Not needed to run
-# the toolkit, which reads the committed schema/context directly.
+# Regenerating the LinkML-derived artifacts (`lokf-build`) and `lokf validate`.
+# Not needed for convert/query/serve/propose/tables, which read the committed
+# schema/context directly.
 build = [
     "linkml>=1.8.5",
 ]

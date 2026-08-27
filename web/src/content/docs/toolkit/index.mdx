@@ -55,11 +55,12 @@ Installing `lokf` gives you the CLI (`lokf`), the [MCP server](/toolkit/mcp/)
 The **core install is lean** — just `typer`, `rdflib`, `pyoxigraph`, and
 `mcp`. It reads the committed schema and context directly, so it can convert,
 query, serve, and propose without a heavy dependency tree. The one thing it
-leaves out is LinkML, needed only to **regenerate** the artifacts from
-`lokf.yaml`; that lives behind the `build` extra:
+leaves out is LinkML, needed to **regenerate** the artifacts from `lokf.yaml`
+and to run [`lokf validate`](/guide/validation/); that lives behind the
+`build` extra:
 
 ```bash
-uv pip install 'lokf[build]'   # adds linkml for lokf-build
+uv pip install 'lokf[build]'   # adds linkml for lokf-build and lokf validate
 ```
 
 `lokf --version` (or `lokf -V`) prints the installed version — a quick check

@@ -26,6 +26,7 @@ just site     # build the static site into dist/
 
 just serve    # SPARQL endpoint + graph explorer (lokf toolkit, via uvx)
 just rdf      # project the bundle to RDF / Turtle
+just validate # check the bundle against the LOKF schema
 just tables   # project the bundle to linked tables (CSV)
 ```
 

@@ -69,8 +69,8 @@ That gives you:
 - the **`lokf-mcp`** stdio server for MCP clients, and
 - the bundled **skills**, reachable via `lokf skills`.
 
-The core install is lean — `typer`, `rdflib`, `pyoxigraph`, and `mcp`. Only
-regenerating the LinkML-derived artifacts needs the heavier `linkml`
-dependency, which lives behind the `lokf[build]` extra (`uv pip install
-'lokf[build]'`). See [Getting started](/getting-started/) for the
+The core install is lean — `typer`, `rdflib`, `pyoxigraph`, and `mcp`.
+Regenerating the LinkML-derived artifacts and running `lokf validate` need the
+heavier `linkml` dependency, which lives behind the `lokf[build]` extra
+(`uv pip install 'lokf[build]'`). See [Getting started](/getting-started/) for the
 from-source setup.

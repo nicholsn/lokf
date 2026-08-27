@@ -85,6 +85,51 @@ def test_validate_reference_bundle_ok():
     assert "validate against KnowledgeBundle" in result.stdout
 
 
+def test_validate_without_linkml_hints_at_the_build_extra(monkeypatch):
+    """A lean install has no LinkML: exit 1 with an install hint, not a traceback."""
+    import sys
+
+    # `None` in sys.modules makes the `from linkml.validator import ...` raise
+    # ModuleNotFoundError, which is what a lean install raises.
+    monkeypatch.setitem(sys.modules, "linkml.validator", None)
+    result = runner.invoke(app, ["validate", str(BUNDLE)])
+    assert result.exit_code == 1
+    # `result.output`, not `.stdout`: the hint goes to stderr.
+    assert "lokf[build]" in result.output
+
+
+def test_validate_reports_a_schema_violation(tmp_path):
+    """An unknown frontmatter key fails closed, with the offending key named."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\nseeAlso: invented\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "[ERROR]" in result.output
+    assert "seeAlso" in result.output
+
+
+def test_validate_reports_a_warning_without_failing(monkeypatch):
+    """`linkml-validate` exits 0 unless a result is ERROR; so does this."""
+    from linkml.validator.report import Severity, ValidationResult
+
+    warning = ValidationResult(
+        type="test", severity=Severity.WARN, message="just a warning"
+    )
+    monkeypatch.setattr(
+        "linkml.validator.validate",
+        lambda *a, **kw: type("R", (), {"results": [warning]})(),
+    )
+    result = runner.invoke(app, ["validate", str(BUNDLE)])
+    assert result.exit_code == 0
+    assert "[WARN] just a warning" in result.output
+    assert "validate against KnowledgeBundle" in result.stdout
+
+
 def test_validate_missing_bundle_nonzero_exit():
     """A non-existent bundle directory is rejected before validation."""
     result = runner.invoke(app, ["validate", "does-not-exist"])

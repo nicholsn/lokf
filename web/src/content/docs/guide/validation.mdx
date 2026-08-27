@@ -21,6 +21,26 @@ flowchart LR
 validates a concept's frontmatter, or a whole bundle serialized against the
 `KnowledgeBundle` root:
 
+`lokf validate` does the assembly for you — point it at any bundle directory
+and it resolves the schema itself (a local `lokf.yaml`, else the copy inside the
+installed package):
+
+```bash
+lokf validate knowledge
+# -> OK — 2 concepts in knowledge validate against KnowledgeBundle.
+```
+
+It validates through LinkML, which the lean core install leaves out, so install
+the `build` extra to use it:
+
+```bash
+uv pip install 'lokf[build]'                          # in a project
+uvx --from 'lokf[build]' lokf validate knowledge      # one-off, no install
+```
+
+Or drive the validator directly, against an already-assembled bundle document
+or a single concept:
+
 ```bash
 # Whole bundle (assembled by `just build`)
 uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.bundle.json
