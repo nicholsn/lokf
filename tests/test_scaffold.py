@@ -1,8 +1,12 @@
 """`lokf new` — scaffold a publishable knowledge-base repo (Astro + graph browser)."""
+import pathlib
+
 import pytest
 
 from lokf import rdf, scaffold
 from lokf.model import load_bundle
+
+BUNDLE = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
 
 
 def test_scaffold_writes_the_repo(tmp_path):
@@ -67,6 +71,18 @@ def test_root_domain_base_iri(tmp_path):
     config = (root / "astro.config.mjs").read_text()
     assert "site: 'https://kb.example.com'" in config
     assert "base: '/'" in config
+
+
+def test_scaffolded_index_declares_the_current_format_version(tmp_path):
+    """A new KB must target the format version the toolkit implements.
+
+    Compared against the reference bundle rather than a second literal, so the
+    two cannot drift apart.
+    """
+    expected = load_bundle(BUNDLE).meta["lokf_version"]
+    index = (scaffold.new("kb", path=tmp_path) / "knowledge/index.md").read_text()
+    assert f'lokf_version: "{expected}"' in index
+    assert f'okf_version: "{expected}"' in index
 
 
 def test_title_and_base_iri_defaults(tmp_path):

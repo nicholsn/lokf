@@ -58,9 +58,9 @@ and range violations at the triple level.
 
 ## Conformance in brief
 
-A bundle is **LOKF v0.1 conformant** if:
+A bundle is **LOKF v0.2 conformant** if:
 
-1. It is a conformant **OKF v0.1** bundle: every non-reserved `.md` file has
+1. It is a conformant **OKF v0.2** bundle: every non-reserved `.md` file has
    parseable YAML frontmatter with a non-empty `type`.
 2. Every `type` value that names a LOKF class is used consistently with that
    class's mappings; unknown types are permitted and treated as
@@ -69,6 +69,10 @@ A bundle is **LOKF v0.1 conformant** if:
    is to be consumed as Linked Data. (A bundle without them is still
    LOKF-conformant, but is consumed as plain OKF.)
 4. Typed relation fields, when present, use the predicates the spec defines.
+5. When the trust, lifecycle, provenance, or computation families are present,
+   they follow OKF v0.2 §5–§10. A consumer MUST read a bare `verified` mapping
+   as a one-element list, and MUST NOT reject a concept for omitting any
+   optional family.
 
 :::tip[Consumers stay permissive]
 As in OKF, missing optional fields, unknown `type` values, unknown

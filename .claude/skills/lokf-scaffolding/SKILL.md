@@ -165,8 +165,8 @@ lokf-serve:
 
 ```markdown
 ---
-lokf_version: "0.1"
-okf_version: "0.1"
+lokf_version: "0.2"
+okf_version: "0.2"
 base_iri: <BASE_IRI>
 context: https://w3id.org/lokf/context.jsonld
 title: <PROJ_NAME> Knowledge Bundle

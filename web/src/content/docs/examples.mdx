@@ -1,6 +1,6 @@
 ---
 title: Example bundle
-description: A conformant six-concept reference bundle for a fictional data org, exercising every headline LOKF feature.
+description: A conformant eight-concept reference bundle for a fictional data org, exercising every headline LOKF feature.
 sidebar:
   order: 1
 ---
@@ -9,9 +9,10 @@ import { Content as MetricSource } from "../../generated/metric-source.md";
 import { Content as MetricNt } from "../../generated/metric-nt.md";
 
 [`examples/acme-knowledge/`](https://github.com/nicholsn/lokf/tree/main/examples/acme-knowledge)
-is a conformant six-concept reference bundle for a fictional data org. It
+is a conformant eight-concept reference bundle for a fictional data org. It
 exercises every headline feature: typed relationships, type-specific fields,
-authorship, and citations.
+authorship, and the OKF v0.2 trust, provenance, and attested-computation
+families.
 
 ```text
 examples/acme-knowledge/
@@ -22,12 +23,14 @@ examples/acme-knowledge/
 ├── metrics/weekly-active-users.md    # Metric with formula, unit, provenance
 ├── glossary/active-user.md           # GlossaryTerm with definition
 ├── playbooks/data-freshness-incident.md  # Playbook
-└── services/analytics-api.md         # Service with endpoint
+├── services/analytics-api.md         # Service with endpoint
+├── computations/weekly-active-users-count.md  # AttestedComputation: executor + attester
+└── references/skills/run-on-bq.md    # Reference: executor instructions
 ```
 
 ## The graph it produces
 
-Six markdown files, one knowledge graph. Every edge below is a typed
+Eight markdown files, one knowledge graph. Every edge below is a typed
 frontmatter field, not prose:
 
 ```mermaid
@@ -38,10 +41,16 @@ graph LR
     AU["GlossaryTerm<br/>active-user"]
     PB["Playbook<br/>data-freshness-incident"]
     API["Service<br/>analytics-api"]
+    AC["AttestedComputation<br/>weekly-active-users-count"]
+    REF["Reference<br/>run-on-bq"]
 
     WAU -- "prov:wasDerivedFrom" --> UE
     WAU -- "dcterms:requires" --> AU
     WAU -- "lokf:measures" --> AU
+    WAU -- "dcterms:requires" --> AC
+    AC -- "prov:wasDerivedFrom" --> UE
+    AC -- "schema:about" --> AU
+    AC -- "dcterms:relation" --> WAU
     UE -- "dcterms:isPartOf" --> EV
     EV -- "schema:hasPart" --> UE
     PB -- "schema:about" --> UE
@@ -68,6 +77,6 @@ just build
 
 assembles the bundle (`examples/acme-knowledge.bundle.json`), validates it
 against the `KnowledgeBundle` root — `No issues found` — and re-emits both
-RDF projections: `examples/acme-knowledge.nt` (86 triples for the whole
-bundle) and `examples/weekly-active-users.nt` (22 triples for the metric
+RDF projections: `examples/acme-knowledge.nt` (153 triples for the whole
+bundle) and `examples/weekly-active-users.nt` (43 triples for the metric
 alone).

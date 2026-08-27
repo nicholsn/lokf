@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import { Content as CoreFields } from "../../../generated/core-fields-table.md";
+import { Content as TrustFields } from "../../../generated/trust-fields-table.md";
 
 LOKF keeps OKF's authoring model intact: a **knowledge bundle** is a directory
 tree of markdown files, each file describing one **concept** with a small YAML
@@ -59,11 +60,27 @@ MUST NOT reject documents that carry them (OKF §4.1). Missing optional fields,
 unknown `type` values, and broken cross-links MUST NOT cause rejection either.
 :::
 
+### Trust, provenance, and lifecycle (OKF v0.2)
+
+OKF v0.2 adds optional frontmatter families answering "where did this come
+from", "how much should I trust it", and "is it still current". LOKF binds each
+to a formal vocabulary, so a trust signal is queryable RDF rather than YAML a
+consumer has to interpret:
+
+<TrustFields />
+
+All of them are optional, and their absence carries meaning: an unverified
+concept is *distinguishable*, never rejected. `generated` supersedes
+`timestamp`, and `sources` supersedes `citations`; both older fields are still
+parsed. See [SPEC §5.4](/specification/) for the `Source` entry fields and the
+attested-computation contract.
+
 ### Body
 
 Unchanged from OKF §4.2. Standard markdown, structural headings preferred. The
 conventional headings `# Schema`, `# Examples`, and `# Citations` retain their
-OKF meaning. The body is mapped to `schema:text` in the RDF projection.
+OKF meaning (v0.2 adds `# Computation`). The body is mapped to `schema:text` in
+the RDF projection.
 
 ## Next
 

@@ -3,11 +3,13 @@
 **Version 0.2 — Draft**
 **Status:** Proposal · Profile of Google Open Knowledge Format (OKF) v0.2
 **Model:** Defined entirely in LinkML (`lokf.yaml`); all other artifacts are generated from it.
+**Realized by:** `lokf.yaml` / the `lokf` package at 0.5.0 — the format version and the
+artifact version are separate tracks (§12).
 
 LOKF is a semantic, ontology-grounded **profile of the Google Open Knowledge
 Format (OKF)**. It keeps everything that makes OKF pleasant — a directory of
 markdown files, each with a small YAML frontmatter block describing one concept,
-readable with `cat` and diffable in git — and adds the one thing OKF v0.1
+readable with `cat` and diffable in git — and adds the one thing OKF
 deliberately leaves out: **formal meaning**. In LOKF, every field, type, and
 relationship is bound to an established web vocabulary (schema.org, W3C DCAT,
 W3C PROV-O), so that a bundle of markdown files is *simultaneously* human-readable
@@ -23,7 +25,7 @@ is hand-maintained twice.
 
 ## 1. Motivation
 
-OKF v0.1 is intentionally minimal: the only required field is `type`, links
+OKF is intentionally minimal: the only required field is `type`, links
 between concepts are untyped markdown links, and "what types exist" is left
 entirely to the producer. That minimalism is a feature for hand-authoring, but it
 leaves three things on the table:
@@ -360,7 +362,10 @@ id: https://acme.example/knowledge/metrics/weekly-active-users
 title: Weekly Active Users
 unit: users
 tags: [growth, engagement]
-timestamp: 2026-06-30T12:00:00Z
+generated:
+  by: human:jsmith@acme
+  at: 2026-06-30T12:00:00Z
+status: stable
 author:
   - type: Person
     id: https://acme.example/people/jsmith
@@ -387,7 +392,9 @@ Attaching the context and expanding yields (Turtle, abridged):
     schema:name "Weekly Active Users" ;
     schema:unitText "users" ;
     schema:keywords "growth", "engagement" ;
-    schema:dateModified "2026-06-30T12:00:00Z"^^xsd:dateTime ;
+    schema:creativeWorkStatus "stable" ;
+    prov:wasGeneratedBy [ prov:wasAssociatedWith "human:jsmith@acme" ;
+                          prov:endedAtTime "2026-06-30T12:00:00+00:00"^^xsd:dateTime ] ;
     schema:author <…/people/jsmith> ;
     lokf:measures <…/glossary/active-user> ;
     prov:wasDerivedFrom <…/tables/user-events> ;
@@ -450,7 +457,7 @@ Two independent, generated validators are available:
 - **SHACL** (`lokf.shacl.ttl`) validates the RDF graph *after* projection, catching
   cardinality, datatype, and range violations at the triple level.
 
-The reference bundle in `examples/` passes JSON Schema validation for all six
+The reference bundle in `examples/` passes JSON Schema validation for all eight
 concepts and for the assembled `KnowledgeBundle`.
 
 ---
@@ -528,7 +535,7 @@ repos:
     distribution:
       rdf:      https://acme.example/knowledge/graph.nt        # SPARQL harvest source
       concepts: https://acme.example/knowledge/concepts.jsonld # offline document access
-    void: { triples: 86, class_partition: { Metric: 1, Dataset: 1, GlossaryTerm: 1 } }
+    void: { triples: 153, class_partition: { Metric: 1, Dataset: 1, GlossaryTerm: 1, AttestedComputation: 1 } }
     id_index:                                        # explicit `id:` IRIs outside base_iri → Concept ID
       https://acme.example/legacy/wau: metrics/weekly-active-users
     status: ok
@@ -605,9 +612,13 @@ The intended runtime model, layered on the primitives above:
 LOKF versions are `<major>.<minor>`, tracking OKF's scheme. A minor bump adds
 backward-compatible fields, types, relation predicates, or mappings; a major bump
 may rename required fields or change reserved filenames. Bundles declare their
-target with `lokf_version` in the root `index.md`. Because the format is defined in
-LinkML, a version is exactly a tagged `lokf.yaml`, and the context/schema/shapes/OWL
-for that version are reproducible by regeneration.
+target with `lokf_version` in the root `index.md`.
+
+The LinkML schema and the `lokf` package carry their own, independent
+`<major>.<minor>.<patch>` version (currently 0.5.0), so the toolkit can ship fixes
+without implying a format change: LOKF v0.2 is realized by schema 0.5.0. Because the
+format is defined in LinkML, a format version is pinned by a tagged `lokf.yaml`, and
+the context/schema/shapes/OWL for it are reproducible by regeneration.
 
 ---
 
@@ -619,7 +630,7 @@ lokf.context.jsonld     Generated JSON-LD context (+ type/id aliases). Attach to
 lokf.schema.json        Generated JSON Schema for frontmatter/bundle validation.
 lokf.shacl.ttl          Generated SHACL shapes for RDF-graph validation.
 lokf.owl.ttl            Generated OWL ontology for reasoning/alignment.
-examples/acme-knowledge/  A conformant reference bundle (6 concepts).
+examples/acme-knowledge/  A conformant reference bundle (8 concepts).
 examples/*.nt           RDF triples produced from the example frontmatter.
 README.md               How the pieces fit and how to regenerate them.
 ```

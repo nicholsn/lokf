@@ -1,6 +1,6 @@
 ---
-lokf_version: "0.1"
-okf_version: "0.1"
+lokf_version: "0.2"
+okf_version: "0.2"
 base_iri: __KB_BASE_IRI__
 context: https://raw.githubusercontent.com/nicholsn/lokf/main/lokf.context.jsonld
 title: __KB_TITLE__

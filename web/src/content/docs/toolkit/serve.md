@@ -11,7 +11,7 @@ graph](/graph/) page, served from your own checkout.
 
 ```bash
 uv run lokf serve examples/acme-knowledge
-# lokf: 86 triples from examples/acme-knowledge
+# lokf: 153 triples from examples/acme-knowledge
 # lokf: SPARQL endpoint  http://127.0.0.1:8000/sparql
 # lokf: graph explorer   http://127.0.0.1:8000/
 # lokf: Ctrl-C to stop
