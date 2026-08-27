@@ -12,6 +12,11 @@ A few essentials:
   bundle — never hand-edit a generated file.
 - **Verify before you push.** `just build` and `just test` must pass, and any
   regenerated artifacts must be committed alongside the schema change.
+- **Python support tracks the LinkML ecosystem.** `requires-python` is `>=3.10`
+  to match the linkml baseline (linkml-project-copier scaffolds `>=3.10`), so
+  `lokf` installs into a hybrid linkml/lokf repo without forcing its floor up.
+  Don't raise it without a reason the code actually needs; CI tests every
+  version in the classifiers.
 - **Reuse public vocabulary.** New types and fields should map to established
   ontology terms (schema.org, DCAT, PROV-O, SKOS, W3C ORG, …) rather than mint
   new ones — reuse is the whole point of LOKF.
