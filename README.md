@@ -1,6 +1,6 @@
 # Linked Open Knowledge Format (LOKF)
 
-A **semantic profile of Google's Open Knowledge Format (OKF)**. LOKF keeps OKF's
+A **semantic profile of Google's Open Knowledge Format (OKF) v0.2**. LOKF keeps OKF's
 markdown-plus-frontmatter authoring model but binds every concept, field, and
 relationship to **schema.org, W3C DCAT, and W3C PROV-O**, so a bundle of markdown
 files is *also* valid **JSON-LD** that expands losslessly to **RDF**. The format is
@@ -13,9 +13,9 @@ ontology are all generated from that single source.
 
 ## Why
 
-OKF v0.1 is deliberately minimal — the only required field is `type`, links are
-untyped, and there's no shared vocabulary. LOKF adds exactly four things while
-keeping OKF's ergonomics:
+OKF is deliberately minimal — the only required field is `type`, links are
+untyped, and there's no shared vocabulary. LOKF adds five things while keeping
+OKF's ergonomics:
 
 1. **Shared meaning** — types and fields map to public ontology terms.
 2. **Typed relationships** — `dependsOn`, `derivedFrom`, `isPartOf`, … each pinned
@@ -25,6 +25,11 @@ keeping OKF's ergonomics:
 4. **Documentation modes** - an optional `genre` facet (and `Tutorial`/`Explanation`
    types) aligns each concept's prose to the four [Diátaxis](https://diataxis.fr/)
    modes, on an axis orthogonal to `type`.
+5. **Queryable trust** — OKF v0.2's provenance, trust, and lifecycle frontmatter
+   (`sources`, `usage_window`, `generated`, `verified`, `status`, `stale_after`)
+   and the `AttestedComputation` type, each bound to PROV-O / schema.org, so
+   "where did this come from and should I trust it" is a SPARQL query rather
+   than YAML an agent has to interpret. See [SPEC §5.4](./SPEC.md).
 
 It stays **bidirectionally compatible**: every LOKF bundle is a valid OKF bundle,
 and every OKF bundle is valid LOKF with default mappings.
@@ -41,7 +46,7 @@ and every OKF bundle is valid LOKF with default mappings.
 | `lokf.owl.ttl` | Generated OWL ontology — reasoning & alignment. | ⚙️ generated |
 | `lokf.sql` | Generated relational schema — `CREATE TABLE` DDL (FKs for typed relations). | ⚙️ generated |
 | `src/lokf/datamodel.py` | Generated Python bindings — `from lokf.datamodel import Metric`. | ⚙️ generated |
-| `examples/acme-knowledge/` | A conformant 6-concept reference bundle. | ✅ |
+| `examples/acme-knowledge/` | A conformant 8-concept reference bundle. | ✅ |
 | `examples/*.nt` | RDF triples produced from the example frontmatter. | ⚙️ generated |
 
 ## Anatomy of a LOKF concept
@@ -56,7 +61,10 @@ type: Metric                                    # -> rdf:type lokf:Metric
 id: https://acme.example/knowledge/metrics/weekly-active-users   # -> @id (subject)
 title: Weekly Active Users                       # -> schema:name
 unit: users                                      # -> schema:unitText
-timestamp: 2026-06-30T12:00:00Z                  # -> schema:dateModified
+generated:                                       # -> prov:wasGeneratedBy
+  by: human:jsmith@acme                          #    prov:wasAssociatedWith
+  at: 2026-06-30T12:00:00Z                       #    prov:endedAtTime
+status: stable                                   # -> schema:creativeWorkStatus
 derivedFrom: [ .../tables/user-events ]          # -> prov:wasDerivedFrom
 dependsOn:   [ .../glossary/active-user ]        # -> dcterms:requires
 measures:    [ .../glossary/active-user ]        # -> lokf:measures
@@ -131,7 +139,7 @@ just gen-rdf-turtle examples/acme-knowledge/metrics/weekly-active-users.md
 
 `--format` also takes `nt`, `jsonld`, `xml`, `n3`, and `trig`; `--output FILE`
 writes to disk instead of stdout. Point `convert` at the bundle directory
-(`examples/acme-knowledge`) to project all six concepts at once.
+(`examples/acme-knowledge`) to project all eight concepts at once.
 
 Prefer to stay in Python? `lokf.rdf.serialize` is the same projection the CLI
 calls:
@@ -193,7 +201,10 @@ See the [scaffold docs](https://lokf.nolan-nichols.com/toolkit/scaffold/).
 ## Status
 
 LOKF v0.2 is a **draft profile** and is **not affiliated with or endorsed by
-Google**. "Open Knowledge Format" / "OKF" refer to the format published by Google
+Google**. The format version tracks OKF's `<major>.<minor>` scheme; the LinkML
+schema and the `lokf` package carry their own version (currently 0.5.0) so the
+toolkit can ship fixes without implying a format change — see
+[SPEC §12](./SPEC.md). "Open Knowledge Format" / "OKF" refer to the format published by Google
 Cloud (`github.com/GoogleCloudPlatform/knowledge-catalog`); LOKF extends it under
 its open terms.
 

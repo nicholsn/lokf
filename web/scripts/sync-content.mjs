@@ -71,7 +71,7 @@ writeFileSync(
   resolve(DOCS, "specification.md"),
   `---
 title: Specification
-description: The LOKF v0.1 specification — motivation, conformance, and the full field tables.
+description: The LOKF v0.2 specification — motivation, conformance, and the full field tables.
 ---
 
 ${specBody}`,
