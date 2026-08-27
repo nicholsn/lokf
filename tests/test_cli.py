@@ -116,6 +116,22 @@ def test_query_construct_turtle():
     assert "wasDerivedFrom" in result.stdout or "prov:" in result.stdout
 
 
+def test_query_ask_in_the_default_table_format():
+    """An ASK answer is a boolean; the default format used to crash on it."""
+    result = runner.invoke(app, ["query", str(BUNDLE), "ASK { ?s ?p ?o }"])
+    assert result.exit_code == 0, result.output
+    assert result.stdout.strip() == "true"
+
+
+def test_query_ask_false_still_exits_zero():
+    """A false answer is an answer, not a failure."""
+    result = runner.invoke(
+        app, ["query", str(BUNDLE), "ASK { ?s a lokf:NoSuchClass }"]
+    )
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "false"
+
+
 def test_query_malformed_sparql_nonzero_exit():
     """A malformed SPARQL query exits non-zero."""
     result = runner.invoke(app, ["query", str(BUNDLE), "SELEC broken"])

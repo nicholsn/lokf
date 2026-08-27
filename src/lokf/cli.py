@@ -247,6 +247,10 @@ def query(
         if form in ("construct", "describe"):
             fmt = "ttl" if format == "table" else format
             typer.echo(store.construct(sparql, fmt=fmt), nl=False)
+        elif format == "table" and form == "ask":
+            # An ASK answer is a boolean, not rows: `select` would reach for
+            # `.variables` on it and fail.
+            typer.echo("true" if store.ask(sparql) else "false")
         elif format == "table":
             _print_rows(store.select(sparql))
         else:
