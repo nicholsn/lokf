@@ -20,6 +20,10 @@ A few essentials:
 - **Reuse public vocabulary.** New types and fields should map to established
   ontology terms (schema.org, DCAT, PROV-O, SKOS, W3C ORG, …) rather than mint
   new ones — reuse is the whole point of LOKF.
+- **Licensing (inbound = outbound).** Contributions to the toolkit (`src/`,
+  `tests/`, the build tooling) are accepted under the Apache License 2.0;
+  contributions to the specification and vocabulary (`SPEC.md`, `lokf.yaml`)
+  under CC-BY-4.0. See the [License section of the README](README.md#license).
 - **Responsible AI use.** LOKF is built with AI assistance. Please review the
   [AI Covenant](AI_COVENANT.md): you own everything you submit, and AI is never
   credited as a commit co-author.

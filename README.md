@@ -219,7 +219,20 @@ by a human. See [CONTRIBUTING.md](CONTRIBUTING.md) to get involved.
 
 ## License
 
-Software licensed under Apache License 2.0
+The **software** — the `lokf` toolkit in `src/`, the tests, and the build
+tooling — is licensed under the Apache License 2.0. See [`LICENSE`](./LICENSE)
+and [`NOTICE`](./NOTICE).
 
-The [SPEC](./SPEC.md) and [SCHEMA](./lokf.yaml) are licensed under CC-BY-4.0.
+The **specification and vocabulary** — [`SPEC.md`](./SPEC.md), the LinkML schema
+[`lokf.yaml`](./lokf.yaml), and the artifacts generated from it
+(`lokf.context.jsonld`, `lokf.schema.json`, `lokf.shacl.ttl`, `lokf.owl.ttl`,
+`lokf.sql`) — are licensed under
+[CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).
+
+`src/lokf/datamodel.py` is generated too, but it is Python that ships *in* the
+package, so it is Apache-2.0 like the rest of `src/`. Its header comment — and
+`lokf.owl.ttl`'s `dcterms:license` — transcribe `lokf.yaml`'s own `license:`
+key, so wherever CC-BY-4.0 appears inside a generated file it is the schema's
+license, not the package's. The published package declares `Apache-2.0`, which
+is the license of the code you install.
 
