@@ -104,9 +104,8 @@ fallback for `<BASE_IRI>` - and flag every guessed value for review in the Step 
 name = "<PROJ_SLUG>-knowledge"
 version = "0.1.0"
 description = "LOKF knowledge-bundle tooling for <PROJ_NAME>."
-# >=3.11 because that is what every published lokf release requires; it can
-# follow lokf down to >=3.10 once a release ships the lower floor.
-requires-python = ">=3.11"
+# Keep in sync with the `lokf` toolkit's own requires-python floor.
+requires-python = ">=3.10"
 dependencies = [
     "lokf[build]>=0.5.0",
 ]
@@ -646,8 +645,9 @@ Task (Karpathy rule - continuous small corrections, not a rewrite):
      sources recorded in the bundle (concept provenance and
      .lokf/knowledge/playbooks/knowledge-sources.md).
   2. Reconcile the .lokf/ knowledge bundle with the repository: add missing
-     concepts, correct stale facts (updating each changed concept's timestamp),
-     wire typed relations, and prepend dated entries to
+     concepts, correct stale facts (refreshing each changed concept's
+     `generated` provenance, which supersedes the v0.1 `timestamp`), wire
+     typed relations, and prepend dated entries to
      .lokf/knowledge/log.md - but only when the bundle content actually
      changed. If nothing changed, leave the bundle (including log.md)
      untouched; do not log administrative no-op runs.

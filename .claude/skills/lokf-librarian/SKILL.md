@@ -49,7 +49,6 @@ The LOKF **format** is defined once in LinkML (`lokf.yaml`); the JSON Schema, JS
    publisher: { type: Organization, id: https://acme.example/knowledge/org/platform-team, name: Acme Platform Team }
    ```
    `base_iri` + concept ID mints each concept's IRI (`@id`); `context` maps frontmatter keys to IRIs. Do not remove these or the bundle degrades to plain OKF.
-3. **Use a class from the LOKF type vocabulary** (consumers tolerate unknowns as `lokf:Concept`): `Dataset`, `Table`, `Metric`, `Service`, `Playbook`, `Tutorial`, `Explanation`, `Policy`, `GlossaryTerm`, `Reference`, `Document`, `Person`, `Organization`, `AttestedComputation`. Type-specific fields: `Table/Dataset` -> `fields`, `distribution`; `Metric` -> `unit`, `formula`, `measures`; `Service` -> `endpoint`, `http_method`, `documentation`; `GlossaryTerm` -> `definition`, `abbreviation`. Optional Diátaxis facet `genre` (`tutorial`|`how-to`|`reference`|`explanation`) tags how a concept's *prose* serves the reader - orthogonal to `type`; keep one mode per concept (split and link with `references`/`about` if it drifts).
 
    **Choosing `base_iri` - identifiers, not hyperlinks, but use a namespace you control.** A concept's `id` is a globally unique *name* that merely looks like a URL, so a 404 on it is *valid* - though Linked Data best practice ("Cool URIs") is that identifiers *should* eventually double as working links. The test for a good `base_iri` is **authority + future resolvability**:
    - **Never mint inside a URL space the project doesn't control** - e.g. `https://github.com/<org>/<repo>/knowledge/...` or any third-party domain. The host owns that path space, so the IRIs can never be made to resolve, and they misattribute naming authority to the host.
@@ -73,8 +72,22 @@ The LOKF **format** is defined once in LinkML (`lokf.yaml`); the JSON Schema, JS
    | `source` | `dcterms:source` | sourced from the target |
 
    For predicates outside this set, use the generic `relations` list of reified objects (`predicate` from the `RelationType` vocab, e.g. `joinsWith`, plus `target`). Human-facing Markdown links in the body remain valid and encouraged alongside the typed fields.
-5. **Core fields map to ontology terms:** `title`->`schema:name`, `description`->`schema:description`, `resource`->`schema:url`, `tags`->`schema:keywords`, `timestamp`->`schema:dateModified`, plus optional `id`, `created`, `version`, `license`, `author`, `citations`. Two JSON-LD aliases let plain OKF frontmatter behave as Linked Data: `type` -> `@type` (rdf:type, the concept's class) and `id` -> `@id` (the subject IRI).
-6. **Stay permissive.** Missing optional fields, unknown `type`, unknown keys, and broken cross-links MUST NOT cause rejection.
+5. **Core fields map to ontology terms:** `title`->`schema:name`, `description`->`schema:description`, `resource`->`schema:url`, `tags`->`schema:keywords`, `timestamp`->`schema:dateModified`, `body`->`schema:text` (the markdown after the frontmatter), plus optional `id`, `created`, `version`, `license`, `author`, `genre` (`schema:genre`, Rule 3), `citations`. Two JSON-LD aliases let plain OKF frontmatter behave as Linked Data: `type` -> `@type` (rdf:type, the concept's class) and `id` -> `@id` (the subject IRI). Two v0.1 fields are **superseded in v0.2** but still read as fallbacks: `timestamp` by `generated.at`, and `citations` by `sources` (Rule 6).
+6. **Record trust, provenance & lifecycle (OKF v0.2 §5.4) where the source attests it.** These optional families make trust signals *queryable RDF* instead of loose YAML; their absence carries meaning (an unverified concept stays valid, never rejected). Never invent them - record only what the origin actually states.
+
+   | family | field | shape -> RDF predicate | meaning |
+   |--------|-------|------------------------|---------|
+   | provenance | `generated` | `{ by, at }` -> `prov:wasGeneratedBy` | who/what produced the current content, and when. **Supersedes `timestamp`** - prefer it on new/changed concepts. |
+   | trust | `verified` | list of `{ by, at }` -> `lokf:verified` | verification events; a bare `{ by, at }` mapping MUST be read as a one-element list. |
+   | provenance | `sources` | list of Source -> `schema:isBasedOn` | materials the concept derives from: `resource` (REQUIRED), plus optional `id` (footnote/merge key), `title`, `author`, `usage_count`, `last_modified`. Supersedes `citations`. |
+   | usage | `usage_window` | `{ from, to }` (dates) -> `lokf:usageWindow` | window framing `usage_count` signals; sibling of `sources` (a Source entry MAY override). |
+   | lifecycle | `status` | `draft`\|`stable`\|`deprecated` -> `schema:creativeWorkStatus` | absent ⇒ stable. |
+   | lifecycle | `stale_after` | date -> `schema:expires` | stale when `today >= stale_after`. |
+
+   **Actors** (`generated.by`, `verified[].by`, `sources[].author`) are plain OKF §7 literal strings - `<producer>/<version>`, `human:<id>`, `process:<id>` - carried verbatim, never coerced to IRIs. **Trust tiers derive from them, never stored:** no `verified` ⇒ *unverified*; only non-human actors ⇒ *machine-confirmed*; any `human:` actor ⇒ *human-reviewed*.
+
+   **AttestedComputation** (`type: AttestedComputation`; OKF's spaced `Attested Computation` normalizes to this) carries an immutable, sanctioned recipe - semantically a `prov:Plan`: `runtime` (REQUIRED, e.g. `bigquery`|`postgres`|`dbt`|`python`), `parameters` (each `{ name, type, required }` where `type` is drawn from `ParameterType`), `computation` (optional file path; omit it and the body's `# Computation` fenced block IS the recipe), `executor` (`{ resource, receipt }`), `attester` (`{ resource }`).
+7. **Stay permissive.** Missing optional fields, unknown `type`, unknown keys, and broken cross-links MUST NOT cause rejection.
 
 ## 1. Scrape & build
 
@@ -113,6 +126,10 @@ title: Orders API
 description: REST API serving order data to the CLI and web UI.
 endpoint: https://api.acme.example/orders
 resource: https://github.com/acme/platform/tree/main/services/orders
+generated:
+  by: process:lokf-librarian
+  at: 2026-08-05T00:00:00Z
+status: stable
 dependsOn:
   - https://acme.example/knowledge/datasets/orders-db
 ---
@@ -122,7 +139,7 @@ dependsOn:
 The **Orders API** generates its endpoints from `services/orders/openapi.yaml` and serves the order data consumed by the CLI and web UI...
 ```
 
-On every concept you create or materially change, set/refresh its `timestamp` (`schema:dateModified`) to an ISO 8601 datetime with UTC timezone (e.g. `"2026-08-05T00:00:00Z"`) - but never bump timestamps on untouched concepts, or the diff fills with churn. Update the nearest `index.md` (bullet + `description`) and prepend a dated entry to `log.md` (newest first, ISO `YYYY-MM-DD` date header — log dates are date-only, concept timestamps are datetime+Z). `log.md` records **knowledge changes only** - concepts added/changed/removed, or the source map updated. If a run changes nothing in the bundle, write no log entry; never log administrative events ("librarian ran, no changes detected") - they do not represent a knowledge change.
+On every concept you create or materially change, record provenance with `generated: { by: <OKF §7 actor>, at: <ISO 8601 UTC datetime> }` (`prov:wasGeneratedBy`) - e.g. `at: "2026-08-05T00:00:00Z"`, `by: process:lokf-librarian`. This supersedes the v0.1 `timestamp` (`schema:dateModified`), which consumers still read as a fallback; keep `timestamp` only on v0.1 concepts you are not otherwise touching. Never bump `generated`/`timestamp` on untouched concepts, or the diff fills with churn. Update the nearest `index.md` (bullet + `description`) and prepend a dated entry to `log.md` (newest first, ISO `YYYY-MM-DD` date header — log dates are date-only, concept timestamps are datetime+Z). `log.md` records **knowledge changes only** - concepts added/changed/removed, or the source map updated. If a run changes nothing in the bundle, write no log entry; never log administrative events ("librarian ran, no changes detected") - they do not represent a knowledge change.
 
 ## 2. Audit (correctness, gaps, bugs)
 
@@ -139,7 +156,7 @@ just lokf-serve            # SPARQL endpoint + live graph explorer (optional)
 `lokf validate` catches frontmatter/bundle-shape errors; the generated SHACL shapes catch cardinality/datatype/range violations on the projected graph. Beyond mechanical validity, audit for:
 
 - **Correctness** - class matches the asset; typed relations point the right way (`isPartOf` vs `hasPart`, `dependsOn` vs `derivedFrom`); `id`/`base_iri` mint the expected IRIs and the namespace passes Rule 2's authority test (not inside a URL space the project doesn't control); `endpoint`/`resource` still resolve.
-- **Gaps** - new code/data files with no concept; untyped body links that should be typed relations; missing `id` on concepts other bundles link to; classes left as generic `lokf:Concept` that have a proper vocabulary type.
+- **Gaps** - new code/data files with no concept; untyped body links that should be typed relations; missing `id` on concepts other bundles link to; classes left as generic `lokf:Concept` that have a proper vocabulary type; concepts whose provenance/trust is knowable but unrecorded (missing `generated`, `sources`, or a `status`/`stale_after` on content that has clearly gone `deprecated` or stale).
 - **Bugs** - malformed YAML, invalid enum/datatype (fails JSON Schema or SHACL), relation targets that resolve to nothing *intended*, missing `base_iri`/`context` in the root `index.md`, `pyproject.toml` `lokf` constraint missing a `>=` floor or behind the latest release (see step 5).
 
 Report findings as a checklist; fix mechanical issues directly and re-run `just lokf-validate`.
@@ -154,8 +171,8 @@ Keep the graph continuously accurate rather than rewriting it in bursts. Three
 pieces automate this rebuild loop - the **lokf-scaffolding** skill's Step 5
 scaffolds them; this section is their operating manual:
 
-**`.github/workflows/knowledge-librarian.yaml`** - the rebuild workflow. Runs monthly (1st of every month, 05:00 UTC) and on demand (`workflow_dispatch`). Each run: checks out full history -> sets up `uv` -> installs the `lokf` sidecar -> runs the agent -> validates -> diffs `.lokf/knowledge/` (only the bundle, so tool artifacts never trigger a PR) -> if anything changed, commits to a fresh `knowledge-librarian/<date>-<run_id>` branch and opens a review PR via `github-script`. Guardrails: it holds only `contents: write` + `pull-requests: write`, never pushes to the default branch, never auto-merges, and opens no PR when nothing changed. A no-change run must leave the bundle byte-for-byte untouched, including `log.md` (section 1's log policy).
+**`.github/workflows/knowledge-librarian.yaml`** - the rebuild workflow. Runs weekly (Mondays, 05:00 UTC) and on demand (`workflow_dispatch`). Each run: checks out full history -> sets up `uv` -> installs the `lokf` sidecar -> runs the agent -> validates -> diffs `.lokf/knowledge/` (only the bundle, so tool artifacts never trigger a PR) -> if anything changed, commits to a fresh `knowledge-librarian/<date>-<run_id>` branch and opens a review PR via `github-script`. Guardrails: it holds only `contents: write` + `pull-requests: write`, never pushes to the default branch, never auto-merges, and opens no PR when nothing changed. A no-change run must leave the bundle byte-for-byte untouched, including `log.md` (section 1's log policy).
 
 **`.lokf/scripts/knowledge-librarian.sh`** - the agent wrapper the workflow invokes. Point the `KNOWLEDGE_LIBRARIAN_CMD` repository variable at `bash .lokf/scripts/knowledge-librarian.sh` and set `AGENT_CLI` to your non-interactive agent command. The script selects the lokf-librarian skill, builds a prompt telling the agent to follow it and re-scrape the repo, then calls `AGENT_CLI`. Its contract: it edits **only** files under `.lokf/knowledge/` and performs no git/PR operations - the workflow owns branch/commit/PR. If `KNOWLEDGE_LIBRARIAN_CMD` is unset, the workflow's agent step is a safe no-op, so the workflow is harmless until you wire the agent up.
 
-**`.github/workflows/knowledge-validate.yaml`** - the gate. Its `validate` job runs `uv run lokf validate knowledge` on the librarian PR (and on every `.lokf/**` PR and its own monthly schedule); keep it green. The bar: the projected RDF graph should always describe the repository as it is *today*.
+**`.github/workflows/knowledge-validate.yaml`** - the gate. Its `validate` job runs `uv run lokf validate knowledge` on the librarian PR (and on every `.lokf/**` PR and its own weekly schedule); keep it green. The bar: the projected RDF graph should always describe the repository as it is *today*.
