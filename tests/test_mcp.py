@@ -1,6 +1,6 @@
-"""Tests for the LOKF FastMCP stdio server in ``lokf.mcp_server``.
+"""Tests for the LOKF MCP stdio server in ``lokf.mcp_server``.
 
-FastMCP's introspection API is async; sync tests wrap it in ``asyncio.run``
+MCPServer's introspection API is async; sync tests wrap it in ``asyncio.run``
 (no pytest-asyncio). The tool functions themselves are plain callables, so the
 functional tests invoke them directly against ``examples/acme-knowledge``.
 """

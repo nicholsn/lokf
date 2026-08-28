@@ -1,4 +1,4 @@
-"""A FastMCP stdio server that exposes the LOKF toolkit to agents.
+"""An MCP stdio server that exposes the LOKF toolkit to agents.
 
 LOKF is a semantic profile of the Open Knowledge Framework: a knowledge base
 is a *bundle* of markdown *concepts* (frontmatter + prose) that projects to
@@ -9,7 +9,7 @@ at a bundle directory (e.g. ``examples/acme-knowledge``) unless noted.
 """
 from __future__ import annotations
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 _INSTRUCTIONS = (
     "LOKF is a semantic profile of the Open Knowledge Framework (OKF). A "
@@ -23,7 +23,7 @@ _INSTRUCTIONS = (
     "quick orientation. Pass a bundle directory as the bundle/source argument."
 )
 
-server = FastMCP("lokf", instructions=_INSTRUCTIONS)
+server = MCPServer("lokf", instructions=_INSTRUCTIONS)
 
 
 @server.tool()
