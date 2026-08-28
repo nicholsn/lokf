@@ -57,7 +57,9 @@ directory as one RDF graph.
 
 2. **Author the concepts.** For each concept, follow the `author-concept`
    skill: pick the right `type`, write frontmatter (`type`/`id`/`title`/
-   `description`/`timestamp` plus type-specific fields), write a body with
+   `description`/`generated` plus type-specific fields, and the optional OKF
+   v0.2 trust/lifecycle families — `sources`, `verified`, `status`,
+   `stale_after` — where the source attests them), write a body with
    headings, link to sibling concepts in prose, and add a bullet for it under
    the matching `index.md` heading. Author foundational concepts first
    (glossary terms, tables) so later ones can reference them. Where a body is

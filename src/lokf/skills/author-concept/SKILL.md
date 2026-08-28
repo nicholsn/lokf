@@ -37,6 +37,7 @@ Pick the `type` that fits (from `lokf vocab` classes):
 | `Policy`      | A rule or governance statement.                     |
 | `Document`    | A prose document.                                   |
 | `Reference`   | An external citation-like reference.                |
+| `AttestedComputation` | A sanctioned, immutable computation recipe (a `prov:Plan`). |
 
 Run `lokf vocab` first if you are unsure which relation slots a type supports.
 
@@ -47,9 +48,10 @@ Run `lokf vocab` first if you are unsure which relation slots a type supports.
    `tables/<slug>.md`, `glossary/<slug>.md`. Use a kebab-case slug.
 
 2. **Write the frontmatter.** Always include `type`, `id`, `title`,
-   `description`, `timestamp`. The `id` is the bundle `base_iri` (from the
-   bundle's `index.md`) plus the file's relative path without `.md`. Example
-   for a metric:
+   `description`, and provenance via `generated` (OKF v0.2 - `{ by, at }`,
+   which supersedes the v0.1 `timestamp`). The `id` is the bundle `base_iri`
+   (from the bundle's `index.md`) plus the file's relative path without `.md`.
+   Example for a metric:
 
    ```yaml
    ---
@@ -60,14 +62,20 @@ Run `lokf vocab` first if you are unsure which relation slots a type supports.
    unit: percent
    formula: COUNT(DISTINCT signups) / COUNT(DISTINCT sessions)
    tags: [growth, funnel]
-   timestamp: 2026-07-03T00:00:00Z
+   generated:
+     by: human:jsmith@acme
+     at: 2026-07-03T00:00:00Z
+   status: stable
    ---
    ```
 
    Add type-appropriate fields: `Metric` takes `unit`/`formula`/`version`;
    `Table` takes a `fields:` list (`name`, `datatype`, `description`,
    `is_key`); `Service` takes `endpoint`/`http_method`/`documentation`;
-   `GlossaryTerm` takes `definition`/`abbreviation`. Any type may add the
+   `GlossaryTerm` takes `definition`/`abbreviation`;
+   `AttestedComputation` takes `runtime` (REQUIRED), `parameters`
+   (each `{ name, type, required }`), `computation`, `executor`, `attester`.
+   Any type may add the
    optional `genre` facet to tag the Diátaxis mode of its body — orthogonal
    to `type`; keep one mode per concept. Pick the value with the Diátaxis
    compass — two questions about the reader the body serves:
@@ -87,6 +95,21 @@ Run `lokf vocab` first if you are unsure which relation slots a type supports.
    pv = yaml.safe_load((r.files('lokf')/'data'/'lokf.yaml').read_text())['enums']['DiataxisMode']['permissible_values']; \
    [print(k.ljust(12), v['annotations']) for k, v in pv.items()]"
    ```
+
+   **Optional OKF v0.2 trust, provenance & lifecycle families** — add only what
+   the source actually attests (their absence is meaningful, never an error):
+
+   - `sources:` — list of materials the concept is based on, each `resource`
+     (REQUIRED) plus optional `id`, `title`, `author`, `usage_count`,
+     `last_modified` (supersedes the v0.1 `citations`).
+   - `verified:` — list of `{ by, at }` verification events. Trust tiers derive
+     from the actors: none ⇒ unverified, only non-human actors ⇒
+     machine-confirmed, any `human:<id>` ⇒ human-reviewed.
+   - `status:` — `draft` | `stable` | `deprecated` (absent ⇒ stable);
+     `stale_after:` — a `YYYY-MM-DD` date after which the concept is stale.
+
+   Actors (`generated.by`, `verified[].by`, `sources[].author`) are plain OKF §7
+   strings — `<producer>/<version>`, `human:<id>`, `process:<id>` — never IRIs.
 
 3. **Add typed relations as frontmatter keys** where the link is precise. These
    are the `slot`-flagged rows from `lokf vocab`, each ranged on other
