@@ -14,7 +14,7 @@ description: >-
   which the JSON-LD context, JSON Schema, SHACL shapes, and an OWL ontology
   are generated.
 license: https://creativecommons.org/licenses/by/4.0/
-version: 0.6.0
+version: 0.7.0
 
 # ---------------------------------------------------------------------------
 # Namespaces

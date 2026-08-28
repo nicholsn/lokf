@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-27T21:34:16
+# Generation date: 2026-08-28T08:42:17
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
@@ -60,7 +60,7 @@ from linkml_runtime.linkml_model.types import Boolean, Date, Datetime, Integer, 
 from linkml_runtime.utils.metamodelcore import Bool, URI, URIorCURIE, XSDDate, XSDDateTime
 
 metamodel_version = "1.11.0"
-version = "0.6.0"
+version = "0.7.0"
 
 # Namespaces
 ADMS = CurieNamespace('adms', 'http://www.w3.org/ns/adms#')
