@@ -19,6 +19,9 @@ ask it to build out the knowledge base from your idea.
 
 ## Work with it
 
+Needs **Node 22.12 or newer** (Astro 7's floor); the Pages workflow already
+pins a compatible version.
+
 ```bash
 just setup    # npm install (once; commit package-lock.json)
 just dev      # live-preview the site + graph browser
