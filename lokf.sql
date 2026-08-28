@@ -1456,8 +1456,8 @@ CREATE TABLE "Concept_hasPart" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_hasPart_Concept_id" ON "Concept_hasPart" ("Concept_id");
 CREATE INDEX "ix_Concept_hasPart_hasPart_id" ON "Concept_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Concept_hasPart_Concept_id" ON "Concept_hasPart" ("Concept_id");
 
 CREATE TABLE "Concept_references" (
 	"Concept_id" TEXT,
@@ -1466,8 +1466,8 @@ CREATE TABLE "Concept_references" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_references_Concept_id" ON "Concept_references" ("Concept_id");
 CREATE INDEX "ix_Concept_references_references_id" ON "Concept_references" (references_id);
+CREATE INDEX "ix_Concept_references_Concept_id" ON "Concept_references" ("Concept_id");
 
 CREATE TABLE "Concept_dependsOn" (
 	"Concept_id" TEXT,
@@ -1476,8 +1476,8 @@ CREATE TABLE "Concept_dependsOn" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_dependsOn_dependsOn_id" ON "Concept_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Concept_dependsOn_Concept_id" ON "Concept_dependsOn" ("Concept_id");
+CREATE INDEX "ix_Concept_dependsOn_dependsOn_id" ON "Concept_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Concept_derivedFrom" (
 	"Concept_id" TEXT,
@@ -1506,8 +1506,8 @@ CREATE TABLE "Concept_sameAs" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_sameAs_sameAs_id" ON "Concept_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Concept_sameAs_Concept_id" ON "Concept_sameAs" ("Concept_id");
+CREATE INDEX "ix_Concept_sameAs_sameAs_id" ON "Concept_sameAs" ("sameAs_id");
 
 CREATE TABLE "Concept_relatedTo" (
 	"Concept_id" TEXT,
@@ -1516,8 +1516,8 @@ CREATE TABLE "Concept_relatedTo" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_relatedTo_Concept_id" ON "Concept_relatedTo" ("Concept_id");
 CREATE INDEX "ix_Concept_relatedTo_relatedTo_id" ON "Concept_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Concept_relatedTo_Concept_id" ON "Concept_relatedTo" ("Concept_id");
 
 CREATE TABLE "Concept_definedBy" (
 	"Concept_id" TEXT,
@@ -1764,8 +1764,8 @@ CREATE TABLE "Dataset_tags" (
 	PRIMARY KEY ("Dataset_id", tags),
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id)
 );
-CREATE INDEX "ix_Dataset_tags_Dataset_id" ON "Dataset_tags" ("Dataset_id");
 CREATE INDEX "ix_Dataset_tags_tags" ON "Dataset_tags" (tags);
+CREATE INDEX "ix_Dataset_tags_Dataset_id" ON "Dataset_tags" ("Dataset_id");
 
 CREATE TABLE "Dataset_isPartOf" (
 	"Dataset_id" TEXT,
@@ -1774,8 +1774,8 @@ CREATE TABLE "Dataset_isPartOf" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_isPartOf_Dataset_id" ON "Dataset_isPartOf" ("Dataset_id");
 CREATE INDEX "ix_Dataset_isPartOf_isPartOf_id" ON "Dataset_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Dataset_isPartOf_Dataset_id" ON "Dataset_isPartOf" ("Dataset_id");
 
 CREATE TABLE "Dataset_hasPart" (
 	"Dataset_id" TEXT,
@@ -1784,8 +1784,8 @@ CREATE TABLE "Dataset_hasPart" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_hasPart_hasPart_id" ON "Dataset_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Dataset_hasPart_Dataset_id" ON "Dataset_hasPart" ("Dataset_id");
+CREATE INDEX "ix_Dataset_hasPart_hasPart_id" ON "Dataset_hasPart" ("hasPart_id");
 
 CREATE TABLE "Dataset_references" (
 	"Dataset_id" TEXT,
@@ -1794,8 +1794,8 @@ CREATE TABLE "Dataset_references" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_references_references_id" ON "Dataset_references" (references_id);
 CREATE INDEX "ix_Dataset_references_Dataset_id" ON "Dataset_references" ("Dataset_id");
+CREATE INDEX "ix_Dataset_references_references_id" ON "Dataset_references" (references_id);
 
 CREATE TABLE "Dataset_dependsOn" (
 	"Dataset_id" TEXT,
@@ -1804,8 +1804,8 @@ CREATE TABLE "Dataset_dependsOn" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_dependsOn_dependsOn_id" ON "Dataset_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Dataset_dependsOn_Dataset_id" ON "Dataset_dependsOn" ("Dataset_id");
+CREATE INDEX "ix_Dataset_dependsOn_dependsOn_id" ON "Dataset_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Dataset_derivedFrom" (
 	"Dataset_id" TEXT,
@@ -1814,8 +1814,8 @@ CREATE TABLE "Dataset_derivedFrom" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_derivedFrom_derivedFrom_id" ON "Dataset_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Dataset_derivedFrom_Dataset_id" ON "Dataset_derivedFrom" ("Dataset_id");
+CREATE INDEX "ix_Dataset_derivedFrom_derivedFrom_id" ON "Dataset_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Dataset_about" (
 	"Dataset_id" TEXT,
@@ -1834,8 +1834,8 @@ CREATE TABLE "Dataset_sameAs" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_sameAs_Dataset_id" ON "Dataset_sameAs" ("Dataset_id");
 CREATE INDEX "ix_Dataset_sameAs_sameAs_id" ON "Dataset_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Dataset_sameAs_Dataset_id" ON "Dataset_sameAs" ("Dataset_id");
 
 CREATE TABLE "Dataset_relatedTo" (
 	"Dataset_id" TEXT,
@@ -1844,8 +1844,8 @@ CREATE TABLE "Dataset_relatedTo" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_relatedTo_Dataset_id" ON "Dataset_relatedTo" ("Dataset_id");
 CREATE INDEX "ix_Dataset_relatedTo_relatedTo_id" ON "Dataset_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Dataset_relatedTo_Dataset_id" ON "Dataset_relatedTo" ("Dataset_id");
 
 CREATE TABLE "Dataset_definedBy" (
 	"Dataset_id" TEXT,
@@ -1854,8 +1854,8 @@ CREATE TABLE "Dataset_definedBy" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_definedBy_definedBy_id" ON "Dataset_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Dataset_definedBy_Dataset_id" ON "Dataset_definedBy" ("Dataset_id");
+CREATE INDEX "ix_Dataset_definedBy_definedBy_id" ON "Dataset_definedBy" ("definedBy_id");
 
 CREATE TABLE "Dataset_source" (
 	"Dataset_id" TEXT,
@@ -1883,8 +1883,8 @@ CREATE TABLE "Table_isPartOf" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_isPartOf_Table_id" ON "Table_isPartOf" ("Table_id");
 CREATE INDEX "ix_Table_isPartOf_isPartOf_id" ON "Table_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Table_isPartOf_Table_id" ON "Table_isPartOf" ("Table_id");
 
 CREATE TABLE "Table_hasPart" (
 	"Table_id" TEXT,
@@ -1893,8 +1893,8 @@ CREATE TABLE "Table_hasPart" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_hasPart_Table_id" ON "Table_hasPart" ("Table_id");
 CREATE INDEX "ix_Table_hasPart_hasPart_id" ON "Table_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Table_hasPart_Table_id" ON "Table_hasPart" ("Table_id");
 
 CREATE TABLE "Table_references" (
 	"Table_id" TEXT,
@@ -1903,8 +1903,8 @@ CREATE TABLE "Table_references" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_references_references_id" ON "Table_references" (references_id);
 CREATE INDEX "ix_Table_references_Table_id" ON "Table_references" ("Table_id");
+CREATE INDEX "ix_Table_references_references_id" ON "Table_references" (references_id);
 
 CREATE TABLE "Table_dependsOn" (
 	"Table_id" TEXT,
@@ -1913,8 +1913,8 @@ CREATE TABLE "Table_dependsOn" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_dependsOn_Table_id" ON "Table_dependsOn" ("Table_id");
 CREATE INDEX "ix_Table_dependsOn_dependsOn_id" ON "Table_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Table_dependsOn_Table_id" ON "Table_dependsOn" ("Table_id");
 
 CREATE TABLE "Table_derivedFrom" (
 	"Table_id" TEXT,
@@ -1923,8 +1923,8 @@ CREATE TABLE "Table_derivedFrom" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_derivedFrom_Table_id" ON "Table_derivedFrom" ("Table_id");
 CREATE INDEX "ix_Table_derivedFrom_derivedFrom_id" ON "Table_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Table_derivedFrom_Table_id" ON "Table_derivedFrom" ("Table_id");
 
 CREATE TABLE "Table_about" (
 	"Table_id" TEXT,
@@ -1943,8 +1943,8 @@ CREATE TABLE "Table_sameAs" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_sameAs_Table_id" ON "Table_sameAs" ("Table_id");
 CREATE INDEX "ix_Table_sameAs_sameAs_id" ON "Table_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Table_sameAs_Table_id" ON "Table_sameAs" ("Table_id");
 
 CREATE TABLE "Table_relatedTo" (
 	"Table_id" TEXT,
@@ -1963,8 +1963,8 @@ CREATE TABLE "Table_definedBy" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_definedBy_definedBy_id" ON "Table_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Table_definedBy_Table_id" ON "Table_definedBy" ("Table_id");
+CREATE INDEX "ix_Table_definedBy_definedBy_id" ON "Table_definedBy" ("definedBy_id");
 
 CREATE TABLE "Table_source" (
 	"Table_id" TEXT,
@@ -1983,8 +1983,8 @@ CREATE TABLE "Metric_measures" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY(measures_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_measures_Metric_id" ON "Metric_measures" ("Metric_id");
 CREATE INDEX "ix_Metric_measures_measures_id" ON "Metric_measures" (measures_id);
+CREATE INDEX "ix_Metric_measures_Metric_id" ON "Metric_measures" ("Metric_id");
 
 CREATE TABLE "Metric_tags" (
 	"Metric_id" TEXT,
@@ -2002,8 +2002,8 @@ CREATE TABLE "Metric_isPartOf" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_isPartOf_isPartOf_id" ON "Metric_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Metric_isPartOf_Metric_id" ON "Metric_isPartOf" ("Metric_id");
+CREATE INDEX "ix_Metric_isPartOf_isPartOf_id" ON "Metric_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Metric_hasPart" (
 	"Metric_id" TEXT,
@@ -2012,8 +2012,8 @@ CREATE TABLE "Metric_hasPart" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_hasPart_hasPart_id" ON "Metric_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Metric_hasPart_Metric_id" ON "Metric_hasPart" ("Metric_id");
+CREATE INDEX "ix_Metric_hasPart_hasPart_id" ON "Metric_hasPart" ("hasPart_id");
 
 CREATE TABLE "Metric_references" (
 	"Metric_id" TEXT,
@@ -2022,8 +2022,8 @@ CREATE TABLE "Metric_references" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_references_Metric_id" ON "Metric_references" ("Metric_id");
 CREATE INDEX "ix_Metric_references_references_id" ON "Metric_references" (references_id);
+CREATE INDEX "ix_Metric_references_Metric_id" ON "Metric_references" ("Metric_id");
 
 CREATE TABLE "Metric_dependsOn" (
 	"Metric_id" TEXT,
@@ -2042,8 +2042,8 @@ CREATE TABLE "Metric_derivedFrom" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_derivedFrom_derivedFrom_id" ON "Metric_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Metric_derivedFrom_Metric_id" ON "Metric_derivedFrom" ("Metric_id");
+CREATE INDEX "ix_Metric_derivedFrom_derivedFrom_id" ON "Metric_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Metric_about" (
 	"Metric_id" TEXT,
@@ -2072,8 +2072,8 @@ CREATE TABLE "Metric_relatedTo" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_relatedTo_relatedTo_id" ON "Metric_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Metric_relatedTo_Metric_id" ON "Metric_relatedTo" ("Metric_id");
+CREATE INDEX "ix_Metric_relatedTo_relatedTo_id" ON "Metric_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Metric_definedBy" (
 	"Metric_id" TEXT,
@@ -2092,8 +2092,8 @@ CREATE TABLE "Metric_source" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_source_source_id" ON "Metric_source" (source_id);
 CREATE INDEX "ix_Metric_source_Metric_id" ON "Metric_source" ("Metric_id");
+CREATE INDEX "ix_Metric_source_source_id" ON "Metric_source" (source_id);
 
 CREATE TABLE "Service_tags" (
 	"Service_id" TEXT,
@@ -2101,8 +2101,8 @@ CREATE TABLE "Service_tags" (
 	PRIMARY KEY ("Service_id", tags),
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id)
 );
-CREATE INDEX "ix_Service_tags_tags" ON "Service_tags" (tags);
 CREATE INDEX "ix_Service_tags_Service_id" ON "Service_tags" ("Service_id");
+CREATE INDEX "ix_Service_tags_tags" ON "Service_tags" (tags);
 
 CREATE TABLE "Service_isPartOf" (
 	"Service_id" TEXT,
@@ -2111,8 +2111,8 @@ CREATE TABLE "Service_isPartOf" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_isPartOf_isPartOf_id" ON "Service_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Service_isPartOf_Service_id" ON "Service_isPartOf" ("Service_id");
+CREATE INDEX "ix_Service_isPartOf_isPartOf_id" ON "Service_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Service_hasPart" (
 	"Service_id" TEXT,
@@ -2121,8 +2121,8 @@ CREATE TABLE "Service_hasPart" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_hasPart_Service_id" ON "Service_hasPart" ("Service_id");
 CREATE INDEX "ix_Service_hasPart_hasPart_id" ON "Service_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Service_hasPart_Service_id" ON "Service_hasPart" ("Service_id");
 
 CREATE TABLE "Service_references" (
 	"Service_id" TEXT,
@@ -2131,8 +2131,8 @@ CREATE TABLE "Service_references" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_references_Service_id" ON "Service_references" ("Service_id");
 CREATE INDEX "ix_Service_references_references_id" ON "Service_references" (references_id);
+CREATE INDEX "ix_Service_references_Service_id" ON "Service_references" ("Service_id");
 
 CREATE TABLE "Service_dependsOn" (
 	"Service_id" TEXT,
@@ -2220,8 +2220,8 @@ CREATE TABLE "Playbook_isPartOf" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_isPartOf_Playbook_id" ON "Playbook_isPartOf" ("Playbook_id");
 CREATE INDEX "ix_Playbook_isPartOf_isPartOf_id" ON "Playbook_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Playbook_isPartOf_Playbook_id" ON "Playbook_isPartOf" ("Playbook_id");
 
 CREATE TABLE "Playbook_hasPart" (
 	"Playbook_id" TEXT,
@@ -2230,8 +2230,8 @@ CREATE TABLE "Playbook_hasPart" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_hasPart_hasPart_id" ON "Playbook_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Playbook_hasPart_Playbook_id" ON "Playbook_hasPart" ("Playbook_id");
+CREATE INDEX "ix_Playbook_hasPart_hasPart_id" ON "Playbook_hasPart" ("hasPart_id");
 
 CREATE TABLE "Playbook_references" (
 	"Playbook_id" TEXT,
@@ -2250,8 +2250,8 @@ CREATE TABLE "Playbook_dependsOn" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_dependsOn_dependsOn_id" ON "Playbook_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Playbook_dependsOn_Playbook_id" ON "Playbook_dependsOn" ("Playbook_id");
+CREATE INDEX "ix_Playbook_dependsOn_dependsOn_id" ON "Playbook_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Playbook_derivedFrom" (
 	"Playbook_id" TEXT,
@@ -2260,8 +2260,8 @@ CREATE TABLE "Playbook_derivedFrom" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_derivedFrom_Playbook_id" ON "Playbook_derivedFrom" ("Playbook_id");
 CREATE INDEX "ix_Playbook_derivedFrom_derivedFrom_id" ON "Playbook_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Playbook_derivedFrom_Playbook_id" ON "Playbook_derivedFrom" ("Playbook_id");
 
 CREATE TABLE "Playbook_about" (
 	"Playbook_id" TEXT,
@@ -2319,8 +2319,8 @@ CREATE TABLE "Tutorial_tags" (
 	PRIMARY KEY ("Tutorial_id", tags),
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id)
 );
-CREATE INDEX "ix_Tutorial_tags_Tutorial_id" ON "Tutorial_tags" ("Tutorial_id");
 CREATE INDEX "ix_Tutorial_tags_tags" ON "Tutorial_tags" (tags);
+CREATE INDEX "ix_Tutorial_tags_Tutorial_id" ON "Tutorial_tags" ("Tutorial_id");
 
 CREATE TABLE "Tutorial_isPartOf" (
 	"Tutorial_id" TEXT,
@@ -2339,8 +2339,8 @@ CREATE TABLE "Tutorial_hasPart" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_hasPart_Tutorial_id" ON "Tutorial_hasPart" ("Tutorial_id");
 CREATE INDEX "ix_Tutorial_hasPart_hasPart_id" ON "Tutorial_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Tutorial_hasPart_Tutorial_id" ON "Tutorial_hasPart" ("Tutorial_id");
 
 CREATE TABLE "Tutorial_references" (
 	"Tutorial_id" TEXT,
@@ -2349,8 +2349,8 @@ CREATE TABLE "Tutorial_references" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_references_references_id" ON "Tutorial_references" (references_id);
 CREATE INDEX "ix_Tutorial_references_Tutorial_id" ON "Tutorial_references" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_references_references_id" ON "Tutorial_references" (references_id);
 
 CREATE TABLE "Tutorial_dependsOn" (
 	"Tutorial_id" TEXT,
@@ -2379,8 +2379,8 @@ CREATE TABLE "Tutorial_about" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_about_Tutorial_id" ON "Tutorial_about" ("Tutorial_id");
 CREATE INDEX "ix_Tutorial_about_about_id" ON "Tutorial_about" (about_id);
+CREATE INDEX "ix_Tutorial_about_Tutorial_id" ON "Tutorial_about" ("Tutorial_id");
 
 CREATE TABLE "Tutorial_sameAs" (
 	"Tutorial_id" TEXT,
@@ -2389,8 +2389,8 @@ CREATE TABLE "Tutorial_sameAs" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_sameAs_sameAs_id" ON "Tutorial_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Tutorial_sameAs_Tutorial_id" ON "Tutorial_sameAs" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_sameAs_sameAs_id" ON "Tutorial_sameAs" ("sameAs_id");
 
 CREATE TABLE "Tutorial_relatedTo" (
 	"Tutorial_id" TEXT,
@@ -2399,8 +2399,8 @@ CREATE TABLE "Tutorial_relatedTo" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_relatedTo_Tutorial_id" ON "Tutorial_relatedTo" ("Tutorial_id");
 CREATE INDEX "ix_Tutorial_relatedTo_relatedTo_id" ON "Tutorial_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Tutorial_relatedTo_Tutorial_id" ON "Tutorial_relatedTo" ("Tutorial_id");
 
 CREATE TABLE "Tutorial_definedBy" (
 	"Tutorial_id" TEXT,
@@ -2419,8 +2419,8 @@ CREATE TABLE "Tutorial_source" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_source_source_id" ON "Tutorial_source" (source_id);
 CREATE INDEX "ix_Tutorial_source_Tutorial_id" ON "Tutorial_source" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_source_source_id" ON "Tutorial_source" (source_id);
 
 CREATE TABLE "Explanation_tags" (
 	"Explanation_id" TEXT,
@@ -2448,8 +2448,8 @@ CREATE TABLE "Explanation_hasPart" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_hasPart_Explanation_id" ON "Explanation_hasPart" ("Explanation_id");
 CREATE INDEX "ix_Explanation_hasPart_hasPart_id" ON "Explanation_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Explanation_hasPart_Explanation_id" ON "Explanation_hasPart" ("Explanation_id");
 
 CREATE TABLE "Explanation_references" (
 	"Explanation_id" TEXT,
@@ -2458,8 +2458,8 @@ CREATE TABLE "Explanation_references" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_references_references_id" ON "Explanation_references" (references_id);
 CREATE INDEX "ix_Explanation_references_Explanation_id" ON "Explanation_references" ("Explanation_id");
+CREATE INDEX "ix_Explanation_references_references_id" ON "Explanation_references" (references_id);
 
 CREATE TABLE "Explanation_dependsOn" (
 	"Explanation_id" TEXT,
@@ -2478,8 +2478,8 @@ CREATE TABLE "Explanation_derivedFrom" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_derivedFrom_derivedFrom_id" ON "Explanation_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Explanation_derivedFrom_Explanation_id" ON "Explanation_derivedFrom" ("Explanation_id");
+CREATE INDEX "ix_Explanation_derivedFrom_derivedFrom_id" ON "Explanation_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Explanation_about" (
 	"Explanation_id" TEXT,
@@ -2498,8 +2498,8 @@ CREATE TABLE "Explanation_sameAs" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_sameAs_sameAs_id" ON "Explanation_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Explanation_sameAs_Explanation_id" ON "Explanation_sameAs" ("Explanation_id");
+CREATE INDEX "ix_Explanation_sameAs_sameAs_id" ON "Explanation_sameAs" ("sameAs_id");
 
 CREATE TABLE "Explanation_relatedTo" (
 	"Explanation_id" TEXT,
@@ -2508,8 +2508,8 @@ CREATE TABLE "Explanation_relatedTo" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_relatedTo_relatedTo_id" ON "Explanation_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Explanation_relatedTo_Explanation_id" ON "Explanation_relatedTo" ("Explanation_id");
+CREATE INDEX "ix_Explanation_relatedTo_relatedTo_id" ON "Explanation_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Explanation_definedBy" (
 	"Explanation_id" TEXT,
@@ -2537,8 +2537,8 @@ CREATE TABLE "Policy_tags" (
 	PRIMARY KEY ("Policy_id", tags),
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id)
 );
-CREATE INDEX "ix_Policy_tags_tags" ON "Policy_tags" (tags);
 CREATE INDEX "ix_Policy_tags_Policy_id" ON "Policy_tags" ("Policy_id");
+CREATE INDEX "ix_Policy_tags_tags" ON "Policy_tags" (tags);
 
 CREATE TABLE "Policy_isPartOf" (
 	"Policy_id" TEXT,
@@ -2547,8 +2547,8 @@ CREATE TABLE "Policy_isPartOf" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_isPartOf_isPartOf_id" ON "Policy_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Policy_isPartOf_Policy_id" ON "Policy_isPartOf" ("Policy_id");
+CREATE INDEX "ix_Policy_isPartOf_isPartOf_id" ON "Policy_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Policy_hasPart" (
 	"Policy_id" TEXT,
@@ -2557,8 +2557,8 @@ CREATE TABLE "Policy_hasPart" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_hasPart_hasPart_id" ON "Policy_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Policy_hasPart_Policy_id" ON "Policy_hasPart" ("Policy_id");
+CREATE INDEX "ix_Policy_hasPart_hasPart_id" ON "Policy_hasPart" ("hasPart_id");
 
 CREATE TABLE "Policy_references" (
 	"Policy_id" TEXT,
@@ -2567,8 +2567,8 @@ CREATE TABLE "Policy_references" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_references_references_id" ON "Policy_references" (references_id);
 CREATE INDEX "ix_Policy_references_Policy_id" ON "Policy_references" ("Policy_id");
+CREATE INDEX "ix_Policy_references_references_id" ON "Policy_references" (references_id);
 
 CREATE TABLE "Policy_dependsOn" (
 	"Policy_id" TEXT,
@@ -2577,8 +2577,8 @@ CREATE TABLE "Policy_dependsOn" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_dependsOn_dependsOn_id" ON "Policy_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Policy_dependsOn_Policy_id" ON "Policy_dependsOn" ("Policy_id");
+CREATE INDEX "ix_Policy_dependsOn_dependsOn_id" ON "Policy_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Policy_derivedFrom" (
 	"Policy_id" TEXT,
@@ -2597,8 +2597,8 @@ CREATE TABLE "Policy_about" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_about_about_id" ON "Policy_about" (about_id);
 CREATE INDEX "ix_Policy_about_Policy_id" ON "Policy_about" ("Policy_id");
+CREATE INDEX "ix_Policy_about_about_id" ON "Policy_about" (about_id);
 
 CREATE TABLE "Policy_sameAs" (
 	"Policy_id" TEXT,
@@ -2627,8 +2627,8 @@ CREATE TABLE "Policy_definedBy" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_definedBy_definedBy_id" ON "Policy_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Policy_definedBy_Policy_id" ON "Policy_definedBy" ("Policy_id");
+CREATE INDEX "ix_Policy_definedBy_definedBy_id" ON "Policy_definedBy" ("definedBy_id");
 
 CREATE TABLE "Policy_source" (
 	"Policy_id" TEXT,
@@ -2676,8 +2676,8 @@ CREATE TABLE "GlossaryTerm_references" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_references_GlossaryTerm_id" ON "GlossaryTerm_references" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_references_references_id" ON "GlossaryTerm_references" (references_id);
+CREATE INDEX "ix_GlossaryTerm_references_GlossaryTerm_id" ON "GlossaryTerm_references" ("GlossaryTerm_id");
 
 CREATE TABLE "GlossaryTerm_dependsOn" (
 	"GlossaryTerm_id" TEXT,
@@ -2716,8 +2716,8 @@ CREATE TABLE "GlossaryTerm_sameAs" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_sameAs_GlossaryTerm_id" ON "GlossaryTerm_sameAs" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_sameAs_sameAs_id" ON "GlossaryTerm_sameAs" ("sameAs_id");
+CREATE INDEX "ix_GlossaryTerm_sameAs_GlossaryTerm_id" ON "GlossaryTerm_sameAs" ("GlossaryTerm_id");
 
 CREATE TABLE "GlossaryTerm_relatedTo" (
 	"GlossaryTerm_id" TEXT,
@@ -2726,8 +2726,8 @@ CREATE TABLE "GlossaryTerm_relatedTo" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_relatedTo_relatedTo_id" ON "GlossaryTerm_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_GlossaryTerm_relatedTo_GlossaryTerm_id" ON "GlossaryTerm_relatedTo" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_relatedTo_relatedTo_id" ON "GlossaryTerm_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "GlossaryTerm_definedBy" (
 	"GlossaryTerm_id" TEXT,
@@ -2746,8 +2746,8 @@ CREATE TABLE "GlossaryTerm_source" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_source_GlossaryTerm_id" ON "GlossaryTerm_source" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_source_source_id" ON "GlossaryTerm_source" (source_id);
+CREATE INDEX "ix_GlossaryTerm_source_GlossaryTerm_id" ON "GlossaryTerm_source" ("GlossaryTerm_id");
 
 CREATE TABLE "Reference_tags" (
 	"Reference_id" TEXT,
@@ -2755,8 +2755,8 @@ CREATE TABLE "Reference_tags" (
 	PRIMARY KEY ("Reference_id", tags),
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id)
 );
-CREATE INDEX "ix_Reference_tags_Reference_id" ON "Reference_tags" ("Reference_id");
 CREATE INDEX "ix_Reference_tags_tags" ON "Reference_tags" (tags);
+CREATE INDEX "ix_Reference_tags_Reference_id" ON "Reference_tags" ("Reference_id");
 
 CREATE TABLE "Reference_isPartOf" (
 	"Reference_id" TEXT,
@@ -2795,8 +2795,8 @@ CREATE TABLE "Reference_dependsOn" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_dependsOn_Reference_id" ON "Reference_dependsOn" ("Reference_id");
 CREATE INDEX "ix_Reference_dependsOn_dependsOn_id" ON "Reference_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Reference_dependsOn_Reference_id" ON "Reference_dependsOn" ("Reference_id");
 
 CREATE TABLE "Reference_derivedFrom" (
 	"Reference_id" TEXT,
@@ -2805,8 +2805,8 @@ CREATE TABLE "Reference_derivedFrom" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_derivedFrom_derivedFrom_id" ON "Reference_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Reference_derivedFrom_Reference_id" ON "Reference_derivedFrom" ("Reference_id");
+CREATE INDEX "ix_Reference_derivedFrom_derivedFrom_id" ON "Reference_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Reference_about" (
 	"Reference_id" TEXT,
@@ -2815,8 +2815,8 @@ CREATE TABLE "Reference_about" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_about_Reference_id" ON "Reference_about" ("Reference_id");
 CREATE INDEX "ix_Reference_about_about_id" ON "Reference_about" (about_id);
+CREATE INDEX "ix_Reference_about_Reference_id" ON "Reference_about" ("Reference_id");
 
 CREATE TABLE "Reference_sameAs" (
 	"Reference_id" TEXT,
@@ -2825,8 +2825,8 @@ CREATE TABLE "Reference_sameAs" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_sameAs_sameAs_id" ON "Reference_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Reference_sameAs_Reference_id" ON "Reference_sameAs" ("Reference_id");
+CREATE INDEX "ix_Reference_sameAs_sameAs_id" ON "Reference_sameAs" ("sameAs_id");
 
 CREATE TABLE "Reference_relatedTo" (
 	"Reference_id" TEXT,
@@ -2835,8 +2835,8 @@ CREATE TABLE "Reference_relatedTo" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_relatedTo_relatedTo_id" ON "Reference_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Reference_relatedTo_Reference_id" ON "Reference_relatedTo" ("Reference_id");
+CREATE INDEX "ix_Reference_relatedTo_relatedTo_id" ON "Reference_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Reference_definedBy" (
 	"Reference_id" TEXT,
@@ -2864,8 +2864,8 @@ CREATE TABLE "Document_tags" (
 	PRIMARY KEY ("Document_id", tags),
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id)
 );
-CREATE INDEX "ix_Document_tags_tags" ON "Document_tags" (tags);
 CREATE INDEX "ix_Document_tags_Document_id" ON "Document_tags" ("Document_id");
+CREATE INDEX "ix_Document_tags_tags" ON "Document_tags" (tags);
 
 CREATE TABLE "Document_isPartOf" (
 	"Document_id" TEXT,
@@ -2874,8 +2874,8 @@ CREATE TABLE "Document_isPartOf" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_isPartOf_isPartOf_id" ON "Document_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Document_isPartOf_Document_id" ON "Document_isPartOf" ("Document_id");
+CREATE INDEX "ix_Document_isPartOf_isPartOf_id" ON "Document_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Document_hasPart" (
 	"Document_id" TEXT,
@@ -2894,8 +2894,8 @@ CREATE TABLE "Document_references" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_references_Document_id" ON "Document_references" ("Document_id");
 CREATE INDEX "ix_Document_references_references_id" ON "Document_references" (references_id);
+CREATE INDEX "ix_Document_references_Document_id" ON "Document_references" ("Document_id");
 
 CREATE TABLE "Document_dependsOn" (
 	"Document_id" TEXT,
@@ -2904,8 +2904,8 @@ CREATE TABLE "Document_dependsOn" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_dependsOn_dependsOn_id" ON "Document_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Document_dependsOn_Document_id" ON "Document_dependsOn" ("Document_id");
+CREATE INDEX "ix_Document_dependsOn_dependsOn_id" ON "Document_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Document_derivedFrom" (
 	"Document_id" TEXT,
@@ -2914,8 +2914,8 @@ CREATE TABLE "Document_derivedFrom" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_derivedFrom_derivedFrom_id" ON "Document_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Document_derivedFrom_Document_id" ON "Document_derivedFrom" ("Document_id");
+CREATE INDEX "ix_Document_derivedFrom_derivedFrom_id" ON "Document_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Document_about" (
 	"Document_id" TEXT,
@@ -2924,8 +2924,8 @@ CREATE TABLE "Document_about" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_about_Document_id" ON "Document_about" ("Document_id");
 CREATE INDEX "ix_Document_about_about_id" ON "Document_about" (about_id);
+CREATE INDEX "ix_Document_about_Document_id" ON "Document_about" ("Document_id");
 
 CREATE TABLE "Document_sameAs" (
 	"Document_id" TEXT,
@@ -2934,8 +2934,8 @@ CREATE TABLE "Document_sameAs" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_sameAs_Document_id" ON "Document_sameAs" ("Document_id");
 CREATE INDEX "ix_Document_sameAs_sameAs_id" ON "Document_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Document_sameAs_Document_id" ON "Document_sameAs" ("Document_id");
 
 CREATE TABLE "Document_relatedTo" (
 	"Document_id" TEXT,
@@ -2954,8 +2954,8 @@ CREATE TABLE "Document_definedBy" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_definedBy_definedBy_id" ON "Document_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Document_definedBy_Document_id" ON "Document_definedBy" ("Document_id");
+CREATE INDEX "ix_Document_definedBy_definedBy_id" ON "Document_definedBy" ("definedBy_id");
 
 CREATE TABLE "Document_source" (
 	"Document_id" TEXT,
@@ -2964,8 +2964,8 @@ CREATE TABLE "Document_source" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_source_Document_id" ON "Document_source" ("Document_id");
 CREATE INDEX "ix_Document_source_source_id" ON "Document_source" (source_id);
+CREATE INDEX "ix_Document_source_Document_id" ON "Document_source" ("Document_id");
 
 CREATE TABLE "Role_memberOf" (
 	"Role_id" TEXT,
@@ -2974,8 +2974,8 @@ CREATE TABLE "Role_memberOf" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("memberOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_memberOf_Role_id" ON "Role_memberOf" ("Role_id");
 CREATE INDEX "ix_Role_memberOf_memberOf_id" ON "Role_memberOf" ("memberOf_id");
+CREATE INDEX "ix_Role_memberOf_Role_id" ON "Role_memberOf" ("Role_id");
 
 CREATE TABLE "Role_holder" (
 	"Role_id" TEXT,
@@ -2993,8 +2993,8 @@ CREATE TABLE "Role_tags" (
 	PRIMARY KEY ("Role_id", tags),
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id)
 );
-CREATE INDEX "ix_Role_tags_Role_id" ON "Role_tags" ("Role_id");
 CREATE INDEX "ix_Role_tags_tags" ON "Role_tags" (tags);
+CREATE INDEX "ix_Role_tags_Role_id" ON "Role_tags" ("Role_id");
 
 CREATE TABLE "Role_isPartOf" (
 	"Role_id" TEXT,
@@ -3003,8 +3003,8 @@ CREATE TABLE "Role_isPartOf" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_isPartOf_isPartOf_id" ON "Role_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Role_isPartOf_Role_id" ON "Role_isPartOf" ("Role_id");
+CREATE INDEX "ix_Role_isPartOf_isPartOf_id" ON "Role_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Role_hasPart" (
 	"Role_id" TEXT,
@@ -3023,8 +3023,8 @@ CREATE TABLE "Role_references" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_references_references_id" ON "Role_references" (references_id);
 CREATE INDEX "ix_Role_references_Role_id" ON "Role_references" ("Role_id");
+CREATE INDEX "ix_Role_references_references_id" ON "Role_references" (references_id);
 
 CREATE TABLE "Role_dependsOn" (
 	"Role_id" TEXT,
@@ -3053,8 +3053,8 @@ CREATE TABLE "Role_about" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_about_about_id" ON "Role_about" (about_id);
 CREATE INDEX "ix_Role_about_Role_id" ON "Role_about" ("Role_id");
+CREATE INDEX "ix_Role_about_about_id" ON "Role_about" (about_id);
 
 CREATE TABLE "Role_sameAs" (
 	"Role_id" TEXT,
@@ -3063,8 +3063,8 @@ CREATE TABLE "Role_sameAs" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_sameAs_Role_id" ON "Role_sameAs" ("Role_id");
 CREATE INDEX "ix_Role_sameAs_sameAs_id" ON "Role_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Role_sameAs_Role_id" ON "Role_sameAs" ("Role_id");
 
 CREATE TABLE "Role_relatedTo" (
 	"Role_id" TEXT,
@@ -3073,8 +3073,8 @@ CREATE TABLE "Role_relatedTo" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_relatedTo_relatedTo_id" ON "Role_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Role_relatedTo_Role_id" ON "Role_relatedTo" ("Role_id");
+CREATE INDEX "ix_Role_relatedTo_relatedTo_id" ON "Role_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Role_definedBy" (
 	"Role_id" TEXT,
@@ -3093,8 +3093,8 @@ CREATE TABLE "Role_source" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_source_Role_id" ON "Role_source" ("Role_id");
 CREATE INDEX "ix_Role_source_source_id" ON "Role_source" (source_id);
+CREATE INDEX "ix_Role_source_Role_id" ON "Role_source" ("Role_id");
 
 CREATE TABLE "AttestedComputation_tags" (
 	"AttestedComputation_id" TEXT,
@@ -3102,8 +3102,8 @@ CREATE TABLE "AttestedComputation_tags" (
 	PRIMARY KEY ("AttestedComputation_id", tags),
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id)
 );
-CREATE INDEX "ix_AttestedComputation_tags_tags" ON "AttestedComputation_tags" (tags);
 CREATE INDEX "ix_AttestedComputation_tags_AttestedComputation_id" ON "AttestedComputation_tags" ("AttestedComputation_id");
+CREATE INDEX "ix_AttestedComputation_tags_tags" ON "AttestedComputation_tags" (tags);
 
 CREATE TABLE "AttestedComputation_isPartOf" (
 	"AttestedComputation_id" TEXT,
@@ -3112,8 +3112,8 @@ CREATE TABLE "AttestedComputation_isPartOf" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_isPartOf_AttestedComputation_id" ON "AttestedComputation_isPartOf" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_isPartOf_isPartOf_id" ON "AttestedComputation_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_AttestedComputation_isPartOf_AttestedComputation_id" ON "AttestedComputation_isPartOf" ("AttestedComputation_id");
 
 CREATE TABLE "AttestedComputation_hasPart" (
 	"AttestedComputation_id" TEXT,
@@ -3142,8 +3142,8 @@ CREATE TABLE "AttestedComputation_dependsOn" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_dependsOn_dependsOn_id" ON "AttestedComputation_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_AttestedComputation_dependsOn_AttestedComputation_id" ON "AttestedComputation_dependsOn" ("AttestedComputation_id");
+CREATE INDEX "ix_AttestedComputation_dependsOn_dependsOn_id" ON "AttestedComputation_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "AttestedComputation_derivedFrom" (
 	"AttestedComputation_id" TEXT,
@@ -3202,8 +3202,8 @@ CREATE TABLE "AttestedComputation_source" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_source_AttestedComputation_id" ON "AttestedComputation_source" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_source_source_id" ON "AttestedComputation_source" (source_id);
+CREATE INDEX "ix_AttestedComputation_source_AttestedComputation_id" ON "AttestedComputation_source" ("AttestedComputation_id");
 
 CREATE TABLE "Person_tags" (
 	"Person_id" TEXT,
@@ -3241,8 +3241,8 @@ CREATE TABLE "Person_references" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_references_references_id" ON "Person_references" (references_id);
 CREATE INDEX "ix_Person_references_Person_id" ON "Person_references" ("Person_id");
+CREATE INDEX "ix_Person_references_references_id" ON "Person_references" (references_id);
 
 CREATE TABLE "Person_dependsOn" (
 	"Person_id" TEXT,
@@ -3291,8 +3291,8 @@ CREATE TABLE "Person_relatedTo" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_relatedTo_relatedTo_id" ON "Person_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Person_relatedTo_Person_id" ON "Person_relatedTo" ("Person_id");
+CREATE INDEX "ix_Person_relatedTo_relatedTo_id" ON "Person_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Person_definedBy" (
 	"Person_id" TEXT,
@@ -3301,8 +3301,8 @@ CREATE TABLE "Person_definedBy" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_definedBy_Person_id" ON "Person_definedBy" ("Person_id");
 CREATE INDEX "ix_Person_definedBy_definedBy_id" ON "Person_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Person_definedBy_Person_id" ON "Person_definedBy" ("Person_id");
 
 CREATE TABLE "Person_source" (
 	"Person_id" TEXT,
@@ -3311,8 +3311,8 @@ CREATE TABLE "Person_source" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_source_source_id" ON "Person_source" (source_id);
 CREATE INDEX "ix_Person_source_Person_id" ON "Person_source" ("Person_id");
+CREATE INDEX "ix_Person_source_source_id" ON "Person_source" (source_id);
 
 CREATE TABLE "Organization_tags" (
 	"Organization_id" TEXT,
@@ -3320,8 +3320,8 @@ CREATE TABLE "Organization_tags" (
 	PRIMARY KEY ("Organization_id", tags),
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id)
 );
-CREATE INDEX "ix_Organization_tags_tags" ON "Organization_tags" (tags);
 CREATE INDEX "ix_Organization_tags_Organization_id" ON "Organization_tags" ("Organization_id");
+CREATE INDEX "ix_Organization_tags_tags" ON "Organization_tags" (tags);
 
 CREATE TABLE "Organization_isPartOf" (
 	"Organization_id" TEXT,
@@ -3330,8 +3330,8 @@ CREATE TABLE "Organization_isPartOf" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_isPartOf_isPartOf_id" ON "Organization_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Organization_isPartOf_Organization_id" ON "Organization_isPartOf" ("Organization_id");
+CREATE INDEX "ix_Organization_isPartOf_isPartOf_id" ON "Organization_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Organization_hasPart" (
 	"Organization_id" TEXT,
@@ -3340,8 +3340,8 @@ CREATE TABLE "Organization_hasPart" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_hasPart_Organization_id" ON "Organization_hasPart" ("Organization_id");
 CREATE INDEX "ix_Organization_hasPart_hasPart_id" ON "Organization_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Organization_hasPart_Organization_id" ON "Organization_hasPart" ("Organization_id");
 
 CREATE TABLE "Organization_references" (
 	"Organization_id" TEXT,
@@ -3370,8 +3370,8 @@ CREATE TABLE "Organization_derivedFrom" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_derivedFrom_Organization_id" ON "Organization_derivedFrom" ("Organization_id");
 CREATE INDEX "ix_Organization_derivedFrom_derivedFrom_id" ON "Organization_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Organization_derivedFrom_Organization_id" ON "Organization_derivedFrom" ("Organization_id");
 
 CREATE TABLE "Organization_about" (
 	"Organization_id" TEXT,
@@ -3380,8 +3380,8 @@ CREATE TABLE "Organization_about" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_about_about_id" ON "Organization_about" (about_id);
 CREATE INDEX "ix_Organization_about_Organization_id" ON "Organization_about" ("Organization_id");
+CREATE INDEX "ix_Organization_about_about_id" ON "Organization_about" (about_id);
 
 CREATE TABLE "Organization_sameAs" (
 	"Organization_id" TEXT,
@@ -3400,8 +3400,8 @@ CREATE TABLE "Organization_relatedTo" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_relatedTo_relatedTo_id" ON "Organization_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Organization_relatedTo_Organization_id" ON "Organization_relatedTo" ("Organization_id");
+CREATE INDEX "ix_Organization_relatedTo_relatedTo_id" ON "Organization_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Organization_definedBy" (
 	"Organization_id" TEXT,
@@ -3410,8 +3410,8 @@ CREATE TABLE "Organization_definedBy" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_definedBy_Organization_id" ON "Organization_definedBy" ("Organization_id");
 CREATE INDEX "ix_Organization_definedBy_definedBy_id" ON "Organization_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Organization_definedBy_Organization_id" ON "Organization_definedBy" ("Organization_id");
 
 CREATE TABLE "Organization_source" (
 	"Organization_id" TEXT,
