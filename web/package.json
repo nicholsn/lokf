@@ -16,12 +16,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.41.8",
-    "astro": "^7.2.6",
+    "@astrojs/starlight": "^0.41.10",
+    "astro": "^7.2.9",
     "astro-mermaid": "^2.1.0",
-    "cytoscape": "^3.34.1",
+    "cytoscape": "^3.34.2",
     "cytoscape-fcose": "^2.2.0",
-    "mermaid": "^11.17.1",
+    "mermaid": "^11.17.2",
     "sharp": "^0.35.3"
   },
   "devDependencies": {
