@@ -48,6 +48,42 @@ def test_classes_have_uris(vocab):
     assert vocab.classes["Metric"] == "lokf:Metric"
 
 
+# -- `by` actor-string pattern (OKF §7: human:<id> | process:<id> | <producer>/<version>) --
+def test_by_slot_has_actor_string_pattern():
+    import re
+
+    pattern = load_schema()["slots"]["by"]["pattern"]
+    good = [
+        "human:jsmith@acme",
+        "process:metrics-nightly",
+        "reference_agent/gemini-2.5-pro",
+    ]
+    bad = ["John Smith", "human:", "has space/version", "no-scheme-no-slash"]
+    for value in good:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in bad:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+# -- `email` pattern and `http_method` enum ----------------------------------
+def test_email_slot_has_pattern():
+    import re
+
+    pattern = load_schema()["slots"]["email"]["pattern"]
+    for value in ["jsmith@acme.example", "a.b+tag@sub.example.co"]:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in ["not-an-email", "missing-domain@", "@no-local.com", "no at sign.com"]:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_http_method_is_an_enum_of_iana_verbs():
+    schema = load_schema()
+    assert schema["slots"]["http_method"]["range"] == "HttpMethod"
+    assert set(schema["enums"]["HttpMethod"]["permissible_values"]) == {
+        "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
+    }
+
+
 def test_context_has_authoring_aliases():
     ctx = load_context()
     assert ctx["type"] == "@type"
