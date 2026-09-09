@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-28T08:42:17
+# Generation date: 2026-09-10T00:44:10
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
@@ -499,7 +499,7 @@ class Service(Concept):
     id: Union[str, ServiceId] = None
     type: str = None
     endpoint: Optional[Union[str, URIorCURIE]] = None
-    http_method: Optional[str] = None
+    http_method: Optional[Union[str, "HttpMethod"]] = None
     documentation: Optional[Union[str, URIorCURIE]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
@@ -511,8 +511,8 @@ class Service(Concept):
         if self.endpoint is not None and not isinstance(self.endpoint, URIorCURIE):
             self.endpoint = URIorCURIE(self.endpoint)
 
-        if self.http_method is not None and not isinstance(self.http_method, str):
-            self.http_method = str(self.http_method)
+        if self.http_method is not None and not isinstance(self.http_method, HttpMethod):
+            self.http_method = HttpMethod(self.http_method)
 
         if self.documentation is not None and not isinstance(self.documentation, URIorCURIE):
             self.documentation = URIorCURIE(self.documentation)
@@ -1759,6 +1759,39 @@ class ParameterType(EnumDefinitionImpl):
         description="""Datatypes for Attested Computation parameters. The permissible values mirror FieldType's authoring surface exactly (one datatype vocabulary for authors), but the meanings deliberately diverge: ParameterType values are written under the `type` key, whose flat-context alias is @type, so each value means a designed lokf Parameter-kind CLASS rather than an XSD datatype — `_:p rdf:type xsd:integer` would falsely type a non-literal node with a datatype (a class of literals), while `_:p rdf:type lokf:IntegerParameter` is true and OWL-DL-safe. Each value's XSD value space is carried as an annotation and asserted in the generated ontology, where every Parameter-kind class is declared a subclass of lokf:Parameter.""",
     )
 
+class HttpMethod(EnumDefinitionImpl):
+    """
+    The IANA HTTP request method registry, restricted to the methods a LOKF Service is realistically documented as
+    being invoked with. Permissible value names are uppercase (unlike this schema's other enums) because the method
+    name is a case-sensitive wire token, not an authoring convenience label.
+    """
+    GET = PermissibleValue(
+        text="GET",
+        description="Retrieve a representation of the resource.")
+    POST = PermissibleValue(
+        text="POST",
+        description="Submit data to be processed, often creating a resource.")
+    PUT = PermissibleValue(
+        text="PUT",
+        description="Replace the resource with the supplied representation.")
+    PATCH = PermissibleValue(
+        text="PATCH",
+        description="Apply a partial modification to the resource.")
+    DELETE = PermissibleValue(
+        text="DELETE",
+        description="Remove the resource.")
+    HEAD = PermissibleValue(
+        text="HEAD",
+        description="Like GET, but returns headers only, no body.")
+    OPTIONS = PermissibleValue(
+        text="OPTIONS",
+        description="Describe the communication options for the resource.")
+
+    _defn = EnumDefinition(
+        name="HttpMethod",
+        description="""The IANA HTTP request method registry, restricted to the methods a LOKF Service is realistically documented as being invoked with. Permissible value names are uppercase (unlike this schema's other enums) because the method name is a case-sensitive wire token, not an authoring convenience label.""",
+    )
+
 # Slots
 class slots:
     pass
@@ -1863,7 +1896,8 @@ slots.name = Slot(uri=SCHEMA.name, name="name", curie=SCHEMA.curie('name'),
                    model_uri=LOKF.name, domain=None, range=Optional[str])
 
 slots.email = Slot(uri=SCHEMA.email, name="email", curie=SCHEMA.curie('email'),
-                   model_uri=LOKF.email, domain=None, range=Optional[str])
+                   model_uri=LOKF.email, domain=None, range=Optional[str],
+                   pattern=re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$'))
 
 slots.datatype = Slot(uri=LOKF.datatype, name="datatype", curie=LOKF.curie('datatype'),
                    model_uri=LOKF.datatype, domain=None, range=Optional[Union[str, "FieldType"]])
@@ -1893,7 +1927,7 @@ slots.endpoint = Slot(uri=SCHEMA.url, name="endpoint", curie=SCHEMA.curie('url')
                    model_uri=LOKF.endpoint, domain=None, range=Optional[Union[str, URIorCURIE]])
 
 slots.http_method = Slot(uri=SCHEMA.httpMethod, name="http_method", curie=SCHEMA.curie('httpMethod'),
-                   model_uri=LOKF.http_method, domain=None, range=Optional[str])
+                   model_uri=LOKF.http_method, domain=None, range=Optional[Union[str, "HttpMethod"]])
 
 slots.documentation = Slot(uri=SCHEMA.documentation, name="documentation", curie=SCHEMA.curie('documentation'),
                    model_uri=LOKF.documentation, domain=None, range=Optional[Union[str, URIorCURIE]])
@@ -1959,7 +1993,8 @@ slots.verified = Slot(uri=LOKF.verified, name="verified", curie=LOKF.curie('veri
                    model_uri=LOKF.verified, domain=None, range=Optional[Union[Union[dict, Verification], list[Union[dict, Verification]]]])
 
 slots.by = Slot(uri=PROV.wasAssociatedWith, name="by", curie=PROV.curie('wasAssociatedWith'),
-                   model_uri=LOKF.by, domain=None, range=str)
+                   model_uri=LOKF.by, domain=None, range=str,
+                   pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
 
 slots.at = Slot(uri=PROV.endedAtTime, name="at", curie=PROV.curie('endedAtTime'),
                    model_uri=LOKF.at, domain=None, range=Optional[Union[str, XSDDateTime]])

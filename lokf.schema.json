@@ -6,6 +6,7 @@
             "properties": {
                 "email": {
                     "description": "Contact email address.",
+                    "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
                     "type": [
                         "string",
                         "null"
@@ -1734,6 +1735,7 @@
                 },
                 "by": {
                     "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 }
             },
@@ -2042,6 +2044,20 @@
             ],
             "title": "GlossaryTerm",
             "type": "object"
+        },
+        "HttpMethod": {
+            "description": "The IANA HTTP request method registry, restricted to the methods a LOKF Service is realistically documented as being invoked with. Permissible value names are uppercase (unlike this schema's other enums) because the method name is a case-sensitive wire token, not an authoring convenience label.",
+            "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "HEAD",
+                "OPTIONS"
+            ],
+            "title": "HttpMethod",
+            "type": "string"
         },
         "KnowledgeBundle": {
             "additionalProperties": false,
@@ -2577,6 +2593,7 @@
                 },
                 "email": {
                     "description": "Contact email address.",
+                    "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
                     "type": [
                         "string",
                         "null"
@@ -2919,6 +2936,7 @@
                 },
                 "email": {
                     "description": "Contact email address.",
+                    "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
                     "type": [
                         "string",
                         "null"
@@ -4491,11 +4509,8 @@
                     ]
                 },
                 "http_method": {
-                    "description": "The HTTP method used to invoke the service, if applicable.",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
+                    "$ref": "#/$defs/HttpMethod",
+                    "description": "The HTTP method used to invoke the service, if applicable."
                 },
                 "id": {
                     "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
@@ -5357,6 +5372,7 @@
                 },
                 "by": {
                     "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 }
             },
