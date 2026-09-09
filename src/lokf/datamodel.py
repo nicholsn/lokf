@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-28T08:42:17
+# Generation date: 2026-09-10T00:17:42
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
