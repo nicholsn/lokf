@@ -136,6 +136,109 @@ def test_validate_missing_bundle_nonzero_exit():
     assert result.exit_code != 0
 
 
+def test_validate_check_refs_ok_on_reference_bundle():
+    """--check-refs passes on the reference bundle: every relation resolves."""
+    result = runner.invoke(app, ["validate", str(BUNDLE), "--check-refs"])
+    assert result.exit_code == 0
+    assert "All typed-relation targets resolve." in result.stdout
+
+
+def test_validate_check_refs_catches_dangling_named_slot(tmp_path):
+    """A schema-valid but fabricated `isPartOf` target fails only under --check-refs."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "isPartOf: [https://ex.org/kb/does-not-exist]\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+
+    plain = runner.invoke(app, ["validate", str(tmp_path)])
+    assert plain.exit_code == 0
+
+    checked = runner.invoke(app, ["validate", str(tmp_path), "--check-refs"])
+    assert checked.exit_code == 1
+    assert "isPartOf" in checked.output
+    assert "does-not-exist" in checked.output
+
+
+def test_validate_check_refs_catches_dangling_generic_relation(tmp_path):
+    """A dangling `relations[].target` (not a named slot) is caught too."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "relations:\n  - predicate: relatedTo\n"
+        "    target: https://ex.org/kb/also-missing\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["validate", str(tmp_path), "--check-refs"])
+    assert result.exit_code == 1
+    assert "relations" in result.output
+    assert "also-missing" in result.output
+
+
+def test_validate_check_refs_allows_measures_free_text(tmp_path):
+    """`measures` is documented as accepting a description, not just an IRI
+
+    (lokf.yaml: "a concept IRI or description") - a prose value there must
+    not be flagged as a dangling reference.
+    """
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "m.md").write_text(
+        "---\ntype: Metric\ntitle: M\nunit: users\n"
+        "measures:\n  - the number of distinct home page visitors\n---\n\n# M\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["validate", str(tmp_path), "--check-refs"])
+    assert result.exit_code == 0
+    assert "All typed-relation targets resolve." in result.stdout
+
+
+def test_validate_check_refs_uses_explicit_schema(tmp_path):
+    """--check-refs must use the same schema as --schema, not an ambient one.
+
+    A custom schema whose relation slot is named differently than LOKF's
+    would silently check the wrong slot name if the vocabulary resolution
+    ignored --schema.
+    """
+    lokf_yaml = pathlib.Path(__file__).resolve().parents[1] / "lokf.yaml"
+    schema_text = lokf_yaml.read_text(encoding="utf-8")
+    # Rename only the `isPartOf` slot definition and its declaration on
+    # Concept - anchored on exact indentation so this doesn't also touch
+    # the unrelated `schema:isPartOf`/`dcterms:isPartOf` CURIE values or the
+    # RelationType enum's own `isPartOf` permissible value.
+    assert schema_text.count("\n  isPartOf:\n") == 1
+    assert schema_text.count("\n      - isPartOf\n") == 1
+    schema_text = schema_text.replace(
+        "\n  isPartOf:\n", "\n  customPartOf:\n"
+    ).replace("\n      - isPartOf\n", "\n      - customPartOf\n")
+    custom_schema = tmp_path / "custom.yaml"
+    custom_schema.write_text(schema_text, encoding="utf-8")
+
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "customPartOf: [https://ex.org/kb/does-not-exist]\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app, ["validate", str(tmp_path), "--schema", str(custom_schema), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "customPartOf" in result.output
+    assert "does-not-exist" in result.output
+
+
 # -- query ------------------------------------------------------------------
 def test_query_select_table_contains_wau():
     """query <bundle> <SELECT> prints a table with the metric name."""

@@ -132,6 +132,12 @@ def validate(
         help="Schema file (default: a local lokf.yaml checkout, else the copy "
         "packaged with lokf).",
     ),
+    check_refs: bool = typer.Option(
+        False, "--check-refs",
+        help="Also confirm every typed-relation target (isPartOf, dependsOn, "
+        "about, relations[].target, etc.) resolves to a concept in the "
+        "bundle - a check JSON Schema cannot express.",
+    ),
 ) -> None:
     """Assemble a bundle and validate it against the LOKF schema.
 
@@ -179,12 +185,22 @@ def validate(
     # Fail on ERROR/FATAL only, which is what `linkml-validate` exits non-zero
     # on (its exit code is `1 if severity_counter[Severity.ERROR] > 0`) - a
     # warning is reported without failing the command.
-    if any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results):
+    failed = any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results)
+
+    dangling: list[tuple[str, str, str]] = []
+    if check_refs:
+        dangling = bundle.dangling_refs(schema_path=sch)
+        for concept_id, slot, target in dangling:
+            _err(f"[ERROR] {concept_id}: `{slot}` target does not resolve to a "
+                 f"concept in the bundle: {target}")
+        failed = failed or bool(dangling)
+
+    if failed:
         raise typer.Exit(1)
-    typer.echo(
-        f"OK — {len(bundle.concepts)} concepts in {bundle_dir} validate "
-        "against KnowledgeBundle."
-    )
+    ok = f"OK — {len(bundle.concepts)} concepts in {bundle_dir} validate against KnowledgeBundle."
+    if check_refs:
+        ok += " All typed-relation targets resolve."
+    typer.echo(ok)
 
 
 # ---------------------------------------------------------------------------

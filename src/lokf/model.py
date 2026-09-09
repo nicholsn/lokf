@@ -76,6 +76,55 @@ class Bundle:
         """Look up a concept by IRI, Concept ID, or bundle-relative path."""
         return self.by_iri().get(self.resolve(ref.removesuffix(".md")))
 
+    def dangling_refs(
+        self, schema_path: str | pathlib.Path | None = None
+    ) -> list[tuple[str, str, str]]:
+        """Typed-relation targets that resolve to no concept in the bundle.
+
+        Checks every multivalued, ``Concept``-ranged slot the schema declares
+        on ``Concept`` or a subclass (``isPartOf``, ``dependsOn``, ``about``,
+        etc. - see :class:`lokf.schema.Vocabulary`), plus the ``target`` of
+        each reified entry under the generic ``relations`` slot, which the
+        vocabulary's own domain scoping excludes (its domain is ``Relation``,
+        not ``Concept``). This closes a gap schema validation cannot cover.
+
+        ``schema_path`` should be the same schema the caller validated
+        against (e.g. ``validate``'s resolved ``--schema``) so the relation
+        vocabulary matches - the default (``None``) resolves independently
+        and may disagree with an explicit ``--schema``.
+
+        A target containing whitespace is skipped rather than flagged; some
+        relation slots are documented as accepting a description instead of
+        a concept IRI, but no valid IRI or bundle-relative path contains space.
+
+        Returns a list of ``(concept_id, slot, target)`` triples, one per
+        unresolved target.
+        """
+        from lokf.schema import vocabulary
+
+        def is_dangling(target: object) -> bool:
+            return (
+                isinstance(target, str)
+                and not any(ch.isspace() for ch in target)
+                and self.get(target) is None
+            )
+
+        relation_slots = vocabulary(schema_path).relation_slots
+        out: list[tuple[str, str, str]] = []
+        for c in self.concepts:
+            for slot in relation_slots:
+                value = c.data.get(slot)
+                if value is None:
+                    continue
+                for target in value if isinstance(value, list) else [value]:
+                    if is_dangling(target):
+                        out.append((c.concept_id, slot, target))
+            for relation in c.data.get("relations") or []:
+                target = relation.get("target") if isinstance(relation, dict) else None
+                if is_dangling(target):
+                    out.append((c.concept_id, "relations", target))
+        return out
+
     def docs(self) -> list[dict]:
         """Each concept's frontmatter with its IRI injected as ``id``."""
         out = []
