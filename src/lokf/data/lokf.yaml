@@ -456,6 +456,7 @@ classes:
       - usage_count
       - last_modified
       - usage_window
+      - supporting_text
     slot_usage:
       resource:
         required: true
@@ -466,6 +467,8 @@ classes:
           project X"). Range is widened to string to admit scope
           descriptors; non-URI values are lossy on the RDF projection
           (they serialize as xsd:anyURI-typed literals).
+        implements:
+          - dcterms:source
       author:
         range: string
         multivalued: false
@@ -1082,6 +1085,16 @@ slots:
     slot_uri: schema:url
     in_subset:
       - lokf_semantic
+
+  supporting_text:
+    description: Exact excerpt/quote from the referenced source.
+    range: string
+    notes:
+      - excerpt marks this as text to validate, but not a required slot
+    see_also:
+      - https://github.com/linkml/linkml-reference-validator
+    implements:
+      - linkml:excerpt
 
   # --- Bundle metadata ------------------------------------------------------
   lokf_version:

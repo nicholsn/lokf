@@ -4695,6 +4695,13 @@
                     "description": "REQUIRED. An absolute URL, a bundle-relative path, or a population/scope descriptor string (e.g. \"all queries in BigQuery project X\"). Range is widened to string to admit scope descriptors; non-URI values are lossy on the RDF projection (they serialize as xsd:anyURI-typed literals).",
                     "type": "string"
                 },
+                "supporting_text": {
+                    "description": "Exact excerpt/quote from the referenced source.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "title": {
                     "description": "Human-readable display name.",
                     "type": [

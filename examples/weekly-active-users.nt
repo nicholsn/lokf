@@ -1,43 +1,43 @@
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/name> "Metric definitions RFC" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/formula> "COUNT(DISTINCT user_id) over trailing 7 days WHERE event_name IN qualifying_events" .
-<https://acme.example/knowledge/wau-look> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-_:Ne83ba7f9ac794a95945b4852cca84d3b <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateCreated> "2026-01-15T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasDerivedFrom> <https://acme.example/knowledge/tables/user-events> .
-<https://acme.example/knowledge/wau-look> <http://schema.org/name> "WAU Look (production dashboard)" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/computations/weekly-active-users-count> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/version> "2.1" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metric-defs-rfc> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:Ndfe1246b6c8e40d697c92fd61b75daba .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/author> <https://acme.example/people/jsmith> .
 <https://acme.example/knowledge/wau-look> <https://w3id.org/lokf/usageCount> "3200"^^<http://www.w3.org/2001/XMLSchema#integer> .
-_:Ne83ba7f9ac794a95945b4852cca84d3b <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:N59ad05384a3245929c4c9e6495acc3d5 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/expires> "2026-12-31"^^<http://www.w3.org/2001/XMLSchema#date> .
-<https://acme.example/knowledge/wau-look> <http://schema.org/author> "team:analytics" .
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/author> "team:analytics" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/name> "Weekly Active Users" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/glossary/active-user> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/description> "Distinct users with at least one qualifying event in a trailing 7-day window." .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "growth" .
+_:Na43d1a5f8ef74e5084ca1dd8f6f0e2db <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
+_:N65ec3786ddd248f48413ce6449389dad <http://www.w3.org/ns/prov#endedAtTime> "2026-06-30T12:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/url> "https://wiki.acme.example/rfc/metric-defs"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-<https://acme.example/people/jsmith> <http://schema.org/name> "Jordan Smith" .
+<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/name> "Metric definitions RFC" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/version> "2.1" .
+_:Na43d1a5f8ef74e5084ca1dd8f6f0e2db <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/wau-look> <http://schema.org/name> "WAU Look (production dashboard)" .
+_:N8fdddc9327ec496e972a7bfa1cfc9208 <http://www.w3.org/ns/dcat#endDate> "2026-06-30"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/description> "Distinct users with at least one qualifying event in a trailing 7-day window." .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/unitText> "users" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:Ndfd55ae9688443039afcffe386b0cd3b .
-_:Ndfd55ae9688443039afcffe386b0cd3b <http://www.w3.org/ns/prov#endedAtTime> "2026-07-01T16:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12"^^<http://www.w3.org/2001/XMLSchema#date> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasGeneratedBy> _:N59ad05384a3245929c4c9e6495acc3d5 .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:Ne83ba7f9ac794a95945b4852cca84d3b .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/measures> <https://acme.example/knowledge/glossary/active-user> .
-_:Ndfe1246b6c8e40d697c92fd61b75daba <http://www.w3.org/ns/dcat#startDate> "2026-06-01"^^<http://www.w3.org/2001/XMLSchema#date> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-_:Ndfd55ae9688443039afcffe386b0cd3b <http://www.w3.org/ns/prov#wasAssociatedWith> "human:kliu@acme" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/wau-look> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "engagement" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "north-star" .
-<https://acme.example/people/jsmith> <http://schema.org/email> "jsmith@acme.example" .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/creativeWorkStatus> "stable" .
-_:Ndfe1246b6c8e40d697c92fd61b75daba <http://www.w3.org/ns/dcat#endDate> "2026-06-30"^^<http://www.w3.org/2001/XMLSchema#date> .
-<https://acme.example/people/jsmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
-_:N59ad05384a3245929c4c9e6495acc3d5 <http://www.w3.org/ns/prov#endedAtTime> "2026-06-30T12:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/glossary/active-user> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:N8fdddc9327ec496e972a7bfa1cfc9208 .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:Na43d1a5f8ef74e5084ca1dd8f6f0e2db .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasDerivedFrom> <https://acme.example/knowledge/tables/user-events> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/Metric> .
+_:N8fdddc9327ec496e972a7bfa1cfc9208 <http://www.w3.org/ns/dcat#startDate> "2026-06-01"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "north-star" .
+<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/wau-look> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/name> "Weekly Active Users" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/creativeWorkStatus> "stable" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasGeneratedBy> _:N65ec3786ddd248f48413ce6449389dad .
+<https://acme.example/people/jsmith> <http://schema.org/email> "jsmith@acme.example" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:N099772fbe20a48f28e70790b7c3d950b .
+_:N099772fbe20a48f28e70790b7c3d950b <http://www.w3.org/ns/prov#wasAssociatedWith> "human:kliu@acme" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/formula> "COUNT(DISTINCT user_id) over trailing 7 days WHERE event_name IN qualifying_events" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/author> <https://acme.example/people/jsmith> .
+<https://acme.example/people/jsmith> <http://schema.org/name> "Jordan Smith" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/measures> <https://acme.example/knowledge/glossary/active-user> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/computations/weekly-active-users-count> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metric-defs-rfc> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "growth" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "engagement" .
+_:N099772fbe20a48f28e70790b7c3d950b <http://www.w3.org/ns/prov#endedAtTime> "2026-07-01T16:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/people/jsmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
+<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/author> "team:analytics" .
+<https://acme.example/knowledge/wau-look> <http://schema.org/author> "team:analytics" .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/wau-look> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/expires> "2026-12-31"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateCreated> "2026-01-15T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:N65ec3786ddd248f48413ce6449389dad <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
