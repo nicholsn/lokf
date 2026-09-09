@@ -113,6 +113,29 @@ def test_validate_reports_a_schema_violation(tmp_path):
     assert "seeAlso" in result.output
 
 
+def test_validate_accepts_source_with_supporting_text(tmp_path):
+    """A `sources[].supporting_text` excerpt validates against the schema.
+
+    Regression coverage for the Source class's `supporting_text` slot
+    (linkml:excerpt) and `resource`'s dcterms:source annotation added
+    alongside it - both are additive, optional fields and must not make an
+    otherwise-valid concept fail.
+    """
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "sources:\n  - resource: https://ex.org/rfc\n"
+        "    supporting_text: the exact quoted sentence\n"
+        "---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 0
+    assert "validate against KnowledgeBundle" in result.stdout
+
+
 def test_validate_reports_a_warning_without_failing(monkeypatch):
     """`linkml-validate` exits 0 unless a result is ERROR; so does this."""
     from linkml.validator.report import Severity, ValidationResult
