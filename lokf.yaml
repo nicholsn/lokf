@@ -1250,6 +1250,7 @@ slots:
       inspection (SPARQL STRSTARTS).
     required: true
     range: string
+    pattern: '^(human|process):\S+$|^[^\s/]+/[^\s/]+$'
     slot_uri: prov:wasAssociatedWith
     close_mappings:
       - schema:agent
