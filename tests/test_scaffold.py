@@ -93,6 +93,14 @@ def test_title_and_base_iri_defaults(tmp_path):
     assert '"name": "cool-kb"' in (root / "package.json").read_text()
 
 
+def test_hash_terminated_base_iri_is_left_intact(tmp_path):
+    # A `#` namespace already terminates; appending `/` would mint `…#/ids`.
+    root = scaffold.new("kb", path=tmp_path, base_iri="https://ex.org/ns#")
+    index = (root / "knowledge/index.md").read_text()
+    assert "https://ex.org/ns#" in index
+    assert "https://ex.org/ns#/" not in index
+
+
 def test_refuses_nonempty_target(tmp_path):
     (tmp_path / "kb").mkdir()
     (tmp_path / "kb" / "keep.md").write_text("x")

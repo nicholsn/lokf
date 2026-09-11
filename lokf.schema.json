@@ -2064,8 +2064,9 @@
             "description": "A self-contained, hierarchical collection of concept documents \u2014 the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass).",
             "properties": {
                 "base_iri": {
-                    "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`.",
+                    "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. Absolute http(s), ending in `/` or `#` so that ids mint by plain concatenation and prefix routing respects segment boundaries (`\u2026/team/` never captures `\u2026/team-archive/`).",
                     "format": "uri",
+                    "pattern": "^https?://\\S+[/#]$",
                     "type": [
                         "string",
                         "null"
@@ -4685,7 +4686,8 @@
             "description": "A material a concept derives from (OKF v0.2 \u00a75.1) \u2014 a pointer (`resource`) plus objective per-source credibility signals (`author`, `usage_count`, `last_modified`) from which consumers infer trust; OKF stores signals, never a score. Markdown footnotes whose label equals `id` attribute individual claims to this entry. Supersedes Citation.",
             "properties": {
                 "author": {
-                    "description": "Who or what produced the source, as an OKF \u00a77 actor string (e.g. `team:ga4-docs`) \u2014 an authority signal carried as a plain literal, not an inlined Agent object.",
+                    "description": "Who or what produced the source, as an actor string (e.g. `team:analytics`, `human:jsmith@acme`, `ga4-docs/v2`) \u2014 an authority signal carried as a plain literal, not an inlined Agent object. Deliberately looser than `by`: source authorship is commonly a team or an org, so any `<prefix>:<id>` is admitted, where `by` stays confined to the \u00a77 provenance actors the trust tiers read.",
+                    "pattern": "^[^\\s:/]+:\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": [
                         "string",
                         "null"
@@ -5390,8 +5392,9 @@
     "metamodel_version": "1.11.0",
     "properties": {
         "base_iri": {
-            "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`.",
+            "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. Absolute http(s), ending in `/` or `#` so that ids mint by plain concatenation and prefix routing respects segment boundaries (`\u2026/team/` never captures `\u2026/team-archive/`).",
             "format": "uri",
+            "pattern": "^https?://\\S+[/#]$",
             "type": [
                 "string",
                 "null"

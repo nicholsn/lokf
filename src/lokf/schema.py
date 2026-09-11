@@ -192,6 +192,82 @@ class Vocabulary:
                 best, out = ns, f"{prefix}:{uri[len(ns):]}"
         return out
 
+    def manifest(self) -> dict:
+        """The whole vocabulary as one JSON-ready document.
+
+        Serves consumers that cannot run LinkML - allows them to instead
+        ship a pinned copy and fall back to built-in defaults when
+        it is absent. It carries what the generated artefacts drop:
+        ``recommended`` and ``deprecated`` survive in neither JSON Schema,
+        SHACL, nor OWL, so a consumer can only read them from here.
+        """
+        schema = self._schema
+        classes, slots = schema.get("classes", {}), schema.get("slots", {})
+
+        def _texts(spec: dict) -> dict:
+            out = {}
+            for key in ("description", "deprecated"):
+                if value := spec.get(key):
+                    out[key] = " ".join(value.split())
+            return out
+
+        return {
+            "schemaVersion": schema.get("version", ""),
+            "schemaName": schema.get("name", ""),
+            "prefixes": dict(self.prefixes),
+            "classes": {
+                name: {
+                    "uri": self.classes[name],
+                    "is_a": spec.get("is_a"),
+                    "abstract": bool(spec.get("abstract", False)),
+                    "concept": self._descends_from(classes, name, "Concept"),
+                    "aliases": list(spec.get("aliases", [])),
+                    "slots": list(spec.get("slots", [])),
+                    "recommended": sorted(
+                        s for s, u in (spec.get("slot_usage") or {}).items()
+                        if (u or {}).get("recommended")
+                    ),
+                    **_texts(spec),
+                }
+                for name, spec in classes.items()
+            },
+            "slots": {
+                name: {
+                    "uri": spec.get("slot_uri"),
+                    "range": spec.get("range"),
+                    "multivalued": bool(spec.get("multivalued", False)),
+                    "required": bool(spec.get("required", False)),
+                    "pattern": spec.get("pattern"),
+                    "subsets": list(spec.get("in_subset", [])),
+                    **_texts(spec),
+                }
+                for name, spec in slots.items()
+            },
+            "relationTypes": [r.as_row() for r in sorted(
+                self.relation_types.values(), key=lambda r: r.name
+            )],
+            "enums": {
+                name: [
+                    {"value": value, "meaning": (spec or {}).get("meaning"),
+                     **_texts(spec or {})}
+                    for value, spec in (enum.get("permissible_values") or {}).items()
+                ]
+                for name, enum in schema.get("enums", {}).items()
+            },
+            "subsets": {
+                name: sorted(
+                    s for s, spec in slots.items() if name in (spec.get("in_subset") or [])
+                )
+                for name in schema.get("subsets", {})
+            },
+            "deprecations": {
+                name: " ".join(spec["deprecated"].split())
+                for group in (classes, slots)
+                for name, spec in group.items()
+                if spec.get("deprecated")
+            },
+        }
+
 
 @lru_cache(maxsize=None)
 def _vocabulary(resolved: str) -> "Vocabulary":

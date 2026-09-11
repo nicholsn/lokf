@@ -170,6 +170,13 @@ classes:
       - unit
       - formula
       - measures
+    slot_usage:
+      unit:
+        recommended: true
+      formula:
+        recommended: true
+      measures:
+        recommended: true
 
   Service:
     is_a: Concept
@@ -181,6 +188,13 @@ classes:
       - endpoint
       - http_method
       - documentation
+    slot_usage:
+      endpoint:
+        recommended: true
+      documentation:
+        recommended: true
+      # http_method stays optional: its own description says "if applicable",
+      # and a GraphQL, gRPC, or whole-REST-API Service has no single verb.
 
   Playbook:
     is_a: Concept
@@ -265,6 +279,9 @@ classes:
     slots:
       - definition
       - abbreviation
+    slot_usage:
+      definition:
+        recommended: true
 
   Reference:
     is_a: Concept
@@ -470,10 +487,14 @@ classes:
         range: string
         multivalued: false
         inlined_as_list: false
+        pattern: '^[^\s:/]+:\S+$|^[^\s/]+/[^\s/]+$'
         description: >-
-          Who or what produced the source, as an OKF §7 actor string
-          (e.g. `team:ga4-docs`) — an authority signal carried as a plain
-          literal, not an inlined Agent object.
+          Who or what produced the source, as an actor string (e.g.
+          `team:analytics`, `human:jsmith@acme`, `ga4-docs/v2`) — an authority
+          signal carried as a plain literal, not an inlined Agent object.
+          Deliberately looser than `by`: source authorship is commonly a team
+          or an org, so any `<prefix>:<id>` is admitted, where `by` stays
+          confined to the §7 provenance actors the trust tiers read.
 
   UsageWindow:
     description: >-
@@ -1101,8 +1122,11 @@ slots:
   base_iri:
     description: >-
       The base IRI against which Concept IDs are resolved to produce each
-      concept's stable `id`.
+      concept's stable `id`. Absolute http(s), ending in `/` or `#` so that
+      ids mint by plain concatenation and prefix routing respects segment
+      boundaries (`…/team/` never captures `…/team-archive/`).
     range: uri
+    pattern: '^https?://\S+[/#]$'
     slot_uri: lokf:baseIri
     in_subset:
       - lokf_semantic

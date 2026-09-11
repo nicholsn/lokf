@@ -48,6 +48,63 @@ def test_classes_have_uris(vocab):
     assert vocab.classes["Metric"] == "lokf:Metric"
 
 
+# -- recommended fields + the vocabulary manifest ----------------------------
+def test_recommended_fields_are_declared_per_type():
+    schema = load_schema()
+
+    def recommended(cls):
+        usage = schema["classes"][cls].get("slot_usage") or {}
+        return {s for s, u in usage.items() if (u or {}).get("recommended")}
+
+    assert recommended("Metric") == {"unit", "formula", "measures"}
+    assert recommended("GlossaryTerm") == {"definition"}
+    # http_method is excluded on purpose: its own description says "if
+    # applicable", and a GraphQL or gRPC Service has no single verb.
+    assert recommended("Service") == {"endpoint", "documentation"}
+    assert "http_method" not in recommended("Service")
+
+
+def test_dataset_recommends_nothing_so_table_inherits_nothing():
+    # Table is_a Dataset, so anything recommended on Dataset propagates to it.
+    # `distribution` is meaningless for a warehouse table, and neither the SPEC
+    # nor the enforcer plugin treats either field as a SHOULD.
+    schema = load_schema()
+    assert schema["classes"]["Table"]["is_a"] == "Dataset"
+    assert not (schema["classes"]["Dataset"].get("slot_usage") or {})
+
+
+def test_manifest_carries_what_the_generated_artefacts_drop(vocab):
+    m = vocab.manifest()
+    assert m["schemaVersion"] == load_schema()["version"]
+    # `recommended` and `deprecated` survive in no generated artefact, so the
+    # manifest is the only machine-readable carrier for them.
+    assert m["classes"]["Metric"]["recommended"] == ["formula", "measures", "unit"]
+    assert m["classes"]["Dataset"]["recommended"] == []
+    assert set(m["deprecations"]) == {"timestamp", "citations", "Citation"}
+    # The vocabulary the plugins hard-code today, in full.
+    assert len(m["relationTypes"]) == 15
+    assert {"wasAttributedTo", "measures", "memberOf", "holder"} <= {
+        r["name"] for r in m["relationTypes"]
+    }
+    assert m["classes"]["Role"]["concept"] is True
+    assert m["classes"]["Playbook"]["aliases"] == ["runbook", "how-to guide"]
+    assert "Attested Computation" in m["classes"]["AttestedComputation"]["aliases"]
+    # in_subset drives the OKF-vs-LOKF boundary the plugins draw by hand.
+    assert set(m["subsets"]) == {"okf_core", "okf_v02", "lokf_semantic"}
+    assert "type" in m["subsets"]["okf_core"]
+    assert m["slots"]["base_iri"]["pattern"] == load_schema()["slots"]["base_iri"]["pattern"]
+
+
+def test_manifest_is_json_serializable_and_committed(vocab):
+    import json
+
+    committed = ROOT / "lokf.vocab.json"
+    assert committed.exists(), "lokf.vocab.json is missing; run lokf-build"
+    assert json.loads(committed.read_text()) == json.loads(json.dumps(vocab.manifest())), (
+        "lokf.vocab.json is out of sync with lokf.yaml; run lokf-build"
+    )
+
+
 # -- `by` actor-string pattern (OKF §7: human:<id> | process:<id> | <producer>/<version>) --
 def test_by_slot_has_actor_string_pattern():
     import re
@@ -63,6 +120,62 @@ def test_by_slot_has_actor_string_pattern():
         assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
     for value in bad:
         assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_source_author_admits_any_prefixed_actor():
+    # Source.author carries an actor string but is a distinct slot from `by`
+    # (the global `author` ranges over Agent, so nothing is inherited). It is
+    # deliberately looser: sources are commonly credited to a team, which the
+    # §7 provenance trio has no form for.
+    import re
+
+    schema = load_schema()
+    pattern = schema["classes"]["Source"]["slot_usage"]["author"]["pattern"]
+    good = ["team:analytics", "human:jsmith@acme", "process:crawler", "ga4-docs/v2"]
+    bad = ["Jordan Smith", "team:", "has space/version", "noprefix"]
+    for value in good:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in bad:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+    # ...and it must stay strictly looser than `by`, never narrower.
+    by = schema["slots"]["by"]["pattern"]
+    assert re.fullmatch(pattern, "team:analytics")
+    assert not re.fullmatch(by, "team:analytics")
+
+
+# -- `base_iri` pattern (SPEC §5: absolute http(s), `/`- or `#`-terminated) ---
+def test_base_iri_slot_has_absolute_terminated_pattern():
+    import re
+
+    pattern = load_schema()["slots"]["base_iri"]["pattern"]
+    good = [
+        "https://acme.example/knowledge/",
+        "http://ex.org/kb/",
+        "https://ex.org/ns#",  # hash namespaces are valid, per registry.add()
+    ]
+    bad = [
+        "https://acme.example/knowledge",  # unterminated: ids would mint glued
+        "acme.example/knowledge/",  # not absolute
+        "ftp://ex.org/kb/",  # not http(s)
+        "https://ex.org/a b/",  # whitespace
+    ]
+    for value in good:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in bad:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_base_iri_pattern_admits_every_registrable_base_iri():
+    # The schema pattern must not be narrower than the rule registry.add()
+    # enforces, or a bundle that routes today would stop validating.
+    import re
+
+    from lokf.registry import Registry, RepoEntry
+
+    pattern = load_schema()["slots"]["base_iri"]["pattern"]
+    for value in ["https://acme.example/knowledge/", "https://ex.org/ns#"]:
+        Registry(path=pathlib.Path("lokf-registry.yaml")).add(RepoEntry(base_iri=value))
+        assert re.fullmatch(pattern, value), f"registry accepts {value!r}, schema rejects it"
 
 
 # -- `email` pattern and `http_method` enum ----------------------------------

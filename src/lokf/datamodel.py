@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-09-10T00:44:10
+# Generation date: 2026-09-11T12:58:10
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
@@ -1963,7 +1963,8 @@ slots.okf_version = Slot(uri=LOKF.okfVersion, name="okf_version", curie=LOKF.cur
                    model_uri=LOKF.okf_version, domain=None, range=Optional[str])
 
 slots.base_iri = Slot(uri=LOKF.baseIri, name="base_iri", curie=LOKF.curie('baseIri'),
-                   model_uri=LOKF.base_iri, domain=None, range=Optional[Union[str, URI]])
+                   model_uri=LOKF.base_iri, domain=None, range=Optional[Union[str, URI]],
+                   pattern=re.compile(r'^https?://\S+[/#]$'))
 
 slots.context = Slot(uri=LOKF.context, name="context", curie=LOKF.curie('context'),
                    model_uri=LOKF.context, domain=None, range=Optional[Union[str, URI]])
@@ -2032,11 +2033,30 @@ slots.source__id = Slot(uri=SCHEMA.identifier, name="source__id", curie=SCHEMA.c
 slots.parameter__type = Slot(uri=RDF.type, name="parameter__type", curie=RDF.curie('type'),
                    model_uri=LOKF.parameter__type, domain=None, range=Optional[Union[str, "ParameterType"]])
 
+slots.Metric_unit = Slot(uri=SCHEMA.unitText, name="Metric_unit", curie=SCHEMA.curie('unitText'),
+                   model_uri=LOKF.Metric_unit, domain=Metric, range=Optional[str])
+
+slots.Metric_formula = Slot(uri=LOKF.formula, name="Metric_formula", curie=LOKF.curie('formula'),
+                   model_uri=LOKF.Metric_formula, domain=Metric, range=Optional[str])
+
+slots.Metric_measures = Slot(uri=LOKF.measures, name="Metric_measures", curie=LOKF.curie('measures'),
+                   model_uri=LOKF.Metric_measures, domain=Metric, range=Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]])
+
+slots.Service_endpoint = Slot(uri=SCHEMA.url, name="Service_endpoint", curie=SCHEMA.curie('url'),
+                   model_uri=LOKF.Service_endpoint, domain=Service, range=Optional[Union[str, URIorCURIE]])
+
+slots.Service_documentation = Slot(uri=SCHEMA.documentation, name="Service_documentation", curie=SCHEMA.curie('documentation'),
+                   model_uri=LOKF.Service_documentation, domain=Service, range=Optional[Union[str, URIorCURIE]])
+
+slots.GlossaryTerm_definition = Slot(uri=SKOS.definition, name="GlossaryTerm_definition", curie=SKOS.curie('definition'),
+                   model_uri=LOKF.GlossaryTerm_definition, domain=GlossaryTerm, range=Optional[str])
+
 slots.Source_resource = Slot(uri=SCHEMA.url, name="Source_resource", curie=SCHEMA.curie('url'),
                    model_uri=LOKF.Source_resource, domain=Source, range=str)
 
 slots.Source_author = Slot(uri=SCHEMA.author, name="Source_author", curie=SCHEMA.curie('author'),
-                   model_uri=LOKF.Source_author, domain=Source, range=Optional[Union[str, list[str]]])
+                   model_uri=LOKF.Source_author, domain=Source, range=Optional[Union[str, list[str]]],
+                   pattern=re.compile(r'^[^\s:/]+:\S+$|^[^\s/]+/[^\s/]+$'))
 
 slots.Parameter_name = Slot(uri=SCHEMA.name, name="Parameter_name", curie=SCHEMA.curie('name'),
                    model_uri=LOKF.Parameter_name, domain=Parameter, range=str)

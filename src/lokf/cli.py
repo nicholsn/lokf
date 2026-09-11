@@ -380,11 +380,19 @@ def _print_proposals(proposals) -> None:
 @app.command()
 def vocab(
     json_: bool = typer.Option(False, "--json", help="Emit JSON instead of a table."),
+    manifest: bool = typer.Option(
+        False, "--manifest",
+        help="Emit the whole vocabulary (classes, slots, enums, subsets, "
+             "deprecations) as one JSON document.",
+    ),
 ) -> None:
     """Show the typed-relation vocabulary derived from the schema."""
     from lokf.schema import vocabulary
 
     v = vocabulary()
+    if manifest:
+        typer.echo(json.dumps(v.manifest(), indent=2))
+        return
     relations = sorted(v.relation_types.values(), key=lambda r: r.name)
     if json_:
         typer.echo(json.dumps([r.as_row() for r in relations], indent=2))

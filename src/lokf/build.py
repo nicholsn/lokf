@@ -14,6 +14,7 @@ Outputs (regenerated in place):
     lokf.shacl.ttl        SHACL shapes
     lokf.owl.ttl          OWL ontology
     lokf.sql              relational schema (CREATE TABLE DDL)
+    lokf.vocab.json       the vocabulary as one JSON document (no-LinkML consumers)
     src/lokf/datamodel.py LinkML dataclass bindings (from lokf.datamodel import ...)
     examples/acme-knowledge.bundle.json   assembled bundle (git-ignored)
     examples/acme-knowledge.nt            RDF triples for the whole bundle
@@ -29,6 +30,7 @@ import subprocess
 import sys
 
 from lokf.model import load_bundle
+from lokf.schema import vocabulary
 
 
 def _find_root() -> pathlib.Path:
@@ -136,11 +138,20 @@ def generate(root: pathlib.Path) -> None:
     except OSError:
         pass
 
+    # The whole vocabulary as one JSON document, for consumers that cannot run
+    # LinkML (the downstream projects can ship a pinned copy). It is the only
+    # artifact carrying `recommended` and `deprecated`: gen-json-schema,
+    # gen-shacl, and gen-owl all drop both.
+    with open(root / "lokf.vocab.json", "w") as f:
+        json.dump(vocabulary(schema_path=schema).manifest(), f, indent=2)
+        f.write("\n")
+
     # Refresh the copies packaged with the lokf toolkit so an installed wheel
     # is self-sufficient (see lokf.schema's resolution order). Only when run
     # inside the lokf repo itself: a downstream knowledge repo that satisfies
     # _find_root must not have a src/lokf/ tree planted in it.
-    outputs = "  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, lokf.owl.ttl, lokf.sql"
+    outputs = ("  -> lokf.context.jsonld, lokf.schema.json, lokf.shacl.ttl, "
+               "lokf.owl.ttl, lokf.sql, lokf.vocab.json")
     if (root / "src" / "lokf" / "__init__.py").exists():
         data = root / "src" / "lokf" / "data"
         data.mkdir(parents=True, exist_ok=True)
