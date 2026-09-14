@@ -1099,9 +1099,14 @@ slots:
   base_iri:
     description: >-
       The base IRI against which Concept IDs are resolved to produce each
-      concept's stable `id`.
+      concept's stable `id`. An identifier namespace, not a hyperlink: it need
+      not resolve to a live page (a 404 is valid), so it is only required to be
+      a well-formed absolute IRI with an authority. A resolvable "Cool URI" is
+      the ideal, not a requirement.
     range: uri
     slot_uri: lokf:baseIri
+    see_also:
+      - https://www.w3.org/Provider/Style/URI
     in_subset:
       - lokf_semantic
 
