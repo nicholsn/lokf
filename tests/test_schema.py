@@ -48,6 +48,36 @@ def test_classes_have_uris(vocab):
     assert vocab.classes["Metric"] == "lokf:Metric"
 
 
+def test_manifest_emits_the_full_vocabulary_with_descriptions(vocab):
+    m = vocab.manifest()
+    assert m["schema_version"]
+
+    # Slots carry the schema's own field descriptions (the field reference).
+    slots = {s["name"]: s for s in m["slots"]}
+    assert slots["base_iri"]["description"]
+    assert slots["genre"]["description"]
+
+    # The type vocabulary is present, and at least some classes are described.
+    classes = {c["name"]: c for c in m["classes"]}
+    assert "Metric" in classes and "Dataset" in classes
+    assert any(c.get("description") for c in m["classes"])
+
+    # Value enums carry their permissible values, with descriptions.
+    genres = {g["value"]: g for g in m["enums"]["DiataxisMode"]}
+    assert {"tutorial", "how-to", "reference", "explanation"} <= set(genres)
+    assert genres["how-to"].get("description")
+    statuses = {s["value"] for s in m["enums"]["ConceptStatus"]}
+    assert {"draft", "stable", "deprecated"} <= statuses
+    relations = {r["value"] for r in m["enums"]["RelationType"]}
+    assert "dependsOn" in relations
+
+
+def test_manifest_is_json_serializable(vocab):
+    import json
+
+    json.dumps(vocab.manifest())  # must not raise (no sets, frozensets, etc.)
+
+
 def test_context_has_authoring_aliases():
     ctx = load_context()
     assert ctx["type"] == "@type"

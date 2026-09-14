@@ -192,6 +192,85 @@ class Vocabulary:
                 best, out = ns, f"{prefix}:{uri[len(ns):]}"
         return out
 
+    def class_docs(self) -> list[dict]:
+        """The ``type:`` vocabulary - non-abstract Concept/Agent classes, each
+        with its schema description and aliases."""
+        classes = self._schema.get("classes", {})
+        out: list[dict] = []
+        for name, cls in classes.items():
+            cls = cls or {}
+            if cls.get("abstract"):
+                continue
+            if not (
+                self._descends_from(classes, name, "Concept")
+                or self._descends_from(classes, name, "Agent")
+            ):
+                continue
+            curie = cls.get("class_uri", f"lokf:{name}")
+            row: dict = {"name": name, "curie": curie, "uri": self.expand(curie)}
+            desc = (cls.get("description") or "").strip()
+            if desc:
+                row["description"] = desc
+            if cls.get("aliases"):
+                row["aliases"] = list(cls["aliases"])
+            out.append(row)
+        return out
+
+    def slot_docs(self) -> list[dict]:
+        """Every schema slot that carries a description - the frontmatter field
+        reference, with each slot's range and multivalued flag where set."""
+        out: list[dict] = []
+        for name, slot in (self._schema.get("slots") or {}).items():
+            slot = slot or {}
+            desc = (slot.get("description") or "").strip()
+            if not desc:
+                continue
+            row: dict = {"name": name, "description": desc}
+            if slot.get("range"):
+                row["range"] = slot["range"]
+            if slot.get("multivalued"):
+                row["multivalued"] = True
+            if slot.get("aliases"):
+                row["aliases"] = list(slot["aliases"])
+            out.append(row)
+        return out
+
+    def enum_values(self, enum_name: str) -> list[dict]:
+        """A schema enum's permissible values, each with its meaning (CURIE/IRI),
+        description, and aliases where the schema gives them."""
+        enum = (self._schema.get("enums", {}) or {}).get(enum_name, {}) or {}
+        out: list[dict] = []
+        for value, defn in (enum.get("permissible_values") or {}).items():
+            defn = defn or {}
+            row: dict = {"value": value}
+            meaning = defn.get("meaning")
+            if meaning:
+                row["curie"] = meaning
+                row["uri"] = self.expand(meaning)
+            desc = (defn.get("description") or "").strip()
+            if desc:
+                row["description"] = desc
+            if defn.get("aliases"):
+                row["aliases"] = list(defn["aliases"])
+            out.append(row)
+        return out
+
+    def manifest(self) -> dict:
+        """The full vocabulary as a JSON-serializable manifest - classes, slots,
+        and the value enums, each carrying the schema's own descriptions. The
+        machine-readable reference a downstream tool (an editor's field help, a
+        docs site) consumes instead of parsing ``lokf.yaml`` or the generated
+        JSON Schema itself."""
+        return {
+            "schema_version": str(self._schema.get("version", "")),
+            "classes": self.class_docs(),
+            "slots": self.slot_docs(),
+            "enums": {
+                name: self.enum_values(name)
+                for name in ("RelationType", "DiataxisMode", "ConceptStatus", "FieldType")
+            },
+        }
+
 
 @lru_cache(maxsize=None)
 def _vocabulary(resolved: str) -> "Vocabulary":
