@@ -113,6 +113,40 @@ def test_validate_reports_a_schema_violation(tmp_path):
     assert "seeAlso" in result.output
 
 
+def test_validate_names_the_offending_key_even_with_a_real_type(tmp_path):
+    """A stock class (no custom type) with one undeclared key: jsonschema's
+    own `best_match` ties across LOKF's ~15 anyOf branches and gives up
+    (regression for lokf-issue.md) - `lokf validate` must still name it."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\ndescription: d\nects: 5\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "[ERROR]" in result.output
+    assert "ects" in result.output
+    assert "GlossaryTerm" in result.output
+
+
+def test_validate_points_at_schema_for_an_unknown_type(tmp_path):
+    """A `type:` naming no declared class should point at --schema, not just
+    dump the generic anyOf failure."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: CustomThing\ntitle: T\ndescription: d\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "imports: [lokf]" in result.output
+    assert "--schema" in result.output
+
+
 def test_validate_reports_a_warning_without_failing(monkeypatch):
     """`linkml-validate` exits 0 unless a result is ERROR; so does this."""
     from linkml.validator.report import Severity, ValidationResult

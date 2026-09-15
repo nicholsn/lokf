@@ -460,6 +460,11 @@ Two independent, generated validators are available:
 The reference bundle in `examples/` passes JSON Schema validation for all eight
 concepts and for the assembled `KnowledgeBundle`.
 
+Both validators are closed-world: a concept naming a type or frontmatter key
+this schema doesn't declare fails. To add project-specific types/keys, write a
+LinkML schema that `imports: [lokf]` and declares them, then pass it to
+`lokf validate --schema your-schema.yaml`.
+
 ---
 
 ## 10. Relationship to OKF and other formats
