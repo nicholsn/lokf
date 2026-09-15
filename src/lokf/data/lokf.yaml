@@ -439,16 +439,21 @@ classes:
       id:
         description: >-
           Optional stable key joining markdown footnote labels to this entry
-          (e.g. `ga4-schema`). Declared as a class-local attribute rather
-          than the global identifier slot so it stays optional (LinkML's
-          falsy-merge silently drops an `identifier: false` slot_usage
-          override and generation then fails). Under the published flat
-          context `id` maps to @id, so the value resolves against the bundle
-          base and mints the source node's IRI — the same id used across
-          concepts merges into one RDF node; schema:identifier applies only
-          on the LinkML RDF-dump path.
+          (e.g. `ga4-schema`).
         range: string
         slot_uri: schema:identifier
+        comments:
+          - >-
+            Declared as a class-local attribute rather than the global
+            identifier slot so it stays optional (LinkML's falsy-merge
+            silently drops an `identifier: false` slot_usage override and
+            generation then fails).
+          - >-
+            Under the published flat context `id` maps to @id, so the value
+            resolves against the bundle base and mints the source node's
+            IRI — the same id used across concepts merges into one RDF
+            node; schema:identifier applies only on the LinkML RDF-dump
+            path.
     slots:
       - resource
       - title
@@ -531,19 +536,23 @@ classes:
       type:
         description: >-
           The parameter's datatype, written with the authoring key `type`
-          verbatim and drawn from ParameterType. Declared as a class-local
-          attribute rather than slot_usage over the global type slot,
-          because LinkML's falsy-merge silently drops a
-          `designates_type: false` override and gen-python then hard-fails.
-          Because the flat context aliases `type` to @type, the value
-          expands as the node's rdf:type; every ParameterType value
-          therefore means a designed lokf Parameter-kind class, so
-          `type: integer` yields the true, OWL-DL-safe triple
-          `_:p rdf:type lokf:IntegerParameter`. slot_uri rdf:type makes the
-          LinkML RDF-dump path emit the same triple (enum meanings expand
-          to their IRIs).
+          verbatim and drawn from ParameterType.
         range: ParameterType
         slot_uri: rdf:type
+        comments:
+          - >-
+            Declared as a class-local attribute rather than slot_usage over
+            the global type slot, because LinkML's falsy-merge silently
+            drops a `designates_type: false` override and gen-python then
+            hard-fails.
+          - >-
+            Because the flat context aliases `type` to @type, the value
+            expands as the node's rdf:type; every ParameterType value
+            therefore means a designed lokf Parameter-kind class, so
+            `type: integer` yields the true, OWL-DL-safe triple
+            `_:p rdf:type lokf:IntegerParameter`. slot_uri rdf:type makes
+            the LinkML RDF-dump path emit the same triple (enum meanings
+            expand to their IRIs).
     slots:
       - name
       - required
