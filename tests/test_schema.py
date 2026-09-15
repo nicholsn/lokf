@@ -52,8 +52,14 @@ def test_manifest_emits_the_full_vocabulary_with_descriptions(vocab):
     m = vocab.manifest()
     assert m["schema_version"]
 
+    # Every schema enum is present - not a hand-picked subset (regression
+    # guard: manifest() must derive its enum list from the schema itself).
+    assert set(m["enums"]) == set(vocab._schema.get("enums", {}))
+    assert "ParameterType" in m["enums"] and m["enums"]["ParameterType"]
+    assert "FieldType" in m["enums"] and m["enums"]["FieldType"]
+
     # Slots carry the schema's own field descriptions (the field reference).
-    slots = {s["name"]: s for s in m["slots"]}
+    slots = {s["name"]: s for s in m["slots"] if "class" not in s}
     assert slots["base_iri"]["description"]
     assert slots["genre"]["description"]
 
@@ -76,6 +82,43 @@ def test_manifest_is_json_serializable(vocab):
     import json
 
     json.dumps(vocab.manifest())  # must not raise (no sets, frozensets, etc.)
+
+
+def test_class_docs_covers_embedded_object_classes_too(vocab):
+    classes = {c["name"]: c for c in vocab.class_docs()}
+
+    # Concept/Agent descendants are the `type:` vocabulary.
+    assert classes["Metric"]["is_type_value"] is True
+    assert classes["Dataset"]["is_type_value"] is True
+
+    # Embedded object shapes are documented too, just flagged as not valid
+    # `type:` values - they were silently dropped before this fix.
+    assert classes["Parameter"]["is_type_value"] is False
+    assert classes["Source"]["is_type_value"] is False
+    assert classes["Parameter"]["description"]
+
+    # Person/Organization reach Concept only via `mixins: [Concept]`, not a
+    # pure `is_a` chain - confirms _descends_from honors mixins.
+    assert classes["Person"]["is_type_value"] is True
+
+
+def test_slot_docs_surfaces_class_local_overrides(vocab):
+    rows = vocab.slot_docs()
+    generic_type = next(r for r in rows if r["name"] == "type" and "class" not in r)
+    parameter_type = next(
+        r for r in rows if r["name"] == "type" and r.get("class") == "Parameter"
+    )
+    assert parameter_type["description"] != generic_type["description"]
+
+
+def test_enum_values_matches_relation_types_curie_convention(vocab):
+    # enum_values("RelationType") must agree with the pre-existing
+    # relation_types computation for the same value (both fall back to a
+    # minted lokf:<name> term when no explicit `meaning` is given).
+    rows = {r["value"]: r for r in vocab.enum_values("RelationType")}
+    for name, rel in vocab.relation_types.items():
+        assert rows[name]["curie"] == rel.curie
+        assert rows[name]["uri"] == rel.uri
 
 
 def test_context_has_authoring_aliases():

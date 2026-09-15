@@ -152,17 +152,23 @@ def propose_relations(
 
 
 @server.tool()
-def get_vocabulary() -> dict:
-    """Return the LOKF vocabulary: {classes, relations}.
+def get_vocabulary(all: bool = False) -> dict:
+    """Return the LOKF vocabulary: {classes, relations} by default.
 
     ``classes`` maps class name -> CURIE. ``relations`` is a list of
     {name, curie, uri, frontmatter_key, description}, where ``frontmatter_key``
     is True when the relation can be asserted as a frontmatter slot (else it is
     used via a ``relations:`` entry).
+
+    Pass ``all=True`` for the full schema reference instead: every class,
+    frontmatter slot, and value enum with its own description (see
+    ``Vocabulary.manifest()``) - the same data as ``lokf vocab --all --json``.
     """
     from lokf.schema import vocabulary
 
     v = vocabulary()
+    if all:
+        return v.manifest()
     relations = sorted(v.relation_types.values(), key=lambda r: r.name)
     return {
         "classes": dict(v.classes),

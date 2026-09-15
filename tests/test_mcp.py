@@ -120,6 +120,12 @@ def test_get_vocabulary():
         assert set(rel) == {"name", "curie", "uri", "frontmatter_key", "description"}
 
 
+def test_get_vocabulary_all_returns_the_full_manifest():
+    manifest = mcp.get_vocabulary(all=True)
+    assert set(manifest) == {"schema_version", "classes", "slots", "enums"}
+    assert any(c["name"] == "Parameter" for c in manifest["classes"])
+
+
 def test_bundle_summary():
     summary = mcp.bundle_summary(BUNDLE)
     assert summary["triple_count"] == 153
@@ -135,6 +141,7 @@ def test_all_tool_results_json_serializable():
         mcp.convert(BUNDLE, "ttl"),
         mcp.propose_relations(BUNDLE),
         mcp.get_vocabulary(),
+        mcp.get_vocabulary(all=True),
         mcp.bundle_summary(BUNDLE),
     ]
     json.dumps(payloads)

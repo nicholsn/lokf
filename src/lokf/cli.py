@@ -389,7 +389,7 @@ def vocab(
         "descriptions - not just the typed relations.",
     ),
 ) -> None:
-    """Show the LOKF vocabulary derived from the schema."""
+    """Show the typed-relation vocabulary; pass --all for the full schema reference."""
     from lokf.schema import vocabulary
 
     v = vocabulary()
@@ -420,6 +420,8 @@ def _echo_vocab_manifest(manifest: dict) -> None:
         typer.echo(f"# {title}")
         for row in rows:
             label = row.get("name") or row.get("value") or ""
+            if row.get("class"):
+                label = f"{row['class']}.{label}"
             typer.echo(f"  {label}  -  {row.get('description', '')}")
 
     section("Classes", manifest["classes"])
