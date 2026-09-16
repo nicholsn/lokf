@@ -11,6 +11,20 @@ from __future__ import annotations
 
 from mcp.server.mcpserver import MCPServer
 
+
+def _version() -> str:
+    """The installed package version, for the MCP `serverInfo` block.
+
+    MCPServer defaults `version` to "", so without this a client sees a blank
+    version and cannot tell which lokf it is talking to.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("lokf")
+    except PackageNotFoundError:  # running from a source tree, not installed
+        return "0+unknown"
+
 _INSTRUCTIONS = (
     "LOKF is a semantic profile of the Open Knowledge Framework (OKF). A "
     "knowledge base is a bundle of markdown concepts (YAML frontmatter + "
@@ -23,7 +37,7 @@ _INSTRUCTIONS = (
     "quick orientation. Pass a bundle directory as the bundle/source argument."
 )
 
-server = MCPServer("lokf", instructions=_INSTRUCTIONS)
+server = MCPServer("lokf", instructions=_INSTRUCTIONS, version=_version())
 
 
 @server.tool()
