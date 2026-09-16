@@ -55,3 +55,31 @@ jobs:
       - run: uvx zizmor@1.29.0 .github/workflows
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # lokf.yaml is the single source of truth; every other artifact is generated
+  # from it and committed. Nothing used to check that the committed copies
+  # matched their source, so a schema edit could merge with stale artifacts —
+  # which happened twice. This is what makes that impossible, and it is only
+  # enforceable because lokf-build is now byte-reproducible.
+  generated-fresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+      - run: uv sync --locked --group dev
+
+      - name: Regenerate every artifact from lokf.yaml
+        run: uv run lokf-build
+
+      - name: Fail if the committed artifacts differ from a fresh build
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Committed artifacts do not match a fresh build of lokf.yaml. Run 'just build' and commit the result."
+            exit 1
+          fi
