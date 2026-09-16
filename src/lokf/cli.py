@@ -6,7 +6,8 @@
     lokf query examples/acme-knowledge "SELECT ..."   # SPARQL over a bundle
     lokf serve examples/acme-knowledge                # local SPARQL endpoint + viz
     lokf propose examples/acme-knowledge --apply      # typed relations from links
-    lokf vocab                                        # the relation vocabulary
+    lokf vocab                                        # the typed-relation vocabulary
+    lokf vocab --all --json                           # the full vocabulary + descriptions
     lokf skills                                        # bundled agent skills
     lokf mcp                                           # run the MCP server
     lokf --version                                     # print the lokf version
@@ -380,11 +381,25 @@ def _print_proposals(proposals) -> None:
 @app.command()
 def vocab(
     json_: bool = typer.Option(False, "--json", help="Emit JSON instead of a table."),
+    all_: bool = typer.Option(
+        False,
+        "--all",
+        "-a",
+        help="Emit the full vocabulary - classes, slots, and value enums with their "
+        "descriptions - not just the typed relations.",
+    ),
 ) -> None:
-    """Show the typed-relation vocabulary derived from the schema."""
+    """Show the typed-relation vocabulary; pass --all for the full schema reference."""
     from lokf.schema import vocabulary
 
     v = vocabulary()
+    if all_:
+        manifest = v.manifest()
+        if json_:
+            typer.echo(json.dumps(manifest, indent=2))
+            return
+        _echo_vocab_manifest(manifest)
+        return
     relations = sorted(v.relation_types.values(), key=lambda r: r.name)
     if json_:
         typer.echo(json.dumps([r.as_row() for r in relations], indent=2))
@@ -396,6 +411,23 @@ def vocab(
         typer.echo(
             f"{r.name.ljust(name_w)}  {key}  {r.curie.ljust(curie_w)}  {r.description}"
         )
+
+
+def _echo_vocab_manifest(manifest: dict) -> None:
+    """Render the full vocabulary as readable sections (the non-JSON `--all`)."""
+
+    def section(title: str, rows: list[dict]) -> None:
+        typer.echo(f"# {title}")
+        for row in rows:
+            label = row.get("name") or row.get("value") or ""
+            if row.get("class"):
+                label = f"{row['class']}.{label}"
+            typer.echo(f"  {label}  -  {row.get('description', '')}")
+
+    section("Classes", manifest["classes"])
+    section("Slots", manifest["slots"])
+    for enum_name, values in manifest["enums"].items():
+        section(enum_name, values)
 
 
 # ---------------------------------------------------------------------------
