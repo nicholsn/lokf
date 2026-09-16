@@ -25,3 +25,8 @@ examples/*.bundle.yaml
 
 # MkDocs build output
 site/
+
+# Installed agent runtime state is local to the consuming repo, not source content.
+.agents/skills
+.claude/skills
+skills-lock.json
