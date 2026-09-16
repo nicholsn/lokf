@@ -461,6 +461,7 @@ classes:
       - usage_count
       - last_modified
       - usage_window
+      - supporting_text
     slot_usage:
       resource:
         required: true
@@ -471,6 +472,8 @@ classes:
           project X"). Range is widened to string to admit scope
           descriptors; non-URI values are lossy on the RDF projection
           (they serialize as xsd:anyURI-typed literals).
+        implements:
+          - dcterms:source
       author:
         range: string
         multivalued: false
@@ -1094,6 +1097,16 @@ slots:
     in_subset:
       - lokf_semantic
 
+  supporting_text:
+    description: Exact excerpt/quote from the referenced source.
+    range: string
+    notes:
+      - excerpt marks this as text to validate, but not a required slot
+    see_also:
+      - https://github.com/linkml/linkml-reference-validator
+    implements:
+      - linkml:excerpt
+
   # --- Bundle metadata ------------------------------------------------------
   lokf_version:
     description: The LOKF version the bundle targets (e.g. "0.2").
@@ -1110,9 +1123,16 @@ slots:
   base_iri:
     description: >-
       The base IRI against which Concept IDs are resolved to produce each
-      concept's stable `id`.
+      concept's stable `id`. An identifier namespace, not a hyperlink.
     range: uri
     slot_uri: lokf:baseIri
+    see_also:
+      - https://www.w3.org/Provider/Style/URI
+    comments:
+      - >-
+        It need not resolve to a live page (a 404 is valid) — only a
+        well-formed absolute IRI with an authority is required. A
+        resolvable "Cool URI" is the ideal, not a requirement.
     in_subset:
       - lokf_semantic
 

@@ -119,6 +119,31 @@ def test_enum_values_matches_relation_types_curie_convention(vocab):
     for name, rel in vocab.relation_types.items():
         assert rows[name]["curie"] == rel.curie
         assert rows[name]["uri"] == rel.uri
+# -- supporting_text / reference-validator wiring (Source) -------------------
+def test_source_declares_supporting_text_slot():
+    schema = load_schema()
+    source = schema["classes"]["Source"]
+    assert "supporting_text" in source["slots"]
+    # Optional: a Source may cite a resource without quoting it verbatim.
+    assert "required" not in source.get("slot_usage", {}).get("supporting_text", {})
+
+
+def test_supporting_text_slot_implements_linkml_excerpt(vocab):
+    slot = load_schema()["slots"]["supporting_text"]
+    assert slot["range"] == "string"
+    assert slot["implements"] == ["linkml:excerpt"]
+    # linkml_reference_validator's field_detection matches this legacy URI
+    # (canonical is oa:exact) to find excerpt fields for validation.
+    assert vocab.expand("linkml:excerpt") == "https://w3id.org/linkml/excerpt"
+
+
+def test_source_resource_implements_dcterms_source(vocab):
+    resource_usage = load_schema()["classes"]["Source"]["slot_usage"]["resource"]
+    assert resource_usage["implements"] == ["dcterms:source"]
+    assert resource_usage["required"] is True
+    # linkml_reference_validator pairs this with the excerpt field above to
+    # fetch `resource` and confirm `supporting_text` actually appears in it.
+    assert vocab.expand("dcterms:source") == "http://purl.org/dc/terms/source"
 
 
 # Slot descriptions are canonical, verbatim glosses surfaced one-per-row by

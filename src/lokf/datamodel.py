@@ -1,5 +1,5 @@
 # Auto generated from lokf.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-28T08:42:17
+# Generation date: 2026-09-16T12:42:29
 # Schema: lokf
 #
 # id: https://w3id.org/lokf/schema
@@ -1345,6 +1345,7 @@ class Source(YAMLRoot):
     usage_count: Optional[int] = None
     last_modified: Optional[Union[str, XSDDate]] = None
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
+    supporting_text: Optional[str] = None
     id: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
@@ -1368,6 +1369,9 @@ class Source(YAMLRoot):
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
             self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
+
+        if self.supporting_text is not None and not isinstance(self.supporting_text, str):
+            self.supporting_text = str(self.supporting_text)
 
         if self.id is not None and not isinstance(self.id, str):
             self.id = str(self.id)
@@ -1921,6 +1925,9 @@ slots.holder = Slot(uri=ORG.member, name="holder", curie=ORG.curie('member'),
 
 slots.url = Slot(uri=SCHEMA.url, name="url", curie=SCHEMA.curie('url'),
                    model_uri=LOKF.url, domain=None, range=Optional[Union[str, URIorCURIE]])
+
+slots.supporting_text = Slot(uri=LOKF.supporting_text, name="supporting_text", curie=LOKF.curie('supporting_text'),
+                   model_uri=LOKF.supporting_text, domain=None, range=Optional[str])
 
 slots.lokf_version = Slot(uri=LOKF.lokfVersion, name="lokf_version", curie=LOKF.curie('lokfVersion'),
                    model_uri=LOKF.lokf_version, domain=None, range=Optional[str])
