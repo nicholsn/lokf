@@ -113,55 +113,61 @@ def test_validate_reports_a_schema_violation(tmp_path):
     assert "seeAlso" in result.output
 
 
-def test_validate_rejects_malformed_actor_string(tmp_path):
-    """`generated.by` must follow the OKF actor-string convention.
+def test_validate_names_the_offending_key_even_with_a_real_type(tmp_path):
+    """A stock class (no custom type) with one undeclared key: jsonschema's
+    own `best_match` ties across LOKF's ~15 anyOf branches and gives up
+    (regression for lokf-issue.md) - `lokf validate` must still name it."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\ndescription: d\nects: 5\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "[ERROR]" in result.output
+    assert "ects" in result.output
+    assert "GlossaryTerm" in result.output
 
-    Regression coverage for the `by` slot's new `pattern` constraint: trust
-    tiers (lokf.trust) derive from the `human:`/`process:` prefix by string
-    inspection, so an actor string that doesn't follow the convention used
-    to pass schema validation and silently be misclassified.
+
+def test_validate_points_at_schema_for_an_unknown_type(tmp_path):
+    """A `type:` naming no declared class should point at --schema, not just
+    dump the generic anyOf failure."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: CustomThing\ntitle: T\ndescription: d\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "imports: [lokf]" in result.output
+    assert "--schema" in result.output
+
+
+def test_validate_accepts_source_with_supporting_text(tmp_path):
+    """A `sources[].supporting_text` excerpt validates against the schema.
+
+    Regression coverage for the Source class's `supporting_text` slot
+    (linkml:excerpt) and `resource`'s dcterms:source annotation added
+    alongside it - both are additive, optional fields and must not make an
+    otherwise-valid concept fail.
     """
     (tmp_path / "index.md").write_text(
         "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
     )
     (tmp_path / "term.md").write_text(
-        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
-        'generated: { by: "John Smith", at: 2026-06-01T00:00:00Z }\n---\n\n# T\n',
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "sources:\n  - resource: https://ex.org/rfc\n"
+        "    supporting_text: the exact quoted sentence\n"
+        "---\n\n# T\n",
         encoding="utf-8",
     )
     result = runner.invoke(app, ["validate", str(tmp_path)])
-    assert result.exit_code == 1
-    assert "[ERROR]" in result.output
-
-
-def test_validate_rejects_malformed_email(tmp_path):
-    """`email` must look like an email address; regression for its new pattern."""
-    (tmp_path / "index.md").write_text(
-        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
-    )
-    (tmp_path / "term.md").write_text(
-        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
-        "author:\n  - type: Person\n    id: https://ex.org/people/x\n"
-        "    name: X\n    email: not-an-email\n---\n\n# T\n",
-        encoding="utf-8",
-    )
-    result = runner.invoke(app, ["validate", str(tmp_path)])
-    assert result.exit_code == 1
-    assert "[ERROR]" in result.output
-
-
-def test_validate_rejects_unknown_http_method(tmp_path):
-    """`http_method` must be a real IANA verb; regression for the HttpMethod enum."""
-    (tmp_path / "index.md").write_text(
-        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
-    )
-    (tmp_path / "svc.md").write_text(
-        "---\ntype: Service\ntitle: S\nhttp_method: FETCH\n---\n\n# S\n",
-        encoding="utf-8",
-    )
-    result = runner.invoke(app, ["validate", str(tmp_path)])
-    assert result.exit_code == 1
-    assert "[ERROR]" in result.output
+    assert result.exit_code == 0
+    assert "validate against KnowledgeBundle" in result.stdout
 
 
 def test_validate_reports_a_warning_without_failing(monkeypatch):
@@ -185,6 +191,55 @@ def test_validate_missing_bundle_nonzero_exit():
     """A non-existent bundle directory is rejected before validation."""
     result = runner.invoke(app, ["validate", "does-not-exist"])
     assert result.exit_code != 0
+
+
+def test_validate_rejects_malformed_actor_string(tmp_path):
+    """`generated.by` must follow the OKF actor-string convention.
+
+    Regression coverage for the `by` slot's new `pattern` constraint: trust
+    tiers (lokf.trust) derive from the `human:`/`process:` prefix by string
+    inspection, so an actor string that doesn't follow the convention used
+    to pass schema validation and silently be misclassified.
+    """
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        'generated: { by: "John Smith", at: 2026-06-01T00:00:00Z }\n---\n\n# T\n',
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "[ERROR]" in result.output
+
+def test_validate_rejects_malformed_email(tmp_path):
+    """`email` must look like an email address; regression for its new pattern."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "author:\n  - type: Person\n    id: https://ex.org/people/x\n"
+        "    name: X\n    email: not-an-email\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "[ERROR]" in result.output
+
+def test_validate_rejects_unknown_http_method(tmp_path):
+    """`http_method` must be a real IANA verb; regression for the HttpMethod enum."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "svc.md").write_text(
+        "---\ntype: Service\ntitle: S\nhttp_method: FETCH\n---\n\n# S\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "[ERROR]" in result.output
 
 
 # -- query ------------------------------------------------------------------

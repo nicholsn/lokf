@@ -165,10 +165,21 @@ class Vocabulary:
 
     @staticmethod
     def _descends_from(classes: dict, name: str, ancestor: str) -> bool:
-        while name is not None:
-            if name == ancestor:
+        """Whether *name* reaches *ancestor* via ``is_a`` or ``mixins``."""
+        seen: set[str] = set()
+        stack = [name]
+        while stack:
+            n = stack.pop()
+            if n is None or n in seen:
+                continue
+            seen.add(n)
+            if n == ancestor:
                 return True
-            name = classes.get(name, {}).get("is_a")
+            cls = classes.get(n) or {}
+            parent = cls.get("is_a")
+            if parent:
+                stack.append(parent)
+            stack.extend(cls.get("mixins") or [])
         return False
 
     def subclasses_of(self, ancestor: str) -> set[str]:
@@ -192,79 +203,106 @@ class Vocabulary:
                 best, out = ns, f"{prefix}:{uri[len(ns):]}"
         return out
 
+    def class_docs(self) -> list[dict]:
+        """Every non-abstract class, each with its schema description and
+        aliases. ``is_type_value`` marks the subset that is also valid in a
+        Concept's `type:` field (Concept/Agent descendants); the rest are
+        embedded object shapes (e.g. Parameter, Source, Verification) that
+        only ever appear nested under another concept's slots."""
+        classes = self._schema.get("classes", {})
+        out: list[dict] = []
+        for name, cls in classes.items():
+            cls = cls or {}
+            if cls.get("abstract"):
+                continue
+            is_type_value = self._descends_from(
+                classes, name, "Concept"
+            ) or self._descends_from(classes, name, "Agent")
+            curie = self.classes[name]
+            row: dict = {
+                "name": name,
+                "curie": curie,
+                "uri": self.expand(curie),
+                "is_type_value": is_type_value,
+            }
+            desc = (cls.get("description") or "").strip()
+            if desc:
+                row["description"] = desc
+            if cls.get("aliases"):
+                row["aliases"] = list(cls["aliases"])
+            out.append(row)
+        return out
+
+    @staticmethod
+    def _slot_row(name: str, slot: dict, class_name: str | None = None) -> dict | None:
+        slot = slot or {}
+        desc = (slot.get("description") or "").strip()
+        if not desc:
+            return None
+        row: dict = {"name": name, "description": desc}
+        if class_name:
+            row["class"] = class_name
+        if slot.get("range"):
+            row["range"] = slot["range"]
+        if slot.get("multivalued"):
+            row["multivalued"] = True
+        if slot.get("aliases"):
+            row["aliases"] = list(slot["aliases"])
+        return row
+
+    def slot_docs(self) -> list[dict]:
+        """Every schema slot that carries a description - the frontmatter field
+        reference, with each slot's range and multivalued flag where set. A
+        slot a class redefines locally under its own `attributes:` (e.g.
+        Parameter.type, Source.id) is emitted as an additional row carrying
+        `class`, so that class's own description isn't shadowed by the
+        generic top-level one."""
+        out: list[dict] = []
+        for name, slot in (self._schema.get("slots") or {}).items():
+            row = self._slot_row(name, slot)
+            if row:
+                out.append(row)
+        for cls_name, cls in (self._schema.get("classes") or {}).items():
+            attrs = (cls or {}).get("attributes") or {}
+            for name, attr in attrs.items():
+                row = self._slot_row(name, attr, class_name=cls_name)
+                if row:
+                    out.append(row)
+        return out
+
+    def enum_values(self, enum_name: str) -> list[dict]:
+        """A schema enum's permissible values, each with its meaning (CURIE/IRI),
+        description, and aliases where the schema gives them. A value with no
+        explicit `meaning` falls back to a minted `lokf:<value>` term, matching
+        `relation_types`' convention - so the same RelationType value reports
+        the same curie/uri from `vocab.relation_types` and from here."""
+        enum = (self._schema.get("enums", {}) or {}).get(enum_name, {}) or {}
+        out: list[dict] = []
+        for value, defn in (enum.get("permissible_values") or {}).items():
+            defn = defn or {}
+            meaning = defn.get("meaning", f"lokf:{value}")
+            row: dict = {"value": value, "curie": meaning, "uri": self.expand(meaning)}
+            desc = (defn.get("description") or "").strip()
+            if desc:
+                row["description"] = desc
+            if defn.get("aliases"):
+                row["aliases"] = list(defn["aliases"])
+            out.append(row)
+        return out
+
     def manifest(self) -> dict:
-        """The whole vocabulary as one JSON-ready document.
-
-        Serves consumers that cannot run LinkML - allows them to instead
-        ship a pinned copy and fall back to built-in defaults when
-        it is absent. It carries what the generated artefacts drop:
-        ``recommended`` and ``deprecated`` survive in neither JSON Schema,
-        SHACL, nor OWL, so a consumer can only read them from here.
-        """
-        schema = self._schema
-        classes, slots = schema.get("classes", {}), schema.get("slots", {})
-
-        def _texts(spec: dict) -> dict:
-            out = {}
-            for key in ("description", "deprecated"):
-                if value := spec.get(key):
-                    out[key] = " ".join(value.split())
-            return out
-
+        """The full vocabulary as a JSON-serializable manifest - classes, slots,
+        and the value enums, each carrying the schema's own descriptions. The
+        machine-readable reference a downstream tool (an editor's field help, a
+        docs site) consumes instead of parsing ``lokf.yaml`` or the generated
+        JSON Schema itself."""
         return {
-            "schemaVersion": schema.get("version", ""),
-            "schemaName": schema.get("name", ""),
-            "prefixes": dict(self.prefixes),
-            "classes": {
-                name: {
-                    "uri": self.classes[name],
-                    "is_a": spec.get("is_a"),
-                    "abstract": bool(spec.get("abstract", False)),
-                    "concept": self._descends_from(classes, name, "Concept"),
-                    "aliases": list(spec.get("aliases", [])),
-                    "slots": list(spec.get("slots", [])),
-                    "recommended": sorted(
-                        s for s, u in (spec.get("slot_usage") or {}).items()
-                        if (u or {}).get("recommended")
-                    ),
-                    **_texts(spec),
-                }
-                for name, spec in classes.items()
-            },
-            "slots": {
-                name: {
-                    "uri": spec.get("slot_uri"),
-                    "range": spec.get("range"),
-                    "multivalued": bool(spec.get("multivalued", False)),
-                    "required": bool(spec.get("required", False)),
-                    "pattern": spec.get("pattern"),
-                    "subsets": list(spec.get("in_subset", [])),
-                    **_texts(spec),
-                }
-                for name, spec in slots.items()
-            },
-            "relationTypes": [r.as_row() for r in sorted(
-                self.relation_types.values(), key=lambda r: r.name
-            )],
+            "schema_version": str(self._schema.get("version", "")),
+            "classes": self.class_docs(),
+            "slots": self.slot_docs(),
             "enums": {
-                name: [
-                    {"value": value, "meaning": (spec or {}).get("meaning"),
-                     **_texts(spec or {})}
-                    for value, spec in (enum.get("permissible_values") or {}).items()
-                ]
-                for name, enum in schema.get("enums", {}).items()
-            },
-            "subsets": {
-                name: sorted(
-                    s for s, spec in slots.items() if name in (spec.get("in_subset") or [])
-                )
-                for name in schema.get("subsets", {})
-            },
-            "deprecations": {
-                name: " ".join(spec["deprecated"].split())
-                for group in (classes, slots)
-                for name, spec in group.items()
-                if spec.get("deprecated")
+                name: self.enum_values(name)
+                for name in self._schema.get("enums", {})
             },
         }
 
