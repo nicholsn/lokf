@@ -10,7 +10,7 @@
 --     * Slot: publisher_id Description: The agent responsible for making the bundle available.
 -- # Abstract Class: Concept Description: A single unit of knowledge within a bundle, represented as one markdown document. The abstract base of every LOKF type. Its own IRI (`id`) is the RDF subject; the markdown body and typed relations become triples about that subject.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -19,15 +19,15 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: KnowledgeBundle_id Description: Autocreated FK slot
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Dataset Description: A collection of data, published or curated for access and reuse.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -36,14 +36,14 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Table Description: A structured, tabular dataset (e.g. a warehouse table or view) whose columns are described by Field objects under `fields`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -52,16 +52,16 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Metric Description: A precisely defined, measurable quantity — the canonical definition of a business or operational metric.
 --     * Slot: unit Description: The unit of measurement (e.g. USD, seconds, count).
 --     * Slot: formula Description: The calculation or definition expression for a metric.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -70,9 +70,9 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Service Description: A callable service or API endpoint.
@@ -80,7 +80,7 @@
 --     * Slot: http_method Description: The HTTP method used to invoke the service, if applicable.
 --     * Slot: documentation Description: A link to the service's documentation.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -89,14 +89,14 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Playbook Description: A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event. Serves the Diátaxis how-to (goal-oriented) mode.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -105,14 +105,14 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Tutorial Description: A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by doing. The Diátaxis tutorial mode as a first-class concept type; typically links to the reference and explanation it draws on with `references`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -121,14 +121,14 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Explanation Description: An understanding-oriented, discursive treatment of a topic that permits reflection. The Diátaxis explanation mode as a first-class concept type; typically links to its subject matter with `about`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -137,14 +137,14 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Policy Description: A governance, compliance, or operational policy document.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -153,16 +153,16 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: GlossaryTerm Description: A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept.
 --     * Slot: definition Description: The formal definition of a term.
 --     * Slot: abbreviation Description: A short form or acronym for a term.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -171,14 +171,14 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Reference Description: A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -187,14 +187,14 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Document Description: A general knowledge document that does not fit a more specific type.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -203,9 +203,9 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Role Description: A role an agent holds within an organization over a period of time — a job, appointment, or position. Reifies the agent–organization link so it can carry a title (roleName) and a start/end interval, following the schema.org Role and W3C ORG Membership patterns.
@@ -213,7 +213,7 @@
 --     * Slot: startDate Description: The date the role began (ISO 8601 date or year).
 --     * Slot: endDate Description: The date the role ended; omit for a role still held.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -222,16 +222,16 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: AttestedComputation Description: A sanctioned, immutable recipe for computing a value (OKF v0.2 §10), carried as its own concept type. The frontmatter is the contract: the agent may only bind the declared `parameters`, the `executor` runs the bound computation and returns a receipt, and the `attester` deterministically compares what actually ran against this recipe. The computation text lives in the body's `# Computation` fenced block or in the file named by `computation`. Semantically a prov:Plan with an attestation contract layered on.
 --     * Slot: runtime Description: REQUIRED on an Attested Computation. How to run the computation (bigquery | postgres | dbt | python | Looker | ...); defines what `parameters` mean and how the executor and attester interpret the contract.
 --     * Slot: computation Description: Optional path to a file holding the computation; absent means the body's `# Computation` fenced block IS the computation. Minted in lokf: schema:contentUrl is the nearest real property but is scoped to MediaObject bytes.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -240,15 +240,15 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: executor_id Description: How the computation is run and what evidence a run must return.
 --     * Slot: attester_id Description: The deterministic, non-LLM verdict check over a receipt.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Abstract Class: Agent Description: A person or organization responsible for a concept.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
@@ -270,7 +270,7 @@
 --     * Slot: Organization_id Description: Autocreated FK slot
 -- # Class: Person Description: An individual person. Usable both as an inline Agent value (author, publisher) and as a standalone Concept document with a body and typed relations.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -279,16 +279,16 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Organization Description: An organization, team, or group. Usable both as an inline Agent value (publisher) and as a standalone Concept document with a body and typed relations.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
---     * Slot: type Description: The concept's type. OKF's single required field. In LOKF the value SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm); it designates the JSON-LD @type / rdf:type. Consumers MUST tolerate unknown values by treating the concept as a generic lokf:Concept.
+--     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: resource Description: A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts.
@@ -297,9 +297,9 @@
 --     * Slot: version Description: A version string for the concept's content.
 --     * Slot: license Description: The license under which the concept or bundle is offered.
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
---     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet that is orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*. Consumers MUST tolerate absent or unknown values.
---     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable (consumer-side default; absence is deliberately distinguishable from an explicit `status: stable`, so no ifabsent). Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after). schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously.
+--     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
+--     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
+--     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
@@ -369,10 +369,10 @@
 --     * Slot: resource Description: REQUIRED. An absolute URL, a bundle-relative path, or a population/scope descriptor string (e.g. "all queries in BigQuery project X"). Range is widened to string to admit scope descriptors; non-URI values are lossy on the RDF projection (they serialize as xsd:anyURI-typed literals).
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: author Description: Who or what produced the source, as an OKF §7 actor string (e.g. `team:ga4-docs`) — an authority signal carried as a plain literal, not an inlined Agent object.
---     * Slot: usage_count Description: How often the source's resource was exercised (views, executions, reads) over the governing usage_window. An adoption/liveness signal read as order-of-magnitude and trend, not a score. Minted in lokf: no established vocabulary has a bare-integer usage property (schema:userInteractionCount is domained to the InteractionCounter reification).
+--     * Slot: usage_count Description: How often the source's resource was exercised (views, executions, reads) over the governing usage_window. An adoption/liveness signal read as order-of-magnitude and trend, not a score.
 --     * Slot: last_modified Description: When the SOURCE itself last changed (YYYY-MM-DD). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept).
 --     * Slot: supporting_text Description: Exact excerpt/quote from the referenced source.
---     * Slot: id Description: Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`). Declared as a class-local attribute rather than the global identifier slot so it stays optional (LinkML's falsy-merge silently drops an `identifier: false` slot_usage override and generation then fails). Under the published flat context `id` maps to @id, so the value resolves against the bundle base and mints the source node's IRI — the same id used across concepts merges into one RDF node; schema:identifier applies only on the LinkML RDF-dump path.
+--     * Slot: id Description: Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`).
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: Dataset_id Description: Autocreated FK slot
 --     * Slot: Table_id Description: Autocreated FK slot
@@ -422,7 +422,7 @@
 --     * Slot: id
 --     * Slot: name Description: The parameter's name, as the runtime addresses it.
 --     * Slot: required Description: Whether a value for the parameter must be supplied.
---     * Slot: type Description: The parameter's datatype, written with the authoring key `type` verbatim and drawn from ParameterType. Declared as a class-local attribute rather than slot_usage over the global type slot, because LinkML's falsy-merge silently drops a `designates_type: false` override and gen-python then hard-fails. Because the flat context aliases `type` to @type, the value expands as the node's rdf:type; every ParameterType value therefore means a designed lokf Parameter-kind class, so `type: integer` yields the true, OWL-DL-safe triple `_:p rdf:type lokf:IntegerParameter`. slot_uri rdf:type makes the LinkML RDF-dump path emit the same triple (enum meanings expand to their IRIs).
+--     * Slot: type Description: The parameter's datatype, written with the authoring key `type` verbatim and drawn from ParameterType.
 --     * Slot: AttestedComputation_id Description: Autocreated FK slot
 -- # Class: Executor Description: How an Attested Computation is run (OKF v0.2 §10.2): `resource` names run instructions or code a runner follows; `receipt` declares the field names a run must return — the evidence surface the attester inspects. No established vocabulary has an execution-interface class, so the IRI is honestly lokf-minted; schema:EntryPoint (an invocation specification) is the nearest real term.
 --     * Slot: id
@@ -1457,8 +1457,8 @@ CREATE TABLE "Concept_hasPart" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_hasPart_Concept_id" ON "Concept_hasPart" ("Concept_id");
 CREATE INDEX "ix_Concept_hasPart_hasPart_id" ON "Concept_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Concept_hasPart_Concept_id" ON "Concept_hasPart" ("Concept_id");
 
 CREATE TABLE "Concept_references" (
 	"Concept_id" TEXT,
@@ -1477,8 +1477,8 @@ CREATE TABLE "Concept_dependsOn" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_dependsOn_dependsOn_id" ON "Concept_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Concept_dependsOn_Concept_id" ON "Concept_dependsOn" ("Concept_id");
+CREATE INDEX "ix_Concept_dependsOn_dependsOn_id" ON "Concept_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Concept_derivedFrom" (
 	"Concept_id" TEXT,
@@ -1507,8 +1507,8 @@ CREATE TABLE "Concept_sameAs" (
 	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Concept_sameAs_sameAs_id" ON "Concept_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Concept_sameAs_Concept_id" ON "Concept_sameAs" ("Concept_id");
+CREATE INDEX "ix_Concept_sameAs_sameAs_id" ON "Concept_sameAs" ("sameAs_id");
 
 CREATE TABLE "Concept_relatedTo" (
 	"Concept_id" TEXT,
@@ -1546,8 +1546,8 @@ CREATE TABLE "Executor_receipt" (
 	PRIMARY KEY ("Executor_id", receipt),
 	FOREIGN KEY("Executor_id") REFERENCES "Executor" (id)
 );
-CREATE INDEX "ix_Executor_receipt_receipt" ON "Executor_receipt" (receipt);
 CREATE INDEX "ix_Executor_receipt_Executor_id" ON "Executor_receipt" ("Executor_id");
+CREATE INDEX "ix_Executor_receipt_receipt" ON "Executor_receipt" (receipt);
 
 CREATE TABLE "Field" (
 	id INTEGER NOT NULL,
@@ -1766,8 +1766,8 @@ CREATE TABLE "Dataset_tags" (
 	PRIMARY KEY ("Dataset_id", tags),
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id)
 );
-CREATE INDEX "ix_Dataset_tags_tags" ON "Dataset_tags" (tags);
 CREATE INDEX "ix_Dataset_tags_Dataset_id" ON "Dataset_tags" ("Dataset_id");
+CREATE INDEX "ix_Dataset_tags_tags" ON "Dataset_tags" (tags);
 
 CREATE TABLE "Dataset_isPartOf" (
 	"Dataset_id" TEXT,
@@ -1776,8 +1776,8 @@ CREATE TABLE "Dataset_isPartOf" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_isPartOf_Dataset_id" ON "Dataset_isPartOf" ("Dataset_id");
 CREATE INDEX "ix_Dataset_isPartOf_isPartOf_id" ON "Dataset_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Dataset_isPartOf_Dataset_id" ON "Dataset_isPartOf" ("Dataset_id");
 
 CREATE TABLE "Dataset_hasPart" (
 	"Dataset_id" TEXT,
@@ -1816,8 +1816,8 @@ CREATE TABLE "Dataset_derivedFrom" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_derivedFrom_derivedFrom_id" ON "Dataset_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Dataset_derivedFrom_Dataset_id" ON "Dataset_derivedFrom" ("Dataset_id");
+CREATE INDEX "ix_Dataset_derivedFrom_derivedFrom_id" ON "Dataset_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Dataset_about" (
 	"Dataset_id" TEXT,
@@ -1826,8 +1826,8 @@ CREATE TABLE "Dataset_about" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_about_Dataset_id" ON "Dataset_about" ("Dataset_id");
 CREATE INDEX "ix_Dataset_about_about_id" ON "Dataset_about" (about_id);
+CREATE INDEX "ix_Dataset_about_Dataset_id" ON "Dataset_about" ("Dataset_id");
 
 CREATE TABLE "Dataset_sameAs" (
 	"Dataset_id" TEXT,
@@ -1846,8 +1846,8 @@ CREATE TABLE "Dataset_relatedTo" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_relatedTo_Dataset_id" ON "Dataset_relatedTo" ("Dataset_id");
 CREATE INDEX "ix_Dataset_relatedTo_relatedTo_id" ON "Dataset_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Dataset_relatedTo_Dataset_id" ON "Dataset_relatedTo" ("Dataset_id");
 
 CREATE TABLE "Dataset_definedBy" (
 	"Dataset_id" TEXT,
@@ -1856,8 +1856,8 @@ CREATE TABLE "Dataset_definedBy" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_definedBy_Dataset_id" ON "Dataset_definedBy" ("Dataset_id");
 CREATE INDEX "ix_Dataset_definedBy_definedBy_id" ON "Dataset_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Dataset_definedBy_Dataset_id" ON "Dataset_definedBy" ("Dataset_id");
 
 CREATE TABLE "Dataset_source" (
 	"Dataset_id" TEXT,
@@ -1866,8 +1866,8 @@ CREATE TABLE "Dataset_source" (
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Dataset_source_source_id" ON "Dataset_source" (source_id);
 CREATE INDEX "ix_Dataset_source_Dataset_id" ON "Dataset_source" ("Dataset_id");
+CREATE INDEX "ix_Dataset_source_source_id" ON "Dataset_source" (source_id);
 
 CREATE TABLE "Table_tags" (
 	"Table_id" TEXT,
@@ -1875,8 +1875,8 @@ CREATE TABLE "Table_tags" (
 	PRIMARY KEY ("Table_id", tags),
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id)
 );
-CREATE INDEX "ix_Table_tags_Table_id" ON "Table_tags" ("Table_id");
 CREATE INDEX "ix_Table_tags_tags" ON "Table_tags" (tags);
+CREATE INDEX "ix_Table_tags_Table_id" ON "Table_tags" ("Table_id");
 
 CREATE TABLE "Table_isPartOf" (
 	"Table_id" TEXT,
@@ -1895,8 +1895,8 @@ CREATE TABLE "Table_hasPart" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_hasPart_hasPart_id" ON "Table_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Table_hasPart_Table_id" ON "Table_hasPart" ("Table_id");
+CREATE INDEX "ix_Table_hasPart_hasPart_id" ON "Table_hasPart" ("hasPart_id");
 
 CREATE TABLE "Table_references" (
 	"Table_id" TEXT,
@@ -1905,8 +1905,8 @@ CREATE TABLE "Table_references" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_references_references_id" ON "Table_references" (references_id);
 CREATE INDEX "ix_Table_references_Table_id" ON "Table_references" ("Table_id");
+CREATE INDEX "ix_Table_references_references_id" ON "Table_references" (references_id);
 
 CREATE TABLE "Table_dependsOn" (
 	"Table_id" TEXT,
@@ -1955,8 +1955,8 @@ CREATE TABLE "Table_relatedTo" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_relatedTo_Table_id" ON "Table_relatedTo" ("Table_id");
 CREATE INDEX "ix_Table_relatedTo_relatedTo_id" ON "Table_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Table_relatedTo_Table_id" ON "Table_relatedTo" ("Table_id");
 
 CREATE TABLE "Table_definedBy" (
 	"Table_id" TEXT,
@@ -1975,8 +1975,8 @@ CREATE TABLE "Table_source" (
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Table_source_source_id" ON "Table_source" (source_id);
 CREATE INDEX "ix_Table_source_Table_id" ON "Table_source" ("Table_id");
+CREATE INDEX "ix_Table_source_source_id" ON "Table_source" (source_id);
 
 CREATE TABLE "Metric_measures" (
 	"Metric_id" TEXT,
@@ -1985,8 +1985,8 @@ CREATE TABLE "Metric_measures" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY(measures_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_measures_Metric_id" ON "Metric_measures" ("Metric_id");
 CREATE INDEX "ix_Metric_measures_measures_id" ON "Metric_measures" (measures_id);
+CREATE INDEX "ix_Metric_measures_Metric_id" ON "Metric_measures" ("Metric_id");
 
 CREATE TABLE "Metric_tags" (
 	"Metric_id" TEXT,
@@ -1994,8 +1994,8 @@ CREATE TABLE "Metric_tags" (
 	PRIMARY KEY ("Metric_id", tags),
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id)
 );
-CREATE INDEX "ix_Metric_tags_tags" ON "Metric_tags" (tags);
 CREATE INDEX "ix_Metric_tags_Metric_id" ON "Metric_tags" ("Metric_id");
+CREATE INDEX "ix_Metric_tags_tags" ON "Metric_tags" (tags);
 
 CREATE TABLE "Metric_isPartOf" (
 	"Metric_id" TEXT,
@@ -2004,8 +2004,8 @@ CREATE TABLE "Metric_isPartOf" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_isPartOf_isPartOf_id" ON "Metric_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Metric_isPartOf_Metric_id" ON "Metric_isPartOf" ("Metric_id");
+CREATE INDEX "ix_Metric_isPartOf_isPartOf_id" ON "Metric_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Metric_hasPart" (
 	"Metric_id" TEXT,
@@ -2014,8 +2014,8 @@ CREATE TABLE "Metric_hasPart" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_hasPart_hasPart_id" ON "Metric_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Metric_hasPart_Metric_id" ON "Metric_hasPart" ("Metric_id");
+CREATE INDEX "ix_Metric_hasPart_hasPart_id" ON "Metric_hasPart" ("hasPart_id");
 
 CREATE TABLE "Metric_references" (
 	"Metric_id" TEXT,
@@ -2034,8 +2034,8 @@ CREATE TABLE "Metric_dependsOn" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_dependsOn_dependsOn_id" ON "Metric_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Metric_dependsOn_Metric_id" ON "Metric_dependsOn" ("Metric_id");
+CREATE INDEX "ix_Metric_dependsOn_dependsOn_id" ON "Metric_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Metric_derivedFrom" (
 	"Metric_id" TEXT,
@@ -2044,8 +2044,8 @@ CREATE TABLE "Metric_derivedFrom" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_derivedFrom_Metric_id" ON "Metric_derivedFrom" ("Metric_id");
 CREATE INDEX "ix_Metric_derivedFrom_derivedFrom_id" ON "Metric_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Metric_derivedFrom_Metric_id" ON "Metric_derivedFrom" ("Metric_id");
 
 CREATE TABLE "Metric_about" (
 	"Metric_id" TEXT,
@@ -2054,8 +2054,8 @@ CREATE TABLE "Metric_about" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_about_about_id" ON "Metric_about" (about_id);
 CREATE INDEX "ix_Metric_about_Metric_id" ON "Metric_about" ("Metric_id");
+CREATE INDEX "ix_Metric_about_about_id" ON "Metric_about" (about_id);
 
 CREATE TABLE "Metric_sameAs" (
 	"Metric_id" TEXT,
@@ -2064,8 +2064,8 @@ CREATE TABLE "Metric_sameAs" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_sameAs_sameAs_id" ON "Metric_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Metric_sameAs_Metric_id" ON "Metric_sameAs" ("Metric_id");
+CREATE INDEX "ix_Metric_sameAs_sameAs_id" ON "Metric_sameAs" ("sameAs_id");
 
 CREATE TABLE "Metric_relatedTo" (
 	"Metric_id" TEXT,
@@ -2074,8 +2074,8 @@ CREATE TABLE "Metric_relatedTo" (
 	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Metric_relatedTo_Metric_id" ON "Metric_relatedTo" ("Metric_id");
 CREATE INDEX "ix_Metric_relatedTo_relatedTo_id" ON "Metric_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Metric_relatedTo_Metric_id" ON "Metric_relatedTo" ("Metric_id");
 
 CREATE TABLE "Metric_definedBy" (
 	"Metric_id" TEXT,
@@ -2113,8 +2113,8 @@ CREATE TABLE "Service_isPartOf" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_isPartOf_Service_id" ON "Service_isPartOf" ("Service_id");
 CREATE INDEX "ix_Service_isPartOf_isPartOf_id" ON "Service_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Service_isPartOf_Service_id" ON "Service_isPartOf" ("Service_id");
 
 CREATE TABLE "Service_hasPart" (
 	"Service_id" TEXT,
@@ -2123,8 +2123,8 @@ CREATE TABLE "Service_hasPart" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_hasPart_hasPart_id" ON "Service_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Service_hasPart_Service_id" ON "Service_hasPart" ("Service_id");
+CREATE INDEX "ix_Service_hasPart_hasPart_id" ON "Service_hasPart" ("hasPart_id");
 
 CREATE TABLE "Service_references" (
 	"Service_id" TEXT,
@@ -2173,8 +2173,8 @@ CREATE TABLE "Service_sameAs" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_sameAs_sameAs_id" ON "Service_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Service_sameAs_Service_id" ON "Service_sameAs" ("Service_id");
+CREATE INDEX "ix_Service_sameAs_sameAs_id" ON "Service_sameAs" ("sameAs_id");
 
 CREATE TABLE "Service_relatedTo" (
 	"Service_id" TEXT,
@@ -2183,8 +2183,8 @@ CREATE TABLE "Service_relatedTo" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_relatedTo_relatedTo_id" ON "Service_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Service_relatedTo_Service_id" ON "Service_relatedTo" ("Service_id");
+CREATE INDEX "ix_Service_relatedTo_relatedTo_id" ON "Service_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Service_definedBy" (
 	"Service_id" TEXT,
@@ -2203,8 +2203,8 @@ CREATE TABLE "Service_source" (
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Service_source_Service_id" ON "Service_source" ("Service_id");
 CREATE INDEX "ix_Service_source_source_id" ON "Service_source" (source_id);
+CREATE INDEX "ix_Service_source_Service_id" ON "Service_source" ("Service_id");
 
 CREATE TABLE "Playbook_tags" (
 	"Playbook_id" TEXT,
@@ -2222,8 +2222,8 @@ CREATE TABLE "Playbook_isPartOf" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_isPartOf_isPartOf_id" ON "Playbook_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Playbook_isPartOf_Playbook_id" ON "Playbook_isPartOf" ("Playbook_id");
+CREATE INDEX "ix_Playbook_isPartOf_isPartOf_id" ON "Playbook_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Playbook_hasPart" (
 	"Playbook_id" TEXT,
@@ -2242,8 +2242,8 @@ CREATE TABLE "Playbook_references" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_references_references_id" ON "Playbook_references" (references_id);
 CREATE INDEX "ix_Playbook_references_Playbook_id" ON "Playbook_references" ("Playbook_id");
+CREATE INDEX "ix_Playbook_references_references_id" ON "Playbook_references" (references_id);
 
 CREATE TABLE "Playbook_dependsOn" (
 	"Playbook_id" TEXT,
@@ -2252,8 +2252,8 @@ CREATE TABLE "Playbook_dependsOn" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_dependsOn_Playbook_id" ON "Playbook_dependsOn" ("Playbook_id");
 CREATE INDEX "ix_Playbook_dependsOn_dependsOn_id" ON "Playbook_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Playbook_dependsOn_Playbook_id" ON "Playbook_dependsOn" ("Playbook_id");
 
 CREATE TABLE "Playbook_derivedFrom" (
 	"Playbook_id" TEXT,
@@ -2262,8 +2262,8 @@ CREATE TABLE "Playbook_derivedFrom" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_derivedFrom_Playbook_id" ON "Playbook_derivedFrom" ("Playbook_id");
 CREATE INDEX "ix_Playbook_derivedFrom_derivedFrom_id" ON "Playbook_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Playbook_derivedFrom_Playbook_id" ON "Playbook_derivedFrom" ("Playbook_id");
 
 CREATE TABLE "Playbook_about" (
 	"Playbook_id" TEXT,
@@ -2282,8 +2282,8 @@ CREATE TABLE "Playbook_sameAs" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_sameAs_Playbook_id" ON "Playbook_sameAs" ("Playbook_id");
 CREATE INDEX "ix_Playbook_sameAs_sameAs_id" ON "Playbook_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Playbook_sameAs_Playbook_id" ON "Playbook_sameAs" ("Playbook_id");
 
 CREATE TABLE "Playbook_relatedTo" (
 	"Playbook_id" TEXT,
@@ -2292,8 +2292,8 @@ CREATE TABLE "Playbook_relatedTo" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_relatedTo_Playbook_id" ON "Playbook_relatedTo" ("Playbook_id");
 CREATE INDEX "ix_Playbook_relatedTo_relatedTo_id" ON "Playbook_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Playbook_relatedTo_Playbook_id" ON "Playbook_relatedTo" ("Playbook_id");
 
 CREATE TABLE "Playbook_definedBy" (
 	"Playbook_id" TEXT,
@@ -2302,8 +2302,8 @@ CREATE TABLE "Playbook_definedBy" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_definedBy_definedBy_id" ON "Playbook_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Playbook_definedBy_Playbook_id" ON "Playbook_definedBy" ("Playbook_id");
+CREATE INDEX "ix_Playbook_definedBy_definedBy_id" ON "Playbook_definedBy" ("definedBy_id");
 
 CREATE TABLE "Playbook_source" (
 	"Playbook_id" TEXT,
@@ -2312,8 +2312,8 @@ CREATE TABLE "Playbook_source" (
 	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Playbook_source_Playbook_id" ON "Playbook_source" ("Playbook_id");
 CREATE INDEX "ix_Playbook_source_source_id" ON "Playbook_source" (source_id);
+CREATE INDEX "ix_Playbook_source_Playbook_id" ON "Playbook_source" ("Playbook_id");
 
 CREATE TABLE "Tutorial_tags" (
 	"Tutorial_id" TEXT,
@@ -2341,8 +2341,8 @@ CREATE TABLE "Tutorial_hasPart" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_hasPart_hasPart_id" ON "Tutorial_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Tutorial_hasPart_Tutorial_id" ON "Tutorial_hasPart" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_hasPart_hasPart_id" ON "Tutorial_hasPart" ("hasPart_id");
 
 CREATE TABLE "Tutorial_references" (
 	"Tutorial_id" TEXT,
@@ -2351,8 +2351,8 @@ CREATE TABLE "Tutorial_references" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_references_references_id" ON "Tutorial_references" (references_id);
 CREATE INDEX "ix_Tutorial_references_Tutorial_id" ON "Tutorial_references" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_references_references_id" ON "Tutorial_references" (references_id);
 
 CREATE TABLE "Tutorial_dependsOn" (
 	"Tutorial_id" TEXT,
@@ -2361,8 +2361,8 @@ CREATE TABLE "Tutorial_dependsOn" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_dependsOn_Tutorial_id" ON "Tutorial_dependsOn" ("Tutorial_id");
 CREATE INDEX "ix_Tutorial_dependsOn_dependsOn_id" ON "Tutorial_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Tutorial_dependsOn_Tutorial_id" ON "Tutorial_dependsOn" ("Tutorial_id");
 
 CREATE TABLE "Tutorial_derivedFrom" (
 	"Tutorial_id" TEXT,
@@ -2411,8 +2411,8 @@ CREATE TABLE "Tutorial_definedBy" (
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Tutorial_definedBy_definedBy_id" ON "Tutorial_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Tutorial_definedBy_Tutorial_id" ON "Tutorial_definedBy" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_definedBy_definedBy_id" ON "Tutorial_definedBy" ("definedBy_id");
 
 CREATE TABLE "Tutorial_source" (
 	"Tutorial_id" TEXT,
@@ -2440,8 +2440,8 @@ CREATE TABLE "Explanation_isPartOf" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_isPartOf_isPartOf_id" ON "Explanation_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Explanation_isPartOf_Explanation_id" ON "Explanation_isPartOf" ("Explanation_id");
+CREATE INDEX "ix_Explanation_isPartOf_isPartOf_id" ON "Explanation_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Explanation_hasPart" (
 	"Explanation_id" TEXT,
@@ -2450,8 +2450,8 @@ CREATE TABLE "Explanation_hasPart" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_hasPart_Explanation_id" ON "Explanation_hasPart" ("Explanation_id");
 CREATE INDEX "ix_Explanation_hasPart_hasPart_id" ON "Explanation_hasPart" ("hasPart_id");
+CREATE INDEX "ix_Explanation_hasPart_Explanation_id" ON "Explanation_hasPart" ("Explanation_id");
 
 CREATE TABLE "Explanation_references" (
 	"Explanation_id" TEXT,
@@ -2470,8 +2470,8 @@ CREATE TABLE "Explanation_dependsOn" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_dependsOn_dependsOn_id" ON "Explanation_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Explanation_dependsOn_Explanation_id" ON "Explanation_dependsOn" ("Explanation_id");
+CREATE INDEX "ix_Explanation_dependsOn_dependsOn_id" ON "Explanation_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Explanation_derivedFrom" (
 	"Explanation_id" TEXT,
@@ -2480,8 +2480,8 @@ CREATE TABLE "Explanation_derivedFrom" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_derivedFrom_Explanation_id" ON "Explanation_derivedFrom" ("Explanation_id");
 CREATE INDEX "ix_Explanation_derivedFrom_derivedFrom_id" ON "Explanation_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Explanation_derivedFrom_Explanation_id" ON "Explanation_derivedFrom" ("Explanation_id");
 
 CREATE TABLE "Explanation_about" (
 	"Explanation_id" TEXT,
@@ -2490,8 +2490,8 @@ CREATE TABLE "Explanation_about" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_about_about_id" ON "Explanation_about" (about_id);
 CREATE INDEX "ix_Explanation_about_Explanation_id" ON "Explanation_about" ("Explanation_id");
+CREATE INDEX "ix_Explanation_about_about_id" ON "Explanation_about" (about_id);
 
 CREATE TABLE "Explanation_sameAs" (
 	"Explanation_id" TEXT,
@@ -2510,8 +2510,8 @@ CREATE TABLE "Explanation_relatedTo" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_relatedTo_Explanation_id" ON "Explanation_relatedTo" ("Explanation_id");
 CREATE INDEX "ix_Explanation_relatedTo_relatedTo_id" ON "Explanation_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Explanation_relatedTo_Explanation_id" ON "Explanation_relatedTo" ("Explanation_id");
 
 CREATE TABLE "Explanation_definedBy" (
 	"Explanation_id" TEXT,
@@ -2520,8 +2520,8 @@ CREATE TABLE "Explanation_definedBy" (
 	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Explanation_definedBy_definedBy_id" ON "Explanation_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Explanation_definedBy_Explanation_id" ON "Explanation_definedBy" ("Explanation_id");
+CREATE INDEX "ix_Explanation_definedBy_definedBy_id" ON "Explanation_definedBy" ("definedBy_id");
 
 CREATE TABLE "Explanation_source" (
 	"Explanation_id" TEXT,
@@ -2539,8 +2539,8 @@ CREATE TABLE "Policy_tags" (
 	PRIMARY KEY ("Policy_id", tags),
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id)
 );
-CREATE INDEX "ix_Policy_tags_Policy_id" ON "Policy_tags" ("Policy_id");
 CREATE INDEX "ix_Policy_tags_tags" ON "Policy_tags" (tags);
+CREATE INDEX "ix_Policy_tags_Policy_id" ON "Policy_tags" ("Policy_id");
 
 CREATE TABLE "Policy_isPartOf" (
 	"Policy_id" TEXT,
@@ -2549,8 +2549,8 @@ CREATE TABLE "Policy_isPartOf" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_isPartOf_Policy_id" ON "Policy_isPartOf" ("Policy_id");
 CREATE INDEX "ix_Policy_isPartOf_isPartOf_id" ON "Policy_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Policy_isPartOf_Policy_id" ON "Policy_isPartOf" ("Policy_id");
 
 CREATE TABLE "Policy_hasPart" (
 	"Policy_id" TEXT,
@@ -2579,8 +2579,8 @@ CREATE TABLE "Policy_dependsOn" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_dependsOn_Policy_id" ON "Policy_dependsOn" ("Policy_id");
 CREATE INDEX "ix_Policy_dependsOn_dependsOn_id" ON "Policy_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Policy_dependsOn_Policy_id" ON "Policy_dependsOn" ("Policy_id");
 
 CREATE TABLE "Policy_derivedFrom" (
 	"Policy_id" TEXT,
@@ -2599,8 +2599,8 @@ CREATE TABLE "Policy_about" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_about_Policy_id" ON "Policy_about" ("Policy_id");
 CREATE INDEX "ix_Policy_about_about_id" ON "Policy_about" (about_id);
+CREATE INDEX "ix_Policy_about_Policy_id" ON "Policy_about" ("Policy_id");
 
 CREATE TABLE "Policy_sameAs" (
 	"Policy_id" TEXT,
@@ -2619,8 +2619,8 @@ CREATE TABLE "Policy_relatedTo" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_relatedTo_relatedTo_id" ON "Policy_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Policy_relatedTo_Policy_id" ON "Policy_relatedTo" ("Policy_id");
+CREATE INDEX "ix_Policy_relatedTo_relatedTo_id" ON "Policy_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Policy_definedBy" (
 	"Policy_id" TEXT,
@@ -2629,8 +2629,8 @@ CREATE TABLE "Policy_definedBy" (
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Policy_definedBy_Policy_id" ON "Policy_definedBy" ("Policy_id");
 CREATE INDEX "ix_Policy_definedBy_definedBy_id" ON "Policy_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Policy_definedBy_Policy_id" ON "Policy_definedBy" ("Policy_id");
 
 CREATE TABLE "Policy_source" (
 	"Policy_id" TEXT,
@@ -2648,8 +2648,8 @@ CREATE TABLE "GlossaryTerm_tags" (
 	PRIMARY KEY ("GlossaryTerm_id", tags),
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_tags_tags" ON "GlossaryTerm_tags" (tags);
 CREATE INDEX "ix_GlossaryTerm_tags_GlossaryTerm_id" ON "GlossaryTerm_tags" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_tags_tags" ON "GlossaryTerm_tags" (tags);
 
 CREATE TABLE "GlossaryTerm_isPartOf" (
 	"GlossaryTerm_id" TEXT,
@@ -2668,8 +2668,8 @@ CREATE TABLE "GlossaryTerm_hasPart" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_hasPart_hasPart_id" ON "GlossaryTerm_hasPart" ("hasPart_id");
 CREATE INDEX "ix_GlossaryTerm_hasPart_GlossaryTerm_id" ON "GlossaryTerm_hasPart" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_hasPart_hasPart_id" ON "GlossaryTerm_hasPart" ("hasPart_id");
 
 CREATE TABLE "GlossaryTerm_references" (
 	"GlossaryTerm_id" TEXT,
@@ -2718,8 +2718,8 @@ CREATE TABLE "GlossaryTerm_sameAs" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_sameAs_GlossaryTerm_id" ON "GlossaryTerm_sameAs" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_sameAs_sameAs_id" ON "GlossaryTerm_sameAs" ("sameAs_id");
+CREATE INDEX "ix_GlossaryTerm_sameAs_GlossaryTerm_id" ON "GlossaryTerm_sameAs" ("GlossaryTerm_id");
 
 CREATE TABLE "GlossaryTerm_relatedTo" (
 	"GlossaryTerm_id" TEXT,
@@ -2738,8 +2738,8 @@ CREATE TABLE "GlossaryTerm_definedBy" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_definedBy_definedBy_id" ON "GlossaryTerm_definedBy" ("definedBy_id");
 CREATE INDEX "ix_GlossaryTerm_definedBy_GlossaryTerm_id" ON "GlossaryTerm_definedBy" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_definedBy_definedBy_id" ON "GlossaryTerm_definedBy" ("definedBy_id");
 
 CREATE TABLE "GlossaryTerm_source" (
 	"GlossaryTerm_id" TEXT,
@@ -2748,8 +2748,8 @@ CREATE TABLE "GlossaryTerm_source" (
 	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_GlossaryTerm_source_GlossaryTerm_id" ON "GlossaryTerm_source" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_source_source_id" ON "GlossaryTerm_source" (source_id);
+CREATE INDEX "ix_GlossaryTerm_source_GlossaryTerm_id" ON "GlossaryTerm_source" ("GlossaryTerm_id");
 
 CREATE TABLE "Reference_tags" (
 	"Reference_id" TEXT,
@@ -2767,8 +2767,8 @@ CREATE TABLE "Reference_isPartOf" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_isPartOf_Reference_id" ON "Reference_isPartOf" ("Reference_id");
 CREATE INDEX "ix_Reference_isPartOf_isPartOf_id" ON "Reference_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Reference_isPartOf_Reference_id" ON "Reference_isPartOf" ("Reference_id");
 
 CREATE TABLE "Reference_hasPart" (
 	"Reference_id" TEXT,
@@ -2827,8 +2827,8 @@ CREATE TABLE "Reference_sameAs" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_sameAs_sameAs_id" ON "Reference_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Reference_sameAs_Reference_id" ON "Reference_sameAs" ("Reference_id");
+CREATE INDEX "ix_Reference_sameAs_sameAs_id" ON "Reference_sameAs" ("sameAs_id");
 
 CREATE TABLE "Reference_relatedTo" (
 	"Reference_id" TEXT,
@@ -2837,8 +2837,8 @@ CREATE TABLE "Reference_relatedTo" (
 	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Reference_relatedTo_relatedTo_id" ON "Reference_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Reference_relatedTo_Reference_id" ON "Reference_relatedTo" ("Reference_id");
+CREATE INDEX "ix_Reference_relatedTo_relatedTo_id" ON "Reference_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Reference_definedBy" (
 	"Reference_id" TEXT,
@@ -2866,8 +2866,8 @@ CREATE TABLE "Document_tags" (
 	PRIMARY KEY ("Document_id", tags),
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id)
 );
-CREATE INDEX "ix_Document_tags_tags" ON "Document_tags" (tags);
 CREATE INDEX "ix_Document_tags_Document_id" ON "Document_tags" ("Document_id");
+CREATE INDEX "ix_Document_tags_tags" ON "Document_tags" (tags);
 
 CREATE TABLE "Document_isPartOf" (
 	"Document_id" TEXT,
@@ -2876,8 +2876,8 @@ CREATE TABLE "Document_isPartOf" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_isPartOf_isPartOf_id" ON "Document_isPartOf" ("isPartOf_id");
 CREATE INDEX "ix_Document_isPartOf_Document_id" ON "Document_isPartOf" ("Document_id");
+CREATE INDEX "ix_Document_isPartOf_isPartOf_id" ON "Document_isPartOf" ("isPartOf_id");
 
 CREATE TABLE "Document_hasPart" (
 	"Document_id" TEXT,
@@ -2896,8 +2896,8 @@ CREATE TABLE "Document_references" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_references_references_id" ON "Document_references" (references_id);
 CREATE INDEX "ix_Document_references_Document_id" ON "Document_references" ("Document_id");
+CREATE INDEX "ix_Document_references_references_id" ON "Document_references" (references_id);
 
 CREATE TABLE "Document_dependsOn" (
 	"Document_id" TEXT,
@@ -2906,8 +2906,8 @@ CREATE TABLE "Document_dependsOn" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_dependsOn_dependsOn_id" ON "Document_dependsOn" ("dependsOn_id");
 CREATE INDEX "ix_Document_dependsOn_Document_id" ON "Document_dependsOn" ("Document_id");
+CREATE INDEX "ix_Document_dependsOn_dependsOn_id" ON "Document_dependsOn" ("dependsOn_id");
 
 CREATE TABLE "Document_derivedFrom" (
 	"Document_id" TEXT,
@@ -2916,8 +2916,8 @@ CREATE TABLE "Document_derivedFrom" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_derivedFrom_Document_id" ON "Document_derivedFrom" ("Document_id");
 CREATE INDEX "ix_Document_derivedFrom_derivedFrom_id" ON "Document_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Document_derivedFrom_Document_id" ON "Document_derivedFrom" ("Document_id");
 
 CREATE TABLE "Document_about" (
 	"Document_id" TEXT,
@@ -2936,8 +2936,8 @@ CREATE TABLE "Document_sameAs" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_sameAs_Document_id" ON "Document_sameAs" ("Document_id");
 CREATE INDEX "ix_Document_sameAs_sameAs_id" ON "Document_sameAs" ("sameAs_id");
+CREATE INDEX "ix_Document_sameAs_Document_id" ON "Document_sameAs" ("Document_id");
 
 CREATE TABLE "Document_relatedTo" (
 	"Document_id" TEXT,
@@ -2946,8 +2946,8 @@ CREATE TABLE "Document_relatedTo" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_relatedTo_relatedTo_id" ON "Document_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_Document_relatedTo_Document_id" ON "Document_relatedTo" ("Document_id");
+CREATE INDEX "ix_Document_relatedTo_relatedTo_id" ON "Document_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "Document_definedBy" (
 	"Document_id" TEXT,
@@ -2966,8 +2966,8 @@ CREATE TABLE "Document_source" (
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Document_source_Document_id" ON "Document_source" ("Document_id");
 CREATE INDEX "ix_Document_source_source_id" ON "Document_source" (source_id);
+CREATE INDEX "ix_Document_source_Document_id" ON "Document_source" ("Document_id");
 
 CREATE TABLE "Role_memberOf" (
 	"Role_id" TEXT,
@@ -2995,8 +2995,8 @@ CREATE TABLE "Role_tags" (
 	PRIMARY KEY ("Role_id", tags),
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id)
 );
-CREATE INDEX "ix_Role_tags_Role_id" ON "Role_tags" ("Role_id");
 CREATE INDEX "ix_Role_tags_tags" ON "Role_tags" (tags);
+CREATE INDEX "ix_Role_tags_Role_id" ON "Role_tags" ("Role_id");
 
 CREATE TABLE "Role_isPartOf" (
 	"Role_id" TEXT,
@@ -3005,8 +3005,8 @@ CREATE TABLE "Role_isPartOf" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_isPartOf_Role_id" ON "Role_isPartOf" ("Role_id");
 CREATE INDEX "ix_Role_isPartOf_isPartOf_id" ON "Role_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Role_isPartOf_Role_id" ON "Role_isPartOf" ("Role_id");
 
 CREATE TABLE "Role_hasPart" (
 	"Role_id" TEXT,
@@ -3085,8 +3085,8 @@ CREATE TABLE "Role_definedBy" (
 	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Role_definedBy_Role_id" ON "Role_definedBy" ("Role_id");
 CREATE INDEX "ix_Role_definedBy_definedBy_id" ON "Role_definedBy" ("definedBy_id");
+CREATE INDEX "ix_Role_definedBy_Role_id" ON "Role_definedBy" ("Role_id");
 
 CREATE TABLE "Role_source" (
 	"Role_id" TEXT,
@@ -3124,8 +3124,8 @@ CREATE TABLE "AttestedComputation_hasPart" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_hasPart_AttestedComputation_id" ON "AttestedComputation_hasPart" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_hasPart_hasPart_id" ON "AttestedComputation_hasPart" ("hasPart_id");
+CREATE INDEX "ix_AttestedComputation_hasPart_AttestedComputation_id" ON "AttestedComputation_hasPart" ("AttestedComputation_id");
 
 CREATE TABLE "AttestedComputation_references" (
 	"AttestedComputation_id" TEXT,
@@ -3134,8 +3134,8 @@ CREATE TABLE "AttestedComputation_references" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_references_AttestedComputation_id" ON "AttestedComputation_references" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_references_references_id" ON "AttestedComputation_references" (references_id);
+CREATE INDEX "ix_AttestedComputation_references_AttestedComputation_id" ON "AttestedComputation_references" ("AttestedComputation_id");
 
 CREATE TABLE "AttestedComputation_dependsOn" (
 	"AttestedComputation_id" TEXT,
@@ -3144,8 +3144,8 @@ CREATE TABLE "AttestedComputation_dependsOn" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_dependsOn_AttestedComputation_id" ON "AttestedComputation_dependsOn" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_dependsOn_dependsOn_id" ON "AttestedComputation_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_AttestedComputation_dependsOn_AttestedComputation_id" ON "AttestedComputation_dependsOn" ("AttestedComputation_id");
 
 CREATE TABLE "AttestedComputation_derivedFrom" (
 	"AttestedComputation_id" TEXT,
@@ -3174,8 +3174,8 @@ CREATE TABLE "AttestedComputation_sameAs" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_sameAs_sameAs_id" ON "AttestedComputation_sameAs" ("sameAs_id");
 CREATE INDEX "ix_AttestedComputation_sameAs_AttestedComputation_id" ON "AttestedComputation_sameAs" ("AttestedComputation_id");
+CREATE INDEX "ix_AttestedComputation_sameAs_sameAs_id" ON "AttestedComputation_sameAs" ("sameAs_id");
 
 CREATE TABLE "AttestedComputation_relatedTo" (
 	"AttestedComputation_id" TEXT,
@@ -3184,8 +3184,8 @@ CREATE TABLE "AttestedComputation_relatedTo" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_relatedTo_relatedTo_id" ON "AttestedComputation_relatedTo" ("relatedTo_id");
 CREATE INDEX "ix_AttestedComputation_relatedTo_AttestedComputation_id" ON "AttestedComputation_relatedTo" ("AttestedComputation_id");
+CREATE INDEX "ix_AttestedComputation_relatedTo_relatedTo_id" ON "AttestedComputation_relatedTo" ("relatedTo_id");
 
 CREATE TABLE "AttestedComputation_definedBy" (
 	"AttestedComputation_id" TEXT,
@@ -3194,8 +3194,8 @@ CREATE TABLE "AttestedComputation_definedBy" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_AttestedComputation_definedBy_definedBy_id" ON "AttestedComputation_definedBy" ("definedBy_id");
 CREATE INDEX "ix_AttestedComputation_definedBy_AttestedComputation_id" ON "AttestedComputation_definedBy" ("AttestedComputation_id");
+CREATE INDEX "ix_AttestedComputation_definedBy_definedBy_id" ON "AttestedComputation_definedBy" ("definedBy_id");
 
 CREATE TABLE "AttestedComputation_source" (
 	"AttestedComputation_id" TEXT,
@@ -3223,8 +3223,8 @@ CREATE TABLE "Person_isPartOf" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("isPartOf_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_isPartOf_Person_id" ON "Person_isPartOf" ("Person_id");
 CREATE INDEX "ix_Person_isPartOf_isPartOf_id" ON "Person_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Person_isPartOf_Person_id" ON "Person_isPartOf" ("Person_id");
 
 CREATE TABLE "Person_hasPart" (
 	"Person_id" TEXT,
@@ -3243,8 +3243,8 @@ CREATE TABLE "Person_references" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_references_Person_id" ON "Person_references" ("Person_id");
 CREATE INDEX "ix_Person_references_references_id" ON "Person_references" (references_id);
+CREATE INDEX "ix_Person_references_Person_id" ON "Person_references" ("Person_id");
 
 CREATE TABLE "Person_dependsOn" (
 	"Person_id" TEXT,
@@ -3253,8 +3253,8 @@ CREATE TABLE "Person_dependsOn" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_dependsOn_Person_id" ON "Person_dependsOn" ("Person_id");
 CREATE INDEX "ix_Person_dependsOn_dependsOn_id" ON "Person_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Person_dependsOn_Person_id" ON "Person_dependsOn" ("Person_id");
 
 CREATE TABLE "Person_derivedFrom" (
 	"Person_id" TEXT,
@@ -3263,8 +3263,8 @@ CREATE TABLE "Person_derivedFrom" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_derivedFrom_derivedFrom_id" ON "Person_derivedFrom" ("derivedFrom_id");
 CREATE INDEX "ix_Person_derivedFrom_Person_id" ON "Person_derivedFrom" ("Person_id");
+CREATE INDEX "ix_Person_derivedFrom_derivedFrom_id" ON "Person_derivedFrom" ("derivedFrom_id");
 
 CREATE TABLE "Person_about" (
 	"Person_id" TEXT,
@@ -3273,8 +3273,8 @@ CREATE TABLE "Person_about" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_about_about_id" ON "Person_about" (about_id);
 CREATE INDEX "ix_Person_about_Person_id" ON "Person_about" ("Person_id");
+CREATE INDEX "ix_Person_about_about_id" ON "Person_about" (about_id);
 
 CREATE TABLE "Person_sameAs" (
 	"Person_id" TEXT,
@@ -3283,8 +3283,8 @@ CREATE TABLE "Person_sameAs" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("sameAs_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_sameAs_sameAs_id" ON "Person_sameAs" ("sameAs_id");
 CREATE INDEX "ix_Person_sameAs_Person_id" ON "Person_sameAs" ("Person_id");
+CREATE INDEX "ix_Person_sameAs_sameAs_id" ON "Person_sameAs" ("sameAs_id");
 
 CREATE TABLE "Person_relatedTo" (
 	"Person_id" TEXT,
@@ -3293,8 +3293,8 @@ CREATE TABLE "Person_relatedTo" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_relatedTo_Person_id" ON "Person_relatedTo" ("Person_id");
 CREATE INDEX "ix_Person_relatedTo_relatedTo_id" ON "Person_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Person_relatedTo_Person_id" ON "Person_relatedTo" ("Person_id");
 
 CREATE TABLE "Person_definedBy" (
 	"Person_id" TEXT,
@@ -3313,8 +3313,8 @@ CREATE TABLE "Person_source" (
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Person_source_source_id" ON "Person_source" (source_id);
 CREATE INDEX "ix_Person_source_Person_id" ON "Person_source" ("Person_id");
+CREATE INDEX "ix_Person_source_source_id" ON "Person_source" (source_id);
 
 CREATE TABLE "Organization_tags" (
 	"Organization_id" TEXT,
@@ -3322,8 +3322,8 @@ CREATE TABLE "Organization_tags" (
 	PRIMARY KEY ("Organization_id", tags),
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id)
 );
-CREATE INDEX "ix_Organization_tags_Organization_id" ON "Organization_tags" ("Organization_id");
 CREATE INDEX "ix_Organization_tags_tags" ON "Organization_tags" (tags);
+CREATE INDEX "ix_Organization_tags_Organization_id" ON "Organization_tags" ("Organization_id");
 
 CREATE TABLE "Organization_isPartOf" (
 	"Organization_id" TEXT,
@@ -3342,8 +3342,8 @@ CREATE TABLE "Organization_hasPart" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("hasPart_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_hasPart_hasPart_id" ON "Organization_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Organization_hasPart_Organization_id" ON "Organization_hasPart" ("Organization_id");
+CREATE INDEX "ix_Organization_hasPart_hasPart_id" ON "Organization_hasPart" ("hasPart_id");
 
 CREATE TABLE "Organization_references" (
 	"Organization_id" TEXT,
@@ -3352,8 +3352,8 @@ CREATE TABLE "Organization_references" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY(references_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_references_references_id" ON "Organization_references" (references_id);
 CREATE INDEX "ix_Organization_references_Organization_id" ON "Organization_references" ("Organization_id");
+CREATE INDEX "ix_Organization_references_references_id" ON "Organization_references" (references_id);
 
 CREATE TABLE "Organization_dependsOn" (
 	"Organization_id" TEXT,
@@ -3362,8 +3362,8 @@ CREATE TABLE "Organization_dependsOn" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("dependsOn_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_dependsOn_Organization_id" ON "Organization_dependsOn" ("Organization_id");
 CREATE INDEX "ix_Organization_dependsOn_dependsOn_id" ON "Organization_dependsOn" ("dependsOn_id");
+CREATE INDEX "ix_Organization_dependsOn_Organization_id" ON "Organization_dependsOn" ("Organization_id");
 
 CREATE TABLE "Organization_derivedFrom" (
 	"Organization_id" TEXT,
@@ -3372,8 +3372,8 @@ CREATE TABLE "Organization_derivedFrom" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_derivedFrom_Organization_id" ON "Organization_derivedFrom" ("Organization_id");
 CREATE INDEX "ix_Organization_derivedFrom_derivedFrom_id" ON "Organization_derivedFrom" ("derivedFrom_id");
+CREATE INDEX "ix_Organization_derivedFrom_Organization_id" ON "Organization_derivedFrom" ("Organization_id");
 
 CREATE TABLE "Organization_about" (
 	"Organization_id" TEXT,
@@ -3382,8 +3382,8 @@ CREATE TABLE "Organization_about" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY(about_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_about_about_id" ON "Organization_about" (about_id);
 CREATE INDEX "ix_Organization_about_Organization_id" ON "Organization_about" ("Organization_id");
+CREATE INDEX "ix_Organization_about_about_id" ON "Organization_about" (about_id);
 
 CREATE TABLE "Organization_sameAs" (
 	"Organization_id" TEXT,
@@ -3402,8 +3402,8 @@ CREATE TABLE "Organization_relatedTo" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("relatedTo_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_relatedTo_Organization_id" ON "Organization_relatedTo" ("Organization_id");
 CREATE INDEX "ix_Organization_relatedTo_relatedTo_id" ON "Organization_relatedTo" ("relatedTo_id");
+CREATE INDEX "ix_Organization_relatedTo_Organization_id" ON "Organization_relatedTo" ("Organization_id");
 
 CREATE TABLE "Organization_definedBy" (
 	"Organization_id" TEXT,
@@ -3412,8 +3412,8 @@ CREATE TABLE "Organization_definedBy" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY("definedBy_id") REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_definedBy_definedBy_id" ON "Organization_definedBy" ("definedBy_id");
 CREATE INDEX "ix_Organization_definedBy_Organization_id" ON "Organization_definedBy" ("Organization_id");
+CREATE INDEX "ix_Organization_definedBy_definedBy_id" ON "Organization_definedBy" ("definedBy_id");
 
 CREATE TABLE "Organization_source" (
 	"Organization_id" TEXT,
@@ -3422,6 +3422,6 @@ CREATE TABLE "Organization_source" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
 	FOREIGN KEY(source_id) REFERENCES "Concept" (id)
 );
-CREATE INDEX "ix_Organization_source_source_id" ON "Organization_source" (source_id);
 CREATE INDEX "ix_Organization_source_Organization_id" ON "Organization_source" ("Organization_id");
+CREATE INDEX "ix_Organization_source_source_id" ON "Organization_source" (source_id);
 

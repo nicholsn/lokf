@@ -146,6 +146,30 @@ def test_source_resource_implements_dcterms_source(vocab):
     assert vocab.expand("dcterms:source") == "http://purl.org/dc/terms/source"
 
 
+# Slot descriptions are canonical, verbatim glosses surfaced one-per-row by
+# consumers such as gen-doc and the Enforcer lookup. Keep rationale, mappings,
+# and loader mechanics in `comments:`/`notes:` instead.
+#
+# 400 chars is the shared soft cap for a readable lookup row; classes and enums
+# are exempt because their descriptions summarize whole types or vocabularies.
+# Raise the cap only when a field genuinely cannot be glossed shorter,
+# and hopefully downstream consumers don't mind the occasional long one.
+SLOT_DESCRIPTION_MAX = 400
+
+
+def test_slot_descriptions_stay_a_gloss_not_an_essay(vocab):
+    too_long = {
+        s["name"]: len(s["description"])
+        for s in vocab.manifest()["slots"]
+        if len(s.get("description", "")) > SLOT_DESCRIPTION_MAX
+    }
+    assert not too_long, (
+        f"slot descriptions over {SLOT_DESCRIPTION_MAX} chars: {too_long}. "
+        "A description is the canonical gloss; move rationale, mapping choices, "
+        "and loader mechanics into the slot's `comments:`/`notes:`."
+    )
+
+
 def test_context_has_authoring_aliases():
     ctx = load_context()
     assert ctx["type"] == "@type"
