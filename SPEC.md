@@ -3,7 +3,7 @@
 **Version 0.2 — Draft**
 **Status:** Proposal · Profile of Google Open Knowledge Format (OKF) v0.2
 **Model:** Defined entirely in LinkML (`lokf.yaml`); all other artifacts are generated from it.
-**Realized by:** `lokf.yaml` / the `lokf` package at 0.7.0 — the format version and the
+**Realized by:** `lokf.yaml` / the `lokf` package at 0.8.0 — the format version and the
 artifact version are separate tracks (§12).
 
 LOKF is a semantic, ontology-grounded **profile of the Google Open Knowledge
@@ -644,8 +644,8 @@ may rename required fields or change reserved filenames. Bundles declare their
 target with `lokf_version` in the root `index.md`.
 
 The LinkML schema and the `lokf` package carry their own, independent
-`<major>.<minor>.<patch>` version (currently 0.7.0), so the toolkit can ship fixes
-without implying a format change: LOKF v0.2 is realized by schema 0.7.0. Because the
+`<major>.<minor>.<patch>` version (currently 0.8.0), so the toolkit can ship fixes
+without implying a format change: LOKF v0.2 is realized by schema 0.8.0. Because the
 format is defined in LinkML, a format version is pinned by a tagged `lokf.yaml`, and
 the context/schema/shapes/OWL for it are reproducible by regeneration.
 
