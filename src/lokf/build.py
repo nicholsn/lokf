@@ -55,6 +55,119 @@ def run(cmd, **kw):
     return subprocess.run(cmd, check=True, **kw)
 
 
+
+# ---------------------------------------------------------------------------
+# determinism
+#
+# The LinkML generators are not reproducible: re-running them over an
+# unmodified lokf.yaml rewrote ~2,575 lines across the committed artifacts,
+# which buried every real schema diff and made it impossible for CI to assert
+# that the artifacts match their source. Three distinct causes, each corrected
+# below so `lokf-build` is byte-stable and `ci/generated-fresh` can gate it.
+# ---------------------------------------------------------------------------
+
+#: Predicates whose rdf:List value is semantically a *set*. LinkML builds these
+#: lists by iterating a Python set, so member order varies per run; sorting them
+#: is meaning-preserving. Ordered lists MUST NOT be added here.
+_SET_VALUED_LISTS = ("http://www.w3.org/ns/shacl#ignoredProperties",)
+
+
+def _sort_set_valued_lists(g) -> None:
+    """Sort the members of every set-valued rdf:List in *g*, in place."""
+    from rdflib import BNode, URIRef
+    from rdflib.collection import Collection
+
+    for pred in _SET_VALUED_LISTS:
+        for _s, _p, head in list(g.triples((None, URIRef(pred), None))):
+            if not isinstance(head, BNode):
+                continue
+            coll = Collection(g, head)
+            members = sorted(coll, key=str)
+            if list(coll) != members:
+                coll.clear()
+                for m in members:
+                    coll.append(m)
+
+
+def _relabel_bnodes(g):
+    """Return a copy of *g* whose blank-node labels are derived from content.
+
+    rdflib mints blank-node ids from uuid4, so identical input yields different
+    labels every run. Each node is hashed from its own incoming and outgoing
+    edges, iterated to a fixpoint so nested blank nodes converge; structurally
+    indistinguishable nodes then get a stable index. This only renames blank
+    nodes - no triple is added, dropped or rewritten.
+
+    (rdflib's own ``to_canonical_graph`` is not usable here: on these
+    almost-entirely-blank-node SHACL graphs it returns different labels for the
+    same content, the same weakness that makes ``to_isomorphic`` report a false
+    negative on lokf.shacl.ttl.)
+    """
+    import hashlib
+    from rdflib import BNode, Graph
+
+    labels = {n: "0" for n in g.all_nodes() if isinstance(n, BNode)}
+    for _ in range(12):
+        nxt = {}
+        for b in labels:
+            out = sorted((str(p), labels.get(o, str(o))) for _, p, o in g.triples((b, None, None)))
+            inc = sorted((labels.get(s, str(s)), str(p)) for s, p, _ in g.triples((None, None, b)))
+            nxt[b] = hashlib.sha256(repr((out, inc)).encode()).hexdigest()[:24]
+        if nxt == labels:
+            break
+        labels = nxt
+
+    buckets: dict = {}
+    for b, h in sorted(labels.items(), key=lambda kv: (kv[1], str(kv[0]))):
+        buckets.setdefault(h, []).append(b)
+    mapping = {b: BNode(f"x{h}{i}") for h, bs in buckets.items() for i, b in enumerate(bs)}
+
+    out_g = Graph()
+    for prefix, ns in g.namespaces():
+        out_g.bind(prefix, ns)
+    for s, p, o in g:
+        out_g.add((mapping.get(s, s), p, mapping.get(o, o)))
+    return out_g
+
+
+def _canonicalize_rdf(path: pathlib.Path, fmt: str, header: str = "") -> None:
+    """Rewrite *path* so the same graph always serializes to the same bytes.
+
+    *header* is re-emitted as leading comments: re-serializing a graph drops
+    the source file's comments, so any provenance note worth keeping must be
+    passed here rather than written into the generated text.
+    """
+    from rdflib import Graph
+
+    g = Graph().parse(str(path), format=fmt)
+    before = len(g)
+    _sort_set_valued_lists(g)
+    text = _relabel_bnodes(g).serialize(format=fmt)
+    if fmt == "nt":
+        # N-Triples has no grouping, so line order is the only variable left.
+        text = "\n".join(sorted(t for t in text.splitlines() if t.strip())) + "\n"
+    path.write_text(header + text, encoding="utf-8")
+    after = len(Graph().parse(str(path), format=fmt))
+    if after != before:
+        sys.exit(f"canonicalization changed {path.name}: {before} -> {after} triples")
+
+
+def _sort_sql_indexes(path: pathlib.Path) -> None:
+    """Sort the trailing CREATE INDEX block of the generated DDL.
+
+    gen-sqltables emits CREATE TABLE in a stable order but CREATE INDEX in a
+    varying one. Indexes are order-independent, so sorting them is safe.
+    """
+    lines = path.read_text(encoding="utf-8").splitlines()
+    idx = [l for l in lines if l.startswith("CREATE INDEX")]
+    if not idx:
+        return
+    rest = [l for l in lines if not l.startswith("CREATE INDEX")]
+    while rest and not rest[-1].strip():
+        rest.pop()
+    path.write_text("\n".join(rest + sorted(idx)) + "\n", encoding="utf-8")
+
+
 def generate(root: pathlib.Path) -> None:
     """Run the four LinkML generators, then publish the authoring context."""
     schema = root / "lokf.yaml"
@@ -91,14 +204,27 @@ def generate(root: pathlib.Path) -> None:
                 f"    rdfs:subClassOf lokf:Parameter ;\n"
                 f"    lokf:xsd_value_space {space} .\n"
             )
+    _canonicalize_rdf(
+        root / "lokf.owl.ttl", "turtle",
+        header=(
+            "# Generated by lokf-build from lokf.yaml (gen-owl), then extended\n"
+            "# with the OKF v0.2 post-generation axioms: lokf:Verification as a\n"
+            "# subclass of prov:Activity, and each ParameterType meaning as a\n"
+            "# lokf:Parameter subclass carrying its XSD value space.\n"
+            "# Blank-node labels are content-derived so this file is byte-stable.\n\n"
+        ),
+    )
+
     with open(root / "lokf.shacl.ttl", "w") as f:
         run(["gen-shacl", str(schema)], stdout=f)
+    _canonicalize_rdf(root / "lokf.shacl.ttl", "turtle")
 
     # The relational projection of the schema: CREATE TABLE DDL with foreign
     # keys auto-created for the typed relations. The instance-level counterpart
     # (a bundle -> linked DataFrames/SQL) lives in ``lokf.tables``.
     with open(root / "lokf.sql", "w") as f:
         run(["gen-sqltables", str(schema)], stdout=f)
+    _sort_sql_indexes(root / "lokf.sql")
 
     base = root / "lokf.context.base.jsonld"
     with open(base, "w") as f:
@@ -124,6 +250,9 @@ def generate(root: pathlib.Path) -> None:
     # unregistered URI schemes. Inlined Agent objects are unaffected.
     if isinstance(ctx["@context"].get("author"), dict):
         ctx["@context"]["author"].pop("@type", None)
+    # A wall-clock stamp on a committed artifact is pure churn - git already
+    # records when it changed - and it is the only volatile field here.
+    ctx.get("comments", {}).pop("generation_date", None)
     ctx.setdefault("comments", {})["note"] = (
         "Authoring context: `type`->@type and `id`->@id aliased so OKF "
         "frontmatter is valid JSON-LD; ParameterType values expand to "
@@ -169,6 +298,9 @@ def generate(root: pathlib.Path) -> None:
             'UsageWindow(**{("from_" if k == "from" else k): v'
             " for k, v in as_dict(self.usage_window).items()})",
         )
+        # Same volatile stamp as the context above; the rest of the generated
+        # header (source schema, id, description, license) is kept.
+        patched = re.sub(r"^# Generation date: .*\n", "", patched, flags=re.M)
         if patched != text:
             dm.write_text(patched, encoding="utf-8")
         compile(dm.read_text(encoding="utf-8"), str(dm), "exec")  # fail loudly
@@ -212,6 +344,7 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
         publicID=base,
     )
     whole.serialize(destination=str(ex / "acme-knowledge.nt"), format="nt")
+    _canonicalize_rdf(ex / "acme-knowledge.nt", "nt")
 
     metric = next(c for c in bundle["concepts"] if c["type"] == "Metric")
     mdoc = {k: v for k, v in metric.items() if k != "body"}
@@ -219,6 +352,7 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
     mg = Graph()
     mg.parse(data=json.dumps(mdoc), format="json-ld", publicID=base)
     mg.serialize(destination=str(ex / "weekly-active-users.nt"), format="nt")
+    _canonicalize_rdf(ex / "weekly-active-users.nt", "nt")
     print(f"== RDF projection: {len(whole)} triples (bundle), "
           f"{len(mg)} triples (metric) ==")
 
