@@ -76,6 +76,78 @@ class Bundle:
         """Look up a concept by IRI, Concept ID, or bundle-relative path."""
         return self.by_iri().get(self.resolve(ref.removesuffix(".md")))
 
+
+    _ABSOLUTE = ("http://", "https://", "urn:")
+
+    def in_namespace(self, ref: str) -> bool:
+        """Whether *ref* names something this bundle is responsible for.
+
+        A relative ref (``metrics/wau``, ``/glossary/active-user.md``) always
+        is - :meth:`resolve` mints it under ``base_iri``. An absolute IRI is
+        only if it sits under ``base_iri``; anything else is an external
+        resource, and a bundle cannot vouch for what it does not contain.
+        """
+        if ref.startswith(self._ABSOLUTE):
+            return bool(self.base_iri) and ref.startswith(self.base_iri)
+        return True
+
+    def dangling_refs(
+        self, schema_path: "str | pathlib.Path | None" = None
+    ) -> list[tuple[str, str, str]]:
+        """Typed-relation targets in this bundle's namespace that resolve to no concept.
+
+        Covers every multivalued, ``Concept``-ranged slot the schema declares on
+        ``Concept`` or a subclass (``isPartOf``, ``dependsOn``, ``about`` - see
+        :class:`lokf.schema.Vocabulary`), plus the ``target`` of each reified
+        entry under the generic ``relations`` slot, whose domain is ``Relation``
+        rather than ``Concept`` and so is not in that set. JSON Schema cannot
+        express this: a fabricated or stale IRI is a perfectly valid string.
+
+        Only targets satisfying :meth:`in_namespace` are checked. Several
+        relation slots are documented as taking an external resource -
+        ``definedBy`` is "a resource that formally defines this concept",
+        ``source`` "a resource from which this concept is derived" - so an
+        off-site URL there is correct usage, not a broken link, and flagging it
+        would make the check unusable on any bundle that cites the outside
+        world.
+
+        A target containing whitespace is skipped: some slots (``measures``)
+        are documented as accepting a description instead of an IRI, and no
+        valid IRI or bundle-relative path contains a space.
+
+        ``schema_path`` should be the schema the caller validated against, so
+        the relation vocabulary matches an explicit ``--schema``; the default
+        resolves independently and may disagree with one.
+
+        Returns ``(concept_id, slot, target)`` per unresolved target.
+        """
+        from lokf.schema import vocabulary
+
+        def dangling(target: object) -> bool:
+            return (
+                isinstance(target, str)
+                and bool(target.strip())
+                and not any(ch.isspace() for ch in target)
+                and self.in_namespace(target)
+                and self.get(target) is None
+            )
+
+        out: list[tuple[str, str, str]] = []
+        for slot in vocabulary(schema_path).relation_slots:
+            for c in self.concepts:
+                value = c.data.get(slot)
+                if value is None:
+                    continue
+                for target in value if isinstance(value, list) else [value]:
+                    if dangling(target):
+                        out.append((c.concept_id, slot, target))
+        for c in self.concepts:
+            for relation in c.data.get("relations") or []:
+                target = relation.get("target") if isinstance(relation, dict) else None
+                if dangling(target):
+                    out.append((c.concept_id, "relations", target))
+        return out
+
     def docs(self) -> list[dict]:
         """Each concept's frontmatter with its IRI injected as ``id``."""
         out = []
