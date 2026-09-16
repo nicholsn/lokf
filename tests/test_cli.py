@@ -242,6 +242,143 @@ def test_validate_rejects_unknown_http_method(tmp_path):
     assert "[ERROR]" in result.output
 
 
+# -- --check-refs (referential integrity, issue #64) -------------------------
+def _kb(tmp_path, term: str, extra_files: dict | None = None):
+    """A minimal bundle: index.md, one resolvable concept, plus *term*."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "real.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: Real\ndefinition: d\n---\n\n# Real\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "term.md").write_text(term, encoding="utf-8")
+    for name, text in (extra_files or {}).items():
+        (tmp_path / name).write_text(text, encoding="utf-8")
+    return tmp_path
+
+
+def test_check_refs_passes_on_the_reference_bundle():
+    """The shipped bundle cites an off-site `definedBy`; that must stay valid."""
+    result = runner.invoke(app, ["validate", str(BUNDLE), "--check-refs"])
+    assert result.exit_code == 0
+    assert "All in-namespace relation targets resolve." in result.stdout
+
+
+def test_check_refs_catches_a_fabricated_in_namespace_target(tmp_path):
+    """The issue's actual failure: a stale/invented IRI under the bundle's own
+    base_iri passes JSON Schema as a valid string."""
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "isPartOf: [https://ex.org/kb/does-not-exist]\n---\n\n# T\n",
+    )
+    assert runner.invoke(app, ["validate", str(kb)]).exit_code == 0  # schema alone can't see it
+    checked = runner.invoke(app, ["validate", str(kb), "--check-refs"])
+    assert checked.exit_code == 1
+    assert "isPartOf" in checked.output and "does-not-exist" in checked.output
+
+
+def test_check_refs_catches_a_dangling_relative_ref(tmp_path):
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "dependsOn: [missing-concept]\n---\n\n# T\n",
+    )
+    result = runner.invoke(app, ["validate", str(kb), "--check-refs"])
+    assert result.exit_code == 1
+    assert "missing-concept" in result.output
+
+
+def test_check_refs_accepts_a_resolvable_relative_ref(tmp_path):
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "dependsOn: [real]\n---\n\n# T\n",
+    )
+    assert runner.invoke(app, ["validate", str(kb), "--check-refs"]).exit_code == 0
+
+
+def test_check_refs_ignores_external_resources(tmp_path):
+    """`definedBy`/`source` are defined as taking an external resource, so an
+    off-site URL is correct usage - flagging it would make the check unusable
+    on any bundle that cites the outside world."""
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "definedBy: [https://external.example/rfc/spec]\n"
+        "source: [https://other.example/paper]\n---\n\n# T\n",
+    )
+    assert runner.invoke(app, ["validate", str(kb), "--check-refs"]).exit_code == 0
+
+
+def test_check_refs_catches_a_dangling_generic_relation_target(tmp_path):
+    """`relations[].target` is not a named slot, so it needs its own pass."""
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "relations:\n  - predicate: relatedTo\n"
+        "    target: https://ex.org/kb/also-missing\n---\n\n# T\n",
+    )
+    result = runner.invoke(app, ["validate", str(kb), "--check-refs"])
+    assert result.exit_code == 1
+    assert "relations" in result.output and "also-missing" in result.output
+
+
+def test_check_refs_allows_free_text_in_measures(tmp_path):
+    """`measures` is documented as accepting "a concept IRI or description"."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "m.md").write_text(
+        "---\ntype: Metric\ntitle: M\nunit: users\n"
+        "measures:\n  - the number of distinct home page visitors\n---\n\n# M\n",
+        encoding="utf-8",
+    )
+    assert runner.invoke(app, ["validate", str(tmp_path), "--check-refs"]).exit_code == 0
+
+
+def test_check_refs_is_off_by_default(tmp_path):
+    """Opt-in: a dangling target must not start failing existing bundles."""
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "isPartOf: [https://ex.org/kb/nope]\n---\n\n# T\n",
+    )
+    result = runner.invoke(app, ["validate", str(kb)])
+    assert result.exit_code == 0
+    assert "nope" not in result.output
+
+
+def test_check_refs_honours_an_explicit_schema(tmp_path):
+    """The vocabulary must come from the schema actually validated against, or
+    a --schema that renames a relation slot would silently check the wrong one."""
+    lokf_yaml = pathlib.Path(__file__).resolve().parents[1] / "lokf.yaml"
+    text = lokf_yaml.read_text(encoding="utf-8")
+    # Rename only the isPartOf slot definition and its declaration on Concept -
+    # anchored on exact indentation so the schema:isPartOf/dcterms:isPartOf
+    # CURIEs and the RelationType permissible value are left alone.
+    assert text.count("\n  isPartOf:\n") == 1
+    assert text.count("\n      - isPartOf\n") == 1
+    custom = tmp_path / "custom.yaml"
+    custom.write_text(
+        text.replace("\n  isPartOf:\n", "\n  customPartOf:\n").replace(
+            "\n      - isPartOf\n", "\n      - customPartOf\n"
+        ),
+        encoding="utf-8",
+    )
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "customPartOf: [https://ex.org/kb/does-not-exist]\n---\n\n# T\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(custom), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "customPartOf" in result.output and "does-not-exist" in result.output
+
+
 # -- query ------------------------------------------------------------------
 def test_query_select_table_contains_wau():
     """query <bundle> <SELECT> prints a table with the metric name."""

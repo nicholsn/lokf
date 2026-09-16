@@ -176,6 +176,13 @@ def validate(
         "`imports: [lokf]` and adds its own types/keys - to validate "
         "concepts that go beyond stock LOKF.",
     ),
+    check_refs: bool = typer.Option(
+        False, "--check-refs",
+        help="Also check that every typed-relation target in this bundle's own "
+        "namespace (isPartOf, dependsOn, about, relations[].target, ...) "
+        "resolves to a concept in the bundle - something JSON Schema cannot "
+        "express. External resources are not checked.",
+    ),
 ) -> None:
     """Assemble a bundle and validate it against the LOKF schema.
 
@@ -186,6 +193,12 @@ def validate(
     A concept using a type or frontmatter key this schema doesn't declare
     needs a domain schema that ``imports: [lokf]`` and adds it - pass that
     file via ``--schema``.
+
+    ``--check-refs`` adds a referential-integrity pass: a relation target
+    naming this bundle's own namespace must resolve to a concept in it, so a
+    fabricated or stale IRI is caught instead of passing as a valid string.
+    Targets outside the bundle's ``base_iri`` are left alone - slots like
+    ``definedBy`` and ``source`` are defined as taking an external resource.
 
     Needs LinkML, which the core install leaves out: ``pip install
     'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
@@ -232,12 +245,28 @@ def validate(
     # Fail on ERROR/FATAL only, which is what `linkml-validate` exits non-zero
     # on (its exit code is `1 if severity_counter[Severity.ERROR] > 0`) - a
     # warning is reported without failing the command.
-    if any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results):
+    failed = any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results)
+
+    if check_refs:
+        # Pass the schema actually validated against, so an explicit --schema
+        # that renames or adds a relation slot is honoured here too.
+        dangling = bundle.dangling_refs(schema_path=sch)
+        for concept_id, slot, target in dangling:
+            _err(
+                f"[ERROR] {concept_id}: `{slot}` target does not resolve to a "
+                f"concept in the bundle: {target}"
+            )
+        failed = failed or bool(dangling)
+
+    if failed:
         raise typer.Exit(1)
-    typer.echo(
+    ok = (
         f"OK — {len(bundle.concepts)} concepts in {bundle_dir} validate "
         "against KnowledgeBundle."
     )
+    if check_refs:
+        ok += " All in-namespace relation targets resolve."
+    typer.echo(ok)
 
 
 # ---------------------------------------------------------------------------

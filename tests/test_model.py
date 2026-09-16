@@ -61,3 +61,63 @@ def test_concept_body_and_title(bundle):
     term = bundle.get("glossary/active-user")
     assert term.title == "Active User"
     assert "# Definition" in term.body
+
+
+# -- relation-target namespace scoping (issue #64) ---------------------------
+def _bundle(tmp_path, base_iri="https://ex.org/kb/"):
+    (tmp_path / "index.md").write_text(
+        f"---\nbase_iri: {base_iri}\ntitle: KB\n---\n" if base_iri
+        else "---\ntitle: KB\n---\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "a.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: A\ndefinition: d\n---\n\n# A\n", encoding="utf-8"
+    )
+    return load_bundle(tmp_path)
+
+
+def test_in_namespace_accepts_relative_refs(tmp_path):
+    """A relative ref is always the bundle's own: resolve() mints it under base_iri."""
+    b = _bundle(tmp_path)
+    assert b.in_namespace("a")
+    assert b.in_namespace("/glossary/a.md")
+
+
+def test_in_namespace_accepts_absolute_iris_under_base_iri(tmp_path):
+    b = _bundle(tmp_path)
+    assert b.in_namespace("https://ex.org/kb/a")
+
+
+def test_in_namespace_rejects_external_iris(tmp_path):
+    """An off-site resource is not something the bundle can vouch for."""
+    b = _bundle(tmp_path)
+    assert not b.in_namespace("https://elsewhere.example/doc")
+    assert not b.in_namespace("urn:isbn:123")
+    # a sibling namespace that merely shares a prefix boundary
+    assert not b.in_namespace("https://ex.org/other/a")
+
+
+def test_in_namespace_without_a_base_iri_checks_nothing_absolute(tmp_path):
+    """base_iri defaults to "", and "".startswith() matches everything - so an
+    absent base_iri must not turn every external IRI into a dangling ref."""
+    b = _bundle(tmp_path, base_iri="")
+    assert not b.in_namespace("https://elsewhere.example/doc")
+    assert b.in_namespace("a")
+
+
+def test_dangling_refs_reports_concept_slot_and_target(tmp_path):
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "t.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "isPartOf: [https://ex.org/kb/ghost]\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    assert load_bundle(tmp_path).dangling_refs() == [
+        ("t", "isPartOf", "https://ex.org/kb/ghost")
+    ]
+
+
+def test_dangling_refs_is_empty_for_the_reference_bundle():
+    assert load_bundle(BUNDLE).dangling_refs() == []

@@ -460,6 +460,14 @@ Two independent, generated validators are available:
 The reference bundle in `examples/` passes JSON Schema validation for all eight
 concepts and for the assembled `KnowledgeBundle`.
 
+Neither validator checks referential integrity: a relation target is just a
+string to JSON Schema, so a stale or invented IRI passes. `lokf validate
+--check-refs` adds that pass, over every typed-relation slot and each
+`relations[].target`. Its scope is the bundle's own namespace — a relative ref,
+or an IRI under `base_iri` — because a bundle can only vouch for what it
+contains; `definedBy` and `source` are defined as taking an external resource,
+so off-site targets are not errors.
+
 Both validators are closed-world: a concept naming a type or frontmatter key
 this schema doesn't declare fails. To add project-specific types/keys, write a
 LinkML schema that `imports: [lokf]` and declares them, then pass it to

@@ -126,6 +126,18 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 Validation is closed-world (SPEC §9): a project-specific type or key needs a
 schema that `imports: [lokf]`, passed via `lokf validate --schema`.
 
+Schema validation cannot tell a live relation target from a fabricated one —
+both are valid strings. `--check-refs` adds that pass:
+
+```bash
+uv run lokf validate examples/acme-knowledge --check-refs
+# -> OK — 8 concepts ... All in-namespace relation targets resolve.
+```
+
+It checks every typed-relation target naming the bundle's **own** namespace —
+a relative ref, or an IRI under `base_iri`. External resources are left alone,
+since slots like `definedBy` and `source` are defined as taking one.
+
 ## Markdown → RDF in one command
 
 The `lokf` CLI projects a concept — or a whole bundle directory — straight to
