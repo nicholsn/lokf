@@ -59,7 +59,7 @@ from linkml_runtime.linkml_model.types import Boolean, Date, Datetime, Integer, 
 from linkml_runtime.utils.metamodelcore import Bool, URI, URIorCURIE, XSDDate, XSDDateTime
 
 metamodel_version = "1.11.0"
-version = "0.7.0"
+version = "0.8.0"
 
 # Namespaces
 ADMS = CurieNamespace('adms', 'http://www.w3.org/ns/adms#')
