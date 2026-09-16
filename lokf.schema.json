@@ -2048,7 +2048,7 @@
             "description": "A self-contained, hierarchical collection of concept documents \u2014 the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass).",
             "properties": {
                 "base_iri": {
-                    "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`.",
+                    "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink.",
                     "format": "uri",
                     "type": [
                         "string",
@@ -4695,6 +4695,13 @@
                     "description": "REQUIRED. An absolute URL, a bundle-relative path, or a population/scope descriptor string (e.g. \"all queries in BigQuery project X\"). Range is widened to string to admit scope descriptors; non-URI values are lossy on the RDF projection (they serialize as xsd:anyURI-typed literals).",
                     "type": "string"
                 },
+                "supporting_text": {
+                    "description": "Exact excerpt/quote from the referenced source.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "title": {
                     "description": "Human-readable display name.",
                     "type": [
@@ -5374,7 +5381,7 @@
     "metamodel_version": "1.11.0",
     "properties": {
         "base_iri": {
-            "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`.",
+            "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink.",
             "format": "uri",
             "type": [
                 "string",
