@@ -123,6 +123,9 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 <!-- --8<-- [end:validate-bundle] -->
 
+Validation is closed-world (SPEC §9): a project-specific type or key needs a
+schema that `imports: [lokf]`, passed via `lokf validate --schema`.
+
 ## Markdown → RDF in one command
 
 The `lokf` CLI projects a concept — or a whole bundle directory — straight to

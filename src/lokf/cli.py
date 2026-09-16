@@ -119,6 +119,47 @@ def convert(
         typer.echo(data, nl=False)
 
 
+def _class_defs(schema_file: str) -> dict:
+    """Every class's own closed JSON Schema definition, keyed by name -
+    matching the closed-world (`additionalProperties: false` per class)
+    shape ``lokf validate`` already validates against."""
+    from linkml.generators.jsonschemagen import JsonSchemaGenerator
+
+    return json.loads(JsonSchemaGenerator(schema_file, not_closed=False).serialize())["$defs"]
+
+
+def _sharpen_anyof_message(message: str, source, defs: dict) -> str:
+    """A concept failing LOKF's ~15-way class `anyOf` often can't be
+    disambiguated by jsonschema's own `best_match` (several classes fail the
+    same way, so it gives up and reports the whole `anyOf`, naming no
+    property - see lokf-issue.md). Every concept pins its own class via a
+    required `type:` key, so re-validate just against that one class's
+    subschema instead: usually one precise error, e.g. "'ects' was
+    unexpected". When `type` itself doesn't name a known class, point at
+    the real fix - a domain schema declaring it - instead.
+    """
+    if "is not valid under any of the given schemas" not in message:
+        return message
+    instance = getattr(source, "instance", None)
+    if not isinstance(instance, dict):
+        return message
+    class_name = instance.get("type")
+    if not isinstance(class_name, str) or class_name not in defs:
+        return (
+            f"{message}\n  hint: `type: {class_name!r}` isn't a class this schema "
+            "declares. A project-specific type needs a domain schema that "
+            "`imports: [lokf]` and adds it - see `lokf validate --schema`."
+        )
+    import jsonschema
+
+    sub = {"$defs": defs, **defs[class_name]}
+    validator = jsonschema.validators.validator_for(sub)(sub)
+    specifics = [err.message for err in validator.iter_errors(instance)]
+    if not specifics:
+        return message
+    return f"{message}\n  on {class_name}: " + "; ".join(specifics)
+
+
 # ---------------------------------------------------------------------------
 # validate
 # ---------------------------------------------------------------------------
@@ -131,7 +172,9 @@ def validate(
     schema: Optional[Path] = typer.Option(
         None, "--schema", "-s",
         help="Schema file (default: a local lokf.yaml checkout, else the copy "
-        "packaged with lokf).",
+        "packaged with lokf). Pass a project's own schema here - one that "
+        "`imports: [lokf]` and adds its own types/keys - to validate "
+        "concepts that go beyond stock LOKF.",
     ),
 ) -> None:
     """Assemble a bundle and validate it against the LOKF schema.
@@ -140,6 +183,9 @@ def validate(
     passed, otherwise from a ``lokf.yaml`` found in the current directory or an
     ancestor, otherwise from the copy shipped inside the installed ``lokf``
     package - so a bundle needs  no schema file of its own to be validated.
+    A concept using a type or frontmatter key this schema doesn't declare
+    needs a domain schema that ``imports: [lokf]`` and adds it - pass that
+    file via ``--schema``.
 
     Needs LinkML, which the core install leaves out: ``pip install
     'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
@@ -175,8 +221,14 @@ def validate(
     doc["concepts"] = bundle.docs()
 
     report = linkml_validate(doc, str(sch), "KnowledgeBundle")
+    defs = None
     for result in report.results:
-        _err(f"[{result.severity.name}] {result.message}")
+        message = result.message
+        if result.source is not None:
+            if defs is None:
+                defs = _class_defs(str(sch))
+            message = _sharpen_anyof_message(message, result.source, defs)
+        _err(f"[{result.severity.name}] {message}")
     # Fail on ERROR/FATAL only, which is what `linkml-validate` exits non-zero
     # on (its exit code is `1 if severity_counter[Severity.ERROR] > 0`) - a
     # warning is reported without failing the command.
