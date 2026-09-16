@@ -3,7 +3,7 @@
 **Version 0.2 — Draft**
 **Status:** Proposal · Profile of Google Open Knowledge Format (OKF) v0.2
 **Model:** Defined entirely in LinkML (`lokf.yaml`); all other artifacts are generated from it.
-**Realized by:** `lokf.yaml` / the `lokf` package at 0.5.0 — the format version and the
+**Realized by:** `lokf.yaml` / the `lokf` package at 0.7.0 — the format version and the
 artifact version are separate tracks (§12).
 
 LOKF is a semantic, ontology-grounded **profile of the Google Open Knowledge
@@ -230,7 +230,8 @@ against `base_iri` to mint the source node's IRI, so the same id shared across
 concepts merges into one node), `title` (`schema:name`), `author`
 (`schema:author`, an actor literal), `usage_count` (`lokf:usageCount`),
 `last_modified` (`schema:dateModified` — the *source's* recency, distinct from
-`generated.at`).
+`generated.at`), and `supporting_text` (`linkml:excerpt` — the exact quoted
+passage from `resource`, so a claim stays re-verifiable against its source).
 
 **Actors** (`generated.by`, `verified[].by`, `sources[].author`) follow OKF §7
 (`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain
@@ -288,7 +289,7 @@ generic `lokf:Concept` (OKF §4.1 / §9).
   `distribution` (`dcat:Distribution`).
 - **Metric** — `unit` (`schema:unitText`), `formula` (`lokf:formula`),
   `measures` (`lokf:measures`, → a Concept).
-- **Service** — `endpoint` (`schema:url`), `http_method`, `documentation`.
+- **Service** — `endpoint` (`schema:url`), `http_method` (`HttpMethod`: `GET`/`POST`/`PUT`/`PATCH`/`DELETE`/`HEAD`/`OPTIONS`, uppercase — the method name is a case-sensitive wire token), `documentation`.
 - **GlossaryTerm** — `definition` (`skos:definition`), `abbreviation`
   (`schema:alternateName`).
 
@@ -468,6 +469,21 @@ or an IRI under `base_iri` — because a bundle can only vouch for what it
 contains; `definedBy` and `source` are defined as taking an external resource,
 so off-site targets are not errors.
 
+### 9.1 Field constraints
+
+Several fields carry a `pattern` in the schema, so the generated JSON Schema
+rejects a malformed value rather than passing it through to RDF:
+
+| Field | Constraint |
+|---|---|
+| `base_iri` | absolute `http(s)`, ending in `/` or `#` so IDs mint by plain concatenation and prefix routing respects segment boundaries |
+| `generated.by`, `verified[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
+| `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
+| `email` | an address shape (`local@domain.tld`) |
+
+These tighten what was previously accepted: a bundle whose `base_iri` lacks a
+trailing `/`, or whose `by` is a bare name, validated before and does not now.
+
 Both validators are closed-world: a concept naming a type or frontmatter key
 this schema doesn't declare fails. To add project-specific types/keys, write a
 LinkML schema that `imports: [lokf]` and declares them, then pass it to
@@ -628,8 +644,8 @@ may rename required fields or change reserved filenames. Bundles declare their
 target with `lokf_version` in the root `index.md`.
 
 The LinkML schema and the `lokf` package carry their own, independent
-`<major>.<minor>.<patch>` version (currently 0.5.0), so the toolkit can ship fixes
-without implying a format change: LOKF v0.2 is realized by schema 0.5.0. Because the
+`<major>.<minor>.<patch>` version (currently 0.7.0), so the toolkit can ship fixes
+without implying a format change: LOKF v0.2 is realized by schema 0.7.0. Because the
 format is defined in LinkML, a format version is pinned by a tagged `lokf.yaml`, and
 the context/schema/shapes/OWL for it are reproducible by regeneration.
 

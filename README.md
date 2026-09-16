@@ -217,7 +217,7 @@ See the [scaffold docs](https://lokf.nolan-nichols.com/toolkit/scaffold/).
 
 LOKF v0.2 is a **draft profile** and is **not affiliated with or endorsed by
 Google**. The format version tracks OKF's `<major>.<minor>` scheme; the LinkML
-schema and the `lokf` package carry their own version (currently 0.5.0) so the
+schema and the `lokf` package carry their own version (currently 0.7.0) so the
 toolkit can ship fixes without implying a format change — see
 [SPEC §12](./SPEC.md). "Open Knowledge Format" / "OKF" refer to the format published by Google
 Cloud (`github.com/GoogleCloudPlatform/knowledge-catalog`); LOKF extends it under

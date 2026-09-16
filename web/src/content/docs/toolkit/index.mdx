@@ -109,6 +109,19 @@ vocab.relation_slots["measures"].domains    # -> frozenset({'Metric'})
 vocab.expand("prov:wasDerivedFrom")         # -> 'http://www.w3.org/ns/prov#wasDerivedFrom'
 ```
 
+The same vocabulary is available from the CLI. `lokf vocab` prints the
+typed-relation table; `lokf vocab --all` widens it to the whole schema
+reference — every class, frontmatter slot and value enum with its own
+description — and `--json` emits either as JSON:
+
+```bash
+lokf vocab                  # the typed-relation vocabulary
+lokf vocab --all --json     # the full reference, machine-readable
+```
+
+Agents get the same thing from the MCP server's `get_vocabulary` tool, which
+takes an `all` flag with the same meaning.
+
 :::tip[The schema travels with the package]
 `vocabulary()` and `load_context()` resolve `lokf.yaml` and
 `lokf.context.jsonld` in this order: an explicit path argument first,
