@@ -6,6 +6,7 @@
             "properties": {
                 "email": {
                     "description": "Contact email address.",
+                    "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
                     "type": [
                         "string",
                         "null"
@@ -1734,6 +1735,7 @@
                 },
                 "by": {
                     "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 }
             },
@@ -2043,13 +2045,28 @@
             "title": "GlossaryTerm",
             "type": "object"
         },
+        "HttpMethod": {
+            "description": "The IANA HTTP request method registry, restricted to the methods a LOKF Service is realistically documented as being invoked with. Permissible value names are uppercase (unlike this schema's other enums) because the method name is a case-sensitive wire token, not an authoring convenience label.",
+            "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "HEAD",
+                "OPTIONS"
+            ],
+            "title": "HttpMethod",
+            "type": "string"
+        },
         "KnowledgeBundle": {
             "additionalProperties": false,
             "description": "A self-contained, hierarchical collection of concept documents \u2014 the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass).",
             "properties": {
                 "base_iri": {
-                    "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink.",
+                    "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink. Absolute http(s), ending in `/` or `#` so ids mint by plain concatenation and prefix routing respects segment boundaries (`\u2026/team/` never captures `\u2026/team-archive/`).",
                     "format": "uri",
+                    "pattern": "^https?://\\S+[/#]$",
                     "type": [
                         "string",
                         "null"
@@ -2577,6 +2594,7 @@
                 },
                 "email": {
                     "description": "Contact email address.",
+                    "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
                     "type": [
                         "string",
                         "null"
@@ -2919,6 +2937,7 @@
                 },
                 "email": {
                     "description": "Contact email address.",
+                    "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
                     "type": [
                         "string",
                         "null"
@@ -4491,11 +4510,8 @@
                     ]
                 },
                 "http_method": {
-                    "description": "The HTTP method used to invoke the service, if applicable.",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
+                    "$ref": "#/$defs/HttpMethod",
+                    "description": "The HTTP method used to invoke the service, if applicable."
                 },
                 "id": {
                     "description": "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.",
@@ -4670,7 +4686,8 @@
             "description": "A material a concept derives from (OKF v0.2 \u00a75.1) \u2014 a pointer (`resource`) plus objective per-source credibility signals (`author`, `usage_count`, `last_modified`) from which consumers infer trust; OKF stores signals, never a score. Markdown footnotes whose label equals `id` attribute individual claims to this entry. Supersedes Citation.",
             "properties": {
                 "author": {
-                    "description": "Who or what produced the source, as an OKF \u00a77 actor string (e.g. `team:ga4-docs`) \u2014 an authority signal carried as a plain literal, not an inlined Agent object.",
+                    "description": "Who or what produced the source, as an actor string (e.g. `team:analytics`, `human:jsmith@acme`, `ga4-docs/v2`) \u2014 an authority signal carried as a plain literal, not an inlined Agent object. Deliberately looser than `by`: source authorship is commonly a team or an org, so any `<prefix>:<id>` is admitted, where `by` stays confined to the \u00a77 provenance actors the trust tiers read.",
+                    "pattern": "^[^\\s:/]+:\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": [
                         "string",
                         "null"
@@ -5364,6 +5381,7 @@
                 },
                 "by": {
                     "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 }
             },
@@ -5381,8 +5399,9 @@
     "metamodel_version": "1.11.0",
     "properties": {
         "base_iri": {
-            "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink.",
+            "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink. Absolute http(s), ending in `/` or `#` so ids mint by plain concatenation and prefix routing respects segment boundaries (`\u2026/team/` never captures `\u2026/team-archive/`).",
             "format": "uri",
+            "pattern": "^https?://\\S+[/#]$",
             "type": [
                 "string",
                 "null"

@@ -58,7 +58,7 @@ def new(name: str, path: str | pathlib.Path = ".",
     """
     title = title or _slug_title(name)
     base_iri = base_iri or f"https://example.org/{name}/"
-    if not base_iri.endswith("/"):
+    if not base_iri.endswith(("/", "#")):
         base_iri += "/"
 
     root = pathlib.Path(path) / name

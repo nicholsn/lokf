@@ -228,3 +228,121 @@ def test_datamodel_usage_window_from_keyword():
     assert isinstance(m.usage_window, UsageWindow)
     assert str(m.usage_window.from_) == "2026-06-01"
     assert str(m.usage_window.to) == "2026-06-30"
+
+
+# -- PR #69: recommended fields, slot patterns, HttpMethod enum ----------
+# -- recommended fields + the vocabulary manifest ----------------------------
+def test_recommended_fields_are_declared_per_type():
+    schema = load_schema()
+
+    def recommended(cls):
+        usage = schema["classes"][cls].get("slot_usage") or {}
+        return {s for s, u in usage.items() if (u or {}).get("recommended")}
+
+    assert recommended("Metric") == {"unit", "formula", "measures"}
+    assert recommended("GlossaryTerm") == {"definition"}
+    # http_method is excluded on purpose: its own description says "if
+    # applicable", and a GraphQL or gRPC Service has no single verb.
+    assert recommended("Service") == {"endpoint", "documentation"}
+    assert "http_method" not in recommended("Service")
+
+
+def test_dataset_recommends_nothing_so_table_inherits_nothing():
+    # Table is_a Dataset, so anything recommended on Dataset propagates to it.
+    # `distribution` is meaningless for a warehouse table, and neither the SPEC
+    # nor the enforcer plugin treats either field as a SHOULD.
+    schema = load_schema()
+    assert schema["classes"]["Table"]["is_a"] == "Dataset"
+    assert not (schema["classes"]["Dataset"].get("slot_usage") or {})
+
+
+# -- `base_iri` pattern (SPEC §5: absolute http(s), `/`- or `#`-terminated) ---
+def test_base_iri_slot_has_absolute_terminated_pattern():
+    import re
+
+    pattern = load_schema()["slots"]["base_iri"]["pattern"]
+    good = [
+        "https://acme.example/knowledge/",
+        "http://ex.org/kb/",
+        "https://ex.org/ns#",  # hash namespaces are valid, per registry.add()
+    ]
+    bad = [
+        "https://acme.example/knowledge",  # unterminated: ids would mint glued
+        "acme.example/knowledge/",  # not absolute
+        "ftp://ex.org/kb/",  # not http(s)
+        "https://ex.org/a b/",  # whitespace
+    ]
+    for value in good:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in bad:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_base_iri_pattern_admits_every_registrable_base_iri():
+    # The schema pattern must not be narrower than the rule registry.add()
+    # enforces, or a bundle that routes today would stop validating.
+    import re
+
+    from lokf.registry import Registry, RepoEntry
+
+    pattern = load_schema()["slots"]["base_iri"]["pattern"]
+    for value in ["https://acme.example/knowledge/", "https://ex.org/ns#"]:
+        Registry(path=pathlib.Path("lokf-registry.yaml")).add(RepoEntry(base_iri=value))
+        assert re.fullmatch(pattern, value), f"registry accepts {value!r}, schema rejects it"
+
+
+# -- `by` actor-string pattern (OKF §7: human:<id> | process:<id> | <producer>/<version>) --
+def test_by_slot_has_actor_string_pattern():
+    import re
+
+    pattern = load_schema()["slots"]["by"]["pattern"]
+    good = [
+        "human:jsmith@acme",
+        "process:metrics-nightly",
+        "reference_agent/gemini-2.5-pro",
+    ]
+    bad = ["John Smith", "human:", "has space/version", "no-scheme-no-slash"]
+    for value in good:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in bad:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_source_author_admits_any_prefixed_actor():
+    # Source.author carries an actor string but is a distinct slot from `by`
+    # (the global `author` ranges over Agent, so nothing is inherited). It is
+    # deliberately looser: sources are commonly credited to a team, which the
+    # §7 provenance trio has no form for.
+    import re
+
+    schema = load_schema()
+    pattern = schema["classes"]["Source"]["slot_usage"]["author"]["pattern"]
+    good = ["team:analytics", "human:jsmith@acme", "process:crawler", "ga4-docs/v2"]
+    bad = ["Jordan Smith", "team:", "has space/version", "noprefix"]
+    for value in good:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in bad:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+    # ...and it must stay strictly looser than `by`, never narrower.
+    by = schema["slots"]["by"]["pattern"]
+    assert re.fullmatch(pattern, "team:analytics")
+    assert not re.fullmatch(by, "team:analytics")
+
+
+# -- `email` pattern and `http_method` enum ----------------------------------
+def test_email_slot_has_pattern():
+    import re
+
+    pattern = load_schema()["slots"]["email"]["pattern"]
+    for value in ["jsmith@acme.example", "a.b+tag@sub.example.co"]:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in ["not-an-email", "missing-domain@", "@no-local.com", "no at sign.com"]:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_http_method_is_an_enum_of_iana_verbs():
+    schema = load_schema()
+    assert schema["slots"]["http_method"]["range"] == "HttpMethod"
+    assert set(schema["enums"]["HttpMethod"]["permissible_values"]) == {
+        "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
+    }
