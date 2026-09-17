@@ -28,3 +28,8 @@ updates:
     groups:
       docs:
         patterns: ["*"]
+    ignore:
+      # astro-mermaid pins a peer of mermaid@^10 || ^11; a mermaid major bump
+      # breaks `npm ci` until astro-mermaid follows. Drop this once it does.
+      - dependency-name: mermaid
+        update-types: ["version-update:semver-major"]
