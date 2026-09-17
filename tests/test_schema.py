@@ -119,19 +119,27 @@ def test_enum_values_matches_relation_types_curie_convention(vocab):
     for name, rel in vocab.relation_types.items():
         assert rows[name]["curie"] == rel.curie
         assert rows[name]["uri"] == rel.uri
-# -- supporting_text / reference-validator wiring (Source) -------------------
-def test_source_declares_supporting_text_slot():
+# -- excerpt / reference-validator wiring (Source) ---------------------------
+def test_source_declares_excerpt_slot():
     schema = load_schema()
     source = schema["classes"]["Source"]
-    assert "supporting_text" in source["slots"]
+    assert "excerpt" in source["slots"]
     # Optional: a Source may cite a resource without quoting it verbatim.
-    assert "required" not in source.get("slot_usage", {}).get("supporting_text", {})
+    assert "required" not in source.get("slot_usage", {}).get("excerpt", {})
+    # The 0.8.0 name is gone from the schema, not aliased into it: a bundle
+    # still writing it fails validation and says so.
+    assert "supporting_text" not in schema["slots"]
+    assert "supporting_text" in schema["slots"]["excerpt"]["aliases"]
 
 
-def test_supporting_text_slot_implements_linkml_excerpt(vocab):
-    slot = load_schema()["slots"]["supporting_text"]
+def test_excerpt_slot_implements_linkml_excerpt(vocab):
+    slot = load_schema()["slots"]["excerpt"]
     assert slot["range"] == "string"
     assert slot["implements"] == ["linkml:excerpt"]
+    # Named as proposed for OKF §5.1 (knowledge-catalog#438); LOKF's own
+    # predicate until OKF adopts it, so it sits in lokf_semantic, not okf_v02.
+    assert slot["slot_uri"] == "lokf:excerpt"
+    assert slot["in_subset"] == ["lokf_semantic"]
     # linkml_reference_validator's field_detection matches this legacy URI
     # (canonical is oa:exact) to find excerpt fields for validation.
     assert vocab.expand("linkml:excerpt") == "https://w3id.org/linkml/excerpt"
@@ -142,8 +150,70 @@ def test_source_resource_implements_dcterms_source(vocab):
     assert resource_usage["implements"] == ["dcterms:source"]
     assert resource_usage["required"] is True
     # linkml_reference_validator pairs this with the excerpt field above to
-    # fetch `resource` and confirm `supporting_text` actually appears in it.
+    # fetch `resource` and confirm `excerpt` actually appears in it.
     assert vocab.expand("dcterms:source") == "http://purl.org/dc/terms/source"
+
+
+def test_revision_is_lokfs_own_event_field_until_okf_adopts_it():
+    """`revision` pins which state of the resource a `generated` or `verified`
+    event refers to. Proposed for OKF as knowledge-catalog#437, so it lives
+    in lokf_semantic under LOKF's own predicate, on both event classes, and
+    is never required."""
+    schema = load_schema()
+    slot = schema["slots"]["revision"]
+    assert slot["range"] == "string"
+    assert slot["slot_uri"] == "lokf:revision"
+    assert slot["in_subset"] == ["lokf_semantic"]
+    assert "required" not in slot
+    for cls in ("Generation", "Verification"):
+        assert "revision" in schema["classes"][cls]["slots"], cls
+
+
+# -- OKF §5 timestamps -------------------------------------------------------
+def test_datetime_slots_match_the_parser_shorthand_set():
+    """OKF types every timestamp as a datetime; LOKF reads a bare date under
+    those keys as midnight UTC. The parser's key set must be the schema's, or
+    a slot gains the datetime range and loses the shorthand silently."""
+    from lokf.parse import DATETIME_SLOTS
+
+    schema = load_schema()
+    datetime_slots = {
+        name for name, slot in schema["slots"].items()
+        if (slot or {}).get("range") == "datetime"
+    }
+    assert datetime_slots == set(DATETIME_SLOTS)
+    # No slot is left on the narrower `date` range OKF never uses.
+    assert not [n for n, s in schema["slots"].items() if (s or {}).get("range") == "date"]
+
+
+# -- vocab manifest carries the constraints, not just the glosses ------------
+def test_manifest_reports_patterns_required_and_slot_usage(vocab):
+    """A client that cannot run `lokf validate` (the MCP `get_vocabulary`
+    route) must see every constraint lokf.schema.json enforces, and each
+    class's narrowing of a slot - or it writes values the validator rejects."""
+    schema = load_schema()
+    m = vocab.manifest()
+    slots = {s["name"]: s for s in m["slots"] if "class" not in s}
+    for name, slot in schema["slots"].items():
+        slot = slot or {}
+        if slot.get("pattern"):
+            assert slots[name]["pattern"] == slot["pattern"], name
+        if slot.get("required"):
+            assert slots[name]["required"] is True, name
+
+    classes = {c["name"]: c for c in m["classes"]}
+    for name, cls in schema["classes"].items():
+        for slot_name, override in ((cls or {}).get("slot_usage") or {}).items():
+            if override and override.get("recommended"):
+                assert classes[name]["slot_usage"][slot_name]["recommended"] is True
+    # Source narrows the Agent-list `author` to one patterned string; the
+    # top-level row alone would have a client write a list of objects.
+    author = classes["Source"]["slot_usage"]["author"]
+    assert author["range"] == "string"
+    assert author["multivalued"] is False
+    assert author["pattern"] == schema["classes"]["Source"]["slot_usage"]["author"]["pattern"]
+    # Loader mechanics stay out of the contract.
+    assert "inlined_as_list" not in author and "implements" not in classes["Source"]["slot_usage"]["resource"]
 
 
 # Slot descriptions are canonical, verbatim glosses surfaced one-per-row by
@@ -223,11 +293,11 @@ def test_datamodel_usage_window_from_keyword():
     m = Metric(
         id="https://acme.example/knowledge/metrics/wau",
         type="Metric",
-        usage_window={"from": "2026-06-01", "to": "2026-06-30"},
+        usage_window={"from": "2026-06-01T00:00:00Z", "to": "2026-06-30T00:00:00Z"},
     )
     assert isinstance(m.usage_window, UsageWindow)
-    assert str(m.usage_window.from_) == "2026-06-01"
-    assert str(m.usage_window.to) == "2026-06-30"
+    assert str(m.usage_window.from_) == "2026-06-01T00:00:00+00:00"
+    assert str(m.usage_window.to) == "2026-06-30T00:00:00+00:00"
 
 
 # -- PR #69: recommended fields, slot patterns, HttpMethod enum ----------

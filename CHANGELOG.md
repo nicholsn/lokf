@@ -93,6 +93,9 @@ via `lokf validate --schema`.
   asserted by tests. ([#80])
 - Dependency updates. ([#62], [#63], [#70], [#71], [#72])
 
+[knowledge-catalog#437]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437
+[knowledge-catalog#438]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
+[#61]: https://github.com/nicholsn/lokf/issues/61
 [#62]: https://github.com/nicholsn/lokf/pull/62
 [#63]: https://github.com/nicholsn/lokf/pull/63
 [#64]: https://github.com/nicholsn/lokf/issues/64

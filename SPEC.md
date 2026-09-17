@@ -158,6 +158,7 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 | `genre`       |     | `schema:genre`                     | enum    | Diátaxis documentation mode of the body (§6.1). `DiataxisMode`: tutorial \| how-to \| reference \| explanation. |
 | `body`        |  ✅ | `schema:text`                      | string  | The markdown after the frontmatter.               |
 | `citations`   |     | `schema:citation`                  | Citation*| **Superseded** in v0.2 by `sources` (§5.4); still parsed for v0.1 docs. |
+| `additionalType` |  | `schema:additionalType`            | string  | The producer's `type` when it names no LOKF class (§8). Written by the RDF projection, not by authors. |
 <!-- --8<-- [end:core-fields-table] -->
 
 (`*` = multivalued.) Producers MAY add any other keys; consumers MUST preserve
@@ -221,8 +222,25 @@ distinguishable, never rejected).
 | `generated`    |  ✅ | `prov:wasGeneratedBy`           | Generation   | `{by, at}` → `prov:wasAssociatedWith` + `prov:endedAtTime` on a `prov:Activity`. Supersedes `timestamp`. |
 | `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`). A bare mapping MUST be read as a one-element list. |
 | `status`       |  ✅ | `schema:creativeWorkStatus`     | enum         | `draft \| stable \| deprecated`; absent ⇒ stable. Enum meanings: ADMS status IRIs. |
-| `stale_after`  |  ✅ | `schema:expires`                | date         | Stale when `today >= stale_after`; plain date comparison. |
+| `stale_after`  |  ✅ | `schema:expires`                | dateTime     | The instant from which the concept is stale (OKF §5.5). A bare `YYYY-MM-DD` means that day at `00:00:00Z`. |
 <!-- --8<-- [end:trust-fields-table] -->
+
+Every timestamp in these families is an ISO 8601 datetime, as in OKF §5, and
+projects as `xsd:dateTime`. LOKF adds one shorthand: a bare `YYYY-MM-DD` in any
+of them means that day at midnight UTC. `lokf` applies it before validating, so
+a bundle written with dates and one written with datetimes validate and project
+the same way.
+
+A `generated` or `verified[]` event may carry **`revision`** (`lokf:revision`):
+the state of the resource the event refers to, as a commit id, an ETag or
+version label, or a content digest of the resource as retrieved
+(`sha256:<hex>`). Absent means unrecorded, never unchanged. Quote it in YAML:
+an all-digit commit id is otherwise read as a number and rejected. With it a
+consumer can say "human-reviewed, against revision X", and a refresh can tell
+"the source moved since the last check" from "nobody looked". `revision` is LOKF's
+own field, proposed for OKF under the same name
+([knowledge-catalog#437](https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437));
+it moves to the OKF subset if OKF adopts it.
 
 **Source entries** (`sources[]`): `resource` (REQUIRED → `schema:url`; a URL,
 bundle-relative path, or scope descriptor), `id` (footnote join key; resolves
@@ -230,8 +248,11 @@ against `base_iri` to mint the source node's IRI, so the same id shared across
 concepts merges into one node), `title` (`schema:name`), `author`
 (`schema:author`, an actor literal), `usage_count` (`lokf:usageCount`),
 `last_modified` (`schema:dateModified` — the *source's* recency, distinct from
-`generated.at`), and `supporting_text` (`linkml:excerpt` — the exact quoted
-passage from `resource`, so a claim stays re-verifiable against its source).
+`generated.at`), and `excerpt` (`lokf:excerpt` — the exact passage from
+`resource` that the concept relies on, so the claim can be checked against it
+again later). `excerpt` is LOKF's own field, proposed for OKF under the same name
+([knowledge-catalog#438](https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438));
+it moves to the OKF subset if OKF adopts it.
 
 **Actors** (`generated.by`, `verified[].by`, `sources[].author`) follow OKF §7
 (`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain
@@ -431,9 +452,10 @@ A bundle is **LOKF v0.2 conformant** if:
 1. It is a conformant **OKF v0.2** bundle (OKF §11): every non-reserved `.md` file
    has parseable YAML frontmatter with a non-empty `type`.
 2. Every `type` value that names a LOKF class (§6) is used consistently with that
-   class's mappings; unknown types are permitted and treated as `lokf:Concept`.
-   OKF's spaced type spellings (`Attested Computation`) are recognized as their
-   LOKF class names (`AttestedComputation`).
+   class's mappings. Unknown types are permitted: they are read as
+   `lokf:Concept`, and the original string is kept in `additionalType` so
+   nothing is lost. OKF's spaced type spellings (`Attested Computation`) are
+   recognized as their LOKF class names (`AttestedComputation`).
 3. The bundle-root `index.md` declares `base_iri` and `context` if the bundle is to
    be consumed as Linked Data. (A bundle without them is still LOKF-conformant, but
    is consumed as plain OKF.)
@@ -446,6 +468,11 @@ A bundle is **LOKF v0.2 conformant** if:
 
 As in OKF, consumers MUST be permissive: missing optional fields, unknown `type`
 values, unknown frontmatter keys, and broken cross-links MUST NOT cause rejection.
+`lokf convert`, `query` and `serve` are consumers in this sense and accept any
+conformant bundle. `lokf validate` is stricter: it checks the schema of §9, and
+a conformant bundle can fail it — for an undeclared `type` or key, or a
+malformed actor. Conformance is the floor a consumer must accept; passing
+`lokf validate` is the bar a producer aims for.
 
 ---
 
@@ -487,6 +514,17 @@ rejects a malformed value rather than passing it through to RDF:
 
 These tighten what was previously accepted: a bundle whose `base_iri` lacks a
 trailing `/`, or whose `by` is a bare name, validated before and does not now.
+None of them narrows OKF. The actor patterns are the three forms of OKF §7,
+plus the `<prefix>:<id>` form OKF's own example uses for `sources[].author`, and
+every field OKF defines keeps OKF's range of values. Timestamps are `date-time`
+in the JSON Schema, as in OKF §5. The bare-date shorthand of §5.4 is applied by
+`lokf` before it validates, so a client that checks raw frontmatter against
+`lokf.schema.json` on its own must write the full datetime.
+
+`lokf vocab --all --json` (and MCP `get_vocabulary(all=True)`) reports these
+patterns, each slot's `required` flag and each class's `slot_usage`, including
+its `recommended` fields, so a client that cannot run `lokf validate` can still
+check a value against the same rules.
 
 Both validators are closed-world: a concept naming a type or frontmatter key
 this schema doesn't declare fails. To add project-specific types/keys, write a

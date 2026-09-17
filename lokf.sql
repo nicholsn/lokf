@@ -21,7 +21,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: KnowledgeBundle_id Description: Autocreated FK slot
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
@@ -38,7 +39,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Table Description: A structured, tabular dataset (e.g. a warehouse table or view) whose columns are described by Field objects under `fields`.
@@ -54,7 +56,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Metric Description: A precisely defined, measurable quantity — the canonical definition of a business or operational metric.
@@ -72,7 +75,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Service Description: A callable service or API endpoint.
@@ -91,7 +95,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Playbook Description: A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event. Serves the Diátaxis how-to (goal-oriented) mode.
@@ -107,7 +112,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Tutorial Description: A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by doing. The Diátaxis tutorial mode as a first-class concept type; typically links to the reference and explanation it draws on with `references`.
@@ -123,7 +129,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Explanation Description: An understanding-oriented, discursive treatment of a topic that permits reflection. The Diátaxis explanation mode as a first-class concept type; typically links to its subject matter with `about`.
@@ -139,7 +146,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Policy Description: A governance, compliance, or operational policy document.
@@ -155,7 +163,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: GlossaryTerm Description: A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept.
@@ -173,7 +182,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Reference Description: A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked.
@@ -189,7 +199,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Document Description: A general knowledge document that does not fit a more specific type.
@@ -205,7 +216,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: Role Description: A role an agent holds within an organization over a period of time — a job, appointment, or position. Reifies the agent–organization link so it can carry a title (roleName) and a start/end interval, following the schema.org Role and W3C ORG Membership patterns.
@@ -224,7 +236,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
 -- # Class: AttestedComputation Description: A sanctioned, immutable recipe for computing a value (OKF v0.2 §10), carried as its own concept type. The frontmatter is the contract: the agent may only bind the declared `parameters`, the `executor` runs the bound computation and returns a receipt, and the `attester` deterministically compares what actually ran against this recipe. The computation text lives in the body's `# Computation` fenced block or in the file named by `computation`. Semantically a prov:Plan with an attestation contract layered on.
@@ -242,7 +255,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: executor_id Description: How the computation is run and what evidence a run must return.
 --     * Slot: attester_id Description: The deterministic, non-LLM verdict check over a receipt.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
@@ -281,7 +295,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
@@ -299,7 +314,8 @@
 --     * Slot: body Description: The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter.
 --     * Slot: genre Description: The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
---     * Slot: stale_after Description: Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).
+--     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
@@ -370,8 +386,8 @@
 --     * Slot: title Description: Human-readable display name.
 --     * Slot: author Description: Who or what produced the source, as an actor string (e.g. `team:analytics`, `human:jsmith@acme`, `ga4-docs/v2`) — an authority signal carried as a plain literal, not an inlined Agent object. Deliberately looser than `by`: source authorship is commonly a team or an org, so any `<prefix>:<id>` is admitted, where `by` stays confined to the §7 provenance actors the trust tiers read.
 --     * Slot: usage_count Description: How often the source's resource was exercised (views, executions, reads) over the governing usage_window. An adoption/liveness signal read as order-of-magnitude and trend, not a score.
---     * Slot: last_modified Description: When the SOURCE itself last changed (YYYY-MM-DD). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept).
---     * Slot: supporting_text Description: Exact excerpt/quote from the referenced source.
+--     * Slot: last_modified Description: When the SOURCE itself last changed, an ISO 8601 datetime (a bare YYYY-MM-DD is read as that day at 00:00:00Z). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept).
+--     * Slot: excerpt Description: A verbatim copy of the passage in `resource` that the concept relies on, taken as retrieved. Lets a claim be re-checked against its source without re-reading the whole of it.
 --     * Slot: id Description: Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`).
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: Dataset_id Description: Autocreated FK slot
@@ -392,16 +408,18 @@
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 -- # Class: UsageWindow Description: The `{ from, to }` date range framing every `usage_count` signal (OKF v0.2 §5.1). Written once as a sibling of `sources`; a single Source entry MAY carry its own override.
 --     * Slot: id
---     * Slot: from Description: Start date (inclusive, YYYY-MM-DD) of a usage window.
---     * Slot: to Description: End date (inclusive, YYYY-MM-DD) of a usage window.
+--     * Slot: from Description: Start (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
+--     * Slot: to Description: End (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 -- # Class: Generation Description: How and when the current content was produced (OKF v0.2 `generated`, §5.2). Modeled as the PROV activity that generated the concept, so "who wrote this, when" is a one-hop join from the concept via prov:wasGeneratedBy, with both slots keeping PROV's activity-side semantics (prov:wasAssociatedWith, prov:endedAtTime) — domain/range correct with no reasoner or subproperty entailment required.
 --     * Slot: id
 --     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).
 --     * Slot: at Description: ISO 8601 datetime at which the event completed.
+--     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
 -- # Class: Verification Description: One verification event (OKF v0.2 `verified`, §5.2): an actor confirmed the content against its sources or resource at a time. Independent checks accumulate as separate events; trust tiers (unverified / machine-confirmed / human-reviewed) are derived from the actors, never stored. PROV has no Verification class, so the class IRI is honestly lokf-minted; the generated ontology declares it a subclass of prov:Activity.
 --     * Slot: id
 --     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).
 --     * Slot: at Description: ISO 8601 datetime at which the event completed.
+--     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: Dataset_id Description: Autocreated FK slot
 --     * Slot: Table_id Description: Autocreated FK slot
@@ -998,7 +1016,8 @@ CREATE TABLE "Concept" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	"KnowledgeBundle_id" INTEGER,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
@@ -1050,8 +1069,8 @@ CREATE TABLE "Agent" (
 
 CREATE TABLE "UsageWindow" (
 	id INTEGER NOT NULL,
-	"from" DATE,
-	"to" DATE,
+	"from" DATETIME,
+	"to" DATETIME,
 	PRIMARY KEY (id)
 );
 
@@ -1059,6 +1078,7 @@ CREATE TABLE "Generation" (
 	id INTEGER NOT NULL,
 	"by" TEXT NOT NULL,
 	at DATETIME,
+	revision TEXT,
 	PRIMARY KEY (id)
 );
 
@@ -1087,7 +1107,8 @@ CREATE TABLE "Dataset" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1108,7 +1129,8 @@ CREATE TABLE "Table" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1131,7 +1153,8 @@ CREATE TABLE "Metric" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1155,7 +1178,8 @@ CREATE TABLE "Service" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1176,7 +1200,8 @@ CREATE TABLE "Playbook" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1197,7 +1222,8 @@ CREATE TABLE "Tutorial" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1218,7 +1244,8 @@ CREATE TABLE "Explanation" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1239,7 +1266,8 @@ CREATE TABLE "Policy" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1262,7 +1290,8 @@ CREATE TABLE "GlossaryTerm" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1283,7 +1312,8 @@ CREATE TABLE "Reference" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1304,7 +1334,8 @@ CREATE TABLE "Document" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1328,7 +1359,8 @@ CREATE TABLE "Role" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
 	PRIMARY KEY (id),
@@ -1351,7 +1383,8 @@ CREATE TABLE "AttestedComputation" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	executor_id INTEGER,
 	attester_id INTEGER,
 	usage_window_id INTEGER,
@@ -1376,7 +1409,8 @@ CREATE TABLE "Person" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	name TEXT,
 	email TEXT,
 	usage_window_id INTEGER,
@@ -1399,7 +1433,8 @@ CREATE TABLE "Organization" (
 	body TEXT,
 	genre VARCHAR(11),
 	status VARCHAR(10),
-	stale_after DATE,
+	stale_after DATETIME,
+	"additionalType" TEXT,
 	name TEXT,
 	email TEXT,
 	usage_window_id INTEGER,
@@ -1618,8 +1653,8 @@ CREATE TABLE "Source" (
 	title TEXT,
 	author TEXT,
 	usage_count INTEGER,
-	last_modified DATE,
-	supporting_text TEXT,
+	last_modified DATETIME,
+	excerpt TEXT,
 	id TEXT,
 	"Concept_id" TEXT,
 	"Dataset_id" TEXT,
@@ -1662,6 +1697,7 @@ CREATE TABLE "Verification" (
 	id INTEGER NOT NULL,
 	"by" TEXT NOT NULL,
 	at DATETIME,
+	revision TEXT,
 	"Concept_id" TEXT,
 	"Dataset_id" TEXT,
 	"Table_id" TEXT,

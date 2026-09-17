@@ -1,5 +1,5 @@
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/author> "team:analytics" .
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/name> "Metric definitions RFC" .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/url> "https://wiki.acme.example/rfc/metric-defs"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/computations/weekly-active-users-count> .
@@ -8,7 +8,7 @@
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/creativeWorkStatus> "stable" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateCreated> "2026-01-15T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/description> "Distinct users with at least one qualifying event in a trailing 7-day window." .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/expires> "2026-12-31"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/expires> "2026-12-31T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metric-defs-rfc> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/wau-look> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "engagement" .
@@ -23,7 +23,7 @@
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasGeneratedBy> _:xf4ec3eb6a639fc201b4617f90 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/formula> "COUNT(DISTINCT user_id) over trailing 7 days WHERE event_name IN qualifying_events" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/measures> <https://acme.example/knowledge/glossary/active-user> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:xcd2f1f16be05e3b01b501c450 .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:xc6f95a87c7b82b370ff41c710 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:x76097d2a698ef698760d6e200 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:xc92919c27c676076f3e5820d0 .
 <https://acme.example/knowledge/wau-look> <http://schema.org/author> "team:analytics" .
@@ -35,9 +35,9 @@
 <https://acme.example/people/jsmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
 _:x76097d2a698ef698760d6e200 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-01T16:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 _:x76097d2a698ef698760d6e200 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:kliu@acme" .
+_:xc6f95a87c7b82b370ff41c710 <http://www.w3.org/ns/dcat#endDate> "2026-06-30T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:xc6f95a87c7b82b370ff41c710 <http://www.w3.org/ns/dcat#startDate> "2026-06-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 _:xc92919c27c676076f3e5820d0 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 _:xc92919c27c676076f3e5820d0 <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
-_:xcd2f1f16be05e3b01b501c450 <http://www.w3.org/ns/dcat#endDate> "2026-06-30"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:xcd2f1f16be05e3b01b501c450 <http://www.w3.org/ns/dcat#startDate> "2026-06-01"^^<http://www.w3.org/2001/XMLSchema#date> .
 _:xf4ec3eb6a639fc201b4617f90 <http://www.w3.org/ns/prov#endedAtTime> "2026-06-30T12:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 _:xf4ec3eb6a639fc201b4617f90 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .

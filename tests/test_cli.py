@@ -147,10 +147,10 @@ def test_validate_points_at_schema_for_an_unknown_type(tmp_path):
     assert "--schema" in result.output
 
 
-def test_validate_accepts_source_with_supporting_text(tmp_path):
-    """A `sources[].supporting_text` excerpt validates against the schema.
+def test_validate_accepts_source_with_excerpt(tmp_path):
+    """A `sources[].excerpt` validates against the schema.
 
-    Regression coverage for the Source class's `supporting_text` slot
+    Regression coverage for the Source class's `excerpt` slot
     (linkml:excerpt) and `resource`'s dcterms:source annotation added
     alongside it - both are additive, optional fields and must not make an
     otherwise-valid concept fail.
@@ -161,13 +161,61 @@ def test_validate_accepts_source_with_supporting_text(tmp_path):
     (tmp_path / "term.md").write_text(
         "---\ntype: GlossaryTerm\ntitle: T\n"
         "sources:\n  - resource: https://ex.org/rfc\n"
-        "    supporting_text: the exact quoted sentence\n"
+        "    excerpt: the exact quoted sentence\n"
         "---\n\n# T\n",
         encoding="utf-8",
     )
     result = runner.invoke(app, ["validate", str(tmp_path)])
     assert result.exit_code == 0
     assert "validate against KnowledgeBundle" in result.stdout
+
+
+def test_validate_accepts_revision_on_generated_and_verified(tmp_path):
+    """A `revision` on either event validates: a commit id on `generated`, a
+    content digest on a `verified` entry. Optional on both, so an event
+    without it is untouched (covered by every other trust fixture)."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "generated: { by: process:lokf-librarian, at: 2026-09-16T09:00:00Z, revision: 3f9c2a1 }\n"
+        "verified:\n  - by: human:ada\n    at: 2026-09-17T09:00:00Z\n"
+        "    revision: \"sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08\"\n"
+        "---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+
+
+def test_validate_accepts_okf_datetimes_and_lokf_bare_dates(tmp_path):
+    """OKF §5 writes every timestamp as an ISO 8601 datetime (`stale_after:
+    2026-09-23T00:00:00Z`, a datetime `usage_window`, `last_modified`); LOKF
+    bundles write the same fields as a bare date. Both must validate: the
+    first is OKF conformance (SPEC §8.1), the second the parser's shorthand.
+    """
+    (tmp_path / "index.md").write_text(
+        "---\nokf_version: \"0.2\"\n---\n# KB\n", encoding="utf-8"
+    )
+    (tmp_path / "okf.md").write_text(
+        "---\ntype: Playbook\ntitle: OKF form\n"
+        "stale_after: 2026-09-23T00:00:00Z\n"
+        "usage_window: { from: 2026-06-01T00:00:00Z, to: 2026-06-30T00:00:00Z }\n"
+        "sources:\n  - resource: https://ex.org/x\n    last_modified: 2026-05-30T00:00:00Z\n"
+        "---\n\n# x\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "lokf.md").write_text(
+        "---\ntype: Playbook\ntitle: bare dates\n"
+        "stale_after: 2026-09-23\n"
+        "usage_window: { from: 2026-06-01, to: \"2026-06-30\" }\n"
+        "generated: { by: human:a, at: 2026-05-28 }\n"
+        "---\n\n# x\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 0, result.output
 
 
 def test_validate_reports_a_warning_without_failing(monkeypatch):

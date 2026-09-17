@@ -2,7 +2,7 @@
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/about> <https://acme.example/knowledge/glossary/active-user> .
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/creativeWorkStatus> "stable" .
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/description> "The sanctioned computation of WAU for a trailing 7-day window ending on a given day." .
-<https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/expires> "2026-12-31"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/expires> "2026-12-31T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metric-defs-rfc> .
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/keywords> "engagement" .
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/keywords> "growth" .
@@ -35,7 +35,7 @@
 <https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/ns/prov#wasGeneratedBy> _:xc7861f23939439e4ef9e25950 .
 <https://acme.example/knowledge/glossary/active-user> <https://w3id.org/lokf/verified> _:x91fae5aa61a306c6ca7743180 .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/author> "team:analytics" .
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/name> "Metric definitions RFC" .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/url> "https://wiki.acme.example/rfc/metric-defs"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/computations/weekly-active-users-count> .
@@ -44,7 +44,7 @@
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/creativeWorkStatus> "stable" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateCreated> "2026-01-15T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/description> "Distinct users with at least one qualifying event in a trailing 7-day window." .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/expires> "2026-12-31"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/expires> "2026-12-31T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metric-defs-rfc> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/wau-look> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "engagement" .
@@ -60,7 +60,7 @@
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasGeneratedBy> _:xf4ec3eb6a639fc201b4617f90 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/formula> "COUNT(DISTINCT user_id) over trailing 7 days WHERE event_name IN qualifying_events" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/measures> <https://acme.example/knowledge/glossary/active-user> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:xcd2f1f16be05e3b01b501c450 .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:xc6f95a87c7b82b370ff41c710 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:x76097d2a698ef698760d6e200 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:xc92919c27c676076f3e5820d0 .
 <https://acme.example/knowledge/playbooks/data-freshness-incident> <http://purl.org/dc/terms/references> <https://acme.example/knowledge/metrics/weekly-active-users> .
@@ -83,7 +83,7 @@
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/dateModified> "2026-06-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/description> "REST API for querying aggregated product metrics." .
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/documentation> "https://developers.acme.example/analytics"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-<https://acme.example/knowledge/services/analytics-api> <http://schema.org/expires> "2026-07-01"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://acme.example/knowledge/services/analytics-api> <http://schema.org/expires> "2026-07-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/httpMethod> "GET" .
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/keywords> "analytics" .
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/keywords> "api" .
@@ -129,12 +129,12 @@ _:xa1ef16071926abcedd8f9f8c0 <http://schema.org/description> "Globally unique ev
 _:xa1ef16071926abcedd8f9f8c0 <http://schema.org/name> "event_id" .
 _:xa1ef16071926abcedd8f9f8c0 <https://w3id.org/lokf/datatype> "string" .
 _:xa1ef16071926abcedd8f9f8c0 <https://w3id.org/lokf/isKey> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+_:xc6f95a87c7b82b370ff41c710 <http://www.w3.org/ns/dcat#endDate> "2026-06-30T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:xc6f95a87c7b82b370ff41c710 <http://www.w3.org/ns/dcat#startDate> "2026-06-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 _:xc7861f23939439e4ef9e25950 <http://www.w3.org/ns/prov#endedAtTime> "2026-03-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 _:xc7861f23939439e4ef9e25950 <http://www.w3.org/ns/prov#wasAssociatedWith> "reference_agent/gemini-2.5-pro" .
 _:xc92919c27c676076f3e5820d0 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 _:xc92919c27c676076f3e5820d0 <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
-_:xcd2f1f16be05e3b01b501c450 <http://www.w3.org/ns/dcat#endDate> "2026-06-30"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:xcd2f1f16be05e3b01b501c450 <http://www.w3.org/ns/dcat#startDate> "2026-06-01"^^<http://www.w3.org/2001/XMLSchema#date> .
 _:xe101d169d38ba24a84dc699b0 <http://schema.org/description> "The type of event (e.g. page_view, purchase)." .
 _:xe101d169d38ba24a84dc699b0 <http://schema.org/name> "event_name" .
 _:xe101d169d38ba24a84dc699b0 <https://w3id.org/lokf/datatype> "string" .
