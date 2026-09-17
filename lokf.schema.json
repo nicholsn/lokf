@@ -52,6 +52,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "attester": {
                     "anyOf": [
                         {
@@ -288,8 +295,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -423,6 +430,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -619,8 +633,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -719,6 +733,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -935,8 +956,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -1075,6 +1096,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -1268,8 +1296,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -1386,6 +1414,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -1579,8 +1614,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -1737,6 +1772,13 @@
                     "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
+                },
+                "revision": {
+                    "description": "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 }
             },
             "required": [
@@ -1763,6 +1805,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -1966,8 +2015,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -2203,6 +2252,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -2413,8 +2469,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -2510,6 +2566,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -2721,8 +2784,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -2856,6 +2919,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -3064,8 +3134,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -3157,6 +3227,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -3350,8 +3427,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -3443,6 +3520,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -3636,8 +3720,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -3729,6 +3813,13 @@
                         "null"
                     ]
                 },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -3922,8 +4013,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -4061,6 +4152,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -4291,8 +4389,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -4388,6 +4486,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -4602,8 +4707,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -4693,6 +4798,13 @@
                         "null"
                     ]
                 },
+                "excerpt": {
+                    "description": "A verbatim copy of the passage in `resource` that the concept relies on, taken as retrieved. Lets a claim be re-checked against its source without re-reading the whole of it.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "id": {
                     "description": "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`).",
                     "type": [
@@ -4701,8 +4813,8 @@
                     ]
                 },
                 "last_modified": {
-                    "description": "When the SOURCE itself last changed (YYYY-MM-DD). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept).",
-                    "format": "date",
+                    "description": "When the SOURCE itself last changed, an ISO 8601 datetime (a bare YYYY-MM-DD is read as that day at 00:00:00Z). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept).",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -4711,13 +4823,6 @@
                 "resource": {
                     "description": "REQUIRED. An absolute URL, a bundle-relative path, or a population/scope descriptor string (e.g. \"all queries in BigQuery project X\"). Range is widened to string to admit scope descriptors; non-URI values are lossy on the RDF projection (they serialize as xsd:anyURI-typed literals).",
                     "type": "string"
-                },
-                "supporting_text": {
-                    "description": "Exact excerpt/quote from the referenced source.",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
                 },
                 "title": {
                     "description": "Human-readable display name.",
@@ -4762,6 +4867,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -4978,8 +5090,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -5068,6 +5180,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "additionalType": {
+                    "description": "The producer's own `type` string when it names no LOKF class.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -5264,8 +5383,8 @@
                     ]
                 },
                 "stale_after": {
-                    "description": "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after).",
-                    "format": "date",
+                    "description": "The absolute instant on or after which the concept is stale (OKF \u00a75.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -5348,16 +5467,16 @@
             "description": "The `{ from, to }` date range framing every `usage_count` signal (OKF v0.2 \u00a75.1). Written once as a sibling of `sources`; a single Source entry MAY carry its own override.",
             "properties": {
                 "from": {
-                    "description": "Start date (inclusive, YYYY-MM-DD) of a usage window.",
-                    "format": "date",
+                    "description": "Start (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
                     ]
                 },
                 "to": {
-                    "description": "End date (inclusive, YYYY-MM-DD) of a usage window.",
-                    "format": "date",
+                    "description": "End (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.",
+                    "format": "date-time",
                     "type": [
                         "string",
                         "null"
@@ -5383,6 +5502,13 @@
                     "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
+                },
+                "revision": {
+                    "description": "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 }
             },
             "required": [

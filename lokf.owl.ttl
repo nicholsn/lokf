@@ -360,6 +360,9 @@ lokf:Generation a owl:Class ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:by ],
         [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:revision ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty lokf:at ],
         [ a owl:Restriction ;
@@ -369,8 +372,14 @@ lokf:Generation a owl:Class ;
                                 owl:withRestrictions ( [ xsd:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] ) ] ) ] ;
             owl:onProperty lokf:by ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:revision ],
+        [ a owl:Restriction ;
             owl:minCardinality 1 ;
-            owl:onProperty lokf:by ] ;
+            owl:onProperty lokf:by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:revision ] ;
     skos:closeMatch schema1:CreateAction ;
     skos:definition "How and when the current content was produced (OKF v0.2 `generated`, §5.2). Modeled as the PROV activity that generated the concept, so \"who wrote this, when\" is a one-hop join from the concept via prov:wasGeneratedBy, with both slots keeping PROV's activity-side semantics (prov:wasAssociatedWith, prov:endedAtTime) — domain/range correct with no reasoner or subproperty entailment required." ;
     skos:exactMatch prov:Activity ;
@@ -477,14 +486,8 @@ lokf:Source a owl:Class ;
             owl:allValuesFrom lokf:UsageWindow ;
             owl:onProperty lokf:usage_window ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:date ;
-            owl:onProperty lokf:last_modified ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:id ],
-        [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:supporting_text ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:resource ],
@@ -504,6 +507,9 @@ lokf:Source a owl:Class ;
             owl:minCardinality 1 ;
             owl:onProperty lokf:resource ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:excerpt ],
+        [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:last_modified ],
         [ a owl:Restriction ;
@@ -512,12 +518,6 @@ lokf:Source a owl:Class ;
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:resource ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty lokf:supporting_text ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty lokf:supporting_text ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:usage_count ],
@@ -529,6 +529,9 @@ lokf:Source a owl:Class ;
             owl:onProperty lokf:usage_count ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
+            owl:onProperty lokf:excerpt ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
             owl:onProperty lokf:last_modified ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:integer ;
@@ -538,7 +541,13 @@ lokf:Source a owl:Class ;
             owl:onProperty lokf:title ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:id ] ;
+            owl:onProperty lokf:excerpt ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:id ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty lokf:last_modified ] ;
     skos:closeMatch dcterms:BibliographicResource,
         prov:Entity ;
     skos:definition "A material a concept derives from (OKF v0.2 §5.1) — a pointer (`resource`) plus objective per-source credibility signals (`author`, `usage_count`, `last_modified`) from which consumers infer trust; OKF stores signals, never a score. Markdown footnotes whose label equals `id` attribute individual claims to this entry. Supersedes Citation." ;
@@ -742,6 +751,10 @@ schema1:LearningResource a owl:Class ;
 
 rdf:JSON a owl:Class ;
     rdfs:label "json" ;
+    rdfs:subClassOf lokf:FieldType .
+
+xsd:date a owl:Class ;
+    rdfs:label "date" ;
     rdfs:subClassOf lokf:FieldType .
 
 xsd:decimal a owl:Class ;
@@ -948,7 +961,7 @@ lokf:Table a owl:Class ;
 lokf:UsageWindow a owl:Class ;
     rdfs:label "UsageWindow" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:date ;
+            owl:allValuesFrom xsd:dateTime ;
             owl:onProperty lokf:to ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
@@ -960,11 +973,11 @@ lokf:UsageWindow a owl:Class ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:to ],
         [ a owl:Restriction ;
-            owl:minCardinality 0 ;
-            owl:onProperty lokf:to ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty lokf:from ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:date ;
-            owl:onProperty lokf:from ] ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:to ] ;
     skos:definition "The `{ from, to }` date range framing every `usage_count` signal (OKF v0.2 §5.1). Written once as a sibling of `sources`; a single Source entry MAY carry its own override." ;
     skos:exactMatch dcterms:PeriodOfTime ;
     skos:inScheme lokf:schema .
@@ -981,6 +994,12 @@ lokf:Verification a owl:Class ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:by ],
         [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:revision ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:revision ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty lokf:at ],
         [ a owl:Restriction ;
@@ -989,6 +1008,9 @@ lokf:Verification a owl:Class ;
                                 owl:onDatatype xsd:string ;
                                 owl:withRestrictions ( [ xsd:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] ) ] ) ] ;
             owl:onProperty lokf:by ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:revision ],
         [ a owl:Restriction ;
             owl:minCardinality 1 ;
             owl:onProperty lokf:by ],
@@ -1010,6 +1032,14 @@ lokf:access_url a owl:DatatypeProperty ;
     rdfs:range xsd:anyURI ;
     skos:definition "A URL that gives access to a distribution." ;
     skos:inScheme lokf:schema .
+
+lokf:additionalType a owl:DatatypeProperty ;
+    rdfs:label "additionalType" ;
+    rdfs:range xsd:string ;
+    skos:definition "The producer's own `type` string when it names no LOKF class." ;
+    skos:inScheme lokf:schema ;
+    skos:note "Set by the RDF projection, not normally authored. `lokf validate` still rejects an undeclared `type`; this slot is how the permissive consumers (`convert`, `query`, `serve`) honour OKF §11.",
+        "The concept is then typed `lokf:Concept` (SPEC §8) and the original spelling is kept here, so an OKF type such as `BigQuery Table` survives the RDF projection." .
 
 lokf:attester a owl:ObjectProperty ;
     rdfs:label "attester" ;
@@ -1099,6 +1129,17 @@ lokf:endpoint a owl:DatatypeProperty ;
     skos:definition "The base URL or invocation endpoint of a service." ;
     skos:inScheme lokf:schema .
 
+lokf:excerpt a owl:DatatypeProperty ;
+    rdfs:label "excerpt" ;
+    rdfs:range xsd:string ;
+    rdfs:seeAlso <https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438>,
+        <https://github.com/linkml/linkml-reference-validator> ;
+    skos:altLabel "supporting_text" ;
+    skos:definition "A verbatim copy of the passage in `resource` that the concept relies on, taken as retrieved. Lets a claim be re-checked against its source without re-reading the whole of it." ;
+    skos:editorialNote "Proposed for OKF §5.1 as GoogleCloudPlatform/knowledge-catalog#438, under this name. Kept in lokf_semantic until OKF adopts it, then moved to okf_v02. Shipped as `supporting_text` in 0.8.0 only.",
+        "`implements: linkml:excerpt` marks the slot as text a reference validator can look for in `resource`; it does not make it required." ;
+    skos:inScheme lokf:schema .
+
 lokf:executor a owl:ObjectProperty ;
     rdfs:label "executor" ;
     rdfs:range lokf:Executor ;
@@ -1112,9 +1153,9 @@ lokf:formula a owl:DatatypeProperty ;
 
 lokf:from a owl:DatatypeProperty ;
     rdfs:label "from" ;
-    rdfs:range xsd:date ;
+    rdfs:range xsd:dateTime ;
     skos:closeMatch schema1:startDate ;
-    skos:definition "Start date (inclusive, YYYY-MM-DD) of a usage window." ;
+    skos:definition "Start (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
     skos:inScheme lokf:schema ;
     skos:note "dcat:startDate is defined by DCAT 2 precisely for dcterms:PeriodOfTime — exactly this shape. `from` is a Python reserved word: the authored YAML key and JSON-LD term stay `from`, but generated Python needs the induced attribute aliased (see build tooling)." .
 
@@ -1149,8 +1190,8 @@ lokf:is_key a owl:DatatypeProperty ;
 
 lokf:last_modified a owl:DatatypeProperty ;
     rdfs:label "last_modified" ;
-    rdfs:range xsd:date ;
-    skos:definition "When the SOURCE itself last changed (YYYY-MM-DD). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept)." ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "When the SOURCE itself last changed, an ISO 8601 datetime (a bare YYYY-MM-DD is read as that day at 00:00:00Z). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept)." ;
     skos:exactMatch dcterms:modified ;
     skos:inScheme lokf:schema .
 
@@ -1206,9 +1247,9 @@ lokf:runtime a owl:DatatypeProperty ;
 
 lokf:stale_after a owl:DatatypeProperty ;
     rdfs:label "stale_after" ;
-    rdfs:range xsd:date ;
+    rdfs:range xsd:dateTime ;
     skos:closeMatch dcterms:valid ;
-    skos:definition "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
+    skos:definition "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
     skos:inScheme lokf:schema ;
     skos:note "schema:expires is the exact concept — a planned future expiry; prov:invalidatedAtTime would falsely assert the entity WAS invalidated, and dcterms:valid names a validity period only ambiguously." .
 
@@ -1227,14 +1268,6 @@ lokf:status a owl:ObjectProperty ;
     skos:note "Absence is deliberately distinguishable from an explicit `status: stable` (a consumer-side default), so no `ifabsent` is set.",
         "schema:creativeWorkStatus is text-valued by design, so the flat JSON-LD context path emitting the literal is exactly conformant schema.org usage; the enum's ADMS meaning IRIs surface on the LinkML RDF/OWL/SHACL path." .
 
-lokf:supporting_text a owl:DatatypeProperty ;
-    rdfs:label "supporting_text" ;
-    rdfs:range xsd:string ;
-    rdfs:seeAlso <https://github.com/linkml/linkml-reference-validator> ;
-    skos:definition "Exact excerpt/quote from the referenced source." ;
-    skos:editorialNote "excerpt marks this as text to validate, but not a required slot" ;
-    skos:inScheme lokf:schema .
-
 lokf:target a owl:ObjectProperty ;
     rdfs:label "target" ;
     rdfs:range lokf:Concept ;
@@ -1250,9 +1283,9 @@ lokf:timestamp a owl:DatatypeProperty ;
 
 lokf:to a owl:DatatypeProperty ;
     rdfs:label "to" ;
-    rdfs:range xsd:date ;
+    rdfs:range xsd:dateTime ;
     skos:closeMatch schema1:endDate ;
-    skos:definition "End date (inclusive, YYYY-MM-DD) of a usage window." ;
+    skos:definition "End (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
     skos:inScheme lokf:schema .
 
 lokf:url a owl:DatatypeProperty ;
@@ -1532,6 +1565,16 @@ lokf:license a owl:DatatypeProperty ;
     skos:definition "The license under which the concept or bundle is offered." ;
     skos:inScheme lokf:schema .
 
+lokf:revision a owl:DatatypeProperty ;
+    rdfs:label "revision" ;
+    rdfs:range xsd:string ;
+    rdfs:seeAlso <https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437> ;
+    skos:definition "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged." ;
+    skos:editorialNote "Proposed for OKF §5.2 as GoogleCloudPlatform/knowledge-catalog#437, under this name. Kept in lokf_semantic until OKF adopts it, then moved to okf_v02. A per-source `checked: [{ resource, revision }]` list, for a concept with several sources, waits on that design." ;
+    skos:inScheme lokf:schema ;
+    skos:note "A literal on the event, not prov:used: the value is an opaque version token, not the IRI of an entity. pav:version describes the resource itself; here the subject is the act of checking it.",
+        "Quote it in YAML. An all-digit commit id (`1234567`) is otherwise read as a number and fails the string range, and an ETag carries its own double quotes." .
+
 lokf:unit a owl:DatatypeProperty ;
     rdfs:label "unit" ;
     skos:definition "The unit of measurement (e.g. USD, seconds, count)." ;
@@ -1618,10 +1661,6 @@ lokf:id a owl:DatatypeProperty ;
     skos:note "Declared as a class-local attribute rather than the global identifier slot so it stays optional (LinkML's falsy-merge silently drops an `identifier: false` slot_usage override and generation then fails).",
         "Under the published flat context `id` maps to @id, so the value resolves against the bundle base and mints the source node's IRI — the same id used across concepts merges into one RDF node; schema:identifier applies only on the LinkML RDF-dump path." .
 
-xsd:dateTime a owl:Class ;
-    rdfs:label "datetime" ;
-    rdfs:subClassOf lokf:FieldType .
-
 lokf:ParameterType a owl:Class ;
     rdfs:label "ParameterType" ;
     owl:unionOf ( lokf:StringParameter lokf:IntegerParameter lokf:NumberParameter lokf:BooleanParameter lokf:DateParameter lokf:DatetimeParameter lokf:TimeParameter lokf:UriParameter lokf:JsonParameter ) ;
@@ -1636,10 +1675,6 @@ lokf:ParameterType a owl:Class ;
         lokf:StringParameter,
         lokf:TimeParameter,
         lokf:UriParameter .
-
-xsd:date a owl:Class ;
-    rdfs:label "date" ;
-    rdfs:subClassOf lokf:FieldType .
 
 lokf:FieldType a owl:Class ;
     rdfs:label "FieldType" ;
@@ -1737,6 +1772,10 @@ lokf:RelationType a owl:Class ;
         lokf:joinsWith,
         lokf:measures .
 
+xsd:dateTime a owl:Class ;
+    rdfs:label "datetime" ;
+    rdfs:subClassOf lokf:FieldType .
+
 lokf:type a owl:DatatypeProperty,
         owl:ObjectProperty ;
     rdfs:label "type" ;
@@ -1825,10 +1864,16 @@ lokf:Concept a owl:Class ;
             owl:onProperty lokf:generated ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
+            owl:onProperty lokf:additionalType ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:genre ],
         [ a owl:Restriction ;
             owl:minCardinality 1 ;
             owl:onProperty lokf:id ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:additionalType ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:dependsOn ],
@@ -1898,6 +1943,9 @@ lokf:Concept a owl:Class ;
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:verified ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:additionalType ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:stale_after ],
@@ -1969,11 +2017,11 @@ lokf:Concept a owl:Class ;
             owl:onProperty lokf:definedBy ],
         [ owl:unionOf ( lokf:AttestedComputation lokf:Dataset lokf:Document lokf:Explanation lokf:GlossaryTerm lokf:Metric lokf:Playbook lokf:Policy lokf:Reference lokf:Role lokf:Service lokf:Tutorial ) ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty lokf:stale_after ],
+        [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:source ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:date ;
-            owl:onProperty lokf:stale_after ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:body ],

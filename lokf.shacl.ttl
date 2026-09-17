@@ -84,12 +84,6 @@ schema1:Dataset a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 13 ;
             sh:path schema1:text ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -119,6 +113,12 @@ schema1:Dataset a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 4 ;
             sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:class schema1:PropertyValue ;
             sh:description "The columns / properties that make up a dataset's schema." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -171,6 +171,12 @@ schema1:Dataset a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 28 ;
             sh:path lokf:usageWindow ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
@@ -198,7 +204,13 @@ schema1:DefinedTerm a sh:NodeShape ;
     rdfs:comment "A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:class lokf:Concept ;
+    sh:property [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
+        [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
@@ -247,12 +259,6 @@ schema1:DefinedTerm a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path schema1:hasPart ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
@@ -307,6 +313,12 @@ schema1:DefinedTerm a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 6 ;
             sh:path schema1:url ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:class schema1:CreativeWork ;
             sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -382,7 +394,13 @@ schema1:Organization a sh:NodeShape ;
     rdfs:comment "An organization, team, or group. Usable both as an inline Agent value (publisher) and as a standalone Concept document with a body and typed relations." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:class dcterms:PeriodOfTime ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
+        [ sh:class dcterms:PeriodOfTime ;
             sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -393,6 +411,18 @@ schema1:Organization a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path dcterms:relation ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:name ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -427,6 +457,13 @@ schema1:Organization a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:dateCreated ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:email ;
+            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
@@ -500,12 +537,6 @@ schema1:Organization a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 10 ;
             sh:path schema1:author ],
-        [ sh:datatype xsd:string ;
-            sh:description "A name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:name ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -547,20 +578,7 @@ schema1:Organization a sh:NodeShape ;
             sh:description "External sources supporting claims in the body." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 12 ;
-            sh:path schema1:citation ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
-        [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:email ;
-            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ] ;
+            sh:path schema1:citation ] ;
     sh:targetClass schema1:Organization .
 
 schema1:OrganizationRole a sh:NodeShape ;
@@ -615,6 +633,12 @@ schema1:OrganizationRole a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path schema1:roleName ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:additionalType ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -687,6 +711,12 @@ schema1:OrganizationRole a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 28 ;
             sh:path dcterms:source ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -754,13 +784,7 @@ schema1:OrganizationRole a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 14 ;
-            sh:path schema1:license ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:expires ] ;
+            sh:path schema1:license ] ;
     sh:targetClass schema1:OrganizationRole .
 
 schema1:Person a sh:NodeShape ;
@@ -794,6 +818,12 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:name ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -819,12 +849,6 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path dcterms:source ],
-        [ sh:datatype xsd:string ;
-            sh:description "A name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:name ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -868,12 +892,12 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path schema1:about ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -884,6 +908,12 @@ schema1:Person a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 24 ;
             sh:path schema1:genre ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
         [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -895,13 +925,6 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path schema1:description ],
-        [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:email ;
-            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -925,6 +948,13 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path lokf:type ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:email ;
+            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -983,6 +1013,12 @@ schema1:WebAPI a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 15 ;
             sh:path schema1:citation ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -1062,6 +1098,12 @@ schema1:WebAPI a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 26 ;
             sh:path dcterms:source ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
@@ -1099,12 +1141,6 @@ schema1:WebAPI a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 1 ;
             sh:path schema1:httpMethod ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 33 ;
-            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:maxCount 1 ;
@@ -1204,12 +1240,6 @@ lokf:AttestedComputation a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 32 ;
             sh:path prov:wasGeneratedBy ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Executor ;
             sh:description "How the computation is run and what evidence a run must return." ;
             sh:maxCount 1 ;
@@ -1226,6 +1256,12 @@ lokf:AttestedComputation a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 5 ;
             sh:path schema1:identifier ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:additionalType ],
         [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
             sh:in ( adms_status:UnderDevelopment adms_status:Completed adms_status:Deprecated ) ;
             sh:maxCount 1 ;
@@ -1311,6 +1347,12 @@ lokf:AttestedComputation a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 9 ;
             sh:path schema1:url ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
@@ -1442,17 +1484,17 @@ lokf:Document a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 12 ;
             sh:path schema1:citation ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path dcterms:source ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -1496,6 +1538,12 @@ lokf:Document a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 27 ;
             sh:path prov:wasGeneratedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
@@ -1584,12 +1632,6 @@ lokf:Explanation a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:version ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
         [ sh:class prov:Agent ;
             sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
@@ -1631,6 +1673,12 @@ lokf:Explanation a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path schema1:name ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -1672,6 +1720,12 @@ lokf:Explanation a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -1746,6 +1800,12 @@ lokf:Metric a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 26 ;
             sh:path dcterms:source ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Verification ;
             sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -1800,12 +1860,6 @@ lokf:Metric a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 33 ;
-            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -1839,6 +1893,12 @@ lokf:Metric a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path dcterms:requires ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:expires ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( schema1:LearningResource schema1:HowTo schema1:APIReference schema1:Article ) ;
             sh:maxCount 1 ;
@@ -2017,6 +2077,12 @@ lokf:Playbook a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 4 ;
             sh:path schema1:url ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:class prov:Agent ;
             sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
@@ -2027,12 +2093,6 @@ lokf:Playbook a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path dcterms:source ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
         [ sh:class schema1:CreativeWork ;
             sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2060,6 +2120,12 @@ lokf:Playbook a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 24 ;
             sh:path schema1:genre ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -2167,6 +2233,12 @@ lokf:Policy a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:text ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Verification ;
             sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2183,12 +2255,6 @@ lokf:Policy a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 26 ;
             sh:path lokf:usageWindow ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -2206,6 +2272,12 @@ lokf:Policy a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -2321,6 +2393,12 @@ lokf:Reference a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:sameAs ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:maxCount 1 ;
@@ -2343,12 +2421,6 @@ lokf:Reference a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 27 ;
             sh:path prov:wasGeneratedBy ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -2429,6 +2501,12 @@ lokf:Reference a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 10 ;
             sh:path schema1:author ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
@@ -2446,7 +2524,13 @@ lokf:Table a sh:NodeShape ;
     rdfs:comment "A structured, tabular dataset (e.g. a warehouse table or view) whose columns are described by Field objects under `fields`." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:class prov:Activity ;
+    sh:property [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
+        [ sh:class prov:Activity ;
             sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2467,12 +2551,6 @@ lokf:Table a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:keywords ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -2579,6 +2657,12 @@ lokf:Table a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path dcterms:source ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:class schema1:CreativeWork ;
             sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2666,12 +2750,6 @@ lokf:Tutorial a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path lokf:type ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
         [ sh:class prov:Agent ;
             sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
@@ -2768,6 +2846,12 @@ lokf:Tutorial a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 26 ;
             sh:path lokf:usageWindow ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Verification ;
             sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2793,7 +2877,13 @@ lokf:Tutorial a sh:NodeShape ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
             sh:order 14 ;
-            sh:path dcterms:isPartOf ] ;
+            sh:path dcterms:isPartOf ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ] ;
     sh:targetClass lokf:Tutorial .
 
 lokf:Attester a sh:NodeShape ;
@@ -2961,7 +3051,13 @@ prov:Activity a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
-            sh:path prov:endedAtTime ] ;
+            sh:path prov:endedAtTime ],
+        [ sh:datatype xsd:string ;
+            sh:description "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path lokf:revision ] ;
     sh:targetClass prov:Activity .
 
 lokf:Verification a sh:NodeShape ;
@@ -2981,21 +3077,27 @@ lokf:Verification a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path prov:wasAssociatedWith ;
-            sh:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] ;
+            sh:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ],
+        [ sh:datatype xsd:string ;
+            sh:description "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path lokf:revision ] ;
     sh:targetClass lokf:Verification .
 
 dcterms:PeriodOfTime a sh:NodeShape ;
     rdfs:comment "The `{ from, to }` date range framing every `usage_count` signal (OKF v0.2 §5.1). Written once as a sibling of `sources`; a single Source entry MAY carry its own override." ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:date ;
-            sh:description "End date (inclusive, YYYY-MM-DD) of a usage window." ;
+    sh:property [ sh:datatype xsd:dateTime ;
+            sh:description "End (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path dcat:endDate ],
-        [ sh:datatype xsd:date ;
-            sh:description "Start date (inclusive, YYYY-MM-DD) of a usage window." ;
+        [ sh:datatype xsd:dateTime ;
+            sh:description "Start (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
@@ -3005,7 +3107,7 @@ dcterms:PeriodOfTime a sh:NodeShape ;
 prov:Agent a sh:NodeShape ;
     rdfs:comment "A person or organization responsible for a concept." ;
     sh:closed false ;
-    sh:ignoredProperties ( dcterms:isPartOf dcterms:references dcterms:relation dcterms:requires dcterms:source schema1:about schema1:author schema1:citation schema1:creativeWorkStatus schema1:dateCreated schema1:dateModified schema1:description schema1:expires schema1:genre schema1:hasPart schema1:isBasedOn schema1:keywords schema1:license schema1:sameAs schema1:text schema1:url schema1:version rdf:type rdfs:isDefinedBy prov:wasDerivedFrom prov:wasGeneratedBy lokf:relations lokf:usageWindow lokf:verified ) ;
+    sh:ignoredProperties ( dcterms:isPartOf dcterms:references dcterms:relation dcterms:requires dcterms:source schema1:about schema1:additionalType schema1:author schema1:citation schema1:creativeWorkStatus schema1:dateCreated schema1:dateModified schema1:description schema1:expires schema1:genre schema1:hasPart schema1:isBasedOn schema1:keywords schema1:license schema1:sameAs schema1:text schema1:url schema1:version rdf:type rdfs:isDefinedBy prov:wasDerivedFrom prov:wasGeneratedBy lokf:relations lokf:usageWindow lokf:verified ) ;
     sh:property [ sh:datatype xsd:string ;
             sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:maxCount 1 ;
@@ -3039,13 +3141,7 @@ schema1:CreativeWork a sh:NodeShape ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ),
         ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "Exact excerpt/quote from the referenced source." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 6 ;
-            sh:path lokf:supporting_text ],
-        [ sh:description "A URL." ;
+    sh:property [ sh:description "A URL." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 1 ;
@@ -3056,6 +3152,12 @@ schema1:CreativeWork a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path lokf:usageCount ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "When the SOURCE itself last changed, an ISO 8601 datetime (a bare YYYY-MM-DD is read as that day at 00:00:00Z). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept)." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path schema1:dateModified ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:maxCount 1 ;
@@ -3068,6 +3170,12 @@ schema1:CreativeWork a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "A verbatim copy of the passage in `resource` that the concept relies on, taken as retrieved. Lets a claim be re-checked against its source without re-reading the whole of it." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path lokf:excerpt ],
         [ sh:datatype xsd:string ;
             sh:description "REQUIRED. An absolute URL, a bundle-relative path, or a population/scope descriptor string (e.g. \"all queries in BigQuery project X\"). Range is widened to string to admit scope descriptors; non-URI values are lossy on the RDF projection (they serialize as xsd:anyURI-typed literals)." ;
             sh:maxCount 1 ;
@@ -3087,12 +3195,6 @@ schema1:CreativeWork a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 5 ;
             sh:path lokf:usageWindow ],
-        [ sh:datatype xsd:date ;
-            sh:description "When the SOURCE itself last changed (YYYY-MM-DD). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 4 ;
-            sh:path schema1:dateModified ],
         [ sh:datatype xsd:string ;
             sh:description "Who or what produced the source, as an actor string (e.g. `team:analytics`, `human:jsmith@acme`, `ga4-docs/v2`) — an authority signal carried as a plain literal, not an inlined Agent object. Deliberately looser than `by`: source authorship is commonly a team or an org, so any `<prefix>:<id>` is admitted, where `by` stays confined to the §7 provenance actors the trust tiers read." ;
             sh:maxCount 1 ;
@@ -3123,6 +3225,12 @@ lokf:Concept a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 26 ;
             sh:path lokf:usageWindow ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path schema1:additionalType ],
         [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -3261,17 +3369,17 @@ lokf:Concept a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 13 ;
             sh:path lokf:relations ],
-        [ sh:datatype xsd:date ;
-            sh:description "Absolute date (YYYY-MM-DD) on or after which the concept is stale (stale when today >= stale_after)." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 30 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Verification ;
             sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 28 ;
             sh:path lokf:verified ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path schema1:expires ],
         [ sh:class prov:Activity ;
             sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
             sh:maxCount 1 ;

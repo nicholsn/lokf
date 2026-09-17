@@ -203,12 +203,20 @@ class Vocabulary:
                 best, out = ns, f"{prefix}:{uri[len(ns):]}"
         return out
 
+    #: The `slot_usage` keys a class row reports. Everything a client needs to
+    #: write a valid value where a class narrows a slot (Source.author is a
+    #: single patterned string, not the Agent list the top-level slot says);
+    #: loader mechanics such as `inlined_as_list` and `implements` stay out.
+    _USAGE_KEYS = ("range", "multivalued", "pattern", "required", "recommended", "description")
+
     def class_docs(self) -> list[dict]:
         """Every non-abstract class, each with its schema description and
         aliases. ``is_type_value`` marks the subset that is also valid in a
         Concept's `type:` field (Concept/Agent descendants); the rest are
         embedded object shapes (e.g. Parameter, Source, Verification) that
-        only ever appear nested under another concept's slots."""
+        only ever appear nested under another concept's slots. ``slot_usage``
+        carries the class's own narrowing of a slot, and its `recommended`
+        fields, which no generated artifact otherwise reports."""
         classes = self._schema.get("classes", {})
         out: list[dict] = []
         for name, cls in classes.items():
@@ -230,6 +238,15 @@ class Vocabulary:
                 row["description"] = desc
             if cls.get("aliases"):
                 row["aliases"] = list(cls["aliases"])
+            usage = {}
+            for slot_name, override in (cls.get("slot_usage") or {}).items():
+                kept = {k: override[k] for k in self._USAGE_KEYS if k in (override or {})}
+                if "description" in kept:
+                    kept["description"] = str(kept["description"]).strip()
+                if kept:
+                    usage[slot_name] = kept
+            if usage:
+                row["slot_usage"] = usage
             out.append(row)
         return out
 
@@ -246,17 +263,23 @@ class Vocabulary:
             row["range"] = slot["range"]
         if slot.get("multivalued"):
             row["multivalued"] = True
+        if slot.get("required"):
+            row["required"] = True
+        if slot.get("pattern"):
+            row["pattern"] = slot["pattern"]
         if slot.get("aliases"):
             row["aliases"] = list(slot["aliases"])
         return row
 
     def slot_docs(self) -> list[dict]:
         """Every schema slot that carries a description - the frontmatter field
-        reference, with each slot's range and multivalued flag where set. A
-        slot a class redefines locally under its own `attributes:` (e.g.
-        Parameter.type, Source.id) is emitted as an additional row carrying
-        `class`, so that class's own description isn't shadowed by the
-        generic top-level one."""
+        reference, with each slot's range, multivalued flag, `required` and
+        `pattern` where set, so a client that cannot run `lokf validate` can
+        still check a value. A slot a class redefines locally under its own
+        `attributes:` (e.g. Parameter.type, Source.id) is emitted as an
+        additional row carrying `class`, so that class's own description isn't
+        shadowed by the generic top-level one; a `slot_usage` narrowing is
+        reported on the class row instead."""
         out: list[dict] = []
         for name, slot in (self._schema.get("slots") or {}).items():
             row = self._slot_row(name, slot)

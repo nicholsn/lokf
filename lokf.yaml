@@ -136,6 +136,7 @@ classes:
       - verified
       - status
       - stale_after
+      - additionalType
 
   Dataset:
     is_a: Concept
@@ -478,7 +479,7 @@ classes:
       - usage_count
       - last_modified
       - usage_window
-      - supporting_text
+      - excerpt
     slot_usage:
       resource:
         required: true
@@ -528,6 +529,7 @@ classes:
     slots:
       - by
       - at
+      - revision
 
   Verification:
     description: >-
@@ -545,6 +547,7 @@ classes:
     slots:
       - by
       - at
+      - revision
 
   Parameter:
     description: >-
@@ -1120,15 +1123,46 @@ slots:
     in_subset:
       - lokf_semantic
 
-  supporting_text:
-    description: Exact excerpt/quote from the referenced source.
+  excerpt:
+    description: >-
+      A verbatim copy of the passage in `resource` that the concept relies
+      on, taken as retrieved. Lets a claim be re-checked against its source
+      without re-reading the whole of it.
     range: string
+    slot_uri: lokf:excerpt
+    aliases:
+      - supporting_text
     notes:
-      - excerpt marks this as text to validate, but not a required slot
+      - >-
+        Proposed for OKF §5.1 as GoogleCloudPlatform/knowledge-catalog#438,
+        under this name. Kept in lokf_semantic until OKF adopts it, then
+        moved to okf_v02. Shipped as `supporting_text` in 0.8.0 only.
+      - >-
+        `implements: linkml:excerpt` marks the slot as text a reference
+        validator can look for in `resource`; it does not make it required.
     see_also:
       - https://github.com/linkml/linkml-reference-validator
+      - https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
     implements:
       - linkml:excerpt
+    in_subset:
+      - lokf_semantic
+
+  additionalType:
+    description: The producer's own `type` string when it names no LOKF class.
+    range: string
+    slot_uri: schema:additionalType
+    comments:
+      - >-
+        The concept is then typed `lokf:Concept` (SPEC §8) and the original
+        spelling is kept here, so an OKF type such as `BigQuery Table`
+        survives the RDF projection.
+      - >-
+        Set by the RDF projection, not normally authored. `lokf validate`
+        still rejects an undeclared `type`; this slot is how the permissive
+        consumers (`convert`, `query`, `serve`) honour OKF §11.
+    in_subset:
+      - lokf_semantic
 
   # --- Bundle metadata ------------------------------------------------------
   lokf_version:
@@ -1217,8 +1251,10 @@ slots:
       - okf_v02
 
   from:
-    description: Start date (inclusive, YYYY-MM-DD) of a usage window.
-    range: date
+    description: >-
+      Start (inclusive) of a usage window, an ISO 8601 datetime. A bare
+      YYYY-MM-DD is read as that day at 00:00:00Z.
+    range: datetime
     slot_uri: dcat:startDate
     close_mappings:
       - schema:startDate
@@ -1233,8 +1269,10 @@ slots:
       - okf_v02
 
   to:
-    description: End date (inclusive, YYYY-MM-DD) of a usage window.
-    range: date
+    description: >-
+      End (inclusive) of a usage window, an ISO 8601 datetime. A bare
+      YYYY-MM-DD is read as that day at 00:00:00Z.
+    range: datetime
     slot_uri: dcat:endDate
     close_mappings:
       - schema:endDate
@@ -1260,11 +1298,12 @@ slots:
 
   last_modified:
     description: >-
-      When the SOURCE itself last changed (YYYY-MM-DD). A recency signal
-      about the source, distinct from `generated.at`, which records when
-      this concept's content was produced. Same predicate as the deprecated
+      When the SOURCE itself last changed, an ISO 8601 datetime (a bare
+      YYYY-MM-DD is read as that day at 00:00:00Z). A recency signal about
+      the source, distinct from `generated.at`, which records when this
+      concept's content was produced. Same predicate as the deprecated
       `timestamp`, on a different subject node (source vs concept).
-    range: date
+    range: datetime
     slot_uri: schema:dateModified
     exact_mappings:
       - dcterms:modified
@@ -1340,6 +1379,33 @@ slots:
     in_subset:
       - okf_v02
 
+  revision:
+    description: >-
+      The state of the resource this event refers to: a commit id, an ETag
+      or version label, or a content digest of the resource as retrieved
+      (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
+    range: string
+    slot_uri: lokf:revision
+    notes:
+      - >-
+        Proposed for OKF §5.2 as GoogleCloudPlatform/knowledge-catalog#437,
+        under this name. Kept in lokf_semantic until OKF adopts it, then
+        moved to okf_v02. A per-source `checked: [{ resource, revision }]`
+        list, for a concept with several sources, waits on that design.
+    comments:
+      - >-
+        A literal on the event, not prov:used: the value is an opaque
+        version token, not the IRI of an entity. pav:version describes the
+        resource itself; here the subject is the act of checking it.
+      - >-
+        Quote it in YAML. An all-digit commit id (`1234567`) is otherwise
+        read as a number and fails the string range, and an ETag carries
+        its own double quotes.
+    see_also:
+      - https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437
+    in_subset:
+      - lokf_semantic
+
   # --- Lifecycle (OKF v0.2 §5.4, §5.5) --------------------------------------
   status:
     description: >-
@@ -1363,9 +1429,10 @@ slots:
 
   stale_after:
     description: >-
-      Absolute date (YYYY-MM-DD) on or after which the concept is stale
-      (stale when today >= stale_after).
-    range: date
+      The absolute instant on or after which the concept is stale (OKF
+      §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare
+      YYYY-MM-DD is read as that day at 00:00:00Z.
+    range: datetime
     slot_uri: schema:expires
     close_mappings:
       - dcterms:valid
