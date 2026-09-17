@@ -72,6 +72,21 @@ class Bundle:
             self._by_iri = {self.iri(c): c for c in self.concepts}
         return self._by_iri
 
+    def duplicate_iris(self) -> list[tuple[str, list[str]]]:
+        """IRIs that more than one file declares, each with those files' Concept IDs.
+
+        A second file carrying an existing ``id`` - a sync client's conflict
+        copy, a pasted duplicate, or an explicit ``id`` equal to another
+        file's path-derived one - validates on its own and then merges into
+        the first in :meth:`by_iri` and in the projected graph, where nothing
+        can tell two subjects were meant. Only the loaded bundle, before that
+        merge, can see it; the schema validates concepts one at a time.
+        """
+        files: dict[str, list[str]] = {}
+        for c in self.concepts:
+            files.setdefault(self.iri(c), []).append(c.concept_id)
+        return [(iri, ids) for iri, ids in files.items() if len(ids) > 1]
+
     def get(self, ref: str) -> Concept | None:
         """Look up a concept by IRI, Concept ID, or bundle-relative path."""
         return self.by_iri().get(self.resolve(ref.removesuffix(".md")))

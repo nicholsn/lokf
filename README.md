@@ -126,8 +126,11 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 Validation is closed-world (SPEC §9): a project-specific type or key needs a
 schema that `imports: [lokf]`, passed via `lokf validate --schema`.
 
-Schema validation cannot tell a live relation target from a fabricated one —
-both are valid strings. `--check-refs` adds that pass:
+Schema validation sees one concept at a time, so two files declaring one `id`
+(a sync client's conflict copy is the usual way) pass and then merge into one
+subject in the graph; `--check-ids` catches that. It cannot tell a live
+relation target from a fabricated one either — both are valid strings.
+`--check-refs` adds that pass:
 
 ```bash
 uv run lokf validate examples/acme-knowledge --check-refs

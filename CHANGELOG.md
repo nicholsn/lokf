@@ -13,40 +13,15 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
-Format version is unchanged: **LOKF v0.2**. The schema now accepts what
-OKF v0.2 writes.
-
-### Changed
-
-- **`supporting_text` is renamed `excerpt`** on `Source`, the name proposed
-  for OKF in [knowledge-catalog#438]; its predicate is `lokf:excerpt`. A
-  bundle written against 0.8.0 must rename the key.
-- **`stale_after`, `usage_window.from`/`to` and `sources[].last_modified` are
-  `datetime`**, as OKF defines every timestamp, so OKF's own
-  `stale_after: 2026-09-23T00:00:00Z` now validates. A bare `YYYY-MM-DD` is
-  read as that day at midnight UTC, so existing bundles need no change.
-
 ### Added
 
-- `lokf vocab --all --json` and MCP `get_vocabulary(all=True)` report each
-  slot's `pattern` and `required`, and each class's `slot_usage` including
-  its `recommended` fields. Follow-up to [#61].
-- `additionalType` (`schema:additionalType`) on `Concept`: the producer's
-  `type` when it names no LOKF class.
-- `revision` on `generated` and `verified[]` events (`lokf:revision`): the
-  commit id, ETag or content digest of the resource the event checked,
-  proposed for OKF in [knowledge-catalog#437]. Absent means unrecorded.
-
-### Fixed
-
-- The RDF projection dropped an unknown `type` (`BigQuery Table` left the
-  node untyped; `Skill` minted an undeclared class). Both are now
-  `lokf:Concept`, with the original string kept as `additionalType`, as
-  SPEC §8 states. A class declared only in a domain schema (`--schema`)
-  projects the same way, where it minted `lokf:<Class>` before.
-- SPEC §8 names `lokf validate` as the strict producer-side check and
-  `convert`/`query`/`serve` as the permissive OKF consumers; §9.1 states
-  that the 0.8.0 patterns narrow nothing OKF defines.
+- `lokf validate --check-ids` fails a bundle in which two files declare one
+  `id` - a sync client's conflict copy, a pasted duplicate, or an explicit
+  `id` equal to another file's path-derived one - naming the IRI and the
+  files. Each file validates on its own and the pair then merges into one
+  subject in the graph, which neither JSON Schema nor SHACL can see. Opt-in
+  like `--check-refs`, so the default verdict stays the schema's;
+  `Bundle.duplicate_iris()` is the check behind it.
 
 ## [0.8.0] — 2026-09-16
 
