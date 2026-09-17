@@ -11,6 +11,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 with the 0.x caveat that a minor release may tighten validation.
 
+## [Unreleased]
+
+### Changed — validation is stricter
+
+- `lokf validate` fails a bundle in which two files declare one `id` - a sync
+  client's conflict copy, a pasted duplicate, or an explicit `id` equal to
+  another file's path-derived one - naming the IRI and the files. Each file
+  validated on its own and the pair then merged into one subject in the graph,
+  which neither JSON Schema nor SHACL can see. `Bundle.duplicate_iris()` is the
+  check behind it.
+
 ## [0.8.0] — 2026-09-16
 
 Format version is unchanged: **LOKF v0.2**, realized by schema 0.8.0.

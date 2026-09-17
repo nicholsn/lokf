@@ -461,7 +461,10 @@ Two independent, generated validators are available:
 The reference bundle in `examples/` passes JSON Schema validation for all eight
 concepts and for the assembled `KnowledgeBundle`.
 
-Neither validator checks referential integrity: a relation target is just a
+Neither validator sees across files: two files declaring one `id` each
+validate on their own and then merge into one subject in the graph, so `lokf
+validate` fails a bundle in which any IRI is declared by more than one file.
+Nor does either check referential integrity: a relation target is just a
 string to JSON Schema, so a stale or invented IRI passes. `lokf validate
 --check-refs` adds that pass, over every typed-relation slot and each
 `relations[].target`. Its scope is the bundle's own namespace — a relative ref,

@@ -247,6 +247,14 @@ def validate(
     # warning is reported without failing the command.
     failed = any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results)
 
+    # Two files declaring one `id` each validate on their own and then merge
+    # into one subject in the graph; the schema sees concepts one at a time
+    # and SHACL only the merged node, so the bundle is the one place to look.
+    duplicates = bundle.duplicate_iris()
+    for iri, ids in duplicates:
+        _err(f"[ERROR] id declared by more than one file: {iri} ({', '.join(ids)})")
+    failed = failed or bool(duplicates)
+
     if check_refs:
         # Pass the schema actually validated against, so an explicit --schema
         # that renames or adds a relation slot is honoured here too.

@@ -121,3 +121,30 @@ def test_dangling_refs_reports_concept_slot_and_target(tmp_path):
 
 def test_dangling_refs_is_empty_for_the_reference_bundle():
     assert load_bundle(BUNDLE).dangling_refs() == []
+
+
+def test_duplicate_iris_names_every_file_claiming_one_iri(tmp_path):
+    """A conflict copy carries its original's explicit `id`; an explicit `id`
+    can also equal another file's path-derived one. Both are one IRI twice."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    a = "---\nid: https://ex.org/kb/a\ntype: GlossaryTerm\ntitle: A\n---\n"
+    (tmp_path / "a.md").write_text(a, encoding="utf-8")
+    (tmp_path / "a (conflicted copy).md").write_text(a, encoding="utf-8")
+    (tmp_path / "b.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: B\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "c.md").write_text(
+        "---\nid: https://ex.org/kb/b\ntype: GlossaryTerm\ntitle: C\n---\n",
+        encoding="utf-8",
+    )
+    # Files in the bundle's sorted path order: a space sorts before a dot.
+    assert load_bundle(tmp_path).duplicate_iris() == [
+        ("https://ex.org/kb/a", ["a (conflicted copy)", "a"]),
+        ("https://ex.org/kb/b", ["b", "c"]),
+    ]
+
+
+def test_duplicate_iris_is_empty_for_the_reference_bundle():
+    assert load_bundle(BUNDLE).duplicate_iris() == []

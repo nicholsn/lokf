@@ -228,6 +228,24 @@ def test_validate_rejects_malformed_email(tmp_path):
     assert result.exit_code == 1
     assert "[ERROR]" in result.output
 
+def test_validate_rejects_two_files_declaring_one_id(tmp_path):
+    """Two files with one `id` each validate alone and then merge into one
+    subject in the graph, which neither JSON Schema nor SHACL can see; the
+    bundle can, and `lokf validate` must say which files."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    a = "---\nid: https://ex.org/kb/a\ntype: GlossaryTerm\ntitle: A\n---\n\n# A\n"
+    (tmp_path / "a.md").write_text(a, encoding="utf-8")
+    (tmp_path / "a (conflicted copy).md").write_text(a, encoding="utf-8")
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert (
+        "[ERROR] id declared by more than one file: https://ex.org/kb/a "
+        "(a (conflicted copy), a)"
+    ) in result.output
+
+
 def test_validate_rejects_unknown_http_method(tmp_path):
     """`http_method` must be a real IANA verb; regression for the HttpMethod enum."""
     (tmp_path / "index.md").write_text(
