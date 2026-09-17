@@ -13,14 +13,15 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
-### Changed — validation is stricter
+### Added
 
-- `lokf validate` fails a bundle in which two files declare one `id` - a sync
-  client's conflict copy, a pasted duplicate, or an explicit `id` equal to
-  another file's path-derived one - naming the IRI and the files. Each file
-  validated on its own and the pair then merged into one subject in the graph,
-  which neither JSON Schema nor SHACL can see. `Bundle.duplicate_iris()` is the
-  check behind it.
+- `lokf validate --check-ids` fails a bundle in which two files declare one
+  `id` - a sync client's conflict copy, a pasted duplicate, or an explicit
+  `id` equal to another file's path-derived one - naming the IRI and the
+  files. Each file validates on its own and the pair then merges into one
+  subject in the graph, which neither JSON Schema nor SHACL can see. Opt-in
+  like `--check-refs`, so the default verdict stays the schema's;
+  `Bundle.duplicate_iris()` is the check behind it.
 
 ## [0.8.0] — 2026-09-16
 

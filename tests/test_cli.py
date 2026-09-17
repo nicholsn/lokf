@@ -228,10 +228,11 @@ def test_validate_rejects_malformed_email(tmp_path):
     assert result.exit_code == 1
     assert "[ERROR]" in result.output
 
-def test_validate_rejects_two_files_declaring_one_id(tmp_path):
+def test_validate_check_ids_rejects_two_files_declaring_one_id(tmp_path):
     """Two files with one `id` each validate alone and then merge into one
     subject in the graph, which neither JSON Schema nor SHACL can see; the
-    bundle can, and `lokf validate` must say which files."""
+    bundle can, and `--check-ids` must say which files. Without the flag the
+    schema is the whole verdict, as OKF's permissive stance intends."""
     (tmp_path / "index.md").write_text(
         "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
     )
@@ -239,11 +240,19 @@ def test_validate_rejects_two_files_declaring_one_id(tmp_path):
     (tmp_path / "a.md").write_text(a, encoding="utf-8")
     (tmp_path / "a (conflicted copy).md").write_text(a, encoding="utf-8")
     result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 0
+    result = runner.invoke(app, ["validate", str(tmp_path), "--check-ids"])
     assert result.exit_code == 1
     assert (
         "[ERROR] id declared by more than one file: https://ex.org/kb/a "
         "(a (conflicted copy), a)"
     ) in result.output
+
+
+def test_validate_check_ids_passes_the_reference_bundle():
+    result = runner.invoke(app, ["validate", str(BUNDLE), "--check-ids"])
+    assert result.exit_code == 0
+    assert "Every IRI is declared by one file." in result.stdout
 
 
 def test_validate_rejects_unknown_http_method(tmp_path):
