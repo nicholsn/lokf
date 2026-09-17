@@ -11,6 +11,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 with the 0.x caveat that a minor release may tighten validation.
 
+## [Unreleased]
+
+Format version is unchanged: **LOKF v0.2**. The schema now accepts what
+OKF v0.2 writes.
+
+### Changed
+
+- **`supporting_text` is renamed `excerpt`** on `Source`, the name proposed
+  for OKF in [knowledge-catalog#438]; its predicate is `lokf:excerpt`. A
+  bundle written against 0.8.0 must rename the key.
+- **`stale_after`, `usage_window.from`/`to` and `sources[].last_modified` are
+  `datetime`**, as OKF defines every timestamp, so OKF's own
+  `stale_after: 2026-09-23T00:00:00Z` now validates. A bare `YYYY-MM-DD` is
+  read as that day at midnight UTC, so existing bundles need no change.
+
+### Added
+
+- `lokf vocab --all --json` and MCP `get_vocabulary(all=True)` report each
+  slot's `pattern` and `required`, and each class's `slot_usage` including
+  its `recommended` fields. Follow-up to [#61].
+- `additionalType` (`schema:additionalType`) on `Concept`: the producer's
+  `type` when it names no LOKF class.
+- `revision` on `generated` and `verified[]` events (`lokf:revision`): the
+  commit id, ETag or content digest of the resource the event checked,
+  proposed for OKF in [knowledge-catalog#437]. Absent means unrecorded.
+
+### Fixed
+
+- The RDF projection dropped an unknown `type` (`BigQuery Table` left the
+  node untyped; `Skill` minted an undeclared class). Both are now
+  `lokf:Concept`, with the original string kept as `additionalType`, as
+  SPEC §8 states. A class declared only in a domain schema (`--schema`)
+  projects the same way, where it minted `lokf:<Class>` before.
+- SPEC §8 names `lokf validate` as the strict producer-side check and
+  `convert`/`query`/`serve` as the permissive OKF consumers; §9.1 states
+  that the 0.8.0 patterns narrow nothing OKF defines.
+
 ## [0.8.0] — 2026-09-16
 
 Format version is unchanged: **LOKF v0.2**, realized by schema 0.8.0.
@@ -81,6 +118,9 @@ via `lokf validate --schema`.
   asserted by tests. ([#80])
 - Dependency updates. ([#62], [#63], [#70], [#71], [#72])
 
+[knowledge-catalog#437]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437
+[knowledge-catalog#438]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
+[#61]: https://github.com/nicholsn/lokf/issues/61
 [#62]: https://github.com/nicholsn/lokf/pull/62
 [#63]: https://github.com/nicholsn/lokf/pull/63
 [#64]: https://github.com/nicholsn/lokf/issues/64

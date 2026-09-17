@@ -58,6 +58,25 @@ def _strip_context(obj):
     return obj
 
 
+def _as_declared_type(doc: dict, classes: set[str]) -> dict:
+    """Type an unknown ``type`` as ``Concept``, keeping the producer's string.
+
+    ``type`` is the JSON-LD ``@type`` alias, so an OKF type the schema does
+    not declare would either mint an undeclared ``lokf:<Type>`` class or, for
+    a spaced spelling such as ``BigQuery Table``, expand to an invalid IRI the
+    parser drops — leaving the node untyped. SPEC §8 says unknown types are
+    read as ``lokf:Concept``; the original spelling goes to
+    ``additionalType`` (``schema:additionalType``) so it is not lost.
+    """
+    t = doc.get("type")
+    if not isinstance(t, str) or t in classes:
+        return doc
+    out = dict(doc)
+    out["type"] = "Concept"
+    out.setdefault("additionalType", t)
+    return out
+
+
 def docs_to_graph(docs: list[dict], context: dict | None = None, base: str | None = None):
     """Parse a list of concept docs into one :class:`rdflib.Graph`.
 
@@ -72,10 +91,14 @@ def docs_to_graph(docs: list[dict], context: dict | None = None, base: str | Non
     """
     from rdflib import Graph
 
+    from lokf.schema import vocabulary
+
     ctx = context if context is not None else load_context()
+    classes = set(vocabulary().classes)
+    docs = [_as_declared_type(_strip_context(d), classes) for d in docs]
     g = Graph()
     g.parse(
-        data=json.dumps({"@context": ctx, "@graph": [_strip_context(d) for d in docs]}),
+        data=json.dumps({"@context": ctx, "@graph": docs}),
         format="json-ld",
         publicID=base or None,
     )

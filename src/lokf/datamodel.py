@@ -55,8 +55,8 @@ from rdflib import (
     URIRef
 )
 
-from linkml_runtime.linkml_model.types import Boolean, Date, Datetime, Integer, String, Uri, Uriorcurie
-from linkml_runtime.utils.metamodelcore import Bool, URI, URIorCURIE, XSDDate, XSDDateTime
+from linkml_runtime.linkml_model.types import Boolean, Datetime, Integer, String, Uri, Uriorcurie
+from linkml_runtime.utils.metamodelcore import Bool, URI, URIorCURIE, XSDDateTime
 
 metamodel_version = "1.11.0"
 version = "0.8.0"
@@ -251,7 +251,8 @@ class Concept(YAMLRoot):
     generated: Optional[Union[dict, "Generation"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
-    stale_after: Optional[Union[str, XSDDate]] = None
+    stale_after: Optional[Union[str, XSDDateTime]] = None
+    additionalType: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -355,8 +356,11 @@ class Concept(YAMLRoot):
         if self.status is not None and not isinstance(self.status, ConceptStatus):
             self.status = ConceptStatus(self.status)
 
-        if self.stale_after is not None and not isinstance(self.stale_after, XSDDate):
-            self.stale_after = XSDDate(self.stale_after)
+        if self.stale_after is not None and not isinstance(self.stale_after, XSDDateTime):
+            self.stale_after = XSDDateTime(self.stale_after)
+
+        if self.additionalType is not None and not isinstance(self.additionalType, str):
+            self.additionalType = str(self.additionalType)
 
         super().__post_init__(**kwargs)
 
@@ -923,7 +927,8 @@ class Person(Agent):
     generated: Optional[Union[dict, "Generation"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
-    stale_after: Optional[Union[str, XSDDate]] = None
+    stale_after: Optional[Union[str, XSDDateTime]] = None
+    additionalType: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -1027,8 +1032,11 @@ class Person(Agent):
         if self.status is not None and not isinstance(self.status, ConceptStatus):
             self.status = ConceptStatus(self.status)
 
-        if self.stale_after is not None and not isinstance(self.stale_after, XSDDate):
-            self.stale_after = XSDDate(self.stale_after)
+        if self.stale_after is not None and not isinstance(self.stale_after, XSDDateTime):
+            self.stale_after = XSDDateTime(self.stale_after)
+
+        if self.additionalType is not None and not isinstance(self.additionalType, str):
+            self.additionalType = str(self.additionalType)
 
         super().__post_init__(**kwargs)
 
@@ -1076,7 +1084,8 @@ class Organization(Agent):
     generated: Optional[Union[dict, "Generation"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
-    stale_after: Optional[Union[str, XSDDate]] = None
+    stale_after: Optional[Union[str, XSDDateTime]] = None
+    additionalType: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -1180,8 +1189,11 @@ class Organization(Agent):
         if self.status is not None and not isinstance(self.status, ConceptStatus):
             self.status = ConceptStatus(self.status)
 
-        if self.stale_after is not None and not isinstance(self.stale_after, XSDDate):
-            self.stale_after = XSDDate(self.stale_after)
+        if self.stale_after is not None and not isinstance(self.stale_after, XSDDateTime):
+            self.stale_after = XSDDateTime(self.stale_after)
+
+        if self.additionalType is not None and not isinstance(self.additionalType, str):
+            self.additionalType = str(self.additionalType)
 
         super().__post_init__(**kwargs)
 
@@ -1342,9 +1354,9 @@ class Source(YAMLRoot):
     title: Optional[str] = None
     author: Optional[Union[str, list[str]]] = empty_list()
     usage_count: Optional[int] = None
-    last_modified: Optional[Union[str, XSDDate]] = None
+    last_modified: Optional[Union[str, XSDDateTime]] = None
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
-    supporting_text: Optional[str] = None
+    excerpt: Optional[str] = None
     id: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
@@ -1363,14 +1375,14 @@ class Source(YAMLRoot):
         if self.usage_count is not None and not isinstance(self.usage_count, int):
             self.usage_count = int(self.usage_count)
 
-        if self.last_modified is not None and not isinstance(self.last_modified, XSDDate):
-            self.last_modified = XSDDate(self.last_modified)
+        if self.last_modified is not None and not isinstance(self.last_modified, XSDDateTime):
+            self.last_modified = XSDDateTime(self.last_modified)
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
             self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
 
-        if self.supporting_text is not None and not isinstance(self.supporting_text, str):
-            self.supporting_text = str(self.supporting_text)
+        if self.excerpt is not None and not isinstance(self.excerpt, str):
+            self.excerpt = str(self.excerpt)
 
         if self.id is not None and not isinstance(self.id, str):
             self.id = str(self.id)
@@ -1391,15 +1403,15 @@ class UsageWindow(YAMLRoot):
     class_name: ClassVar[str] = "UsageWindow"
     class_model_uri: ClassVar[URIRef] = LOKF.UsageWindow
 
-    from_: Optional[Union[str, XSDDate]] = None
-    to: Optional[Union[str, XSDDate]] = None
+    from_: Optional[Union[str, XSDDateTime]] = None
+    to: Optional[Union[str, XSDDateTime]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
-        if self.from_ is not None and not isinstance(self.from_, XSDDate):
-            self.from_ = XSDDate(self.from_)
+        if self.from_ is not None and not isinstance(self.from_, XSDDateTime):
+            self.from_ = XSDDateTime(self.from_)
 
-        if self.to is not None and not isinstance(self.to, XSDDate):
-            self.to = XSDDate(self.to)
+        if self.to is not None and not isinstance(self.to, XSDDateTime):
+            self.to = XSDDateTime(self.to)
 
         super().__post_init__(**kwargs)
 
@@ -1421,6 +1433,7 @@ class Generation(YAMLRoot):
 
     by: str = None
     at: Optional[Union[str, XSDDateTime]] = None
+    revision: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.by):
@@ -1430,6 +1443,9 @@ class Generation(YAMLRoot):
 
         if self.at is not None and not isinstance(self.at, XSDDateTime):
             self.at = XSDDateTime(self.at)
+
+        if self.revision is not None and not isinstance(self.revision, str):
+            self.revision = str(self.revision)
 
         super().__post_init__(**kwargs)
 
@@ -1451,6 +1467,7 @@ class Verification(YAMLRoot):
 
     by: str = None
     at: Optional[Union[str, XSDDateTime]] = None
+    revision: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.by):
@@ -1460,6 +1477,9 @@ class Verification(YAMLRoot):
 
         if self.at is not None and not isinstance(self.at, XSDDateTime):
             self.at = XSDDateTime(self.at)
+
+        if self.revision is not None and not isinstance(self.revision, str):
+            self.revision = str(self.revision)
 
         super().__post_init__(**kwargs)
 
@@ -1959,8 +1979,11 @@ slots.holder = Slot(uri=ORG.member, name="holder", curie=ORG.curie('member'),
 slots.url = Slot(uri=SCHEMA.url, name="url", curie=SCHEMA.curie('url'),
                    model_uri=LOKF.url, domain=None, range=Optional[Union[str, URIorCURIE]])
 
-slots.supporting_text = Slot(uri=LOKF.supporting_text, name="supporting_text", curie=LOKF.curie('supporting_text'),
-                   model_uri=LOKF.supporting_text, domain=None, range=Optional[str])
+slots.excerpt = Slot(uri=LOKF.excerpt, name="excerpt", curie=LOKF.curie('excerpt'),
+                   model_uri=LOKF.excerpt, domain=None, range=Optional[str])
+
+slots.additionalType = Slot(uri=SCHEMA.additionalType, name="additionalType", curie=SCHEMA.curie('additionalType'),
+                   model_uri=LOKF.additionalType, domain=None, range=Optional[str])
 
 slots.lokf_version = Slot(uri=LOKF.lokfVersion, name="lokf_version", curie=LOKF.curie('lokfVersion'),
                    model_uri=LOKF.lokf_version, domain=None, range=Optional[str])
@@ -1982,16 +2005,16 @@ slots.usage_window = Slot(uri=LOKF.usageWindow, name="usage_window", curie=LOKF.
                    model_uri=LOKF.usage_window, domain=None, range=Optional[Union[dict, UsageWindow]])
 
 slots.from_ = Slot(uri=DCAT.startDate, name="from", curie=DCAT.curie('startDate'),
-                   model_uri=LOKF.from_, domain=None, range=Optional[Union[str, XSDDate]])
+                   model_uri=LOKF.from_, domain=None, range=Optional[Union[str, XSDDateTime]])
 
 slots.to = Slot(uri=DCAT.endDate, name="to", curie=DCAT.curie('endDate'),
-                   model_uri=LOKF.to, domain=None, range=Optional[Union[str, XSDDate]])
+                   model_uri=LOKF.to, domain=None, range=Optional[Union[str, XSDDateTime]])
 
 slots.usage_count = Slot(uri=LOKF.usageCount, name="usage_count", curie=LOKF.curie('usageCount'),
                    model_uri=LOKF.usage_count, domain=None, range=Optional[int])
 
 slots.last_modified = Slot(uri=SCHEMA.dateModified, name="last_modified", curie=SCHEMA.curie('dateModified'),
-                   model_uri=LOKF.last_modified, domain=None, range=Optional[Union[str, XSDDate]])
+                   model_uri=LOKF.last_modified, domain=None, range=Optional[Union[str, XSDDateTime]])
 
 slots.generated = Slot(uri=PROV.wasGeneratedBy, name="generated", curie=PROV.curie('wasGeneratedBy'),
                    model_uri=LOKF.generated, domain=None, range=Optional[Union[dict, Generation]])
@@ -2006,11 +2029,14 @@ slots.by = Slot(uri=PROV.wasAssociatedWith, name="by", curie=PROV.curie('wasAsso
 slots.at = Slot(uri=PROV.endedAtTime, name="at", curie=PROV.curie('endedAtTime'),
                    model_uri=LOKF.at, domain=None, range=Optional[Union[str, XSDDateTime]])
 
+slots.revision = Slot(uri=LOKF.revision, name="revision", curie=LOKF.curie('revision'),
+                   model_uri=LOKF.revision, domain=None, range=Optional[str])
+
 slots.status = Slot(uri=SCHEMA.creativeWorkStatus, name="status", curie=SCHEMA.curie('creativeWorkStatus'),
                    model_uri=LOKF.status, domain=None, range=Optional[Union[str, "ConceptStatus"]])
 
 slots.stale_after = Slot(uri=SCHEMA.expires, name="stale_after", curie=SCHEMA.curie('expires'),
-                   model_uri=LOKF.stale_after, domain=None, range=Optional[Union[str, XSDDate]])
+                   model_uri=LOKF.stale_after, domain=None, range=Optional[Union[str, XSDDateTime]])
 
 slots.runtime = Slot(uri=SCHEMA.runtimePlatform, name="runtime", curie=SCHEMA.curie('runtimePlatform'),
                    model_uri=LOKF.runtime, domain=None, range=str)

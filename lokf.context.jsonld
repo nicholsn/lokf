@@ -34,6 +34,9 @@
       "@type": "xsd:anyURI",
       "@id": "dcat:accessURL"
     },
+    "additionalType": {
+      "@id": "schema:additionalType"
+    },
     "at": {
       "@type": "xsd:dateTime",
       "@id": "prov:endedAtTime"
@@ -122,6 +125,9 @@
       "@type": "xsd:anyURI",
       "@id": "schema:url"
     },
+    "excerpt": {
+      "@id": "excerpt"
+    },
     "executor": {
       "@type": "@id",
       "@id": "executor"
@@ -134,7 +140,7 @@
       "@id": "formula"
     },
     "from": {
-      "@type": "xsd:date",
+      "@type": "xsd:dateTime",
       "@id": "dcat:startDate"
     },
     "generated": {
@@ -175,7 +181,7 @@
       "@id": "dcterms:isPartOf"
     },
     "last_modified": {
-      "@type": "xsd:date",
+      "@type": "xsd:dateTime",
       "@id": "schema:dateModified"
     },
     "license": {
@@ -245,6 +251,9 @@
       "@type": "xsd:anyURI",
       "@id": "schema:url"
     },
+    "revision": {
+      "@id": "revision"
+    },
     "roleName": {
       "@id": "schema:roleName"
     },
@@ -264,7 +273,7 @@
       "@id": "schema:isBasedOn"
     },
     "stale_after": {
-      "@type": "xsd:date",
+      "@type": "xsd:dateTime",
       "@id": "schema:expires"
     },
     "startDate": {
@@ -277,9 +286,6 @@
         "meaning": "@id"
       },
       "@id": "schema:creativeWorkStatus"
-    },
-    "supporting_text": {
-      "@id": "supporting_text"
     },
     "tags": {
       "@id": "schema:keywords"
@@ -296,7 +302,7 @@
       "@id": "schema:name"
     },
     "to": {
-      "@type": "xsd:date",
+      "@type": "xsd:dateTime",
       "@id": "dcat:endDate"
     },
     "unit": {
