@@ -183,6 +183,13 @@ def validate(
         "resolves to a concept in the bundle - something JSON Schema cannot "
         "express. External resources are not checked.",
     ),
+    check_ids: bool = typer.Option(
+        False, "--check-ids",
+        help="Also check that every concept IRI is declared by one file. Two "
+        "files with one `id` - a sync client's conflict copy, a pasted "
+        "duplicate - each validate on their own and then merge into one "
+        "subject in the graph, which neither JSON Schema nor SHACL can see.",
+    ),
 ) -> None:
     """Assemble a bundle and validate it against the LOKF schema.
 
@@ -199,6 +206,10 @@ def validate(
     fabricated or stale IRI is caught instead of passing as a valid string.
     Targets outside the bundle's ``base_iri`` are left alone - slots like
     ``definedBy`` and ``source`` are defined as taking an external resource.
+
+    ``--check-ids`` adds the other pass the schema cannot make, across files:
+    every concept IRI declared by exactly one file. Both are opt-in so that
+    the default stays the schema, as OKF's permissive stance intends.
 
     Needs LinkML, which the core install leaves out: ``pip install
     'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
@@ -247,6 +258,16 @@ def validate(
     # warning is reported without failing the command.
     failed = any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results)
 
+    if check_ids:
+        # Two files declaring one `id` each validate on their own and then
+        # merge into one subject in the graph; the schema sees concepts one at
+        # a time and SHACL only the merged node, so the bundle is the one
+        # place to look.
+        duplicates = bundle.duplicate_iris()
+        for iri, ids in duplicates:
+            _err(f"[ERROR] id declared by more than one file: {iri} ({', '.join(ids)})")
+        failed = failed or bool(duplicates)
+
     if check_refs:
         # Pass the schema actually validated against, so an explicit --schema
         # that renames or adds a relation slot is honoured here too.
@@ -266,6 +287,8 @@ def validate(
     )
     if check_refs:
         ok += " All in-namespace relation targets resolve."
+    if check_ids:
+        ok += " Every IRI is declared by one file."
     typer.echo(ok)
 
 
