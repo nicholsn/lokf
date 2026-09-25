@@ -16,8 +16,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.42.0",
-    "astro": "^7.3.2",
+    "@astrojs/starlight": "^0.42.2",
+    "astro": "^7.3.3",
     "astro-mermaid": "^2.1.0",
     "cytoscape": "^3.34.3",
     "cytoscape-fcose": "^2.2.0",
