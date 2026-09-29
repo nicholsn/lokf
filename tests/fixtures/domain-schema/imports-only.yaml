@@ -1,0 +1,13 @@
+# The smallest schema `lokf validate --schema` accepts: it imports lokf and
+# adds nothing. A project writes `- lokf` next to its own copy of lokf.yaml;
+# this fixture imports the repo-root lokf.yaml by a relative path instead, so
+# the tests use the real schema.
+id: https://ex.org/schema/domain-imports-only
+name: domain_imports_only
+imports:
+  - linkml:types
+  - ../../../lokf
+default_prefix: domain
+prefixes:
+  domain: https://ex.org/schema/domain/
+  linkml: https://w3id.org/linkml/

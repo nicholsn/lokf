@@ -7,6 +7,7 @@ import yaml
 from lokf.schema import load_context, load_schema, vocabulary
 
 ROOT = pathlib.Path(__file__).parent.parent
+FIXTURES = ROOT / "tests" / "fixtures"
 
 
 @pytest.fixture(scope="module")
@@ -281,30 +282,10 @@ def test_ancestor_schema_wins_over_packaged(tmp_path, monkeypatch):
     assert load_schema()["name"] == "lokf-local-edit"
 
 
-def test_vocabulary_follows_a_domain_schemas_imports(tmp_path):
+def test_vocabulary_follows_a_domain_schemas_imports():
     # The vocabulary of a domain schema that imports lokf must include LOKF's
     # slots as well as the domain's own, not only the slots in its own file.
-    (tmp_path / "lokf.yaml").write_bytes((ROOT / "lokf.yaml").read_bytes())
-    domain = tmp_path / "domain.yaml"
-    domain.write_text(
-        yaml.safe_dump({
-            "id": "https://ex.org/schema/domain",
-            "name": "domain",
-            "imports": ["linkml:types", "lokf"],
-            "default_prefix": "domain",
-            "prefixes": {
-                "domain": "https://ex.org/schema/domain/",
-                "linkml": "https://w3id.org/linkml/",
-            },
-            "classes": {"Course": {"is_a": "Concept", "slots": ["taughtBy"]}},
-            "slots": {
-                "taughtBy": {
-                    "range": "Concept", "multivalued": True, "slot_uri": "domain:taughtBy",
-                },
-            },
-        }),
-        encoding="utf-8",
-    )
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
     stock, own = vocabulary(ROOT / "lokf.yaml"), vocabulary(domain)
     assert set(own.relation_slots) == set(stock.relation_slots) | {"taughtBy"}
     assert own.relation_slots["isPartOf"] == stock.relation_slots["isPartOf"]
