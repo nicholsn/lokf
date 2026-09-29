@@ -330,11 +330,57 @@ class Vocabulary:
         }
 
 
+def _follows(imported: str) -> bool:
+    """Return True if this import can add to the vocabulary. LinkML's own
+    schemas, such as ``linkml:types``, define only types, and
+    :class:`Vocabulary` does not read types."""
+    return not imported.startswith("linkml:")
+
+
+def _with_imports(resolved: str) -> dict:
+    """Merge the schema at *resolved* with every schema it imports, and return
+    one dict in the raw YAML shape that :class:`Vocabulary` reads.
+
+    A domain schema that ``imports: [lokf]`` usually defines none of LOKF's
+    slots itself, so reading only its own file finds no relation slots.
+    SchemaView resolves the imports the same way ``linkml-validate`` does, so
+    the vocabulary and the validator read the same schema. When two schemas
+    define the same name, the later one in the closure wins. The importing
+    schema comes last, so its own definitions win.
+    """
+    from linkml_runtime.dumpers import json_dumper
+    from linkml_runtime.utils.schemaview import SchemaView
+
+    view = SchemaView(resolved)
+    merged = dict(_load_schema(resolved))
+    for key in ("prefixes", "classes", "slots", "enums"):
+        merged[key] = {}
+    for name in view.imports_closure():
+        if not _follows(name):
+            continue
+        part = json_dumper.to_dict(view.schema_map[name])
+        for key in ("classes", "slots", "enums"):
+            merged[key].update(part.get(key) or {})
+        # The dump stores each prefix as a {prefix_prefix, prefix_reference}
+        # object. Keep only the IRI, as the raw YAML does.
+        merged["prefixes"].update(
+            (k, v["prefix_reference"] if isinstance(v, dict) else v)
+            for k, v in (part.get("prefixes") or {}).items()
+        )
+    return merged
+
+
 @lru_cache(maxsize=None)
 def _vocabulary(resolved: str) -> "Vocabulary":
-    return Vocabulary(_load_schema(resolved))
+    schema = _load_schema(resolved)
+    # Merge only when the schema imports more than LinkML's own schemas.
+    # Stock lokf.yaml imports only linkml:types, so it is still read as one file.
+    if any(_follows(str(i)) for i in schema.get("imports") or []):
+        schema = _with_imports(resolved)
+    return Vocabulary(schema)
 
 
 def vocabulary(schema_path: str | pathlib.Path | None = None) -> Vocabulary:
-    """Load the schema and return its :class:`Vocabulary` (cached per file)."""
+    """Return the :class:`Vocabulary` of the schema and every schema it
+    imports (cached per file)."""
     return _vocabulary(str(_resolve(_SCHEMA_NAME, schema_path)))

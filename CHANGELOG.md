@@ -23,6 +23,14 @@ with the 0.x caveat that a minor release may tighten validation.
   like `--check-refs`, so the default verdict stays the schema's;
   `Bundle.duplicate_iris()` is the check behind it.
 
+### Fixed
+
+- `lokf validate --check-refs --schema` checks the relation slots a domain
+  schema gets through `imports: [lokf]`. Previously it read only the
+  domain schema file and not the schemas it imports, so it found no named
+  relation slots (`isPartOf`, `about`, ...) and checked only
+  `relations[].target`.
+
 ## [0.8.0] — 2026-09-16
 
 Format version is unchanged: **LOKF v0.2**, realized by schema 0.8.0.

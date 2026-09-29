@@ -454,6 +454,33 @@ def test_check_refs_honours_an_explicit_schema(tmp_path):
     assert "customPartOf" in result.output and "does-not-exist" in result.output
 
 
+def test_check_refs_follows_the_schemas_imports(tmp_path):
+    """--check-refs must check LOKF's relation slots even when the domain
+    schema only imports lokf and declares no slots of its own. The validator
+    sees those slots, so the reference check must see them too."""
+    lokf_yaml = pathlib.Path(__file__).resolve().parents[1] / "lokf.yaml"
+    (tmp_path / "lokf.yaml").write_bytes(lokf_yaml.read_bytes())
+    domain = tmp_path / "domain.yaml"
+    domain.write_text(
+        "id: https://ex.org/schema/domain\nname: domain\n"
+        "imports:\n  - linkml:types\n  - lokf\n"
+        "default_prefix: domain\nprefixes:\n"
+        "  domain: https://ex.org/schema/domain/\n"
+        "  linkml: https://w3id.org/linkml/\n",
+        encoding="utf-8",
+    )
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "isPartOf: [https://ex.org/kb/does-not-exist]\n---\n\n# T\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "isPartOf" in result.output and "does-not-exist" in result.output
+
+
 # -- query ------------------------------------------------------------------
 def test_query_select_table_contains_wau():
     """query <bundle> <SELECT> prints a table with the metric name."""
