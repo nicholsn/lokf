@@ -343,10 +343,9 @@ def _with_imports(resolved: str) -> dict:
 
     A domain schema that ``imports: [lokf]`` usually defines none of LOKF's
     slots itself, so reading only its own file finds no relation slots.
-    SchemaView resolves the imports the same way ``linkml-validate`` does, so
-    the vocabulary and the validator read the same schema. When two schemas
-    define the same name, the later one in the closure wins. The importing
-    schema comes last, so its own definitions win.
+    SchemaView resolves each import against the directory of the file that
+    imports it. When two schemas define the same name, the later one in the
+    closure wins. The importing schema comes last, so its own definitions win.
     """
     from linkml_runtime.dumpers import json_dumper
     from linkml_runtime.utils.schemaview import SchemaView
