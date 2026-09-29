@@ -23,6 +23,12 @@ with the 0.x caveat that a minor release may tighten validation.
   like `--check-refs`, so the default verdict stays the schema's;
   `Bundle.duplicate_iris()` is the check behind it.
 
+### Fixed
+
+- `lokf validate --schema` resolves the domain schema's imports next to the
+  schema file. Previously it resolved them against the current directory, so
+  `imports: [lokf]` failed unless lokf ran from the schema's own directory.
+
 ## [0.8.0] — 2026-09-16
 
 Format version is unchanged: **LOKF v0.2**, realized by schema 0.8.0.
