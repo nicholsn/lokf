@@ -45,6 +45,13 @@ class Concept:
         return self.data.get("body", "")
 
 
+def _is_curie(ref: str) -> bool:
+    """``prefix:local`` with a scheme-like prefix: what JSON-LD reads as a
+    compact IRI rather than a relative one. An absolute IRI is not one."""
+    prefix, sep, local = ref.partition(":")
+    return bool(sep and local and prefix) and "/" not in prefix and not ref.startswith(Bundle._ABSOLUTE)
+
+
 @dataclass
 class Bundle:
     """A knowledge bundle: root ``index.md`` metadata plus its concepts."""
@@ -140,16 +147,25 @@ class Bundle:
         """
         from lokf.schema import vocabulary
 
+        vocab = vocabulary(schema_path)
+
         def dangling(target: object) -> bool:
-            return (
+            if not (
                 isinstance(target, str)
                 and bool(target.strip())
                 and not any(ch.isspace() for ch in target)
-                and self.in_namespace(target)
-                and self.get(target) is None
-            )
+            ):
+                return False
+            # A `prefix:local` target is a CURIE, never a relative ref: JSON-LD
+            # reads a colon in `@id` as an IRI. It is the IRI it expands to
+            # under a prefix the schema declares, and under one it does not
+            # (biolink leaves `NCBITaxon:9606` to LinkML's default CURIE maps)
+            # it is at any rate not this bundle's to resolve.
+            expanded = vocab.expand(target)
+            if expanded == target and _is_curie(target):
+                return False
+            return self.in_namespace(expanded) and self.get(expanded) is None
 
-        vocab = vocabulary(schema_path)
         out: list[tuple[str, str, str]] = []
         for c in self.concepts:
             # Only the slots that hold concept ids on this concept's type: a

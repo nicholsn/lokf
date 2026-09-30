@@ -46,6 +46,10 @@ with the 0.x caveat that a minor release may tighten validation.
   looked up the spaced name and never found the value. `lokf vocab --all`
   gives an imported class without `class_uri` its own schema's IRI, not
   `lokf:`.
+- `lokf validate --check-refs` reads a `prefix:local` target as the CURIE it
+  is: expanded under a prefix the schema declares, and external under one it
+  does not, as the projection reads it. Previously a biolink slot's
+  `NCBITaxon:9606` was checked as a relative ref and reported unresolved.
 - `lokf validate --check-refs --schema` checks the relation slots a domain
   schema gets through `imports: [lokf]`. Previously it read only the
   domain schema file and not the schemas it imports, so it found no named

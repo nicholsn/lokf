@@ -228,8 +228,8 @@ def _domain(tmp_path) -> pathlib.Path:
 
 def _bundle(tmp_path, taxon_target="taxa/human") -> pathlib.Path:
     kb = tmp_path / "knowledge"
-    (kb / "genes").mkdir(parents=True)
-    (kb / "taxa").mkdir()
+    (kb / "genes").mkdir(parents=True, exist_ok=True)
+    (kb / "taxa").mkdir(exist_ok=True)
     (kb / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8")
     (kb / "taxa" / "human.md").write_text(
         "---\ntype: OrganismTaxon\ntitle: Human\ncategory: [vocab:OrganismTaxon]\n---\n\n# Human\n",
@@ -274,6 +274,26 @@ def test_check_refs_covers_the_vocabularys_relation_slots(tmp_path):
     result = runner.invoke(app, ["validate", str(kb), "--schema", str(domain), "--check-refs"])
     assert result.exit_code != 0
     assert "`in_taxon` target does not resolve" in result.output
+
+
+def test_check_refs_reads_a_curie_as_the_iri_it_expands_to(tmp_path):
+    """`NCBITaxon:9606` names an external taxon, as the projection reads it;
+    a CURIE under the bundle's own prefix is still the bundle's to resolve."""
+    _adapted(tmp_path)
+    domain = _domain(tmp_path)
+    domain.write_text(
+        domain.read_text().replace(
+            "prefixes: {", "prefixes: {NCBITaxon: http://purl.obolibrary.org/obo/NCBITaxon_, kb: https://ex.org/kb/, "
+        ),
+        encoding="utf-8",
+    )
+    kb = _bundle(tmp_path, taxon_target="NCBITaxon:9606")
+    result = runner.invoke(app, ["validate", str(kb), "--schema", str(domain), "--check-refs"])
+    assert result.exit_code == 0, result.output
+    kb = _bundle(tmp_path, taxon_target="kb:taxa/nope")
+    result = runner.invoke(app, ["validate", str(kb), "--schema", str(domain), "--check-refs"])
+    assert result.exit_code != 0
+    assert "kb:taxa/nope" in result.output
 
 
 def test_the_copy_projects_under_the_vocabularys_iris(tmp_path):
