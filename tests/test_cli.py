@@ -99,6 +99,20 @@ def test_convert_schema_projects_domain_terms_under_their_own_iris(tmp_path):
     assert "additionalType" not in result.stdout
 
 
+def test_convert_schema_leaves_an_undeclared_key_under_lokf(tmp_path):
+    """A key neither schema declares projects under LOKF's namespace, as it
+    does without --schema, while the domain's own terms keep their IRIs."""
+    kb = _kb(tmp_path, _COURSE.replace("title: C\n", "title: C\nstray: x\n"))
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    result = runner.invoke(
+        app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
+    )
+    assert result.exit_code == 0, result.output
+    assert '<https://w3id.org/lokf/stray> "x"' in result.stdout
+    assert f"<{_DOMAIN}Course>" in result.stdout
+    assert f"<{_DOMAIN}taughtBy>" in result.stdout
+
+
 def test_convert_without_schema_reads_a_domain_class_as_concept(tmp_path):
     """Without --schema, the same concept is an undeclared type (SPEC §8)."""
     kb = _kb(tmp_path, _COURSE)
@@ -579,13 +593,10 @@ def test_check_refs_covers_a_slot_the_domain_schema_declares(tmp_path, monkeypat
     assert "`isPartOf` target" in result.output and "nothing" in result.output
 
 
-def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path, monkeypatch):
+def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path):
     """An imported vocabulary's slot that the domain schema ranges over
     Concept with slot_usage is checked like a slot declared that way."""
     domain = FIXTURES / "domain-schema" / "reranges-a-slot.yaml"
-    # The validator resolves the schema's imports against the current
-    # directory, not the schema's own, so run from the schema's directory.
-    monkeypatch.chdir(domain.parent)
     kb = _kb(
         tmp_path,
         "---\ntype: Regulation\ntitle: R\n"

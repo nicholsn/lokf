@@ -26,7 +26,8 @@ with the 0.x caveat that a minor release may tighten validation.
   `lokf validate --schema` checks against. The graph then uses a JSON-LD
   context generated from that schema, so its classes and slots project under
   their own IRIs instead of as `lokf:` terms, and its classes count as
-  declared instead of reading as `lokf:Concept`. `query` and `serve` also
+  declared instead of reading as `lokf:Concept`. A key neither schema
+  declares still projects as a `lokf:` term. `query` and `serve` also
   preset its prefixes. Needs the `build` extra; without the flag nothing
   changes. `lokf.schema.schema_context()` builds the context, and
   `authoring_context()` holds the fixes `lokf-build` applies to LOKF's own.

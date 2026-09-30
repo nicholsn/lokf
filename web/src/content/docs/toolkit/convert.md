@@ -66,8 +66,9 @@ uv run lokf convert knowledge --schema domain.yaml
 
 The graph then uses a JSON-LD context generated from that schema. Its classes
 and slots project under their own IRIs instead of as `lokf:` terms, and its
-classes count as declared instead of reading as `lokf:Concept`. Generating the
-context needs the `build` extra (`lokf[build]`).
+classes count as declared instead of reading as `lokf:Concept`. A key neither
+schema declares still projects as a `lokf:` term, as it does without
+`--schema`. Generating the context needs the `build` extra (`lokf[build]`).
 
 ## The `just` recipe
 

@@ -125,7 +125,26 @@ def _schema_context(resolved: str) -> dict:
     from linkml.generators.jsonldcontextgen import ContextGenerator
 
     generated = json.loads(ContextGenerator(resolved).serialize())["@context"]
-    return authoring_context(generated)
+    ctx = authoring_context(generated)
+    # The generated @vocab is the domain's namespace, and the domain's own
+    # terms are written relative to it. Make those absolute, then fall back to
+    # LOKF's @vocab, so a key no schema declares projects as it does without
+    # a schema, not as a term the domain never declared.
+    vocab, core = ctx.get("@vocab"), load_context()["@vocab"]
+    if vocab and vocab != core:
+        for key, value in ctx.items():
+            if isinstance(value, dict) and _vocab_relative(value.get("@id")):
+                ctx[key] = {**value, "@id": vocab + value["@id"]}
+            elif _vocab_relative(value):
+                ctx[key] = vocab + value
+        ctx["@vocab"] = core
+    return ctx
+
+
+def _vocab_relative(iri: object) -> bool:
+    """Whether a context's ``@id`` value is relative to its ``@vocab``: neither
+    a keyword nor a CURIE or IRI."""
+    return isinstance(iri, str) and not iri.startswith("@") and ":" not in iri
 
 
 def schema_context(schema_path: str | pathlib.Path | None = None) -> dict:

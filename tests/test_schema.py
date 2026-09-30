@@ -543,3 +543,19 @@ def test_vocabulary_gives_an_imported_class_its_own_schemas_iri(tmp_path):
     v = vocabulary(domain)
     assert v.classes["Course"] == "domain:Course"
     assert v.classes["Metric"] == "lokf:Metric"
+
+
+def test_schema_context_of_a_domain_falls_back_to_lokf():
+    """A domain schema's context keeps LOKF's @vocab, so an undeclared key
+    projects as it does without a schema, and every term the domain writes
+    relative to its own namespace is made absolute first."""
+    pytest.importorskip("linkml")
+    from lokf.schema import _vocab_relative
+
+    ctx = schema_context(FIXTURES / "domain-schema" / "adds-a-slot.yaml")
+    assert ctx["@vocab"] == load_context()["@vocab"]
+    assert ctx["Course"] == {"@id": "https://ex.org/schema/domain/Course"}
+    assert ctx["taughtBy"]["@id"] == "https://ex.org/schema/domain/taughtBy"
+    for key, value in ctx.items():
+        iri = value.get("@id") if isinstance(value, dict) else value
+        assert not _vocab_relative(iri), key
