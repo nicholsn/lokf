@@ -534,3 +534,12 @@ def test_schema_context_of_lokf_itself_is_the_published_context():
     pytest.importorskip("linkml")
     root = pathlib.Path(__file__).resolve().parents[1]
     assert schema_context(root / "lokf.yaml") == load_context(root / "lokf.context.jsonld")
+
+
+def test_vocabulary_gives_an_imported_class_its_own_schemas_iri(tmp_path):
+    """A domain class without class_uri derives it from the domain's default
+    prefix, not from lokf's, when read through the domain schema."""
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    v = vocabulary(domain)
+    assert v.classes["Course"] == "domain:Course"
+    assert v.classes["Metric"] == "lokf:Metric"

@@ -16,6 +16,7 @@ import pathlib
 from dataclasses import dataclass
 
 import yaml
+from linkml_runtime.utils.formatutils import underscore
 
 from lokf.parse import isoify, parse_concept
 from lokf.schema import load_context
@@ -154,7 +155,11 @@ class Bundle:
             # Only the slots that hold concept ids on this concept's type: a
             # class can narrow an inherited reference slot to a string.
             for slot in sorted(vocab.references(c.type)):
+                # A slot named with spaces (`in taxon`) is the key LinkML
+                # derives from it (`in_taxon`) in frontmatter.
                 value = c.data.get(slot)
+                if value is None:
+                    value = c.data.get(underscore(slot))
                 if value is None:
                     continue
                 for target in value if isinstance(value, list) else [value]:
