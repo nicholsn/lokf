@@ -30,6 +30,9 @@ with the 0.x caveat that a minor release may tighten validation.
   domain schema file and not the schemas it imports, so it found no named
   relation slots (`isPartOf`, `about`, ...) and checked only
   `relations[].target`.
+- `lokf validate --check-refs` also checks a slot that a domain schema's
+  class ranges over `Concept` with `slot_usage`, such as an imported
+  vocabulary's reference slot. It read only a slot's own range before.
 
 ## [0.8.0] — 2026-09-16
 

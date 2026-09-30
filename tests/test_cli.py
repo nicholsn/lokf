@@ -498,6 +498,26 @@ def test_check_refs_covers_a_slot_the_domain_schema_declares(tmp_path, monkeypat
     assert "`isPartOf` target" in result.output and "nothing" in result.output
 
 
+def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path, monkeypatch):
+    """An imported vocabulary's slot that the domain schema ranges over
+    Concept with slot_usage is checked like a slot declared that way."""
+    domain = FIXTURES / "domain-schema" / "reranges-a-slot.yaml"
+    # The validator resolves the schema's imports against the current
+    # directory, not the schema's own, so run from the schema's directory.
+    monkeypatch.chdir(domain.parent)
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Regulation\ntitle: R\n"
+        "governedBy: [https://ex.org/kb/nowhere]\n---\n\n# R\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "is not valid" not in result.output
+    assert "`governedBy` target" in result.output and "nowhere" in result.output
+
+
 # -- query ------------------------------------------------------------------
 def test_query_select_table_contains_wau():
     """query <bundle> <SELECT> prints a table with the metric name."""
