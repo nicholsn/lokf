@@ -117,9 +117,10 @@ def build_server(store: GraphStore, host: str = "127.0.0.1", port: int = 8000):
     return ThreadingHTTPServer((host, port), _handler_class(store))
 
 
-def serve(source, host: str = "127.0.0.1", port: int = 8000) -> None:
-    """Load *source* and serve it until interrupted."""
-    store = GraphStore.from_bundle(source)
+def serve(source, host: str = "127.0.0.1", port: int = 8000, schema=None) -> None:
+    """Load *source*, under the domain *schema* when one is given, and serve it
+    until interrupted."""
+    store = GraphStore.from_bundle(source, schema=schema)
     httpd = build_server(store, host, port)
     bound_host, bound_port = httpd.server_address[0], httpd.server_address[1]
     print(f"lokf: {len(store)} triples from {source}")

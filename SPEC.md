@@ -529,7 +529,9 @@ check a value against the same rules.
 Both validators are closed-world: a concept naming a type or frontmatter key
 this schema doesn't declare fails. To add project-specific types/keys, write a
 LinkML schema that `imports: [lokf]` and declares them, then pass it to
-`lokf validate --schema your-schema.yaml`.
+`lokf validate --schema your-schema.yaml`. `lokf convert`, `query` and `serve`
+take the same `--schema` and project its classes and slots under their own
+IRIs.
 
 ---
 

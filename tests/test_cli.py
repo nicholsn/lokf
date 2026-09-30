@@ -78,6 +78,70 @@ def test_convert_output_writes_file(tmp_path):
     assert "lokf:Metric" in text
 
 
+# A concept of the class and slot that tests/fixtures/domain-schema/
+# adds-a-slot.yaml declares, neither of them LOKF's.
+_COURSE = "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/real]\n---\n\n# C\n"
+_DOMAIN = "https://ex.org/schema/domain/"
+
+
+def test_convert_schema_projects_domain_terms_under_their_own_iris(tmp_path):
+    """convert --schema types a domain concept with the domain's class, and a
+    slot ranging over Concept gives an IRI, not a string. The schema's imports
+    resolve next to it, from any working directory."""
+    kb = _kb(tmp_path, _COURSE)
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    result = runner.invoke(
+        app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
+    )
+    assert result.exit_code == 0, result.output
+    assert f"<{_DOMAIN}Course>" in result.stdout
+    assert f"<{_DOMAIN}taughtBy> <https://ex.org/kb/real>" in result.stdout
+    assert "additionalType" not in result.stdout
+
+
+def test_convert_without_schema_reads_a_domain_class_as_concept(tmp_path):
+    """Without --schema, the same concept is an undeclared type (SPEC §8)."""
+    kb = _kb(tmp_path, _COURSE)
+    result = runner.invoke(app, ["convert", str(kb / "term.md"), "-f", "nt"])
+    assert result.exit_code == 0
+    assert "<https://w3id.org/lokf/Concept>" in result.stdout
+    assert '"Course"' in result.stdout
+
+
+def test_convert_schema_that_only_imports_lokf_changes_nothing():
+    """A domain schema that adds nothing projects the reference bundle as the
+    published context does, so LOKF's own terms keep their IRIs under it."""
+    from rdflib import Graph
+    from rdflib.compare import isomorphic
+
+    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    plain = runner.invoke(app, ["convert", str(BUNDLE), "-f", "nt"])
+    extended = runner.invoke(
+        app, ["convert", str(BUNDLE), "-f", "nt", "--schema", str(domain)]
+    )
+    assert plain.exit_code == 0 and extended.exit_code == 0, extended.output
+    assert isomorphic(
+        Graph().parse(data=plain.stdout, format="nt"),
+        Graph().parse(data=extended.stdout, format="nt"),
+    )
+
+
+def test_convert_schema_without_linkml_hints_at_the_build_extra(monkeypatch):
+    """A lean install cannot generate a schema's context: exit 1 with an
+    install hint, not a traceback."""
+    import sys
+
+    from lokf.schema import _schema_context
+
+    # A context another test built would be served from the cache.
+    _schema_context.cache_clear()
+    monkeypatch.setitem(sys.modules, "linkml.generators.jsonldcontextgen", None)
+    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    result = runner.invoke(app, ["convert", str(METRIC), "--schema", str(domain)])
+    assert result.exit_code == 1
+    assert "lokf[build]" in result.output
+
+
 # -- validate ---------------------------------------------------------------
 def test_validate_reference_bundle_ok():
     """validate <bundle> assembles and validates against KnowledgeBundle."""
@@ -318,6 +382,23 @@ def test_validate_rejects_unknown_http_method(tmp_path):
     assert "[ERROR]" in result.output
 
 
+def test_validate_resolves_schema_imports_from_any_directory(tmp_path, monkeypatch):
+    """A domain schema's imports must resolve next to the schema file, not in
+    the current directory, so --schema works from wherever lokf runs."""
+    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["validate", str(tmp_path), "--schema", str(domain)])
+    assert result.exit_code == 0, result.output
+    assert result.output.startswith("OK")
+
+
 # -- --check-refs (referential integrity, issue #64) -------------------------
 def _kb(tmp_path, term: str, extra_files: dict | None = None):
     """A minimal bundle: index.md, one resolvable concept, plus *term*."""
@@ -498,13 +579,10 @@ def test_check_refs_covers_a_slot_the_domain_schema_declares(tmp_path, monkeypat
     assert "`isPartOf` target" in result.output and "nothing" in result.output
 
 
-def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path, monkeypatch):
+def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path):
     """An imported vocabulary's slot that the domain schema ranges over
     Concept with slot_usage is checked like a slot declared that way."""
     domain = FIXTURES / "domain-schema" / "reranges-a-slot.yaml"
-    # The validator resolves the schema's imports against the current
-    # directory, not the schema's own, so run from the schema's directory.
-    monkeypatch.chdir(domain.parent)
     kb = _kb(
         tmp_path,
         "---\ntype: Regulation\ntitle: R\n"
@@ -519,6 +597,28 @@ def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path, monke
 
 
 # -- query ------------------------------------------------------------------
+def test_query_schema_presets_its_prefixes(tmp_path):
+    """query --schema projects under the domain schema and presets its
+    prefixes, so `domain:` needs no PREFIX line."""
+    kb = _kb(tmp_path, _COURSE)
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    sparql = "SELECT ?t WHERE { ?c a domain:Course ; domain:taughtBy ?t }"
+    result = runner.invoke(app, ["query", str(kb), sparql, "--schema", str(domain)])
+    assert result.exit_code == 0, result.output
+    assert "https://ex.org/kb/real" in result.stdout
+
+
+def test_serve_passes_the_schema_to_the_server(monkeypatch):
+    """serve --schema hands the schema to the server, which loads the store
+    the way query does."""
+    calls = {}
+    monkeypatch.setattr("lokf.server.serve", lambda source, **kw: calls.update(kw))
+    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    result = runner.invoke(app, ["serve", str(BUNDLE), "--schema", str(domain)])
+    assert result.exit_code == 0, result.output
+    assert calls["schema"] == domain
+
+
 def test_query_select_table_contains_wau():
     """query <bundle> <SELECT> prints a table with the metric name."""
     result = runner.invoke(app, ["query", str(BUNDLE), _SELECT])

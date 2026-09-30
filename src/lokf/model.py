@@ -177,15 +177,16 @@ class Bundle:
         ctx = context if context is not None else load_context()
         return [{**doc, "@context": ctx} for doc in self.docs()]
 
-    def graph(self, context: dict | None = None):
-        """The whole bundle as one :class:`rdflib.Graph`.
+    def graph(self, context: dict | None = None, schema: str | pathlib.Path | None = None):
+        """The whole bundle as one :class:`rdflib.Graph`, under the domain
+        *schema* when one is given.
 
         All concepts are parsed in a single pass (one ``@graph`` document) so
         the JSON-LD context is compiled once, not once per concept.
         """
         from lokf.rdf import docs_to_graph
 
-        return docs_to_graph(self.docs(), context, base=self.base_iri or None)
+        return docs_to_graph(self.docs(), context, base=self.base_iri or None, schema=schema)
 
 
 def load_bundle(path: str | pathlib.Path) -> Bundle:

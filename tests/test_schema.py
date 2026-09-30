@@ -4,7 +4,7 @@ import pathlib
 import pytest
 import yaml
 
-from lokf.schema import Vocabulary, load_context, load_schema, vocabulary
+from lokf.schema import Vocabulary, load_context, load_schema, schema_context, vocabulary
 
 ROOT = pathlib.Path(__file__).parent.parent
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -450,3 +450,11 @@ def test_http_method_is_an_enum_of_iana_verbs():
     assert set(schema["enums"]["HttpMethod"]["permissible_values"]) == {
         "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
     }
+
+
+def test_schema_context_of_lokf_itself_is_the_published_context():
+    """A domain schema's context is built the way lokf-build builds LOKF's:
+    built from lokf.yaml, it is the published context."""
+    pytest.importorskip("linkml")
+    root = pathlib.Path(__file__).resolve().parents[1]
+    assert schema_context(root / "lokf.yaml") == load_context(root / "lokf.context.jsonld")

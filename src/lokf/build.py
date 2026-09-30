@@ -29,6 +29,7 @@ import subprocess
 import sys
 
 from lokf.model import load_bundle
+from lokf.schema import authoring_context
 
 
 def _find_root() -> pathlib.Path:
@@ -230,26 +231,9 @@ def generate(root: pathlib.Path) -> None:
     with open(base, "w") as f:
         run(["gen-jsonld-context", str(schema)], stdout=f)
     ctx = json.load(open(base))
-    # Two standard JSON-LD keyword aliases make unmodified OKF frontmatter
-    # behave as Linked Data: `type` designates the RDF class, `id` the subject.
-    ctx["@context"]["type"] = "@type"
-    ctx["@context"]["id"] = "@id"
-    # ParameterType values sit in @type position (Parameter's `type` key shares
-    # the alias above), so each authoring value must expand to its designed
-    # lokf Parameter-kind class — gen-jsonld-context does not emit enum-meaning
-    # terms. Same mechanism by which class names like "Metric" expand as @type.
-    for value, cls in {
-        "string": "StringParameter", "integer": "IntegerParameter",
-        "number": "NumberParameter", "boolean": "BooleanParameter",
-        "date": "DateParameter", "datetime": "DatetimeParameter",
-        "time": "TimeParameter", "uri": "UriParameter", "json": "JsonParameter",
-    }.items():
-        ctx["@context"][value] = {"@id": f"https://w3id.org/lokf/{cls}"}
-    # `author` must NOT be @id-coerced: OKF §7 actor strings ("team:ga4-docs",
-    # "human:kliu") are literals, and coercion would silently mint IRIs in
-    # unregistered URI schemes. Inlined Agent objects are unaffected.
-    if isinstance(ctx["@context"].get("author"), dict):
-        ctx["@context"]["author"].pop("@type", None)
+    # `type`/`id` aliases, ParameterType values, an uncoerced `author`: the
+    # same authoring fixes `lokf convert --schema` applies to a domain schema.
+    ctx["@context"] = authoring_context(ctx["@context"])
     # A wall-clock stamp on a committed artifact is pure churn - git already
     # records when it changed - and it is the only volatile field here.
     ctx.get("comments", {}).pop("generation_date", None)
