@@ -596,6 +596,29 @@ def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path):
     assert "`governedBy` target" in result.output and "nowhere" in result.output
 
 
+def test_check_refs_covers_references_the_domain_inherits(tmp_path):
+    """--check-refs checks a relation narrowed to a subclass, a slot a class
+    gets from a mixin, and a single-valued reference."""
+    domain = FIXTURES / "domain-schema" / "inherits-references.yaml"
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/nobody]\n---\n\n# C\n",
+        {
+            "req.md": "---\ntype: Requirement\ntitle: R\n"
+            "governedBy: [https://ex.org/kb/nothing]\n---\n\n# R\n",
+            "unit.md": "---\ntype: Unit\ntitle: U\n"
+            "ownedBy: https://ex.org/kb/noone\n---\n\n# U\n",
+        },
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "is not valid" not in result.output
+    for slot, target in (("taughtBy", "nobody"), ("governedBy", "nothing"), ("ownedBy", "noone")):
+        assert f"`{slot}` target" in result.output and target in result.output
+
+
 # -- query ------------------------------------------------------------------
 def test_query_schema_presets_its_prefixes(tmp_path):
     """query --schema projects under the domain schema and presets its

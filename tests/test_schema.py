@@ -302,17 +302,56 @@ def test_vocabulary_reads_a_relation_from_slot_usage():
     assert "governedBy" not in vocabulary(FIXTURES / "domain-schema" / "vocabulary.yaml").relation_slots
 
 
-def test_slot_usage_is_inherited_nearest_first():
-    classes = {
-        "Concept": {},
-        "Base": {"is_a": "Concept", "slot_usage": {"s": {"range": "Concept", "multivalued": False}}},
-        "Mixin": {"slot_usage": {"s": {"multivalued": True, "required": True}}},
-        "Leaf": {"is_a": "Base", "mixins": ["Mixin"], "slot_usage": {"s": {"multivalued": True}}},
-    }
-    assert Vocabulary._usage(classes, "Leaf", "s") == {
-        "multivalued": True, "range": "Concept", "required": True,
-    }
-    assert Vocabulary._usage(classes, "Concept", "s") == {}
+def test_vocabulary_resolves_references_by_inheritance():
+    # Course narrows a relation to a subclass, Requirement gets its slot from
+    # a mixin, Unit's reference is single-valued, and Tag's mixin overrides
+    # Base's slot_usage, so Tag's label is a string, as LinkML reads it.
+    own = vocabulary(FIXTURES / "domain-schema" / "inherits-references.yaml")
+    assert own.relation_slots["taughtBy"].domains == {"Course"}
+    assert own.relation_slots["governedBy"].domains == {"Requirement"}
+    assert own.reference_slots["ownedBy"] == {"Unit"}
+    assert "ownedBy" not in own.relation_slots
+    assert own.relation_slots["label"].domains == {"Base"}
+    assert set(own.relation_slots) <= set(own.reference_slots)
+
+
+def test_induced_slot_matches_linkml():
+    # Vocabulary resolves range and multivalued without LinkML; check it
+    # agrees with SchemaView.induced_slot on every class and slot of a schema
+    # built to disagree: mixins against is_a, slot is_a, and default_range.
+    from linkml_runtime.utils.schemaview import SchemaView
+
+    schema = yaml.safe_load(
+        """
+        id: https://ex.org/induced
+        name: induced
+        imports: [linkml:types]
+        prefixes: {linkml: https://w3id.org/linkml/, ex: https://ex.org/}
+        default_prefix: ex
+        default_range: Thing
+        classes:
+          Thing: {slots: [a, b, c, d]}
+          GrandBase: {is_a: Thing, slot_usage: {a: {range: Thing}, b: {multivalued: false}}}
+          Base: {is_a: GrandBase, slot_usage: {c: {range: string}}}
+          Mixin: {mixin: true, slot_usage: {a: {range: string}, b: {multivalued: true}}}
+          Other: {mixin: true, slot_usage: {c: {range: Thing}}}
+          Leaf: {is_a: Base, mixins: [Mixin, Other]}
+        slots:
+          a: {range: integer}
+          b: {multivalued: true}
+          parent: {range: Thing, multivalued: true}
+          c: {is_a: parent}
+          d: {}
+        """
+    )
+    vocab = Vocabulary(schema)
+    view = SchemaView(yaml.safe_dump(schema))
+    for cls in schema["classes"]:
+        for slot in "abcd":
+            induced = view.induced_slot(slot, cls)
+            assert vocab._induced(cls, slot) == {
+                "range": induced.range, "multivalued": induced.multivalued,
+            }, (cls, slot)
 
 
 def test_datamodel_usage_window_from_keyword():

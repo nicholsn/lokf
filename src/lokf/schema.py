@@ -176,37 +176,47 @@ class Vocabulary:
             name: cls.get("class_uri", f"lokf:{name}")
             for name, cls in schema.get("classes", {}).items()
         }
-        # Typed-relation frontmatter keys: multivalued Concept-ranged slots
-        # with a bound predicate, declared on Concept or one of its subclasses
-        # (this includes Metric's `measures` and excludes structural slots
-        # like KnowledgeBundle's `concepts` or Relation's `target`). A class's
-        # slot_usage counts: a domain schema that ranges an imported
-        # vocabulary's slot over Concept makes it a relation on that class.
-        classes = schema.get("classes", {})
+        # Typed-relation frontmatter keys: multivalued slots holding concept
+        # ids, with a bound predicate, that a Concept class declares or
+        # inherits from a class outside Concept (this includes Metric's
+        # `measures` and excludes structural slots like KnowledgeBundle's
+        # `concepts` or Relation's `target`). A slot holds concept ids on a
+        # class when its range there, after slot_usage, is Concept or a
+        # subclass, so a domain schema that ranges an imported vocabulary's
+        # slot over Concept makes it a relation on that class.
+        self._classes = schema.get("classes") or {}
+        self._slots = schema.get("slots") or {}
+        classes = self._classes
         concept_classes = {
             name for name in classes if self._descends_from(classes, name, "Concept")
         }
         declared_in: dict[str, set[str]] = {}
         for cls_name in concept_classes:
-            cls = classes[cls_name] or {}
-            for slot_name in (*cls.get("slots", []), *(cls.get("slot_usage") or {})):
-                declared_in.setdefault(slot_name, set()).add(cls_name)
+            for owner in self._ancestors(classes, cls_name):
+                if owner != cls_name and owner in concept_classes:
+                    continue  # declares its own slots itself
+                cls = classes.get(owner) or {}
+                for slot_name in (*(cls.get("slots") or []), *(cls.get("slot_usage") or {})):
+                    declared_in.setdefault(slot_name, set()).add(cls_name)
+        #: Every slot a Concept class holds concept ids in, single- or
+        #: multivalued, with the classes that do: what `--check-refs` reads.
+        self.reference_slots: dict[str, frozenset[str]] = {}
         self.relation_slots: dict[str, Relation] = {}
-        for name, slot in schema.get("slots", {}).items():
-            if "slot_uri" not in slot:
+        for name, slot in self._slots.items():
+            slot = slot or {}
+            induced = {c: self._induced(c, name) for c in declared_in.get(name, ())}
+            refs = frozenset(c for c, s in induced.items() if s["range"] in concept_classes)
+            if not refs:
                 continue
-            domains = frozenset(
-                cls_name
-                for cls_name in declared_in.get(name, ())
-                if self._is_relation({**slot, **self._usage(classes, cls_name, name)})
-            )
-            if domains:
+            self.reference_slots[name] = refs
+            domains = frozenset(c for c in refs if induced[c]["multivalued"])
+            if domains and "slot_uri" in slot:
                 curie = slot["slot_uri"]
                 self.relation_slots[name] = Relation(
                     name=name,
                     curie=curie,
                     uri=self.expand(curie),
-                    description=slot.get("description", "").strip(),
+                    description=(slot.get("description") or "").strip(),
                     is_slot=True,
                     domains=domains,
                 )
@@ -223,47 +233,42 @@ class Vocabulary:
             )
 
     @staticmethod
-    def _is_relation(slot: dict) -> bool:
-        """Whether a slot definition, with any slot_usage applied, holds concept ids."""
-        return slot.get("range") == "Concept" and bool(slot.get("multivalued"))
+    def _ancestors(elements: dict, name: str) -> list[str]:
+        """*name* and every class or slot it inherits from, in LinkML's order
+        (``SchemaView.class_ancestors``): depth first, an element's mixins
+        before its ``is_a``, each listed where first reached."""
+        order, todo = [name], [name]
+        while todo:
+            element = elements.get(todo.pop()) or {}
+            for parent in (*(element.get("mixins") or []), element.get("is_a")):
+                if parent and parent not in order:
+                    order.append(parent)
+                    todo.append(parent)
+        return order
 
-    @staticmethod
-    def _usage(classes: dict, name: str, slot: str) -> dict:
-        """The ``slot_usage`` of *slot* that class *name* gets: its own, then
-        its ancestors' via ``is_a`` and ``mixins``, the nearest winning each key."""
-        merged: dict = {}
-        seen: set[str] = set()
-        stack = [name]
-        while stack:
-            n = stack.pop()
-            if n is None or n in seen:
-                continue
-            seen.add(n)
-            cls = classes.get(n) or {}
-            for key, value in ((cls.get("slot_usage") or {}).get(slot) or {}).items():
-                merged.setdefault(key, value)
-            stack.extend(reversed(cls.get("mixins") or []))
-            stack.append(cls.get("is_a"))
-        return merged
+    def _induced(self, cls_name: str, name: str) -> dict:
+        """The ``range`` and ``multivalued`` class *cls_name* gives slot *name*,
+        as ``SchemaView.induced_slot`` resolves them: the first slot_usage
+        value along the class's ancestors, else the first along the slot's
+        own ancestors, else, for ``range``, the schema's ``default_range``."""
+        usages = [
+            ((self._classes.get(c) or {}).get("slot_usage") or {}).get(name) or {}
+            for c in self._ancestors(self._classes, cls_name)
+        ]
+        definitions = [self._slots.get(s) or {} for s in self._ancestors(self._slots, name)]
+        induced = {}
+        for key in ("range", "multivalued"):
+            induced[key] = next(
+                (u[key] for u in usages if u.get(key) not in (None, "", [], {})),
+                next((d[key] for d in definitions if d.get(key)), None),
+            )
+        induced["range"] = induced["range"] or self._schema.get("default_range")
+        return induced
 
-    @staticmethod
-    def _descends_from(classes: dict, name: str, ancestor: str) -> bool:
+    @classmethod
+    def _descends_from(cls, classes: dict, name: str, ancestor: str) -> bool:
         """Whether *name* reaches *ancestor* via ``is_a`` or ``mixins``."""
-        seen: set[str] = set()
-        stack = [name]
-        while stack:
-            n = stack.pop()
-            if n is None or n in seen:
-                continue
-            seen.add(n)
-            if n == ancestor:
-                return True
-            cls = classes.get(n) or {}
-            parent = cls.get("is_a")
-            if parent:
-                stack.append(parent)
-            stack.extend(cls.get("mixins") or [])
-        return False
+        return ancestor in cls._ancestors(classes, name)
 
     def subclasses_of(self, ancestor: str) -> set[str]:
         """Class names descending from *ancestor* (inclusive), via ``is_a``."""
