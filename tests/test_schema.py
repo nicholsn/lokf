@@ -4,7 +4,7 @@ import pathlib
 import pytest
 import yaml
 
-from lokf.schema import load_context, load_schema, schema_context, vocabulary
+from lokf.schema import Vocabulary, load_context, load_schema, schema_context, vocabulary
 
 ROOT = pathlib.Path(__file__).parent.parent
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -292,6 +292,105 @@ def test_vocabulary_follows_a_domain_schemas_imports():
     assert own.relation_slots["taughtBy"].uri == "https://ex.org/schema/domain/taughtBy"
 
 
+def test_vocabulary_reads_a_relation_from_slot_usage():
+    # An imported vocabulary's slot that a domain class ranges over Concept
+    # with slot_usage is a relation on that class, and only on that class.
+    own = vocabulary(FIXTURES / "domain-schema" / "reranges-a-slot.yaml")
+    governed_by = own.relation_slots["governedBy"]
+    assert governed_by.domains == {"Regulation"}
+    assert governed_by.uri == "https://ex.org/schema/vocabulary/governedBy"
+    assert "governedBy" not in vocabulary(FIXTURES / "domain-schema" / "vocabulary.yaml").relation_slots
+
+
+def test_vocabulary_resolves_references_by_inheritance():
+    # Course narrows a relation to a subclass, Requirement gets its slot from
+    # a mixin, Unit's reference is single-valued, and Tag's mixin overrides
+    # Base's slot_usage, so Tag's label is a string, as LinkML reads it.
+    own = vocabulary(FIXTURES / "domain-schema" / "inherits-references.yaml")
+    assert own.relation_slots["taughtBy"].domains == {"Course"}
+    assert own.relation_slots["governedBy"].domains == {"Requirement"}
+    assert own.reference_slots["ownedBy"] == {"Unit"}
+    assert "ownedBy" not in own.relation_slots
+    assert own.relation_slots["label"].domains == {"Base"}
+    assert set(own.relation_slots) <= set(own.reference_slots)
+
+
+def test_references_follow_the_concepts_type():
+    # A concept holds concept ids in the reference slots of its class and
+    # ancestors, not in one a mixin narrows to a string, and a type no class
+    # declares holds Concept's.
+    own = vocabulary(FIXTURES / "domain-schema" / "inherits-references.yaml")
+    assert "label" in own.references("Base") and "label" not in own.references("Tag")
+    assert {"isPartOf", "taughtBy"} <= own.references("Course")
+    assert own.references("Widget") == own.references("Concept")
+    assert "taughtBy" not in own.references("Concept")
+
+
+def test_stock_reference_slots_are_the_relation_slots(vocab):
+    # lokf.yaml has no single-valued or subclass-ranged concept reference, so
+    # the wider set --check-refs reads is the relation set exactly.
+    assert set(vocab.reference_slots) == set(vocab.relation_slots)
+    assert vocab.reference_slots["isPartOf"] == {"Concept"}
+
+
+def test_vocabulary_reads_attributes_and_any_of_ranges():
+    # A class's attributes are its slots, and a slot whose any_of includes
+    # Concept holds concept ids. An attribute with no slot_uri has no
+    # predicate to propose, so it is a reference but not a relation.
+    own = vocabulary(FIXTURES / "domain-schema" / "attribute-references.yaml")
+    assert {"taughtBy", "advisedBy", "mentoredBy"} <= set(own.reference_slots)
+    assert "code" not in own.reference_slots
+    assert "taughtBy" not in own.relation_slots
+    assert own.relation_slots["advisedBy"].uri == "https://ex.org/schema/domain/advisedBy"
+    assert own.relation_slots["mentoredBy"].domains == {"Course"}
+    assert {"taughtBy", "advisedBy", "mentoredBy"} <= own.references("Course")
+
+
+def test_induced_slot_matches_linkml():
+    # Vocabulary resolves range and multivalued without LinkML; check it
+    # agrees with SchemaView.induced_slot on every class and slot of a schema
+    # built to disagree: mixins against is_a, slot is_a, default_range, an
+    # inherited attribute, and an any_of range narrowed by slot_usage.
+    from linkml_runtime.utils.schemaview import SchemaView
+
+    schema = yaml.safe_load(
+        """
+        id: https://ex.org/induced
+        name: induced
+        imports: [linkml:types]
+        prefixes: {linkml: https://w3id.org/linkml/, ex: https://ex.org/}
+        default_prefix: ex
+        default_range: Thing
+        classes:
+          Thing: {slots: [a, b, c, d]}
+          GrandBase: {is_a: Thing, slot_usage: {a: {range: Thing}, b: {multivalued: false}}}
+          Base: {is_a: GrandBase, slot_usage: {c: {range: string}}}
+          Mixin: {mixin: true, slot_usage: {a: {range: string}, b: {multivalued: true}}}
+          Other: {mixin: true, slot_usage: {c: {range: Thing}}}
+          Leaf: {is_a: Base, mixins: [Mixin, Other]}
+          Owner: {is_a: Thing, attributes: {a: {range: Thing, multivalued: true}}}
+          Heir: {is_a: Owner, slot_usage: {e: {any_of: [{range: string}]}}}
+        slots:
+          a: {range: integer}
+          b: {multivalued: true}
+          parent: {range: Thing, multivalued: true}
+          c: {is_a: parent}
+          d: {}
+          e: {multivalued: true, any_of: [{range: Thing}, {range: string}]}
+        """
+    )
+    vocab = Vocabulary(schema)
+    view = SchemaView(yaml.safe_dump(schema))
+    for cls in schema["classes"]:
+        for slot in "abcde":
+            induced = view.induced_slot(slot, cls)
+            assert vocab._induced(cls, slot) == {
+                "range": induced.range,
+                "multivalued": induced.multivalued,
+                "any_of": [e.range for e in induced.any_of],
+            }, (cls, slot)
+
+
 def test_datamodel_usage_window_from_keyword():
     """The generated dataclasses accept a raw `from`-keyed usage_window dict.
 
@@ -435,3 +534,19 @@ def test_schema_context_of_lokf_itself_is_the_published_context():
     pytest.importorskip("linkml")
     root = pathlib.Path(__file__).resolve().parents[1]
     assert schema_context(root / "lokf.yaml") == load_context(root / "lokf.context.jsonld")
+
+
+def test_schema_context_of_a_domain_falls_back_to_lokf():
+    """A domain schema's context keeps LOKF's @vocab, so an undeclared key
+    projects as it does without a schema, and every term the domain writes
+    relative to its own namespace is made absolute first."""
+    pytest.importorskip("linkml")
+    from lokf.schema import _vocab_relative
+
+    ctx = schema_context(FIXTURES / "domain-schema" / "adds-a-slot.yaml")
+    assert ctx["@vocab"] == load_context()["@vocab"]
+    assert ctx["Course"] == {"@id": "https://ex.org/schema/domain/Course"}
+    assert ctx["taughtBy"]["@id"] == "https://ex.org/schema/domain/taughtBy"
+    for key, value in ctx.items():
+        iri = value.get("@id") if isinstance(value, dict) else value
+        assert not _vocab_relative(iri), key

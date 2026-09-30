@@ -1,0 +1,45 @@
+# A domain schema whose concept references LinkML resolves by inheritance:
+# a relation narrowed to a subclass, a slot a class gets from a mixin, a
+# single-valued reference, and a mixin's slot_usage that overrides a
+# grandparent's.
+id: https://ex.org/schema/domain-inherits-references
+name: domain_inherits_references
+imports:
+  - linkml:types
+  - ../../../lokf
+default_prefix: domain
+prefixes:
+  domain: https://ex.org/schema/domain/
+  linkml: https://w3id.org/linkml/
+classes:
+  Course:
+    is_a: Concept
+    slots: [taughtBy]
+    slot_usage:
+      taughtBy: {range: Person}
+  Governed:
+    mixin: true
+    slots: [governedBy]
+  Requirement:
+    is_a: Concept
+    mixins: [Governed]
+  Unit:
+    is_a: Concept
+    slots: [ownedBy]
+  Labelled:
+    mixin: true
+    slot_usage:
+      label: {range: string}
+  Base:
+    is_a: Concept
+    slots: [label]
+    slot_usage:
+      label: {range: Concept}
+  Tag:
+    is_a: Base
+    mixins: [Labelled]
+slots:
+  taughtBy: {range: Concept, multivalued: true, slot_uri: domain:taughtBy}
+  governedBy: {range: Concept, multivalued: true, slot_uri: domain:governedBy}
+  ownedBy: {range: Concept, slot_uri: domain:ownedBy}
+  label: {multivalued: true, slot_uri: domain:label}

@@ -111,12 +111,13 @@ class Bundle:
     ) -> list[tuple[str, str, str]]:
         """Typed-relation targets in this bundle's namespace that resolve to no concept.
 
-        Covers every multivalued, ``Concept``-ranged slot the schema declares on
-        ``Concept`` or a subclass (``isPartOf``, ``dependsOn``, ``about`` - see
-        :class:`lokf.schema.Vocabulary`), plus the ``target`` of each reified
-        entry under the generic ``relations`` slot, whose domain is ``Relation``
-        rather than ``Concept`` and so is not in that set. JSON Schema cannot
-        express this: a fabricated or stale IRI is a perfectly valid string.
+        Covers every slot a ``Concept`` class holds concept ids in, single- or
+        multivalued (``isPartOf``, ``dependsOn``, ``about`` - see
+        :attr:`lokf.schema.Vocabulary.reference_slots`), plus the ``target`` of
+        each reified entry under the generic ``relations`` slot, whose domain
+        is ``Relation`` rather than ``Concept`` and so is not in that set. JSON
+        Schema cannot express this: a fabricated or stale IRI is a perfectly
+        valid string.
 
         Only targets satisfying :meth:`in_namespace` are checked. Several
         relation slots are documented as taking an external resource -
@@ -147,9 +148,12 @@ class Bundle:
                 and self.get(target) is None
             )
 
+        vocab = vocabulary(schema_path)
         out: list[tuple[str, str, str]] = []
-        for slot in vocabulary(schema_path).relation_slots:
-            for c in self.concepts:
+        for c in self.concepts:
+            # Only the slots that hold concept ids on this concept's type: a
+            # class can narrow an inherited reference slot to a string.
+            for slot in sorted(vocab.references(c.type)):
                 value = c.data.get(slot)
                 if value is None:
                     continue

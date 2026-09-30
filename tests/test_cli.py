@@ -99,6 +99,20 @@ def test_convert_schema_projects_domain_terms_under_their_own_iris(tmp_path):
     assert "additionalType" not in result.stdout
 
 
+def test_convert_schema_leaves_an_undeclared_key_under_lokf(tmp_path):
+    """A key neither schema declares projects under LOKF's namespace, as it
+    does without --schema, while the domain's own terms keep their IRIs."""
+    kb = _kb(tmp_path, _COURSE.replace("title: C\n", "title: C\nstray: x\n"))
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    result = runner.invoke(
+        app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
+    )
+    assert result.exit_code == 0, result.output
+    assert '<https://w3id.org/lokf/stray> "x"' in result.stdout
+    assert f"<{_DOMAIN}Course>" in result.stdout
+    assert f"<{_DOMAIN}taughtBy>" in result.stdout
+
+
 def test_convert_without_schema_reads_a_domain_class_as_concept(tmp_path):
     """Without --schema, the same concept is an undeclared type (SPEC §8)."""
     kb = _kb(tmp_path, _COURSE)
@@ -576,6 +590,83 @@ def test_check_refs_covers_a_slot_the_domain_schema_declares(tmp_path, monkeypat
     assert result.exit_code == 1
     assert "is not valid" not in result.output
     assert "`taughtBy` target" in result.output and "nobody" in result.output
+    assert "`isPartOf` target" in result.output and "nothing" in result.output
+
+
+def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path):
+    """An imported vocabulary's slot that the domain schema ranges over
+    Concept with slot_usage is checked like a slot declared that way."""
+    domain = FIXTURES / "domain-schema" / "reranges-a-slot.yaml"
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Regulation\ntitle: R\n"
+        "governedBy: [https://ex.org/kb/nowhere]\n---\n\n# R\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "is not valid" not in result.output
+    assert "`governedBy` target" in result.output and "nowhere" in result.output
+
+
+def test_check_refs_covers_references_the_domain_inherits(tmp_path):
+    """--check-refs checks a relation narrowed to a subclass, a slot a class
+    gets from a mixin, and a single-valued reference."""
+    domain = FIXTURES / "domain-schema" / "inherits-references.yaml"
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/nobody]\n---\n\n# C\n",
+        {
+            "req.md": "---\ntype: Requirement\ntitle: R\n"
+            "governedBy: [https://ex.org/kb/nothing]\n---\n\n# R\n",
+            "unit.md": "---\ntype: Unit\ntitle: U\n"
+            "ownedBy: https://ex.org/kb/noone\n---\n\n# U\n",
+        },
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "is not valid" not in result.output
+    for slot, target in (("taughtBy", "nobody"), ("governedBy", "nothing"), ("ownedBy", "noone")):
+        assert f"`{slot}` target" in result.output and target in result.output
+
+
+def test_check_refs_covers_attributes_and_any_of_ranges(tmp_path):
+    """--check-refs checks a reference declared as a class attribute and a
+    slot whose any_of includes Concept."""
+    domain = FIXTURES / "domain-schema" / "attribute-references.yaml"
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/nobody]\n"
+        "mentoredBy: [https://ex.org/kb/noone]\ncode: X1\n---\n\n# C\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "is not valid" not in result.output
+    assert "`taughtBy` target" in result.output and "nobody" in result.output
+    assert "`mentoredBy` target" in result.output and "noone" in result.output
+    assert "`code`" not in result.output
+
+
+def test_check_refs_reads_a_slot_as_the_concepts_type_does(tmp_path):
+    """Tag's mixin narrows `label` to a string, so a Tag's label is never a
+    dangling reference; a type no class declares is a Concept, so its
+    `isPartOf` still is."""
+    domain = FIXTURES / "domain-schema" / "inherits-references.yaml"
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Tag\ntitle: T\nlabel: [https://ex.org/kb/nowhere]\n---\n\n# T\n",
+        {"w.md": "---\ntype: Widget\ntitle: W\nisPartOf: [https://ex.org/kb/nothing]\n---\n\n# W\n"},
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "`label` target" not in result.output
     assert "`isPartOf` target" in result.output and "nothing" in result.output
 
 
