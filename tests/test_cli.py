@@ -14,6 +14,7 @@ from lokf.cli import app
 
 BUNDLE = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
 METRIC = BUNDLE / "metrics" / "weekly-active-users.md"
+FIXTURES = pathlib.Path(__file__).resolve().parent / "fixtures"
 
 _SELECT = "SELECT ?name WHERE { ?m a lokf:Metric ; schema:name ?name }"
 _CONSTRUCT = (
@@ -452,6 +453,49 @@ def test_check_refs_honours_an_explicit_schema(tmp_path):
     )
     assert result.exit_code == 1
     assert "customPartOf" in result.output and "does-not-exist" in result.output
+
+
+def test_check_refs_follows_the_schemas_imports(tmp_path, monkeypatch):
+    """--check-refs must check LOKF's relation slots even when the domain
+    schema only imports lokf and declares no slots of its own. The validator
+    sees those slots, so the reference check must see them too."""
+    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    # The validator resolves the schema's imports against the current
+    # directory, not the schema's own, so run from the schema's directory.
+    monkeypatch.chdir(domain.parent)
+    kb = _kb(
+        tmp_path,
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n"
+        "isPartOf: [https://ex.org/kb/does-not-exist]\n---\n\n# T\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "isPartOf" in result.output and "does-not-exist" in result.output
+
+
+def test_check_refs_covers_a_slot_the_domain_schema_declares(tmp_path, monkeypatch):
+    """--check-refs checks the relation slot the domain schema declares itself
+    as well as the slots it imports, and the validator accepts the domain's
+    own class."""
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    # The validator resolves the schema's imports against the current
+    # directory, not the schema's own, so run from the schema's directory.
+    monkeypatch.chdir(domain.parent)
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Course\ntitle: C\n"
+        "taughtBy: [https://ex.org/kb/nobody]\n"
+        "isPartOf: [https://ex.org/kb/nothing]\n---\n\n# C\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "is not valid" not in result.output
+    assert "`taughtBy` target" in result.output and "nobody" in result.output
+    assert "`isPartOf` target" in result.output and "nothing" in result.output
 
 
 # -- query ------------------------------------------------------------------

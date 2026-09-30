@@ -7,6 +7,7 @@ import yaml
 from lokf.schema import load_context, load_schema, vocabulary
 
 ROOT = pathlib.Path(__file__).parent.parent
+FIXTURES = ROOT / "tests" / "fixtures"
 
 
 @pytest.fixture(scope="module")
@@ -279,6 +280,16 @@ def test_ancestor_schema_wins_over_packaged(tmp_path, monkeypatch):
     (tmp_path / "lokf.yaml").write_text(yaml.safe_dump(doctored), encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     assert load_schema()["name"] == "lokf-local-edit"
+
+
+def test_vocabulary_follows_a_domain_schemas_imports():
+    # The vocabulary of a domain schema that imports lokf must include LOKF's
+    # slots as well as the domain's own, not only the slots in its own file.
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    stock, own = vocabulary(ROOT / "lokf.yaml"), vocabulary(domain)
+    assert set(own.relation_slots) == set(stock.relation_slots) | {"taughtBy"}
+    assert own.relation_slots["isPartOf"] == stock.relation_slots["isPartOf"]
+    assert own.relation_slots["taughtBy"].uri == "https://ex.org/schema/domain/taughtBy"
 
 
 def test_datamodel_usage_window_from_keyword():
