@@ -30,6 +30,14 @@ with the 0.x caveat that a minor release may tighten validation.
   preset its prefixes. Needs the `build` extra; without the flag nothing
   changes. `lokf.schema.schema_context()` builds the context, and
   `authoring_context()` holds the fixes `lokf-build` applies to LOKF's own.
+- `lokf adapt VOCAB.yaml` writes the copy of a published LinkML vocabulary
+  that a domain schema imports beside `lokf.yaml`: its own imports folded in,
+  its root re-rooted on `Concept`, its identifier and `rdf:type` slots dropped
+  for LOKF's, any other type designator demoted, every name it shares with
+  `lokf.yaml` renamed with the IRI kept, class names CamelCased and slot
+  names underscored, and the result verified with SchemaView. `just biolink`
+  runs it over biolink-model 4.4.4 (`examples/biolink/`, nothing upstream
+  committed); `--check` guards a CI job. Needs only the core install.
 
 ### Fixed
 

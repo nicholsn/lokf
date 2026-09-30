@@ -1,0 +1,68 @@
+# A published vocabulary shaped like biolink-model: a root of its own that
+# already carries an identifier, an rdf:type slot and a type designator,
+# lowercase class names with spaces, names LOKF also defines, and a sibling
+# import. `lokf adapt` turns it into a file a domain schema imports.
+id: https://ex.org/schema/vocab
+name: vocabulary_with_root
+version: 1.2.3
+imports:
+  - linkml:types
+  - vocabulary-with-root-attributes
+default_prefix: vocab
+default_range: string
+prefixes:
+  vocab: https://ex.org/schema/vocab/
+  linkml: https://w3id.org/linkml/
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  dct: http://purl.org/dc/terms/
+subsets:
+  minimal: {}
+classes:
+  entity:
+    abstract: true
+    slots: [id, type, name, description, category, has attribute]
+  named thing:
+    is_a: entity
+    slots: [license]
+    slot_usage:
+      category: {required: true}
+      license: {description: The licence the thing is published under.}
+  gene:
+    is_a: named thing
+    slots: [symbol, in taxon, described in]
+    attributes:
+      weight: {range: float}
+  organism taxon:
+    is_a: named thing
+  dataset:
+    is_a: named thing
+  taggable:
+    mixin: true
+    slots: [tag]
+  edge:
+    slots: [subject, object]
+    tree_root: true
+types:
+  unit:                    # a type; LOKF has a slot of that name, one namespace
+    typeof: string
+slots:
+  id: {identifier: true}
+  type: {slot_uri: rdf:type, multivalued: true}
+  name: {slot_uri: rdfs:label}
+  description: {slot_uri: dct:description}
+  category:
+    is_a: type
+    designates_type: true
+    is_class_field: true
+    range: uriorcurie
+    multivalued: true
+    in_subset: [minimal]
+  license: {}
+  symbol: {range: unit}
+  in taxon: {range: organism taxon, multivalued: true}
+  described in:
+    any_of: [{range: dataset}, {range: uriorcurie}]
+  tag: {}
+  subject: {range: entity}
+  object: {range: entity}

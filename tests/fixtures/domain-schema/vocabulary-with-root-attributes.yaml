@@ -1,0 +1,14 @@
+# A sibling schema vocabulary-with-root.yaml imports, as biolink imports its
+# attributes.yaml. `lokf adapt` folds it in so the copy stands alone.
+id: https://ex.org/schema/vocab/attributes
+name: vocabulary_with_root_attributes
+imports:
+  - linkml:types
+default_prefix: vocab
+prefixes:
+  vocab: https://ex.org/schema/vocab/
+  linkml: https://w3id.org/linkml/
+slots:
+  has attribute:
+    range: string
+    multivalued: true
