@@ -946,6 +946,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "rdflib" },
     { name = "ruamel-yaml" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "typer" },
 ]
 
@@ -976,6 +977,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rdflib", specifier = ">=7.0" },
     { name = "ruamel-yaml", specifier = ">=0.18" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
     { name = "typer", specifier = ">=0.15" },
 ]
 provides-extras = ["build", "tables"]

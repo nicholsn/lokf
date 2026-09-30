@@ -704,3 +704,115 @@ def test_export_writes_registry_producer_contract(tmp_path):
     g_nt = Graph().parse(str(tmp_path / "graph.nt"), format="nt")
     g_jsonld = Graph().parse(str(tmp_path / "concepts.jsonld"), format="json-ld")
     assert len(g_nt) and g_nt.isomorphic(g_jsonld)
+
+
+# ---------------------------------------------------------------------------
+# [tool.lokf] schema: a project declares its domain schema once
+# ---------------------------------------------------------------------------
+def _project(tmp_path, schema_line: str = 'schema = "domain.yaml"'):
+    """A project: pyproject.toml declaring a domain schema, the schema beside
+    it with lokf.yaml, and a bundle with one domain-typed concept."""
+    (tmp_path / "pyproject.toml").write_text(f"[tool.lokf]\n{schema_line}\n", encoding="utf-8")
+    (tmp_path / "lokf.yaml").write_text((FIXTURES.parent.parent / "lokf.yaml").read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "domain.yaml").write_text(
+        "id: https://ex.org/schema/d\nname: d\nimports: [linkml:types, lokf]\ndefault_prefix: d\n"
+        "prefixes: {d: https://ex.org/schema/d/, linkml: https://w3id.org/linkml/}\n"
+        "classes:\n  Module: {is_a: Concept}\n",
+        encoding="utf-8",
+    )
+    kb = tmp_path / "kb"
+    kb.mkdir()
+    return _kb(kb, "---\ntype: Module\ntitle: M\n---\n\n# M\n")
+
+
+def test_project_schema_is_the_nearest_pyproject_with_a_tool_lokf_table(tmp_path, monkeypatch):
+    from lokf.schema import project_schema
+
+    _project(tmp_path)
+    # A nearer pyproject.toml without [tool.lokf] is passed over.
+    nested = tmp_path / "pkg" / "sub"
+    nested.mkdir(parents=True)
+    (tmp_path / "pkg" / "pyproject.toml").write_text("[project]\nname = 'x'\n", encoding="utf-8")
+    assert project_schema(nested) == tmp_path / "domain.yaml"
+    monkeypatch.chdir(nested)
+    assert project_schema() == tmp_path / "domain.yaml"
+    # A [tool.lokf] table without `schema` means core LOKF, and ends the search.
+    (tmp_path / "pkg" / "pyproject.toml").write_text("[tool.lokf]\n", encoding="utf-8")
+    assert project_schema(nested) is None
+
+
+def test_the_search_starts_at_the_bundle_not_the_shell(tmp_path, monkeypatch):
+    """The schema is the bundle's project's: a bundle validated from an
+    unrelated directory, or through a link to it, finds the same file."""
+    kb = _project(tmp_path)
+    elsewhere = tmp_path.parent / (tmp_path.name + "-elsewhere")
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    result = runner.invoke(app, ["validate", str(kb)])
+    assert result.exit_code == 0, result.output
+    assert "(" in result.stdout and "domain.yaml)" in result.stdout
+    link = elsewhere / "knowledge_bundle"
+    link.symlink_to(kb, target_is_directory=True)
+    assert runner.invoke(app, ["validate", str(link)]).exit_code == 0
+    # A concept file starts the search from its directory.
+    result = runner.invoke(app, ["convert", str(kb / "term.md"), "-f", "nt"])
+    assert "<https://ex.org/schema/d/Module>" in result.stdout
+
+
+def test_export_writes_the_project_schemas_iris(tmp_path, monkeypatch):
+    kb = _project(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    out = tmp_path / "out"
+    result = runner.invoke(app, ["export", str(kb), "-d", str(out)])
+    assert result.exit_code == 0, result.output
+    assert "<https://ex.org/schema/d/Module>" in (out / "graph.nt").read_text(encoding="utf-8")
+    assert "Module" in json.loads((out / "concepts.jsonld").read_text(encoding="utf-8"))["@context"][0]
+
+
+def test_validate_reads_the_project_schema_and_names_it(tmp_path, monkeypatch):
+    kb = _project(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["validate", "kb"])
+    assert result.exit_code == 0, result.output
+    assert "validate against KnowledgeBundle (domain.yaml)." in result.stdout
+    # --schema still wins over the declaration.
+    result = runner.invoke(app, ["validate", "kb", "--schema", "lokf.yaml"])
+    assert result.exit_code == 1
+    assert "Module" in result.output
+    # Without the declaration the same bundle fails as before.
+    (tmp_path / "pyproject.toml").unlink()
+    assert runner.invoke(app, ["validate", str(kb)]).exit_code == 1
+
+
+def test_a_declared_schema_that_is_missing_is_an_error_not_core(tmp_path, monkeypatch):
+    _project(tmp_path, 'schema = "nope.yaml"')
+    monkeypatch.chdir(tmp_path)
+    for args in (["validate", "kb"], ["convert", "kb"]):
+        result = runner.invoke(app, args)
+        assert result.exit_code == 1, args
+        assert "names schema nope.yaml, which does not exist" in result.output
+
+
+def test_convert_projects_under_the_project_schema(tmp_path, monkeypatch):
+    _project(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["convert", "kb/term.md", "-f", "nt"])
+    assert result.exit_code == 0, result.output
+    assert "<https://ex.org/schema/d/Module>" in result.stdout
+    (tmp_path / "pyproject.toml").unlink()
+    result = runner.invoke(app, ["convert", "kb/term.md", "-f", "nt"])
+    assert "<https://ex.org/schema/d/Module>" not in result.stdout
+
+
+def test_a_schema_declaration_that_is_not_a_string_is_an_error(tmp_path, monkeypatch):
+    _project(tmp_path, "schema = 3")
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["validate", "kb"])
+    assert result.exit_code == 1
+    assert "must be a path string" in result.output
+
+
+def test_validate_refuses_a_missing_schema_flag_like_the_other_commands():
+    result = runner.invoke(app, ["validate", str(BUNDLE), "--schema", "nope.yaml"])
+    assert result.exit_code == 2
+    assert "does not exist" in result.output

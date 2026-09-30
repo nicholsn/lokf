@@ -37,6 +37,8 @@ dependencies = [
     # linkml_runtime is light; the heavy `linkml` generator stays in the
     # `build` extra used only to regenerate artifacts.
     "linkml-runtime>=1.8",
+    # `[tool.lokf] schema` in pyproject.toml; tomllib is 3.11+.
+    "tomli>=2.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]
