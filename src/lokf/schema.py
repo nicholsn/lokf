@@ -195,34 +195,54 @@ class Vocabulary:
             name: cls.get("class_uri", f"lokf:{name}")
             for name, cls in schema.get("classes", {}).items()
         }
-        # Typed-relation frontmatter keys: multivalued Concept-ranged slots
-        # with a bound predicate, declared on Concept or one of its subclasses
-        # (this includes Metric's `measures` and excludes structural slots
-        # like KnowledgeBundle's `concepts` or Relation's `target`).
-        classes = schema.get("classes", {})
-        concept_classes = {
+        # A relation is a frontmatter key that holds concept ids, is
+        # multivalued and has a slot_uri. A Concept class must declare it, or
+        # inherit it from a class outside Concept. Metric's `measures` counts;
+        # structural slots like KnowledgeBundle's `concepts` and Relation's
+        # `target` do not. A slot holds concept ids on a class if its range
+        # there, after slot_usage, is Concept or a subclass, or if one of its
+        # `any_of` ranges is. So a domain schema can turn an imported slot into
+        # a relation with slot_usage. A class's `attributes` count as its slots.
+        self._classes = schema.get("classes") or {}
+        self._slots = schema.get("slots") or {}
+        classes = self._classes
+        self._concept_classes = concept_classes = {
             name for name in classes if self._descends_from(classes, name, "Concept")
         }
         declared_in: dict[str, set[str]] = {}
         for cls_name in concept_classes:
-            for slot_name in classes[cls_name].get("slots", []):
-                declared_in.setdefault(slot_name, set()).add(cls_name)
+            for owner in self._ancestors(classes, cls_name):
+                if owner != cls_name and owner in concept_classes:
+                    continue  # declares its own slots itself
+                cls = classes.get(owner) or {}
+                for slot_name in (
+                    *(cls.get("slots") or []),
+                    *(cls.get("slot_usage") or {}),
+                    *(cls.get("attributes") or {}),
+                ):
+                    declared_in.setdefault(slot_name, set()).add(cls_name)
+        #: Every slot a Concept class holds concept ids in, single- or
+        #: multivalued, with the classes that do: what `--check-refs` reads.
+        self.reference_slots: dict[str, frozenset[str]] = {}
         self.relation_slots: dict[str, Relation] = {}
-        for name, slot in schema.get("slots", {}).items():
-            if (
-                slot.get("range") == "Concept"
-                and slot.get("multivalued")
-                and "slot_uri" in slot
-                and name in declared_in
-            ):
+        # Schema-level slots in their order, then slots only attributes declare
+        for name in (*self._slots, *sorted(set(declared_in) - set(self._slots))):
+            induced = {c: self._induced(c, name) for c in declared_in.get(name, ())}
+            refs = frozenset(c for c, s in induced.items() if self._holds_concepts(s))
+            if not refs:
+                continue
+            slot = self._definition(min(refs), name)
+            self.reference_slots[name] = refs
+            domains = frozenset(c for c in refs if induced[c]["multivalued"])
+            if domains and "slot_uri" in slot:
                 curie = slot["slot_uri"]
                 self.relation_slots[name] = Relation(
                     name=name,
                     curie=curie,
                     uri=self.expand(curie),
-                    description=slot.get("description", "").strip(),
+                    description=(slot.get("description") or "").strip(),
                     is_slot=True,
-                    domains=frozenset(declared_in[name]),
+                    domains=domains,
                 )
         self.relation_types: dict[str, Relation] = {}
         enum = schema.get("enums", {}).get("RelationType", {})
@@ -237,23 +257,83 @@ class Vocabulary:
             )
 
     @staticmethod
-    def _descends_from(classes: dict, name: str, ancestor: str) -> bool:
+    def _ancestors(elements: dict, name: str) -> list[str]:
+        """*name* and every class or slot it inherits from, in LinkML's order
+        (``SchemaView.class_ancestors``): depth first, an element's mixins
+        before its ``is_a``, each listed where first reached."""
+        order, todo = [name], [name]
+        while todo:
+            element = elements.get(todo.pop()) or {}
+            for parent in (*(element.get("mixins") or []), element.get("is_a")):
+                if parent and parent not in order:
+                    order.append(parent)
+                    todo.append(parent)
+        return order
+
+    def _attribute(self, cls_name: str, name: str) -> dict | None:
+        """The attribute *name* that class *cls_name* declares or inherits:
+        the first along its ancestors, as LinkML takes it."""
+        for c in self._ancestors(self._classes, cls_name):
+            attribute = ((self._classes.get(c) or {}).get("attributes") or {}).get(name)
+            if attribute is not None:
+                return attribute
+        return None
+
+    def _definition(self, cls_name: str, name: str) -> dict:
+        """Slot *name* as class *cls_name* defines it before slot_usage: its
+        attribute if it has one, else the schema-level slot."""
+        attribute = self._attribute(cls_name, name)
+        return attribute if attribute is not None else self._slots.get(name) or {}
+
+    def _induced(self, cls_name: str, name: str) -> dict:
+        """The ``range``, ``multivalued`` and ``any_of`` ranges class
+        *cls_name* gives slot *name*, as ``SchemaView.induced_slot`` resolves
+        them: the first slot_usage value along the class's ancestors, else the
+        attribute, else the first along the slot's own ancestors, else, for
+        ``range``, the schema's ``default_range``."""
+        usages = [
+            ((self._classes.get(c) or {}).get("slot_usage") or {}).get(name) or {}
+            for c in self._ancestors(self._classes, cls_name)
+        ]
+        attribute = self._attribute(cls_name, name)
+        definitions = (
+            [attribute]
+            if attribute is not None
+            else [self._slots.get(s) or {} for s in self._ancestors(self._slots, name)]
+        )
+        induced = {}
+        for key in ("range", "multivalued", "any_of"):
+            induced[key] = next(
+                (u[key] for u in usages if u.get(key) not in (None, "", [], {})),
+                next((d[key] for d in definitions if d.get(key)), None),
+            )
+        induced["range"] = induced["range"] or self._schema.get("default_range")
+        induced["any_of"] = [e.get("range") for e in induced["any_of"] or []]
+        return induced
+
+    def _holds_concepts(self, induced: dict) -> bool:
+        """Whether an induced slot's range, or one of its ``any_of`` ranges,
+        is Concept or a subclass."""
+        return any(r in self._concept_classes for r in (induced["range"], *induced["any_of"]))
+
+    @classmethod
+    def _descends_from(cls, classes: dict, name: str, ancestor: str) -> bool:
         """Whether *name* reaches *ancestor* via ``is_a`` or ``mixins``."""
-        seen: set[str] = set()
-        stack = [name]
-        while stack:
-            n = stack.pop()
-            if n is None or n in seen:
-                continue
-            seen.add(n)
-            if n == ancestor:
-                return True
-            cls = classes.get(n) or {}
-            parent = cls.get("is_a")
-            if parent:
-                stack.append(parent)
-            stack.extend(cls.get("mixins") or [])
-        return False
+        return ancestor in cls._ancestors(classes, name)
+
+    def references(self, type_name: str) -> set[str]:
+        """The slots a concept of *type_name* holds concept ids in. A type no
+        class declares is a plain Concept (SPEC §8), so it gets Concept's."""
+        if type_name not in self._classes:
+            type_name = "Concept"
+        ancestors = self._ancestors(self._classes, type_name)
+        return {
+            name
+            for name, holders in self.reference_slots.items()
+            # Inherited from a holder, and not narrowed to a string since
+            if not holders.isdisjoint(ancestors)
+            and self._holds_concepts(self._induced(type_name, name))
+        }
 
     def subclasses_of(self, ancestor: str) -> set[str]:
         """Class names descending from *ancestor* (inclusive), via ``is_a``."""
