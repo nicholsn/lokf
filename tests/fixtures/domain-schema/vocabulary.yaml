@@ -1,0 +1,15 @@
+# A published vocabulary as a domain schema imports it: it stands alone, and
+# its reference slot has no range, so it holds a string, as many of gist's do.
+id: https://ex.org/schema/vocabulary
+name: vocabulary
+imports:
+  - linkml:types
+default_prefix: vocab
+default_range: string
+prefixes:
+  vocab: https://ex.org/schema/vocabulary/
+  linkml: https://w3id.org/linkml/
+slots:
+  governedBy:
+    multivalued: true
+    slot_uri: vocab:governedBy

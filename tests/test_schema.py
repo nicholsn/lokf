@@ -4,7 +4,7 @@ import pathlib
 import pytest
 import yaml
 
-from lokf.schema import load_context, load_schema, schema_context, vocabulary
+from lokf.schema import Vocabulary, load_context, load_schema, schema_context, vocabulary
 
 ROOT = pathlib.Path(__file__).parent.parent
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -290,6 +290,29 @@ def test_vocabulary_follows_a_domain_schemas_imports():
     assert set(own.relation_slots) == set(stock.relation_slots) | {"taughtBy"}
     assert own.relation_slots["isPartOf"] == stock.relation_slots["isPartOf"]
     assert own.relation_slots["taughtBy"].uri == "https://ex.org/schema/domain/taughtBy"
+
+
+def test_vocabulary_reads_a_relation_from_slot_usage():
+    # An imported vocabulary's slot that a domain class ranges over Concept
+    # with slot_usage is a relation on that class, and only on that class.
+    own = vocabulary(FIXTURES / "domain-schema" / "reranges-a-slot.yaml")
+    governed_by = own.relation_slots["governedBy"]
+    assert governed_by.domains == {"Regulation"}
+    assert governed_by.uri == "https://ex.org/schema/vocabulary/governedBy"
+    assert "governedBy" not in vocabulary(FIXTURES / "domain-schema" / "vocabulary.yaml").relation_slots
+
+
+def test_slot_usage_is_inherited_nearest_first():
+    classes = {
+        "Concept": {},
+        "Base": {"is_a": "Concept", "slot_usage": {"s": {"range": "Concept", "multivalued": False}}},
+        "Mixin": {"slot_usage": {"s": {"multivalued": True, "required": True}}},
+        "Leaf": {"is_a": "Base", "mixins": ["Mixin"], "slot_usage": {"s": {"multivalued": True}}},
+    }
+    assert Vocabulary._usage(classes, "Leaf", "s") == {
+        "multivalued": True, "range": "Concept", "required": True,
+    }
+    assert Vocabulary._usage(classes, "Concept", "s") == {}
 
 
 def test_datamodel_usage_window_from_keyword():

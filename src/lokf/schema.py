@@ -179,23 +179,28 @@ class Vocabulary:
         # Typed-relation frontmatter keys: multivalued Concept-ranged slots
         # with a bound predicate, declared on Concept or one of its subclasses
         # (this includes Metric's `measures` and excludes structural slots
-        # like KnowledgeBundle's `concepts` or Relation's `target`).
+        # like KnowledgeBundle's `concepts` or Relation's `target`). A class's
+        # slot_usage counts: a domain schema that ranges an imported
+        # vocabulary's slot over Concept makes it a relation on that class.
         classes = schema.get("classes", {})
         concept_classes = {
             name for name in classes if self._descends_from(classes, name, "Concept")
         }
         declared_in: dict[str, set[str]] = {}
         for cls_name in concept_classes:
-            for slot_name in classes[cls_name].get("slots", []):
+            cls = classes[cls_name] or {}
+            for slot_name in (*cls.get("slots", []), *(cls.get("slot_usage") or {})):
                 declared_in.setdefault(slot_name, set()).add(cls_name)
         self.relation_slots: dict[str, Relation] = {}
         for name, slot in schema.get("slots", {}).items():
-            if (
-                slot.get("range") == "Concept"
-                and slot.get("multivalued")
-                and "slot_uri" in slot
-                and name in declared_in
-            ):
+            if "slot_uri" not in slot:
+                continue
+            domains = frozenset(
+                cls_name
+                for cls_name in declared_in.get(name, ())
+                if self._is_relation({**slot, **self._usage(classes, cls_name, name)})
+            )
+            if domains:
                 curie = slot["slot_uri"]
                 self.relation_slots[name] = Relation(
                     name=name,
@@ -203,7 +208,7 @@ class Vocabulary:
                     uri=self.expand(curie),
                     description=slot.get("description", "").strip(),
                     is_slot=True,
-                    domains=frozenset(declared_in[name]),
+                    domains=domains,
                 )
         self.relation_types: dict[str, Relation] = {}
         enum = schema.get("enums", {}).get("RelationType", {})
@@ -216,6 +221,30 @@ class Vocabulary:
                 description=value.get("description", "").strip(),
                 is_slot=name in self.relation_slots,
             )
+
+    @staticmethod
+    def _is_relation(slot: dict) -> bool:
+        """Whether a slot definition, with any slot_usage applied, holds concept ids."""
+        return slot.get("range") == "Concept" and bool(slot.get("multivalued"))
+
+    @staticmethod
+    def _usage(classes: dict, name: str, slot: str) -> dict:
+        """The ``slot_usage`` of *slot* that class *name* gets: its own, then
+        its ancestors' via ``is_a`` and ``mixins``, the nearest winning each key."""
+        merged: dict = {}
+        seen: set[str] = set()
+        stack = [name]
+        while stack:
+            n = stack.pop()
+            if n is None or n in seen:
+                continue
+            seen.add(n)
+            cls = classes.get(n) or {}
+            for key, value in ((cls.get("slot_usage") or {}).get(slot) or {}).items():
+                merged.setdefault(key, value)
+            stack.extend(reversed(cls.get("mixins") or []))
+            stack.append(cls.get("is_a"))
+        return merged
 
     @staticmethod
     def _descends_from(classes: dict, name: str, ancestor: str) -> bool:
