@@ -54,6 +54,19 @@ uv run lokf convert examples/acme-knowledge --format nt --output acme.nt
 # wrote acme.nt
 ```
 
+## A domain schema
+
+A bundle that validates with `lokf validate --schema` takes the same file here:
+
+```bash
+uv run lokf convert knowledge --schema domain.yaml
+```
+
+The graph then uses a JSON-LD context generated from that schema. Its classes
+and slots project under their own IRIs instead of as `lokf:` terms, and its
+classes count as declared instead of reading as `lokf:Concept`. Generating the
+context needs the `build` extra (`lokf[build]`).
+
 ## The `just` recipe
 
 The `just gen-rdf-turtle` recipe wraps the Turtle case so it is one word to

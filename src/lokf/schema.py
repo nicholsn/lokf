@@ -88,6 +88,60 @@ def load_context(path: str | pathlib.Path | None = None) -> dict:
     return _load_context(str(_resolve(_CONTEXT_NAME, path)))
 
 
+# ParameterType values, each naming the lokf Parameter-kind class it expands to.
+_PARAMETER_KINDS = {
+    "string": "StringParameter", "integer": "IntegerParameter",
+    "number": "NumberParameter", "boolean": "BooleanParameter",
+    "date": "DateParameter", "datetime": "DatetimeParameter",
+    "time": "TimeParameter", "uri": "UriParameter", "json": "JsonParameter",
+}
+
+
+def authoring_context(context: dict) -> dict:
+    """Return a ``gen-jsonld-context`` ``@context`` mapping made fit for OKF
+    frontmatter. ``lokf-build`` publishes LOKF's own context this way, and
+    :func:`schema_context` builds a domain schema's the same way."""
+    ctx = dict(context)
+    # Two standard JSON-LD keyword aliases make unmodified OKF frontmatter
+    # behave as Linked Data: `type` designates the RDF class, `id` the subject.
+    ctx["type"] = "@type"
+    ctx["id"] = "@id"
+    # ParameterType values sit in @type position (Parameter's `type` key shares
+    # the alias above), so each authoring value must expand to its designed
+    # lokf Parameter-kind class — gen-jsonld-context does not emit enum-meaning
+    # terms. Same mechanism by which class names like "Metric" expand as @type.
+    for value, cls in _PARAMETER_KINDS.items():
+        ctx[value] = {"@id": f"https://w3id.org/lokf/{cls}"}
+    # `author` must NOT be @id-coerced: OKF §7 actor strings ("team:ga4-docs",
+    # "human:kliu") are literals, and coercion would silently mint IRIs in
+    # unregistered URI schemes. Inlined Agent objects are unaffected.
+    if isinstance(ctx.get("author"), dict):
+        ctx["author"] = {k: v for k, v in ctx["author"].items() if k != "@type"}
+    return ctx
+
+
+@lru_cache(maxsize=None)
+def _schema_context(resolved: str) -> dict:
+    from linkml.generators.jsonldcontextgen import ContextGenerator
+
+    generated = json.loads(ContextGenerator(resolved).serialize())["@context"]
+    return authoring_context(generated)
+
+
+def schema_context(schema_path: str | pathlib.Path | None = None) -> dict:
+    """Return the ``@context`` that projects a bundle under *schema_path*.
+
+    With no *schema_path*, this is the published context
+    (:func:`load_context`). A domain schema that ``imports: [lokf]`` gets a
+    context generated from it, so its classes and slots expand to their own
+    IRIs rather than to ``lokf:`` terms. Generating one needs LinkML (the
+    ``build`` extra).
+    """
+    if schema_path is None:
+        return load_context()
+    return _schema_context(str(pathlib.Path(schema_path).resolve()))
+
+
 @dataclass(frozen=True)
 class Relation:
     """One relationship predicate: a frontmatter name bound to an RDF IRI."""
@@ -330,11 +384,56 @@ class Vocabulary:
         }
 
 
+def _follows(imported: str) -> bool:
+    """Return True if this import can add to the vocabulary. LinkML's own
+    schemas, such as ``linkml:types``, define only types, and
+    :class:`Vocabulary` does not read types."""
+    return not imported.startswith("linkml:")
+
+
+def _with_imports(resolved: str) -> dict:
+    """Merge the schema at *resolved* with every schema it imports, and return
+    one dict in the raw YAML shape that :class:`Vocabulary` reads.
+
+    A domain schema that ``imports: [lokf]`` usually defines none of LOKF's
+    slots itself, so reading only its own file finds no relation slots.
+    SchemaView resolves each import against the directory of the file that
+    imports it. When two schemas define the same name, the later one in the
+    closure wins. The importing schema comes last, so its own definitions win.
+    """
+    from linkml_runtime.dumpers import json_dumper
+    from linkml_runtime.utils.schemaview import SchemaView
+
+    view = SchemaView(resolved)
+    merged = dict(_load_schema(resolved))
+    for key in ("prefixes", "classes", "slots", "enums"):
+        merged[key] = {}
+    for name in view.imports_closure():
+        if not _follows(name):
+            continue
+        part = json_dumper.to_dict(view.schema_map[name])
+        for key in ("classes", "slots", "enums"):
+            merged[key].update(part.get(key) or {})
+        # The dump stores each prefix as a {prefix_prefix, prefix_reference}
+        # object. Keep only the IRI, as the raw YAML does.
+        merged["prefixes"].update(
+            (k, v["prefix_reference"] if isinstance(v, dict) else v)
+            for k, v in (part.get("prefixes") or {}).items()
+        )
+    return merged
+
+
 @lru_cache(maxsize=None)
 def _vocabulary(resolved: str) -> "Vocabulary":
-    return Vocabulary(_load_schema(resolved))
+    schema = _load_schema(resolved)
+    # Merge only when the schema imports more than LinkML's own schemas.
+    # Stock lokf.yaml imports only linkml:types, so it is still read as one file.
+    if any(_follows(str(i)) for i in schema.get("imports") or []):
+        schema = _with_imports(resolved)
+    return Vocabulary(schema)
 
 
 def vocabulary(schema_path: str | pathlib.Path | None = None) -> Vocabulary:
-    """Load the schema and return its :class:`Vocabulary` (cached per file)."""
+    """Return the :class:`Vocabulary` of the schema and every schema it
+    imports (cached per file)."""
     return _vocabulary(str(_resolve(_SCHEMA_NAME, schema_path)))

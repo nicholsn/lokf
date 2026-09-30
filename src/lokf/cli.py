@@ -89,6 +89,33 @@ def new(
 # ---------------------------------------------------------------------------
 # convert
 # ---------------------------------------------------------------------------
+_SCHEMA_HELP = (
+    "A domain schema that `imports: [lokf]`, as passed to `lokf validate "
+    "--schema`: project its classes and slots under their own IRIs rather than "
+    "as lokf: terms. Needs lokf[build]."
+)
+
+
+def _schema_or_exit(schema: Optional[Path]) -> None:
+    """Build *schema*'s context up front, so a lean install without LinkML
+    fails with an install hint rather than a traceback. The context is
+    cached, so the projection that follows does not build it again."""
+    if schema is None:
+        return
+    from lokf.schema import schema_context
+
+    try:
+        schema_context(schema)
+    except ModuleNotFoundError as exc:
+        if not (exc.name or "").startswith("linkml"):
+            raise
+        _err(
+            "--schema needs LinkML, which the core install leaves out.\n"
+            "  install:  uv pip install 'lokf[build]'"
+        )
+        raise typer.Exit(1)
+
+
 @app.command()
 def convert(
     source: Path = typer.Argument(
@@ -100,12 +127,16 @@ def convert(
     output: Optional[Path] = typer.Option(
         None, "--output", "-o", help="Write to this file instead of stdout."
     ),
+    schema: Optional[Path] = typer.Option(
+        None, "--schema", "-s", exists=True, dir_okay=False, help=_SCHEMA_HELP
+    ),
 ) -> None:
     """Convert markdown (a concept or whole bundle) to RDF."""
     from lokf import rdf
 
+    _schema_or_exit(schema)
     try:
-        data = rdf.serialize(source, format)
+        data = rdf.serialize(source, format, schema=schema)
     except ValueError as exc:
         _err(str(exc))
         raise typer.Exit(2)
@@ -361,11 +392,16 @@ def query(
     format: str = typer.Option(
         "table", "--format", "-f", help="table | json | csv | tsv | ttl (CONSTRUCT)."
     ),
+    schema: Optional[Path] = typer.Option(
+        None, "--schema", "-s", exists=True, dir_okay=False,
+        help=_SCHEMA_HELP + " Its prefixes are preset too.",
+    ),
 ) -> None:
     """Run SPARQL over a knowledge base loaded into an in-memory store."""
     from lokf.store import GraphStore, query_form
 
-    store = GraphStore.from_bundle(source)
+    _schema_or_exit(schema)
+    store = GraphStore.from_bundle(source, schema=schema)
     form = query_form(sparql)
     try:
         if form in ("construct", "describe"):
@@ -405,11 +441,16 @@ def serve(
     ),
     host: str = typer.Option("127.0.0.1", help="Bind host."),
     port: int = typer.Option(8000, help="Bind port."),
+    schema: Optional[Path] = typer.Option(
+        None, "--schema", "-s", exists=True, dir_okay=False,
+        help=_SCHEMA_HELP + " Its prefixes are preset too.",
+    ),
 ) -> None:
     """Publish a knowledge base locally: SPARQL endpoint + live graph viz."""
     from lokf.server import serve as run_server
 
-    run_server(source, host=host, port=port)
+    _schema_or_exit(schema)
+    run_server(source, host=host, port=port, schema=schema)
 
 
 # ---------------------------------------------------------------------------

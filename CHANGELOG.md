@@ -22,6 +22,22 @@ with the 0.x caveat that a minor release may tighten validation.
   subject in the graph, which neither JSON Schema nor SHACL can see. Opt-in
   like `--check-refs`, so the default verdict stays the schema's;
   `Bundle.duplicate_iris()` is the check behind it.
+- `lokf convert`, `query` and `serve` take `--schema`, the domain schema
+  `lokf validate --schema` checks against. The graph then uses a JSON-LD
+  context generated from that schema, so its classes and slots project under
+  their own IRIs instead of as `lokf:` terms, and its classes count as
+  declared instead of reading as `lokf:Concept`. `query` and `serve` also
+  preset its prefixes. Needs the `build` extra; without the flag nothing
+  changes. `lokf.schema.schema_context()` builds the context, and
+  `authoring_context()` holds the fixes `lokf-build` applies to LOKF's own.
+
+### Fixed
+
+- `lokf validate --check-refs --schema` checks the relation slots a domain
+  schema gets through `imports: [lokf]`. Previously it read only the
+  domain schema file and not the schemas it imports, so it found no named
+  relation slots (`isPartOf`, `about`, ...) and checked only
+  `relations[].target`.
 
 ### Fixed
 

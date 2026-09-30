@@ -4,9 +4,10 @@ import pathlib
 import pytest
 import yaml
 
-from lokf.schema import load_context, load_schema, vocabulary
+from lokf.schema import load_context, load_schema, schema_context, vocabulary
 
 ROOT = pathlib.Path(__file__).parent.parent
+FIXTURES = ROOT / "tests" / "fixtures"
 
 
 @pytest.fixture(scope="module")
@@ -281,6 +282,16 @@ def test_ancestor_schema_wins_over_packaged(tmp_path, monkeypatch):
     assert load_schema()["name"] == "lokf-local-edit"
 
 
+def test_vocabulary_follows_a_domain_schemas_imports():
+    # The vocabulary of a domain schema that imports lokf must include LOKF's
+    # slots as well as the domain's own, not only the slots in its own file.
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    stock, own = vocabulary(ROOT / "lokf.yaml"), vocabulary(domain)
+    assert set(own.relation_slots) == set(stock.relation_slots) | {"taughtBy"}
+    assert own.relation_slots["isPartOf"] == stock.relation_slots["isPartOf"]
+    assert own.relation_slots["taughtBy"].uri == "https://ex.org/schema/domain/taughtBy"
+
+
 def test_datamodel_usage_window_from_keyword():
     """The generated dataclasses accept a raw `from`-keyed usage_window dict.
 
@@ -416,3 +427,11 @@ def test_http_method_is_an_enum_of_iana_verbs():
     assert set(schema["enums"]["HttpMethod"]["permissible_values"]) == {
         "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
     }
+
+
+def test_schema_context_of_lokf_itself_is_the_published_context():
+    """A domain schema's context is built the way lokf-build builds LOKF's:
+    built from lokf.yaml, it is the published context."""
+    pytest.importorskip("linkml")
+    root = pathlib.Path(__file__).resolve().parents[1]
+    assert schema_context(root / "lokf.yaml") == load_context(root / "lokf.context.jsonld")

@@ -1,0 +1,22 @@
+# A domain schema that imports lokf and adds one class with one relation slot
+# of its own. The relative import reaches the repo-root lokf.yaml, as in
+# imports-only.yaml.
+id: https://ex.org/schema/domain-adds-a-slot
+name: domain_adds_a_slot
+imports:
+  - linkml:types
+  - ../../../lokf
+default_prefix: domain
+prefixes:
+  domain: https://ex.org/schema/domain/
+  linkml: https://w3id.org/linkml/
+classes:
+  Course:
+    is_a: Concept
+    slots:
+      - taughtBy
+slots:
+  taughtBy:
+    range: Concept
+    multivalued: true
+    slot_uri: domain:taughtBy

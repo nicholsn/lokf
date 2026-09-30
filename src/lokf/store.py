@@ -108,11 +108,17 @@ class GraphStore:
         return cls.from_rdf(graph.serialize(format="nt"), **kw)
 
     @classmethod
-    def from_bundle(cls, path: str | pathlib.Path, **kw) -> "GraphStore":
-        """Build a store from a LOKF bundle directory or concept file."""
+    def from_bundle(
+        cls, path: str | pathlib.Path, schema: str | pathlib.Path | None = None, **kw
+    ) -> "GraphStore":
+        """Build a store from a LOKF bundle directory or concept file, under
+        the domain *schema* when one is given. Queries then also get that
+        schema's prefixes."""
         from lokf import rdf
 
-        return cls.from_graph(rdf.graph_of(path), **kw)
+        if schema is not None:
+            kw.setdefault("prefixes", vocabulary(schema).prefixes)
+        return cls.from_graph(rdf.graph_of(path, schema=schema), **kw)
 
     def __len__(self) -> int:
         return len(self.store)
