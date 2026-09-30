@@ -43,7 +43,10 @@ curl -s 'http://127.0.0.1:8000/sparql' \
 ```
 
 The schema prefixes are preset here exactly as they are for
-[`lokf query`](/toolkit/query/), so your query needs no `PREFIX` block.
+[`lokf query`](/toolkit/query/), so your query needs no `PREFIX` block. With
+`--schema domain.yaml`, a domain schema's prefixes are preset too, and the graph
+is projected under it as [`lokf convert`](/toolkit/convert/#a-domain-schema)
+does.
 
 ## Fully offline
 

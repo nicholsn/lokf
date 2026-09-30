@@ -28,6 +28,10 @@ Write `schema:name`, `prov:wasDerivedFrom`, or `lokf:Metric` straight away.
 You can still declare your own `PREFIX`/`BASE` lines at the top of a query if
 you need one that is not preset.
 
+With `--schema domain.yaml`, a domain schema's own prefixes are preset as well,
+and the graph is projected under it as
+[`lokf convert`](/toolkit/convert/#a-domain-schema) does.
+
 ## Worked queries over the reference bundle
 
 <Tabs>
