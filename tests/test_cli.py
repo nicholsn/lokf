@@ -99,6 +99,20 @@ def test_convert_schema_projects_domain_terms_under_their_own_iris(tmp_path):
     assert "additionalType" not in result.stdout
 
 
+def test_convert_schema_leaves_an_undeclared_key_under_lokf(tmp_path):
+    """A key neither schema declares projects under LOKF's namespace, as it
+    does without --schema, while the domain's own terms keep their IRIs."""
+    kb = _kb(tmp_path, _COURSE.replace("title: C\n", "title: C\nstray: x\n"))
+    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    result = runner.invoke(
+        app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
+    )
+    assert result.exit_code == 0, result.output
+    assert '<https://w3id.org/lokf/stray> "x"' in result.stdout
+    assert f"<{_DOMAIN}Course>" in result.stdout
+    assert f"<{_DOMAIN}taughtBy>" in result.stdout
+
+
 def test_convert_without_schema_reads_a_domain_class_as_concept(tmp_path):
     """Without --schema, the same concept is an undeclared type (SPEC §8)."""
     kb = _kb(tmp_path, _COURSE)
