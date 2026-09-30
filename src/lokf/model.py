@@ -148,9 +148,12 @@ class Bundle:
                 and self.get(target) is None
             )
 
+        vocab = vocabulary(schema_path)
         out: list[tuple[str, str, str]] = []
-        for slot in vocabulary(schema_path).reference_slots:
-            for c in self.concepts:
+        for c in self.concepts:
+            # Only the slots that hold concept ids on this concept's type: a
+            # class can narrow an inherited reference slot to a string.
+            for slot in sorted(vocab.references(c.type)):
                 value = c.data.get(slot)
                 if value is None:
                     continue

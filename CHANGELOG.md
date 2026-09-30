@@ -41,7 +41,8 @@ with the 0.x caveat that a minor release may tighten validation.
 - `lokf validate --check-refs` reads a slot's range as LinkML does, through
   `slot_usage` and inheritance, so it also checks a slot a domain class ranges
   over `Concept` or a subclass, a slot inherited from a mixin, and a
-  single-valued reference. It read only a slot's own range before.
+  single-valued reference, and skips a slot the concept's own class narrows
+  to a string. It read only a slot's own range before.
 - `lokf validate --schema` resolves the domain schema's imports next to the
   schema file. Previously it resolved them against the current directory, so
   `imports: [lokf]` failed unless lokf ran from the schema's own directory.

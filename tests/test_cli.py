@@ -619,6 +619,24 @@ def test_check_refs_covers_references_the_domain_inherits(tmp_path):
         assert f"`{slot}` target" in result.output and target in result.output
 
 
+def test_check_refs_reads_a_slot_as_the_concepts_type_does(tmp_path):
+    """Tag's mixin narrows `label` to a string, so a Tag's label is never a
+    dangling reference; a type no class declares is a Concept, so its
+    `isPartOf` still is."""
+    domain = FIXTURES / "domain-schema" / "inherits-references.yaml"
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Tag\ntitle: T\nlabel: [https://ex.org/kb/nowhere]\n---\n\n# T\n",
+        {"w.md": "---\ntype: Widget\ntitle: W\nisPartOf: [https://ex.org/kb/nothing]\n---\n\n# W\n"},
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "`label` target" not in result.output
+    assert "`isPartOf` target" in result.output and "nothing" in result.output
+
+
 # -- query ------------------------------------------------------------------
 def test_query_schema_presets_its_prefixes(tmp_path):
     """query --schema projects under the domain schema and presets its

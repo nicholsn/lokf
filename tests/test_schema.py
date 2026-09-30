@@ -315,6 +315,24 @@ def test_vocabulary_resolves_references_by_inheritance():
     assert set(own.relation_slots) <= set(own.reference_slots)
 
 
+def test_references_follow_the_concepts_type():
+    # A concept holds concept ids in the reference slots of its class and
+    # ancestors, not in one a mixin narrows to a string, and a type no class
+    # declares holds Concept's.
+    own = vocabulary(FIXTURES / "domain-schema" / "inherits-references.yaml")
+    assert "label" in own.references("Base") and "label" not in own.references("Tag")
+    assert {"isPartOf", "taughtBy"} <= own.references("Course")
+    assert own.references("Widget") == own.references("Concept")
+    assert "taughtBy" not in own.references("Concept")
+
+
+def test_stock_reference_slots_are_the_relation_slots(vocab):
+    # lokf.yaml has no single-valued or subclass-ranged concept reference, so
+    # the wider set --check-refs reads is the relation set exactly.
+    assert set(vocab.reference_slots) == set(vocab.relation_slots)
+    assert vocab.reference_slots["isPartOf"] == {"Concept"}
+
+
 def test_induced_slot_matches_linkml():
     # Vocabulary resolves range and multivalued without LinkML; check it
     # agrees with SchemaView.induced_slot on every class and slot of a schema

@@ -187,7 +187,7 @@ class Vocabulary:
         self._classes = schema.get("classes") or {}
         self._slots = schema.get("slots") or {}
         classes = self._classes
-        concept_classes = {
+        self._concept_classes = concept_classes = {
             name for name in classes if self._descends_from(classes, name, "Concept")
         }
         declared_in: dict[str, set[str]] = {}
@@ -269,6 +269,20 @@ class Vocabulary:
     def _descends_from(cls, classes: dict, name: str, ancestor: str) -> bool:
         """Whether *name* reaches *ancestor* via ``is_a`` or ``mixins``."""
         return ancestor in cls._ancestors(classes, name)
+
+    def references(self, type_name: str) -> set[str]:
+        """The slots a concept of *type_name* holds concept ids in. A type no
+        class declares is a plain Concept (SPEC §8), so it gets Concept's."""
+        if type_name not in self._classes:
+            type_name = "Concept"
+        ancestors = self._ancestors(self._classes, type_name)
+        return {
+            name
+            for name, holders in self.reference_slots.items()
+            # Inherited from a holder, and not narrowed to a string since
+            if not holders.isdisjoint(ancestors)
+            and self._induced(type_name, name)["range"] in self._concept_classes
+        }
 
     def subclasses_of(self, ancestor: str) -> set[str]:
         """Class names descending from *ancestor* (inclusive), via ``is_a``."""
