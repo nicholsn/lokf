@@ -860,27 +860,17 @@ def test_export_writes_the_project_schemas_iris(tmp_path, monkeypatch):
     assert "Module" in json.loads((out / "concepts.jsonld").read_text(encoding="utf-8"))["@context"][0]
 
 
-def test_export_draws_a_prefixed_target_in_both_graphs(tmp_path, monkeypatch):
+def test_export_draws_a_prefixed_target_in_both_graphs(tmp_path):
     """A relation target written as a CURIE under a prefix the domain schema
     declares is one edge in graph.nt and the same edge in graph.json."""
     from rdflib import Graph, URIRef
 
     from lokf.schema import vocabulary
 
-    kb = _project(tmp_path)
-    (tmp_path / "domain.yaml").write_text(
-        "id: https://ex.org/schema/d\nname: d\nimports: [linkml:types, lokf]\ndefault_prefix: d\n"
-        "prefixes: {d: https://ex.org/schema/d/, kb: https://ex.org/kb/, linkml: https://w3id.org/linkml/}\n"
-        "classes:\n  Module: {is_a: Concept, slots: [taughtBy]}\n"
-        "slots:\n  taughtBy: {range: Concept, multivalued: true, slot_uri: d:taughtBy}\n",
-        encoding="utf-8",
-    )
-    (kb / "term.md").write_text(
-        "---\ntype: Module\ntitle: M\ntaughtBy: [kb:real]\n---\n\n# M\n", encoding="utf-8"
-    )
-    monkeypatch.chdir(tmp_path)
+    schema = FIXTURES / "domain-schema" / "prefixes-the-bundle.yaml"
+    kb = FIXTURES / "domain-schema" / "prefixed-target"
     out = tmp_path / "out"
-    result = runner.invoke(app, ["export", str(kb), "-d", str(out)])
+    result = runner.invoke(app, ["export", str(kb), "-d", str(out), "--schema", str(schema)])
     assert result.exit_code == 0, result.output
     nodes = {n["data"]["id"] for n in json.loads((out / "graph.json").read_text())["nodes"]}
     g = Graph().parse(str(out / "graph.nt"), format="nt")
@@ -889,9 +879,9 @@ def test_export_draws_a_prefixed_target_in_both_graphs(tmp_path, monkeypatch):
         for s, p, o in g
         if isinstance(o, URIRef) and str(s) in nodes and str(o) in nodes
     }
-    edge = ("https://ex.org/kb/term", "https://ex.org/schema/d/taughtBy", "https://ex.org/kb/real")
+    edge = ("https://ex.org/kb/term", "https://ex.org/schema/domain/taughtBy", "https://ex.org/kb/real")
     assert edge in rdf
-    vocab = vocabulary(tmp_path / "domain.yaml")
+    vocab = vocabulary(schema)
     drawn = {
         (e["data"]["source"], vocab.expand(e["data"]["predicate"]), e["data"]["target"])
         for e in json.loads((out / "graph.json").read_text())["edges"]
