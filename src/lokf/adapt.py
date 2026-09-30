@@ -433,7 +433,17 @@ def reroot(schema: dict, roots: list[str]) -> list[str]:
 def canonical_names(schema: dict) -> dict[str, str]:
     """Class names in CamelCase and slot names underscored: LinkML's canonical
     forms, which OKF's ``type``, frontmatter keys and the JSON-LD context use.
-    Derived IRIs do not change (``in taxon`` was ``vocab:in_taxon`` already)."""
+    Derived IRIs do not change (``in taxon`` was ``vocab:in_taxon`` already).
+    Two names with one canonical form (``sample record`` and ``SampleRecord``)
+    raise before anything is renamed: the rewrite would keep one definition."""
+    for section, form in (("classes", camelcase), ("slots", underscore)):
+        seen: dict[str, str] = {}
+        for n in schema.get(section) or {}:
+            other = seen.setdefault(form(n), n)
+            if other != n:
+                raise ValueError(
+                    f"{section[:-1]} names {other!r} and {n!r} are both {form(n)!r} in canonical form"
+                )
     r = Renames(
         elements={n: camelcase(n) for n in (schema.get("classes") or {}) if camelcase(n) != n},
         slots={n: underscore(n) for n in (schema.get("slots") or {}) if underscore(n) != n},
@@ -568,7 +578,10 @@ def adapt(
     else:
         chosen = find_roots(schema)
     report.tree_roots = [camelcase(n) for n in reroot(schema, chosen)]
-    report.canonical = canonical_names(schema)
+    try:
+        report.canonical = canonical_names(schema)
+    except ValueError as exc:
+        report.problems.append(str(exc))
     report.roots = [camelcase(n) for n in chosen]
 
     schema["name"] = name or f"{vocab.stem}_lokf"

@@ -168,6 +168,22 @@ def test_canonical_names_camelcase_classes_underscore_slots_and_follow_reference
     assert schema["slots"]["subject"]["range"] == "Entity"
 
 
+@pytest.mark.parametrize(
+    "section, names, canonical",
+    [
+        ("classes", {"sample record": {"class_uri": "v:A"}, "SampleRecord": {"class_uri": "v:B"}}, "SampleRecord"),
+        ("slots", {"in taxon": {"slot_uri": "v:a"}, "in_taxon": {"slot_uri": "v:b"}}, "in_taxon"),
+    ],
+)
+def test_canonical_names_refuses_two_names_with_one_form(section, names, canonical):
+    schema = {section: names}
+    before = yaml.safe_dump(schema)
+    with pytest.raises(ValueError, match=canonical) as exc:
+        A.canonical_names(schema)
+    assert all(repr(n) in str(exc.value) for n in names)
+    assert yaml.safe_dump(schema) == before  # nothing renamed, nothing lost
+
+
 def test_adapt_is_deterministic_and_reports_every_move():
     one, report = A.adapt(VOCAB)
     two, _ = A.adapt(VOCAB)
