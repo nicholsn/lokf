@@ -115,7 +115,7 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 <!-- --8<-- [end:validate-bundle] -->
 
-Validation is closed-world (SPEC §9): a project-specific type or key needs a domain schema that `imports: [lokf]` (SPEC §6.2), passed via `lokf validate --schema`. Pass the same file to `lokf convert`, `query` or `serve` with `--schema` to project its types and keys under their own IRIs.
+Validation is closed-world (SPEC §9): a project-specific type or key needs a domain schema that `imports: [lokf]` (SPEC §6.2), passed via `lokf validate --schema`. Pass the same file to `lokf convert`, `query` or `serve` with `--schema` to project its types and keys under their own IRIs. A published LinkML vocabulary becomes such a schema's import with `lokf adapt VOCAB.yaml`; `examples/biolink/` does this for biolink-model.
 
 Schema validation sees one concept at a time, so two files declaring one `id` (a sync client's conflict copy is the usual way) pass and then merge into one subject in the graph; `--check-ids` catches that. It cannot tell a live relation target from a fabricated one either - both are valid strings. `--check-refs` adds that pass:
 

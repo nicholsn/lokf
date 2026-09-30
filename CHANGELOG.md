@@ -68,6 +68,9 @@ with the 0.x caveat that a minor release may tighten validation.
 ### Internal
 
 - Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
+- A *Domain schemas* guide on the site, with gist and biolink-model as the two
+  shapes of imported vocabulary, and a toolkit page for `lokf adapt`; the
+  validation guide now names `--schema`, `--check-refs` and `--check-ids`.
 
 ## [0.8.0] — 2026-09-16
 
