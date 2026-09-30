@@ -48,6 +48,10 @@ with the 0.x caveat that a minor release may tighten validation.
   schema file. Previously it resolved them against the current directory, so
   `imports: [lokf]` failed unless lokf ran from the schema's own directory.
 
+### Internal
+
+- Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
+
 ## [0.8.0] — 2026-09-16
 
 Format version is unchanged: **LOKF v0.2**, realized by schema 0.8.0.
