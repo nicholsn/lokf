@@ -1,0 +1,24 @@
+# A domain schema that declares concept references as class attributes,
+# LinkML's usual style, and as a slot ranged by any_of.
+id: https://ex.org/schema/domain-attribute-references
+name: domain_attribute_references
+imports:
+  - linkml:types
+  - ../../../lokf
+default_prefix: domain
+prefixes:
+  domain: https://ex.org/schema/domain/
+  linkml: https://w3id.org/linkml/
+classes:
+  Course:
+    is_a: Concept
+    attributes:
+      taughtBy: {range: Concept, multivalued: true}
+      advisedBy: {range: Concept, multivalued: true, slot_uri: domain:advisedBy}
+      code: {range: string}
+    slots: [mentoredBy]
+slots:
+  mentoredBy:
+    multivalued: true
+    slot_uri: domain:mentoredBy
+    any_of: [{range: Concept}, {range: string}]

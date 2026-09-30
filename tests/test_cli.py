@@ -619,6 +619,25 @@ def test_check_refs_covers_references_the_domain_inherits(tmp_path):
         assert f"`{slot}` target" in result.output and target in result.output
 
 
+def test_check_refs_covers_attributes_and_any_of_ranges(tmp_path):
+    """--check-refs checks a reference declared as a class attribute and a
+    slot whose any_of includes Concept."""
+    domain = FIXTURES / "domain-schema" / "attribute-references.yaml"
+    kb = _kb(
+        tmp_path,
+        "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/nobody]\n"
+        "mentoredBy: [https://ex.org/kb/noone]\ncode: X1\n---\n\n# C\n",
+    )
+    result = runner.invoke(
+        app, ["validate", str(kb), "--schema", str(domain), "--check-refs"]
+    )
+    assert result.exit_code == 1
+    assert "is not valid" not in result.output
+    assert "`taughtBy` target" in result.output and "nobody" in result.output
+    assert "`mentoredBy` target" in result.output and "noone" in result.output
+    assert "`code`" not in result.output
+
+
 def test_check_refs_reads_a_slot_as_the_concepts_type_does(tmp_path):
     """Tag's mixin narrows `label` to a string, so a Tag's label is never a
     dangling reference; a type no class declares is a Concept, so its

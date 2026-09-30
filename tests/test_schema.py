@@ -333,10 +333,24 @@ def test_stock_reference_slots_are_the_relation_slots(vocab):
     assert vocab.reference_slots["isPartOf"] == {"Concept"}
 
 
+def test_vocabulary_reads_attributes_and_any_of_ranges():
+    # A class's attributes are its slots, and a slot whose any_of includes
+    # Concept holds concept ids. An attribute with no slot_uri has no
+    # predicate to propose, so it is a reference but not a relation.
+    own = vocabulary(FIXTURES / "domain-schema" / "attribute-references.yaml")
+    assert {"taughtBy", "advisedBy", "mentoredBy"} <= set(own.reference_slots)
+    assert "code" not in own.reference_slots
+    assert "taughtBy" not in own.relation_slots
+    assert own.relation_slots["advisedBy"].uri == "https://ex.org/schema/domain/advisedBy"
+    assert own.relation_slots["mentoredBy"].domains == {"Course"}
+    assert {"taughtBy", "advisedBy", "mentoredBy"} <= own.references("Course")
+
+
 def test_induced_slot_matches_linkml():
     # Vocabulary resolves range and multivalued without LinkML; check it
     # agrees with SchemaView.induced_slot on every class and slot of a schema
-    # built to disagree: mixins against is_a, slot is_a, and default_range.
+    # built to disagree: mixins against is_a, slot is_a, default_range, an
+    # inherited attribute, and an any_of range narrowed by slot_usage.
     from linkml_runtime.utils.schemaview import SchemaView
 
     schema = yaml.safe_load(
@@ -354,21 +368,26 @@ def test_induced_slot_matches_linkml():
           Mixin: {mixin: true, slot_usage: {a: {range: string}, b: {multivalued: true}}}
           Other: {mixin: true, slot_usage: {c: {range: Thing}}}
           Leaf: {is_a: Base, mixins: [Mixin, Other]}
+          Owner: {is_a: Thing, attributes: {a: {range: Thing, multivalued: true}}}
+          Heir: {is_a: Owner, slot_usage: {e: {any_of: [{range: string}]}}}
         slots:
           a: {range: integer}
           b: {multivalued: true}
           parent: {range: Thing, multivalued: true}
           c: {is_a: parent}
           d: {}
+          e: {multivalued: true, any_of: [{range: Thing}, {range: string}]}
         """
     )
     vocab = Vocabulary(schema)
     view = SchemaView(yaml.safe_dump(schema))
     for cls in schema["classes"]:
-        for slot in "abcd":
+        for slot in "abcde":
             induced = view.induced_slot(slot, cls)
             assert vocab._induced(cls, slot) == {
-                "range": induced.range, "multivalued": induced.multivalued,
+                "range": induced.range,
+                "multivalued": induced.multivalued,
+                "any_of": [e.range for e in induced.any_of],
             }, (cls, slot)
 
 
