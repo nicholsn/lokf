@@ -39,6 +39,12 @@ with the 0.x caveat that a minor release may tighten validation.
   relation slots (`isPartOf`, `about`, ...) and checked only
   `relations[].target`.
 
+### Fixed
+
+- `lokf validate --schema` resolves the domain schema's imports next to the
+  schema file. Previously it resolved them against the current directory, so
+  `imports: [lokf]` failed unless lokf ran from the schema's own directory.
+
 ## [0.8.0] — 2026-09-16
 
 Format version is unchanged: **LOKF v0.2**, realized by schema 0.8.0.

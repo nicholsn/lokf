@@ -275,7 +275,13 @@ def validate(
     doc = dict(bundle.meta)
     doc["concepts"] = bundle.docs()
 
-    report = linkml_validate(doc, str(sch), "KnowledgeBundle")
+    # Load the schema through SchemaView, which records the file's path, so
+    # its imports resolve next to the schema. Given only the path string,
+    # linkml resolves them against the current directory instead, and a
+    # domain schema's `imports: [lokf]` fails from anywhere else.
+    from linkml_runtime.utils.schemaview import SchemaView
+
+    report = linkml_validate(doc, SchemaView(str(sch)).schema, "KnowledgeBundle")
     defs = None
     for result in report.results:
         message = result.message

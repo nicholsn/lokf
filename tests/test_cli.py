@@ -382,6 +382,23 @@ def test_validate_rejects_unknown_http_method(tmp_path):
     assert "[ERROR]" in result.output
 
 
+def test_validate_resolves_schema_imports_from_any_directory(tmp_path, monkeypatch):
+    """A domain schema's imports must resolve next to the schema file, not in
+    the current directory, so --schema works from wherever lokf runs."""
+    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "term.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\ndefinition: d\n---\n\n# T\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["validate", str(tmp_path), "--schema", str(domain)])
+    assert result.exit_code == 0, result.output
+    assert result.output.startswith("OK")
+
+
 # -- --check-refs (referential integrity, issue #64) -------------------------
 def _kb(tmp_path, term: str, extra_files: dict | None = None):
     """A minimal bundle: index.md, one resolvable concept, plus *term*."""
