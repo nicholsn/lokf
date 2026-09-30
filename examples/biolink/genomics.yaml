@@ -1,0 +1,14 @@
+# The domain schema of the biolink example: it imports LOKF and the adapted
+# copy of biolink-model, and declares nothing of its own. Both files it
+# imports sit beside it: `just biolink` copies lokf.yaml here and writes
+# biolink_lokf.yaml with `lokf adapt` (neither is committed).
+id: https://acme.example/schema/genomics
+name: genomics
+imports:
+  - linkml:types
+  - lokf
+  - biolink_lokf
+default_prefix: genomics
+prefixes:
+  genomics: https://acme.example/schema/genomics/
+  linkml: https://w3id.org/linkml/
