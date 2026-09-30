@@ -389,6 +389,37 @@ def test_cli_exits_one_when_root_names_no_class(tmp_path):
     assert "--root names no class" in result.output
 
 
+_BROKEN = (
+    "id: https://ex.org/v\nname: v\ndefault_prefix: v\nimports: [linkml:types]\n"
+    "prefixes: {v: https://ex.org/v/, linkml: https://w3id.org/linkml/}\n"
+    "classes:\n  thing: {slots: [uid, part]}\n"
+    "slots:\n  uid: {identifier: true}\n  part: {range: nonesuch}\n"
+)
+
+
+def test_cli_leaves_an_existing_copy_when_the_new_one_fails_to_verify(tmp_path):
+    vocab = tmp_path / "v.yaml"
+    vocab.write_text(_BROKEN, encoding="utf-8")
+    out = tmp_path / "out" / "v_lokf.yaml"
+    out.parent.mkdir()
+    out.write_text("# the copy that worked\n", encoding="utf-8")
+    result = runner.invoke(app, ["adapt", str(vocab), "-o", str(out)])
+    assert result.exit_code == 1
+    assert "nonesuch is not defined" in result.output
+    assert out.read_text(encoding="utf-8") == "# the copy that worked\n"
+    assert [p.name for p in out.parent.iterdir()] == ["v_lokf.yaml"]  # no candidate left behind
+
+
+def test_cli_exits_one_on_a_canonical_name_collision_and_writes_nothing(tmp_path):
+    vocab = tmp_path / "v.yaml"
+    vocab.write_text(_BROKEN.replace("part: {range: nonesuch}", "part: {}\n  has part: {}\n  has_part: {}"), encoding="utf-8")
+    out = tmp_path / "v_lokf.yaml"
+    result = runner.invoke(app, ["adapt", str(vocab), "-o", str(out)])
+    assert result.exit_code == 1
+    assert "'has part' and 'has_part'" in result.output
+    assert not out.exists()
+
+
 # --- biolink-model, when fetched -------------------------------------------------
 
 BIOLINK = ROOT / "examples" / "biolink"

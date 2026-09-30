@@ -620,6 +620,7 @@ def adapt(
     from lokf import adapt as adapter
     from lokf.schema import schema_path
 
+    import os
     import tempfile
 
     import yaml
@@ -647,17 +648,26 @@ def adapt(
         if out.read_text(encoding="utf-8") != text:
             _err(f"{out} is stale: it differs from a fresh `lokf adapt` over {vocab.name} and {lokf_path.name}.")
             raise typer.Exit(1)
-    elif not dry_run:
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(text, encoding="utf-8")
-    if dry_run:
+    if dry_run or check:
         # Verify what would be written, so a dry run reports what a real one would.
         with tempfile.TemporaryDirectory() as tmp:
             probe = Path(tmp) / out.name
             probe.write_text(text, encoding="utf-8")
             problems = adapter.verify(probe, lokf_path)
     else:
-        problems = adapter.verify(out, lokf_path)
+        # Verify a candidate beside the output and replace it only then, so a
+        # copy that fails never overwrites one that worked.
+        out.parent.mkdir(parents=True, exist_ok=True)
+        fd, name = tempfile.mkstemp(dir=out.parent, prefix=f".{out.stem}.", suffix=".yaml")
+        candidate = Path(name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(text)
+            problems = adapter.verify(candidate, lokf_path)
+            if not problems:
+                os.replace(candidate, out)
+        finally:
+            candidate.unlink(missing_ok=True)
     for p in problems:
         _err(f"  problem: {p}")
     if problems:
