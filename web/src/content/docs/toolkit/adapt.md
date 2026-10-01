@@ -1,16 +1,14 @@
 ---
 title: Adapt a vocabulary
-description: lokf adapt turns a published LinkML vocabulary into a file a domain schema imports beside lokf.yaml.
+description: lokf adapt turns a published LinkML vocabulary into a LOKF domain schema beside lokf.yaml.
 sidebar:
   order: 9
 ---
 
-`lokf adapt` writes the copy of a published LinkML vocabulary that a
-[domain schema](/guide/domain-schemas/) imports beside `lokf.yaml`. LinkML
-merges imports into one namespace, so the copy may share no element name
-with `lokf.yaml`, and its concepts must descend from `Concept` to join the
-bundle's concept union. The command makes both true mechanically and
-verifies the result.
+`lokf adapt` copies a published LinkML vocabulary into a
+[LOKF domain schema](/guide/domain-schemas/). The copy imports `lokf.yaml`,
+shares no element name with it, and its classes descend from `Concept`. Pass
+it as `--schema`, or import it from a schema of your own when you add to it.
 
 ```bash
 lokf adapt biolink_model.yaml                       # -> biolink_model_lokf.yaml beside it
@@ -29,8 +27,9 @@ the result needs `lokf[build]`, as `--schema` always does.
 | detach, demote | A slot that inherited from a dropped one loses its `is_a`; every other `designates_type` is stripped. | Biolink's `category: is_a: type` would otherwise inherit LOKF's designator; `type` is the one. |
 | rename, IRIs kept | Every name `lokf.yaml` also defines, in any section, is renamed (`name` → `biolink_name`, `agent` → `BiolinkAgent`) with its `slot_uri`/`class_uri` pinned and the old name in `aliases`. | The name is local to the schema; the IRI carries the meaning. A type and a slot called `unit` is an overlap LinkML warns about. |
 | re-root | Every rootless, non-mixin class that carries the identifier gets `is_a: Concept`; `tree_root` comes off. | One line puts the whole vocabulary in the concept union; `KnowledgeBundle` is the document root. |
+| one canonical form | Two names that would canonicalise to one (biolink's `KnowledgeGraph` and `knowledge graph`) are both kept: the canonical spelling keeps its name, the other is renamed as a shared name is. | The rewrite would otherwise keep one definition and lose the other. |
 | canonical names | Class names CamelCased, slot names underscored. | `type`, frontmatter keys and the JSON-LD context all use these forms; derived IRIs do not change. |
-| verify | The copy is loaded beside `lokf.yaml` with SchemaView: every reference resolves, no name is shared, every re-rooted class reaches `Concept`. | Fails loudly rather than leaving a copy that validates nothing. |
+| verify | The copy is loaded beside `lokf.yaml` with SchemaView: every reference resolves, no name is shared, every re-rooted class reaches `Concept`. | A copy that fails is not written. |
 
 The report names each move's targets, and the copy's schema-level `notes`
 record them for anyone who opens the file.
@@ -40,7 +39,7 @@ record them for anyone who opens the file.
 | Option | Meaning |
 |---|---|
 | `-o, --output PATH` | Where to write the copy (default `<stem>_lokf.yaml` beside the input). |
-| `--root CLASS` | A class to re-root on `Concept`, as the vocabulary names it; repeatable, replaces detection. A vocabulary with no identifier slot (gist's shape) detects no root; name one, or bridge its classes as the guide shows. |
+| `--root CLASS` | A class to re-root on `Concept`, as the vocabulary names it; repeatable, replaces detection. A vocabulary with no identifier slot (gist's shape) has no root to detect; name each top class. |
 | `--lokf PATH` | The `lokf.yaml` to share no name with (default: a local checkout, else the copy packaged with lokf). |
 | `--prefix P` | Prefix for renamed elements (default: the vocabulary's `default_prefix`). |
 | `--dry-run` | Print the report and verify the copy; write nothing. |

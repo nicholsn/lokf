@@ -1,186 +1,219 @@
 ---
 title: Domain schemas
-description: Extend the type vocabulary with your own classes and slots, or adopt a published LinkML vocabulary such as biolink-model, without forking LOKF.
+description: How to give a bundle types LOKF does not define, with a schema of your own or a published LinkML vocabulary such as biolink-model.
 sidebar:
   order: 4
 ---
 
 import { Content as DomainSchema } from "../../../generated/domain-schema.md";
 
-An unknown `type` is tolerated: the concept reads as `lokf:Concept` and the
-bundle stays valid. It is also meaningless, because nothing says what a
-`Dashboard` is or what its keys mean. A **domain schema** gives it meaning. It
-is a LinkML schema that imports `lokf.yaml` and declares the classes and
-slots a domain needs beyond the [type vocabulary](/guide/types/), under the
-domain's own IRIs. The same validator checks them, and the same commands
-project them. The normative text is [specification §6.2](/specification/#62-domain-schemas-extending-the-vocabulary).
+This page is for a bundle author whose domain needs types LOKF does not
+define. It shows how to write a LOKF domain schema, and how to make one from
+a published LinkML vocabulary.
 
-## A schema of your own
+Following OKF, a `type` that LOKF does not define is tolerated: the concept
+reads as `lokf:Concept` and the bundle stays valid. The type carries no
+meaning until a schema declares it.
+
+A **LOKF domain schema** declares it. It is a LinkML schema that imports
+`lokf.yaml` and whose classes descend from `Concept`. Pass it as `--schema`
+to `validate`, `convert`, `query` and `serve`. The rules are in
+[specification §6.2](/specification/#62-domain-schemas-extending-the-vocabulary).
+
+| You have | Do this |
+|---|---|
+| Types of your own | [Write a schema](#write-a-schema) |
+| A published LinkML vocabulary | [Adapt it](#adapt-a-published-vocabulary) |
+| A vocabulary, and types or keys of your own | Adapt it, then [extend the copy](#extend-an-adapted-vocabulary) |
+
+## Write a schema
 
 <DomainSchema />
 
-`- lokf` names a copy of `lokf.yaml` beside the schema, pinned at the version
-the toolkit runs. Four rules follow from how LinkML composes the two files:
+1. **Put `lokf.yaml` beside the schema.** The `- lokf` import reads it from
+   there. Copy it from the installed package, so it matches the toolkit:
 
-1. **A domain class descends from `Concept`**, directly or through a LOKF class
-   such as `Reference`. Every descendant joins the bundle's concept union, so
-   the validator accepts LOKF's classes plus yours.
-2. **A shared name is renamed and keeps its IRI.** LinkML merges imports into
-   one namespace, so a `Person` or `title` the domain declares silently
-   replaces LOKF's. Rename the element and keep its `class_uri` or
-   `slot_uri`: the name is local to the schema, the IRI carries the meaning.
-3. **A key needs a class that declares it.** Classes are closed, so a LOKF
-   class with one extra key fails. Subclass it, declare the key on the
-   subclass, and write the subclass's name in `type`.
-4. **A relation slot ranges over `Concept`** or a subclass, so its values
-   project as IRIs and `--check-refs` resolves them. A slot ranged over a type
-   such as `string` holds a literal.
+   ```bash
+   cp "$(python -c "from importlib.resources import files; print(files('lokf') / 'data' / 'lokf.yaml')")" .
+   ```
 
-Every command that reads the vocabulary takes the schema as `--schema`:
+2. **Put each class under `Concept`**, directly or through a LOKF class such
+   as `Reference`. The validator then accepts it as a `type`.
+3. **Rename anything that shares a name with `lokf.yaml`, and keep its IRI.**
+   LinkML merges the two files into one namespace, so a `Person` or `title`
+   of yours replaces LOKF's. Rename yours and set its `class_uri` or
+   `slot_uri`.
+4. **Subclass a LOKF class to add a key to it.** Classes are closed, so an
+   undeclared key fails. Declare the key on the subclass and write the
+   subclass's name in `type`.
+5. **Range each relation slot over `Concept`** or a subclass of it. Its
+   values then project as IRIs, and `--check-refs` resolves them. A slot
+   ranged over `string` holds a literal.
+6. **Pass the schema to each command:**
 
-```bash
-lokf validate knowledge --schema analytics.yaml --check-refs
-lokf convert  knowledge --schema analytics.yaml --format ttl
-lokf query    knowledge --schema analytics.yaml "SELECT ?s WHERE { ?s a analytics:Dashboard }"
-lokf serve    knowledge --schema analytics.yaml
-```
+   ```bash
+   lokf validate knowledge --schema analytics.yaml --check-refs
+   lokf convert  knowledge --schema analytics.yaml --format ttl
+   lokf query    knowledge --schema analytics.yaml "SELECT ?s WHERE { ?s a analytics:Dashboard }"
+   lokf serve    knowledge --schema analytics.yaml
+   ```
 
-Under it a `Dashboard` projects as `a analytics:Dashboard` and `shows` as
-`analytics:shows`. Without it the same file reads as `lokf:Concept` with
-`additionalType: Dashboard`, and `shows` is a string. Both readings are
-conformant; the schema is the consumer's, the bundle's files do not change.
+With the schema, a `Dashboard` projects as `a analytics:Dashboard` and
+`shows` as `analytics:shows`. Without it, the same file reads as
+`lokf:Concept` with `additionalType: Dashboard`, and `shows` is a string.
+Both readings are conformant, and the bundle's files are the same in each.
 
-## Adopting a published vocabulary
+## Adapt a published vocabulary
 
-A domain schema can import a published LinkML vocabulary instead of, or as
-well as, declaring classes of its own. Rule 2 applies to the whole
-vocabulary at once, and how rule 1 applies depends on the vocabulary's
-shape. There are two.
+`lokf adapt` copies a published LinkML vocabulary into a LOKF domain schema.
+The copy imports `lokf.yaml`, renames each name the two share and keeps its
+IRI, and puts the vocabulary's root class under `Concept`.
+[Biolink-model](https://github.com/biolink/biolink-model) is the worked case.
 
-### Classes without an identifier
+1. **Run `lokf adapt`** on the vocabulary, with `lokf.yaml` beside it:
 
-[gist](https://github.com/lmodel/gist), Semantic Arts' upper ontology in
-LinkML, has classes with no `id` slot, so a concept cannot take one as its
-`type` directly. Bridge each class you use with a `Concept` subclass that
-mixes it in and pins its IRI, and range its relation slots over `Concept`:
+   ```bash
+   lokf adapt biolink_model.yaml
+   ```
 
-```yaml title="enterprise.yaml"
-imports: [linkml:types, lokf, gist_core]   # gist_core: the copy gist releases for LOKF
-classes:
-  GistRequirement:
-    is_a: Concept
-    mixins: [Requirement]
-    class_uri: gist:Requirement
-    slots: [is_governed_by]
-    slot_usage:
-      is_governed_by: {range: Concept}
-```
+   ```text
+   biolink_model.yaml (Biolink-Model 4.4.4) -> biolink_model_lokf.yaml
+     folded imports:          attributes
+     dropped for LOKF's:      id, type
+     detached from a dropped: category
+     demoted designators:     category
+     renamed, IRIs kept:      agent -> BiolinkAgent, dataset -> BiolinkDataset, unit -> biolink_unit, name -> biolink_name, ...
+     re-rooted on Concept:    Entity
+     tree_root removed:       BiolinkKnowledgeGraph, MappingCollection
+     one canonical form:      knowledge graph -> BiolinkKnowledgeGraph
+     canonical names:         835
+     verified beside lokf.yaml
+   It is a LOKF domain schema: pass it as --schema, or import it from one of your own beside lokf.yaml:
+     imports: [linkml:types, lokf, biolink_model_lokf]
+   ```
 
-gist ships that copy with each release, its `Person`, `Organization`, `name`,
-`description` and `license` renamed and their `gist:` IRIs kept.
+   Each line is one of the [moves](/toolkit/adapt/#what-it-changes).
+   `re-rooted on Concept` is the one that makes biolink's classes types:
+   `entity` and the 264 classes below it can each be named in `type`.
+   Biolink's 51 mixins cannot; the classes that use them can.
 
-### A vocabulary with its own root
+   ```mermaid
+   graph BT
+       Gene -- is_a --> BiologicalEntity -- is_a --> NamedThing -- is_a --> Entity
+       Entity -- "is_a (added)" --> Concept["lokf:Concept"]
+   ```
 
-[Biolink-model](https://github.com/biolink/biolink-model), the best-known
-LinkML schema, is the other shape. Its root `entity` already carries `id`,
-`name`, `description` and `type`, and biolink has a type designator of its
-own, `category`. Nothing needs bridging; the copy needs re-rooting. The
-toolkit does it:
+2. **Write concepts with the vocabulary's classes as `type`:**
 
-```bash
-lokf adapt biolink_model.yaml
-```
+   ```markdown title="knowledge/genes/brca1.md"
+   ---
+   type: Gene
+   category: [biolink:Gene]
+   title: BRCA1
+   biolink_name: BRCA1
+   symbol: BRCA1
+   xref: [HGNC:1100]
+   in_taxon: [NCBITaxon:9606]
+   status: stable
+   ---
+   # BRCA1
+   ```
 
-```text
-biolink_model.yaml (Biolink-Model 4.4.4) -> biolink_model_lokf.yaml
-  folded imports:          attributes
-  dropped for LOKF's:      id, type
-  detached from a dropped: category
-  demoted designators:     category
-  renamed, IRIs kept:      agent -> BiolinkAgent, dataset -> BiolinkDataset, unit -> biolink_unit, name -> biolink_name, ...
-  re-rooted on Concept:    Entity
-  tree_root removed:       KnowledgeGraph, MappingCollection
-  canonical names:         836
-  verified beside lokf.yaml
-Import it from a domain schema beside lokf.yaml:
-  imports: [linkml:types, lokf, biolink_model_lokf]
-```
+   `type` is LOKF's designator, and validation matches the class by it.
+   `category` is biolink's own required list, so a biolink consumer reads
+   the file too. `biolink_name` is biolink's `name`, renamed in the copy; it
+   still projects as `rdfs:label`.
 
-Each line is one of the [moves](/toolkit/adapt/#what-it-changes). The one
-that matters most is the shortest: `entity` becomes a subclass of `Concept`,
-and the 265 biolink classes that descend from it join the concept union. Its
-51 mixins do not; a mixin is never a concept itself, the class that mixes it
-in is.
+3. **Pass the copy as `--schema`:**
 
-```mermaid
-graph BT
-    Gene -- is_a --> BiologicalEntity -- is_a --> NamedThing -- is_a --> Entity
-    Entity -- "is_a (added)" --> Concept["lokf:Concept"]
-```
+   ```bash
+   lokf validate knowledge --schema biolink_model_lokf.yaml --check-refs
+   lokf convert  knowledge --schema biolink_model_lokf.yaml --format ttl
+   ```
 
-The domain schema then declares nothing of its own:
+   ```turtle
+   <https://acme.example/genomics/genes/brca1> a biolink:Gene ;
+       rdfs:label "BRCA1" ;
+       schema:name "BRCA1" ;
+       schema:creativeWorkStatus "stable" ;
+       biolink:category "biolink:Gene"^^xsd:anyURI ;
+       biolink:in_taxon <http://purl.obolibrary.org/obo/NCBITaxon_9606> ;
+       biolink:symbol "BRCA1" ;
+       biolink:xref "HGNC:1100"^^xsd:anyURI .
+   ```
 
-```yaml title="genomics.yaml"
-id: https://acme.example/schema/genomics
-name: genomics
-imports: [linkml:types, lokf, biolink_lokf]
-default_prefix: genomics
-prefixes:
-  genomics: https://acme.example/schema/genomics/
-  linkml: https://w3id.org/linkml/
-```
-
-and a gene is an ordinary concept file:
-
-```markdown title="knowledge/genes/brca1.md"
----
-type: Gene
-category: [biolink:Gene]
-title: BRCA1
-biolink_name: BRCA1
-symbol: BRCA1
-xref: [HGNC:1100]
-in_taxon: [NCBITaxon:9606]
-status: stable
----
-# BRCA1
-```
-
-:::note[Two type keys]
-`type: Gene` is LOKF's designator, and validation matches the class by it.
-`category` is biolink's own required list, kept as biolink wrote it, so a
-biolink consumer reads the file too. `biolink_name` is biolink's `name`,
-renamed because LOKF has a `name`; it still projects as `rdfs:label`.
-:::
-
-`lokf validate knowledge --schema genomics.yaml --check-refs` passes, and
-`lokf convert` gives:
-
-```turtle
-<https://acme.example/genomics/genes/brca1> a biolink:Gene ;
-    rdfs:label "BRCA1" ;
-    schema:name "BRCA1" ;
-    schema:creativeWorkStatus "stable" ;
-    biolink:category "biolink:Gene"^^xsd:anyURI ;
-    biolink:in_taxon <http://purl.obolibrary.org/obo/NCBITaxon_9606> ;
-    biolink:symbol "BRCA1" ;
-    biolink:xref "HGNC:1100"^^xsd:anyURI .
-```
-
-A class-ranged slot (`in_taxon`) projects as an IRI, a `uriorcurie` one
-(`xref`) as a literal, and LOKF's trust fields sit beside biolink's terms on
-the same subject. A stock LOKF `Dataset` in the same bundle can be `about`
-the gene, and `--check-refs` resolves a LOKF relation on a biolink class.
+   A slot ranged over a class (`in_taxon`) projects as an IRI. A slot ranged
+   over `uriorcurie` (`xref`) projects as a literal. LOKF's fields and
+   relations work on the vocabulary's classes: a LOKF `Dataset` can be
+   `about` the gene, and `--check-refs` resolves it.
 
 :::tip[Try it]
 `just biolink` in the lokf repository fetches biolink-model 4.4.4 at its tag,
-runs `lokf adapt`, and validates and projects `examples/biolink/`. Nothing
-upstream is committed.
+runs `lokf adapt`, and validates and projects `examples/biolink/` with the
+copy as `--schema`.
 :::
 
-## Keeping the copy current
+### Name the root when the vocabulary has none
 
-The copy is a generated file. Its renames depend on what `lokf.yaml` defines
-and its content on the vocabulary's release, so re-run `lokf adapt` when
-either moves and commit the result. `lokf adapt VOCAB -o COPY --check` exits
-1 when the copy is stale or no longer verifies, which is the CI job to add.
+`lokf adapt` finds the root class by its identifier slot. A vocabulary whose
+classes carry no identifier has no root to find. Name its top classes with
+`--root`, one flag for each:
+
+```bash
+lokf adapt gist_core.yaml --prefix gist --root Aspect --root Category --root Component ...
+```
+
+[gist-linkml](https://github.com/lmodel/gist), a LinkML rendering of
+Semantic Arts' [gist](https://github.com/semanticarts/gist), is the tested
+case, because it fits this pattern. A concept then writes `type: Requirement`, which
+projects as `a gist:Requirement`.
+
+## Extend an adapted vocabulary
+
+The copy is generated, so additions go in a schema of your own. That schema
+imports `lokf.yaml` and the copy, and `--schema` names it in place of the
+copy. The steps in [Write a schema](#write-a-schema) apply to what it adds.
+
+gist attaches few slots to its classes, and classes are closed. A concept
+that needs a gist slot therefore takes a class that lists it:
+
+```yaml title="enterprise.yaml"
+id: https://acme.example/schema/enterprise
+name: enterprise
+imports: [linkml:types, lokf, gist_core_lokf]
+default_prefix: enterprise
+prefixes:
+  enterprise: https://acme.example/schema/enterprise/
+  gist: https://w3id.org/semanticarts/ns/ontology/gist/
+  linkml: https://w3id.org/linkml/
+classes:
+  GovernedRequirement:            # gist's Requirement, with one gist slot listed
+    is_a: Requirement
+    class_uri: gist:Requirement
+    slots: [is_governed_by]
+```
+
+```markdown title="knowledge/requirements/rotate-keys.md"
+---
+type: GovernedRequirement
+title: Rotate keys
+is_governed_by: [policies/security]
+---
+# Rotate keys
+```
+
+```turtle
+<https://acme.example/kb/requirements/rotate-keys> a gist:Requirement ;
+    schema:name "Rotate keys" ;
+    gist:isGovernedBy <https://acme.example/kb/policies/security> .
+```
+
+## Keep the copy current
+
+The copy has two inputs: the vocabulary's release and `lokf.yaml`. Re-run
+`lokf adapt` when either changes, and commit the result. In CI, `--check`
+exits 1 when the copy is stale or no longer verifies:
+
+```bash
+lokf adapt biolink_model.yaml -o biolink_model_lokf.yaml --check
+```

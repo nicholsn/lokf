@@ -39,8 +39,8 @@ biolink:
     cd examples/biolink/upstream && sha256sum --check ../upstream.sha256
     cp lokf.yaml examples/biolink/lokf.yaml
     uv run lokf adapt examples/biolink/upstream/biolink_model.yaml -o examples/biolink/biolink_lokf.yaml --lokf lokf.yaml
-    uv run lokf validate examples/biolink/knowledge --schema examples/biolink/genomics.yaml --check-refs
-    uv run lokf convert examples/biolink/knowledge --schema examples/biolink/genomics.yaml --format ttl
+    uv run lokf validate examples/biolink/knowledge --schema examples/biolink/biolink_lokf.yaml --check-refs
+    uv run lokf convert examples/biolink/knowledge --schema examples/biolink/biolink_lokf.yaml --format ttl
 
 # Serve the Astro docs site locally with live reload (web/)
 docs:

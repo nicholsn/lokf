@@ -31,14 +31,16 @@ with the 0.x caveat that a minor release may tighten validation.
   preset its prefixes. Needs the `build` extra; without the flag nothing
   changes. `lokf.schema.schema_context()` builds the context, and
   `authoring_context()` holds the fixes `lokf-build` applies to LOKF's own.
-- `lokf adapt VOCAB.yaml` writes the copy of a published LinkML vocabulary
-  that a domain schema imports beside `lokf.yaml`: its own imports folded in,
-  its root re-rooted on `Concept`, its identifier and `rdf:type` slots dropped
-  for LOKF's, any other type designator demoted, every name it shares with
-  `lokf.yaml` renamed with the IRI kept, class names CamelCased and slot
-  names underscored, and the result verified with SchemaView. `just biolink`
-  runs it over biolink-model 4.4.4 (`examples/biolink/`, nothing upstream
-  committed); `--check` guards a CI job. Needs only the core install.
+- `lokf adapt VOCAB.yaml` writes a published LinkML vocabulary as a LOKF
+  domain schema beside `lokf.yaml`, to pass as `--schema` or import from a schema
+  of your own: its own imports folded in, its root re-rooted on `Concept`,
+  its identifier and `rdf:type` slots dropped for LOKF's, any other type
+  designator demoted, every name it shares with `lokf.yaml` renamed with the
+  IRI kept, two names with one canonical form kept apart the same way, class
+  names CamelCased and slot names underscored, and the result verified with
+  SchemaView. `just biolink` runs it over biolink-model 4.4.4
+  (`examples/biolink/`, nothing upstream committed); `--check` guards a CI
+  job. Needs only the core install.
 
 ### Fixed
 
@@ -69,9 +71,9 @@ with the 0.x caveat that a minor release may tighten validation.
 ### Internal
 
 - Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
-- A *Domain schemas* guide on the site, with gist and biolink-model as the two
-  shapes of imported vocabulary, and a toolkit page for `lokf adapt`; the
-  validation guide now names `--schema`, `--check-refs` and `--check-ids`.
+- A *Domain schemas* how-to guide on the site, with biolink-model and gist
+  as the adapted vocabularies, and a toolkit page for `lokf adapt`; the validation guide now names `--schema`, `--check-refs`
+  and `--check-ids`.
 
 ## [0.8.0] — 2026-09-16
 

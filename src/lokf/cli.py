@@ -8,7 +8,7 @@
     lokf propose examples/acme-knowledge --apply      # typed relations from links
     lokf vocab                                        # the typed-relation vocabulary
     lokf vocab --all --json                           # the full vocabulary + descriptions
-    lokf adapt biolink_model.yaml                     # a vocabulary a domain schema imports
+    lokf adapt biolink_model.yaml                     # a vocabulary as a LOKF domain schema
     lokf skills                                        # bundled agent skills
     lokf mcp                                           # run the MCP server
     lokf --version                                     # print the lokf version
@@ -616,7 +616,7 @@ def adapt(
         "and it verifies beside lokf.yaml. For CI, when either schema moves.",
     ),
 ) -> None:
-    """Copy a LinkML vocabulary so a domain schema can import it beside lokf.yaml."""
+    """Copy a LinkML vocabulary into a LOKF domain schema beside lokf.yaml."""
     from lokf import adapt as adapter
     from lokf.schema import schema_path
 
@@ -673,7 +673,7 @@ def adapt(
     if problems:
         raise typer.Exit(1)
     typer.echo(f"  verified beside {lokf_path.name}{' (dry run, nothing written)' if dry_run else ''}")
-    typer.echo("Import it from a domain schema beside lokf.yaml:")
+    typer.echo("It is a LOKF domain schema: pass it as --schema, or import it from one of your own beside lokf.yaml:")
     typer.echo(f"  imports: [linkml:types, lokf, {out.stem}]")
 
 

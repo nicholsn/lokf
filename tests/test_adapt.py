@@ -155,7 +155,8 @@ def test_find_roots_sees_an_identifier_a_mixin_supplies():
 
 def test_canonical_names_camelcase_classes_underscore_slots_and_follow_references():
     schema = _folded()
-    mapping = A.canonical_names(schema)
+    collided, mapping = A.canonical_names(schema, "v")
+    assert collided == {}
     assert mapping == {
         "entity": "Entity", "named thing": "NamedThing", "gene": "Gene",
         "organism taxon": "OrganismTaxon", "dataset": "Dataset", "taggable": "Taggable",
@@ -169,19 +170,22 @@ def test_canonical_names_camelcase_classes_underscore_slots_and_follow_reference
 
 
 @pytest.mark.parametrize(
-    "section, names, canonical",
+    "section, names, kept, old, renamed, uri_key, uri",
     [
-        ("classes", {"sample record": {"class_uri": "v:A"}, "SampleRecord": {"class_uri": "v:B"}}, "SampleRecord"),
-        ("slots", {"in taxon": {"slot_uri": "v:a"}, "in_taxon": {"slot_uri": "v:b"}}, "in_taxon"),
+        # The canonical spelling keeps its name; the other is renamed with the prefix, IRI pinned.
+        ("classes", ["knowledge graph", "KnowledgeGraph"], "KnowledgeGraph", "knowledge graph", "VKnowledgeGraph", "class_uri", "v:KnowledgeGraph"),
+        ("slots", ["in taxon", "in_taxon"], "in_taxon", "in taxon", "v_in_taxon", "slot_uri", "v:in_taxon"),
+        # Neither canonical: the first keeps its name, canonicalised; the second is renamed.
+        ("classes", ["sample record", "sample_record"], "SampleRecord", "sample_record", "VSampleRecord", "class_uri", "v:SampleRecord"),
     ],
 )
-def test_canonical_names_refuses_two_names_with_one_form(section, names, canonical):
-    schema = {section: names}
-    before = yaml.safe_dump(schema)
-    with pytest.raises(ValueError, match=canonical) as exc:
-        A.canonical_names(schema)
-    assert all(repr(n) in str(exc.value) for n in names)
-    assert yaml.safe_dump(schema) == before  # nothing renamed, nothing lost
+def test_canonical_names_renames_all_but_one_of_the_names_with_one_form(section, names, kept, old, renamed, uri_key, uri):
+    schema = {"default_prefix": "v", "prefixes": {"v": "https://v.example/"}, section: {n: {} for n in names}}
+    collided, mapping = A.canonical_names(schema, "v")
+    assert collided == {old: renamed}
+    assert set(schema[section]) == {kept, renamed}
+    assert schema[section][renamed] == {uri_key: uri, "aliases": [old]}
+    assert old not in mapping  # renamed once, as a collision, not again as canonical
 
 
 def test_adapt_is_deterministic_and_reports_every_move():
@@ -276,12 +280,12 @@ def test_verify_reports_a_name_still_shared_and_a_dangling_reference(tmp_path):
     assert any("Nonesuch" in p for p in problems)
 
 
-def test_the_copy_validates_a_bundle_through_a_domain_schema(tmp_path):
-    _adapted(tmp_path)
-    domain, kb = _domain(tmp_path), _bundle(tmp_path)
-    result = runner.invoke(app, ["validate", str(kb), "--schema", str(domain), "--check-refs"])
-    assert result.exit_code == 0, result.output
-    assert result.output.startswith("OK")
+def test_the_copy_is_a_domain_schema_and_a_schema_that_imports_it_is_another(tmp_path):
+    copy, kb = _adapted(tmp_path), _bundle(tmp_path)
+    for schema in (copy, _domain(tmp_path)):
+        result = runner.invoke(app, ["validate", str(kb), "--schema", str(schema), "--check-refs"])
+        assert result.exit_code == 0, result.output
+        assert result.output.startswith("OK")
 
 
 def test_check_refs_covers_the_vocabularys_relation_slots(tmp_path):
@@ -410,14 +414,16 @@ def test_cli_leaves_an_existing_copy_when_the_new_one_fails_to_verify(tmp_path):
     assert [p.name for p in out.parent.iterdir()] == ["v_lokf.yaml"]  # no candidate left behind
 
 
-def test_cli_exits_one_on_a_canonical_name_collision_and_writes_nothing(tmp_path):
+def test_cli_renames_a_canonical_name_collision_and_reports_it(tmp_path):
     vocab = tmp_path / "v.yaml"
     vocab.write_text(_BROKEN.replace("part: {range: nonesuch}", "part: {}\n  has part: {}\n  has_part: {}"), encoding="utf-8")
     out = tmp_path / "v_lokf.yaml"
     result = runner.invoke(app, ["adapt", str(vocab), "-o", str(out)])
-    assert result.exit_code == 1
-    assert "'has part' and 'has_part'" in result.output
-    assert not out.exists()
+    assert result.exit_code == 0, result.output
+    assert "one canonical form:      has part -> v_has_part" in result.output
+    copy = yaml.safe_load(out.read_text(encoding="utf-8"))
+    assert {"has_part", "v_has_part"} <= set(copy["slots"])
+    assert copy["slots"]["v_has_part"]["aliases"] == ["has part"]
 
 
 # --- biolink-model, when fetched -------------------------------------------------
@@ -434,15 +440,13 @@ def test_biolink_round_trip(tmp_path):
     assert report.dropped == {"id": "id", "type": "type"}
     assert report.demoted == ["category"]
     assert {"name", "description", "license", "agent", "dataset"} <= set(report.renamed)
+    assert report.collided == {"knowledge graph": "BiolinkKnowledgeGraph"}  # biolink 4.4.4 has both spellings
     copy = BIOLINK / "biolink_lokf.yaml"
     copy.write_text(A.dump(schema, A.header(report)), encoding="utf-8")
     assert A.verify(copy, LOKF) == []
-    result = runner.invoke(
-        app, ["validate", str(BIOLINK / "knowledge"), "--schema", str(BIOLINK / "genomics.yaml"), "--check-refs"]
-    )
+    # The copy is the LOKF domain schema: nothing of the bundle's own imports it.
+    result = runner.invoke(app, ["validate", str(BIOLINK / "knowledge"), "--schema", str(copy), "--check-refs"])
     assert result.exit_code == 0, result.output
-    result = runner.invoke(
-        app, ["convert", str(BIOLINK / "knowledge"), "-f", "nt", "--schema", str(BIOLINK / "genomics.yaml")]
-    )
+    result = runner.invoke(app, ["convert", str(BIOLINK / "knowledge"), "-f", "nt", "--schema", str(copy)])
     assert result.exit_code == 0, result.output
     assert "<https://w3id.org/biolink/vocab/Gene>" in result.stdout

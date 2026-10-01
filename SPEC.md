@@ -351,7 +351,7 @@ them with typed relations (`references`, `about`).
 
 ### 6.2 Domain schemas: extending the vocabulary
 
-An unknown `type` reads as `lokf:Concept` (§8): the bundle stays valid, but the type has no meaning. A **domain schema** gives it one. It is a LinkML schema that imports `lokf.yaml` and declares the classes and slots a domain needs beyond §6, under the domain's own IRIs.
+An unknown `type` reads as `lokf:Concept` (§8): the bundle stays valid, but the type has no meaning. A **LOKF domain schema** (hereafter *domain schema*) gives it one. It is a LinkML schema that imports `lokf.yaml` and declares the classes and slots a domain needs beyond §6, under the domain's own IRIs.
 
 <!-- --8<-- [start:domain-schema] -->
 ```yaml title="analytics.yaml"
@@ -384,6 +384,8 @@ Imports resolve beside the schema file, so `- lokf` names a copy of `lokf.yaml` 
 2. **A shared name is renamed and keeps its IRI.** LinkML merges imports into one namespace, so a `Person` or `title` the domain declares silently replaces LOKF's. A domain schema, or a vocabulary it imports, therefore renames any element that shares a name with `lokf.yaml` and keeps its `class_uri` or `slot_uri`. The name is local to the schema and the IRI carries the meaning, so gist's `Person`, renamed `GistPerson`, still projects as `gist:Person`. A vocabulary with a root of its own is re-rooted on `Concept` in the copy; a shared name with the same meaning (`id`, `type`) is dropped there so LOKF's serves, and a second type designator is demoted, since `type` is the one.
 3. **A key needs a class that declares it.** Classes are closed (§9), so a LOKF class with one extra key fails. Subclass it, declare the key on the subclass, and write the subclass's name in `type`; a subclass is matched by its own name, not its parent's.
 4. **A relation slot ranges over `Concept`** or a subclass, so its values project as IRIs and `--check-refs` resolves them. A slot ranged over a type such as `string` holds a literal. Each slot SHOULD carry a `slot_uri` under the domain's prefix, and the schema's `id` and prefixes SHOULD sit under the same authority as the bundle's `base_iri`.
+
+A published LinkML vocabulary is adopted through a copy that satisfies these rules: the copy imports `lokf.yaml`, renames what it shares, and its classes descend from `Concept`. `lokf adapt` writes such a copy. The copy is a domain schema, and so is a schema that imports it beside `lokf.yaml` and declares additions.
 
 `lokf validate`, `convert`, `query` and `serve` take the schema as `--schema` (§9). Under it, a `Dashboard` projects as `a analytics:Dashboard` and `shows` as `analytics:shows`, and the domain's classes are declared types rather than unknown ones.
 

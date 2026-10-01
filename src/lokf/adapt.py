@@ -80,6 +80,7 @@ class Report:
     renamed: dict[str, str] = field(default_factory=dict)
     roots: list[str] = field(default_factory=list)
     tree_roots: list[str] = field(default_factory=list)
+    collided: dict[str, str] = field(default_factory=dict)
     canonical: dict[str, str] = field(default_factory=dict)
     problems: list[str] = field(default_factory=list)
 
@@ -95,6 +96,7 @@ class Report:
             f"renamed, IRIs kept:      {pairs(self.renamed)}",
             f"re-rooted on Concept:    {', '.join(self.roots) or 'none (pass --root)'}",
             f"tree_root removed:       {', '.join(self.tree_roots) or 'none'}",
+            f"one canonical form:      {pairs(self.collided)}",
             f"canonical names:         {len(self.canonical)}",
         ]
         out.extend(f"problem: {p}" for p in self.problems)
@@ -430,26 +432,31 @@ def reroot(schema: dict, roots: list[str]) -> list[str]:
     return had_tree_root
 
 
-def canonical_names(schema: dict) -> dict[str, str]:
+def canonical_names(schema: dict, prefix: str) -> tuple[dict[str, str], dict[str, str]]:
     """Class names in CamelCase and slot names underscored: LinkML's canonical
     forms, which OKF's ``type``, frontmatter keys and the JSON-LD context use.
     Derived IRIs do not change (``in taxon`` was ``vocab:in_taxon`` already).
-    Two names with one canonical form (``sample record`` and ``SampleRecord``)
-    raise before anything is renamed: the rewrite would keep one definition."""
+    Two names with one canonical form (biolink's ``KnowledgeGraph`` and
+    ``knowledge graph``) would leave one definition after the rewrite, so
+    first every such name but one is renamed as a shared name is, with its IRI
+    pinned: the one already canonical keeps its name, else the first. Returns
+    the collision renames and the canonical ones."""
+    collided: dict[str, list[str]] = {}
     for section, form in (("classes", camelcase), ("slots", underscore)):
-        seen: dict[str, str] = {}
+        by_form: dict[str, list[str]] = {}
         for n in schema.get(section) or {}:
-            other = seen.setdefault(form(n), n)
-            if other != n:
-                raise ValueError(
-                    f"{section[:-1]} names {other!r} and {n!r} are both {form(n)!r} in canonical form"
-                )
+            by_form.setdefault(form(n), []).append(n)
+        for canon, names in by_form.items():
+            if len(names) > 1:
+                keep = canon if canon in names else names[0]
+                collided.setdefault(section, []).extend(n for n in names if n != keep)
+    renamed = rename_shared(schema, collided, prefix) if collided else {}
     r = Renames(
         elements={n: camelcase(n) for n in (schema.get("classes") or {}) if camelcase(n) != n},
         slots={n: underscore(n) for n in (schema.get("slots") or {}) if underscore(n) != n},
     )
     rewrite_refs(schema, r)
-    return {**r.elements, **r.slots}
+    return renamed, {**r.elements, **r.slots}
 
 
 # --- verify -------------------------------------------------------------------
@@ -559,11 +566,12 @@ def adapt(
         folded=folded,
     )
 
+    prefix = prefix or schema.get("default_prefix") or vocab.stem
     report.dropped, report.detached = drop_twins(schema)
     report.demoted = demote_designators(schema)
     shared = shared_names(schema, lokf_dict)
     try:
-        report.renamed = rename_shared(schema, shared, prefix or schema.get("default_prefix") or vocab.stem)
+        report.renamed = rename_shared(schema, shared, prefix)
     except ValueError as exc:
         report.problems.append(str(exc))
     if roots:
@@ -577,12 +585,17 @@ def adapt(
             report.problems.append(f"--root names no class: {', '.join(sorted(missing))}")
     else:
         chosen = find_roots(schema)
-    report.tree_roots = [camelcase(n) for n in reroot(schema, chosen)]
+    had_tree_root = reroot(schema, chosen)
     try:
-        report.canonical = canonical_names(schema)
+        report.collided, report.canonical = canonical_names(schema, prefix)
     except ValueError as exc:
         report.problems.append(str(exc))
-    report.roots = [camelcase(n) for n in chosen]
+    # Report roots by their final names: a collision rename happens after re-rooting.
+    def final(n: str) -> str:
+        return report.collided.get(n, camelcase(n))
+
+    report.roots = [final(n) for n in chosen]
+    report.tree_roots = [final(n) for n in had_tree_root]
 
     schema["name"] = name or f"{vocab.stem}_lokf"
     if "id" in schema:
@@ -592,6 +605,7 @@ def adapt(
             ("re-rooted on lokf:Concept", ", ".join(report.roots)),
             ("dropped for LOKF's", ", ".join(report.dropped)),
             ("renamed, IRIs unchanged", ", ".join(f"{a} -> {b}" for a, b in report.renamed.items())),
+            ("renamed for one canonical form", ", ".join(f"{a} -> {b}" for a, b in report.collided.items())),
             ("designators demoted", ", ".join(report.demoted)),
         ) if v
     )
