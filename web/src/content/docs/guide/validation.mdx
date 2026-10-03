@@ -30,6 +30,27 @@ lokf validate knowledge
 # -> OK — 2 concepts in knowledge validate against KnowledgeBundle.
 ```
 
+A project with a domain schema declares it once, in the `pyproject.toml` that
+pins `lokf`, and every command that reads the bundle uses it when no `--schema`
+is passed: `validate`, `convert`, `query`, `serve`, `export` and the MCP
+server. The verdict then names the schema, so a run against core LOKF alone is
+never mistaken for one against the domain's:
+
+```toml
+[tool.lokf]
+schema = "domain.yaml"   # relative to this file
+```
+
+```bash
+lokf validate knowledge
+# -> OK — 2 concepts in knowledge validate against KnowledgeBundle (domain.yaml).
+```
+
+The nearest `pyproject.toml` with a `[tool.lokf]` table above the bundle
+decides, so the schema is the bundle's project's wherever the command runs
+from; `--schema` still wins. A declared file that does not exist is an error,
+never a fall-back to core.
+
 It validates through LinkML, which the lean core install leaves out, so install
 the `build` extra to use it:
 

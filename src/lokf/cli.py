@@ -93,16 +93,40 @@ def new(
 _SCHEMA_HELP = (
     "A domain schema that `imports: [lokf]`, as passed to `lokf validate "
     "--schema`: project its classes and slots under their own IRIs rather than "
-    "as lokf: terms. Needs lokf[build]."
+    "as lokf: terms. Default: the `[tool.lokf] schema` of the nearest "
+    "pyproject.toml above the bundle. Needs lokf[build]."
 )
 
 
-def _schema_or_exit(schema: Optional[Path]) -> None:
-    """Build *schema*'s context up front, so a lean install without LinkML
-    fails with an install hint rather than a traceback. The context is
-    cached, so the projection that follows does not build it again."""
+def _shown(path: Path) -> str:
+    """*path* relative to the working directory when it is under it."""
+    try:
+        return str(path.resolve().relative_to(Path.cwd().resolve()))
+    except ValueError:
+        return str(path)
+
+
+def _domain_schema(schema: Optional[Path], source: Path) -> Optional[Path]:
+    """``--schema``, else the schema the pyproject.toml above *source*
+    declares. A declaration naming a missing file is an error, not a
+    fall-back to core."""
+    from lokf.schema import domain_schema
+
+    try:
+        return domain_schema(schema, source)
+    except (FileNotFoundError, ValueError) as exc:
+        _err(str(exc))
+        raise typer.Exit(1)
+
+
+def _schema_or_exit(schema: Optional[Path], source: Path) -> Optional[Path]:
+    """Resolve the domain schema and build its context up front, so a lean
+    install without LinkML fails with an install hint rather than a traceback.
+    The context is cached, so the projection that follows does not build it
+    again. Returns the schema to project under, ``None`` for core LOKF."""
+    schema = _domain_schema(schema, source)
     if schema is None:
-        return
+        return None
     from lokf.schema import schema_context
 
     try:
@@ -115,6 +139,7 @@ def _schema_or_exit(schema: Optional[Path]) -> None:
             "  install:  uv pip install 'lokf[build]'"
         )
         raise typer.Exit(1)
+    return schema
 
 
 @app.command()
@@ -135,7 +160,7 @@ def convert(
     """Convert markdown (a concept or whole bundle) to RDF."""
     from lokf import rdf
 
-    _schema_or_exit(schema)
+    schema = _schema_or_exit(schema, source)
     try:
         data = rdf.serialize(source, format, schema=schema)
     except ValueError as exc:
@@ -202,8 +227,9 @@ def validate(
         help="A LOKF bundle directory to assemble and validate.",
     ),
     schema: Optional[Path] = typer.Option(
-        None, "--schema", "-s",
-        help="Schema file (default: a local lokf.yaml checkout, else the copy "
+        None, "--schema", "-s", exists=True, dir_okay=False,
+        help="Schema file (default: the `[tool.lokf] schema` of the nearest "
+        "pyproject.toml above the bundle, else a local lokf.yaml checkout, else the copy "
         "packaged with lokf). Pass a project's own schema here - one that "
         "`imports: [lokf]` and adds its own types/keys - to validate "
         "concepts that go beyond stock LOKF.",
@@ -226,12 +252,14 @@ def validate(
     """Assemble a bundle and validate it against the LOKF schema.
 
     Works on any bundle directory. The schema is resolved from ``--schema`` if
-    passed, otherwise from a ``lokf.yaml`` found in the current directory or an
-    ancestor, otherwise from the copy shipped inside the installed ``lokf``
-    package - so a bundle needs  no schema file of its own to be validated.
-    A concept using a type or frontmatter key this schema doesn't declare
-    needs a domain schema that ``imports: [lokf]`` and adds it - pass that
-    file via ``--schema``.
+    passed, otherwise from the ``[tool.lokf] schema`` the nearest
+    ``pyproject.toml`` above the bundle declares, otherwise from a ``lokf.yaml`` found in the
+    current directory or an ancestor, otherwise from the copy shipped inside
+    the installed ``lokf`` package - so a bundle needs no schema file of its
+    own to be validated. A concept using a type or frontmatter key this schema
+    doesn't declare needs a domain schema that ``imports: [lokf]`` and adds
+    it - pass that file via ``--schema``, or declare it once in
+    ``pyproject.toml``. The verdict names a domain schema when one is used.
 
     ``--check-refs`` adds a referential-integrity pass: a relation target
     naming this bundle's own namespace must resolve to a concept in it, so a
@@ -266,6 +294,7 @@ def validate(
         )
         raise typer.Exit(1)
 
+    schema = _domain_schema(schema, bundle_dir)
     try:
         sch = schema_path(schema)
     except FileNotFoundError as exc:
@@ -321,7 +350,7 @@ def validate(
         raise typer.Exit(1)
     ok = (
         f"OK — {len(bundle.concepts)} concepts in {bundle_dir} validate "
-        "against KnowledgeBundle."
+        f"against KnowledgeBundle{f' ({_shown(schema)})' if schema else ''}."
     )
     if check_refs:
         ok += " All in-namespace relation targets resolve."
@@ -401,7 +430,7 @@ def query(
     """Run SPARQL over a knowledge base loaded into an in-memory store."""
     from lokf.store import GraphStore, query_form
 
-    _schema_or_exit(schema)
+    schema = _schema_or_exit(schema, source)
     store = GraphStore.from_bundle(source, schema=schema)
     form = query_form(sparql)
     try:
@@ -450,7 +479,7 @@ def serve(
     """Publish a knowledge base locally: SPARQL endpoint + live graph viz."""
     from lokf.server import serve as run_server
 
-    _schema_or_exit(schema)
+    schema = _schema_or_exit(schema, source)
     run_server(source, host=host, port=port, schema=schema)
 
 
@@ -721,6 +750,9 @@ def export(
     source_base: Optional[str] = typer.Option(
         None, "--source-base", help="URL prefix for a node's source file (graph meta)."
     ),
+    schema: Optional[Path] = typer.Option(
+        None, "--schema", "-s", exists=True, dir_okay=False, help=_SCHEMA_HELP
+    ),
 ) -> None:
     """Export a bundle's artifacts for a static site — and a registry — to consume.
 
@@ -738,21 +770,25 @@ def export(
     from lokf import rdf
     from lokf.export import dataset_search_jsonld, to_cytoscape
     from lokf.model import load_bundle
-    from lokf.schema import load_context
+    from lokf.schema import schema_context, vocabulary
 
+    # Under a domain schema the four files carry its IRIs, as convert does,
+    # so a registry sees `a analytics:Dashboard`, not `a lokf:Concept`.
+    schema = _schema_or_exit(schema, bundle_dir)
+    vocab = vocabulary(schema)
     bundle = load_bundle(bundle_dir)
-    graph = to_cytoscape(bundle)
+    graph = to_cytoscape(bundle, vocab)
     graph["meta"] = {"source_base": source_base} if source_base else {}
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "graph.json").write_text(json.dumps(graph, indent=2), encoding="utf-8")
     (out_dir / "datasets.jsonld").write_text(
-        json.dumps(dataset_search_jsonld(bundle), indent=2), encoding="utf-8"
+        json.dumps(dataset_search_jsonld(bundle, vocab), indent=2), encoding="utf-8"
     )
-    (out_dir / "graph.nt").write_text(rdf.serialize(bundle_dir, "nt"), encoding="utf-8")
+    (out_dir / "graph.nt").write_text(rdf.serialize(bundle_dir, "nt", schema=schema), encoding="utf-8")
     # The context is paired with an @base entry (the bundle's base_iri) so the
     # document is self-contained: relative @ids like OKF v0.2 `sources[].id`
     # resolve identically for any consumer, matching graph.nt.
-    ctx = load_context()
+    ctx = schema_context(schema)
     if bundle.base_iri:
         ctx = [ctx, {"@base": bundle.base_iri}]
     (out_dir / "concepts.jsonld").write_text(

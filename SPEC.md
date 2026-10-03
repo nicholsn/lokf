@@ -573,7 +573,9 @@ this schema doesn't declare fails. A domain schema (§6.2) declares the
 project's own; `lokf validate --schema your-schema.yaml` checks against both,
 `--check-refs` resolves the relation slots of both, and `lokf convert`, `query`
 and `serve` take the same `--schema` to project its classes and slots under
-their own IRIs.
+their own IRIs. A project declares the schema once as `[tool.lokf] schema` in the
+`pyproject.toml` above its bundle, and every command reads it when the flag
+is absent.
 
 ---
 

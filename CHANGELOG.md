@@ -41,6 +41,13 @@ with the 0.x caveat that a minor release may tighten validation.
   SchemaView. `just biolink` runs it over biolink-model 4.4.4
   (`examples/biolink/`, nothing upstream committed); `--check` guards a CI
   job. Needs only the core install.
+- A project declares its domain schema once, as `[tool.lokf] schema` in the
+  `pyproject.toml` above its bundle; `validate`, `convert`, `query`, `serve`,
+  `export` and the MCP server read it when `--schema` is absent, and
+  `validate`'s verdict names the domain schema it used. `export` also takes
+  `--schema`, so `graph.nt` carries the domain's IRIs as `convert` does. A
+  declared file that does not exist is an error, not a fall-back to core.
+  `lokf.schema.project_schema()` finds it.
 
 ### Fixed
 
