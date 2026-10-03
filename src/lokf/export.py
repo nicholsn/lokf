@@ -73,7 +73,9 @@ def to_cytoscape(bundle, vocab=None) -> dict:
                 continue
             assertions.append((vocab.compact(rel.uri), name, target, True))
         for predicate, name, target, reified in assertions:
-            tgt = bundle.resolve(str(target))
+            # A `prefix:local` target is the IRI the schema's prefix gives it,
+            # as JSON-LD reads it in the RDF projection, not a relative ref.
+            tgt = bundle.resolve(vocab.expand(str(target)))
             if tgt not in iris:
                 continue
             key = (source, predicate, tgt)

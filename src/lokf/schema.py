@@ -78,6 +78,65 @@ def schema_path(path: str | pathlib.Path | None = None) -> pathlib.Path:
     return _resolve(_SCHEMA_NAME, path)
 
 
+def project_schema(start: str | pathlib.Path | None = None) -> pathlib.Path | None:
+    """The domain schema the project declares, or ``None``.
+
+    A project names it once, in the ``pyproject.toml`` that already pins
+    ``lokf``, so every command reads the same file without a ``--schema`` on
+    each call::
+
+        [tool.lokf]
+        schema = "domain.yaml"   # relative to this file
+
+    *start* is the bundle or concept file a command was given; the nearest
+    ``pyproject.toml`` with a ``[tool.lokf]`` table, from there upwards,
+    decides. The schema is the bundle's project's, wherever the shell is, and
+    a bundle reached through a link (``knowledge_bundle -> .lokf/knowledge``)
+    is searched where it really lives. Without *start*, the search runs from
+    the working directory. A declared file that does not exist raises
+    :class:`FileNotFoundError`: validating against core ``lokf.yaml`` instead
+    would pass a bundle the project meant to check more strictly.
+    """
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
+    base = pathlib.Path(start).resolve() if start is not None else pathlib.Path.cwd()
+    if base.is_file():
+        base = base.parent
+    for d in (base, *base.parents):
+        f = d / "pyproject.toml"
+        if not f.exists():
+            continue
+        try:
+            tool = tomllib.loads(f.read_text(encoding="utf-8")).get("tool", {}).get("lokf")
+        except tomllib.TOMLDecodeError as exc:
+            raise ValueError(f"{f}: {exc}") from exc
+        if not isinstance(tool, dict):
+            continue
+        name = tool.get("schema")
+        if name is None:
+            return None
+        if not isinstance(name, str):
+            raise ValueError(f"{f}: [tool.lokf] schema must be a path string, not {name!r}")
+        schema = d / name
+        if not schema.is_file():
+            raise FileNotFoundError(f"{f} names schema {name}, which does not exist at {schema}")
+        return schema
+    return None
+
+
+def domain_schema(
+    explicit: str | pathlib.Path | None = None, start: str | pathlib.Path | None = None
+) -> pathlib.Path | None:
+    """The domain schema a command validates or projects under: *explicit*
+    (``--schema``) when given, else the one the project around *start*
+    declares (:func:`project_schema`), else ``None`` for core LOKF."""
+    if explicit is not None:
+        return pathlib.Path(explicit)
+    return project_schema(start)
+
+
 def load_schema(path: str | pathlib.Path | None = None) -> dict:
     """Return the LOKF LinkML schema as a plain dict (cached per file)."""
     return _load_schema(str(_resolve(_SCHEMA_NAME, path)))

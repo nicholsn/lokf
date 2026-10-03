@@ -31,6 +31,13 @@ with the 0.x caveat that a minor release may tighten validation.
   preset its prefixes. Needs the `build` extra; without the flag nothing
   changes. `lokf.schema.schema_context()` builds the context, and
   `authoring_context()` holds the fixes `lokf-build` applies to LOKF's own.
+- A project declares its domain schema once, as `[tool.lokf] schema` in the
+  `pyproject.toml` above its bundle; `validate`, `convert`, `query`, `serve`,
+  `export` and the MCP server read it when `--schema` is absent, and
+  `validate`'s verdict names the domain schema it used. `export` also takes
+  `--schema`, so `graph.nt` carries the domain's IRIs as `convert` does. A
+  declared file that does not exist is an error, not a fall-back to core.
+  `lokf.schema.project_schema()` finds it.
 
 ### Fixed
 
@@ -45,6 +52,12 @@ with the 0.x caveat that a minor release may tighten validation.
   single-valued reference, a class attribute, and a slot whose `any_of`
   includes `Concept`, and skips a slot the concept's own class narrows to a
   string. It read only a slot's own range before.
+- `lokf validate --schema` resolves the domain schema's imports next to the
+  schema file. Previously it resolved them against the current directory, so
+  `imports: [lokf]` failed unless lokf ran from the schema's own directory.
+
+### Fixed
+
 - `lokf validate --schema` resolves the domain schema's imports next to the
   schema file. Previously it resolved them against the current directory, so
   `imports: [lokf]` failed unless lokf ran from the schema's own directory.

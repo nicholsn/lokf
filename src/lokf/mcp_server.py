@@ -40,6 +40,15 @@ _INSTRUCTIONS = (
 server = MCPServer("lokf", instructions=_INSTRUCTIONS, version=_version())
 
 
+def _schema(path: str):
+    """The domain schema the project around *path* declares in its
+    pyproject.toml, or None: the same default the CLI applies, so an agent
+    and a person see one graph."""
+    from lokf.schema import project_schema
+
+    return project_schema(path)
+
+
 @server.tool()
 def list_concepts(bundle: str) -> list[dict]:
     """List every concept as {concept_id, type, title, iri, status, trust_tier}.
@@ -88,7 +97,7 @@ def describe_concept(bundle: str, concept_id: str) -> dict:
         "body": concept.body,
         "frontmatter": concept.data,
         "trust": trust.trust_summary(concept.data),
-        "turtle": rdf.serialize(concept.path, "ttl"),
+        "turtle": rdf.serialize(concept.path, "ttl", schema=_schema(bundle)),
     }
 
 
@@ -106,7 +115,7 @@ def sparql_query(bundle: str, query: str) -> dict:
 
     form = query_form(query)
     try:
-        store = GraphStore.from_bundle(bundle)
+        store = GraphStore.from_bundle(bundle, schema=_schema(bundle))
         if form in ("construct", "describe"):
             return {"turtle": store.construct(query, fmt="ttl")}
         if form == "ask":
@@ -129,7 +138,7 @@ def convert(source: str, format: str = "ttl") -> dict:
     from lokf import rdf
 
     try:
-        data = rdf.serialize(source, format)
+        data = rdf.serialize(source, format, schema=_schema(source))
     except ValueError as exc:
         return {"error": str(exc)}
     return {"format": format, "rdf": data}
@@ -203,8 +212,10 @@ def bundle_summary(bundle: str) -> dict:
     from lokf import trust
     from lokf.export import to_cytoscape
     from lokf.model import load_bundle
+    from lokf.schema import vocabulary
     from lokf.store import GraphStore
 
+    schema = _schema(bundle)
     b = load_bundle(bundle)
     types: dict[str, int] = {}
     tiers: dict[str, int] = {}
@@ -214,12 +225,12 @@ def bundle_summary(bundle: str) -> dict:
         tier = trust.trust_tier(c.data)
         tiers[tier] = tiers.get(tier, 0) + 1
         stale += trust.is_stale(c.data)
-    edges = to_cytoscape(b)["edges"]
+    edges = to_cytoscape(b, vocabulary(schema))["edges"]
     return {
         "concept_count": len(b.concepts),
         "types": types,
         # Reuse the already-loaded bundle instead of re-reading it from disk.
-        "triple_count": len(GraphStore.from_graph(b.graph())),
+        "triple_count": len(GraphStore.from_graph(b.graph(schema=schema))),
         "relation_edge_count": len(edges),
         "trust_tiers": tiers,
         "stale_count": stale,

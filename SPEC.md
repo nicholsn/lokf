@@ -531,7 +531,9 @@ this schema doesn't declare fails. To add project-specific types/keys, write a
 LinkML schema that `imports: [lokf]` and declares them, then pass it to
 `lokf validate --schema your-schema.yaml`. `lokf convert`, `query` and `serve`
 take the same `--schema` and project its classes and slots under their own
-IRIs.
+IRIs. A project declares the schema once as `[tool.lokf] schema` in the
+`pyproject.toml` above its bundle, and every command reads it when the flag
+is absent.
 
 ---
 

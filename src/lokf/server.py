@@ -123,7 +123,7 @@ def serve(source, host: str = "127.0.0.1", port: int = 8000, schema=None) -> Non
     store = GraphStore.from_bundle(source, schema=schema)
     httpd = build_server(store, host, port)
     bound_host, bound_port = httpd.server_address[0], httpd.server_address[1]
-    print(f"lokf: {len(store)} triples from {source}")
+    print(f"lokf: {len(store)} triples from {source}{f' under {schema}' if schema else ''}")
     print(f"lokf: SPARQL endpoint  http://{bound_host}:{bound_port}/sparql")
     print(f"lokf: graph explorer   http://{bound_host}:{bound_port}/")
     print("lokf: Ctrl-C to stop")
