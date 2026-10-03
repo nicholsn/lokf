@@ -8,7 +8,8 @@ sidebar:
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import { Content as TypeTable } from "../../../generated/type-table.md";
 
-A concept's `type` SHOULD name one of the following classes. Each maps to a
+A concept's `type` SHOULD name one of the following classes, or one a
+[domain schema](/guide/domain-schemas/) declares. Each LOKF class maps to a
 public ontology term; consumers MUST tolerate unknown values by treating the
 concept as a generic `lokf:Concept`.
 

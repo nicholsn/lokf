@@ -30,3 +30,9 @@ site/
 .agents/skills
 .claude/skills
 skills-lock.json
+
+# `just biolink` fetches biolink-model and adapts it beside a copy of lokf.yaml;
+# none of the three is committed (examples/biolink/README.md)
+examples/biolink/upstream/
+examples/biolink/biolink_lokf.yaml
+examples/biolink/lokf.yaml

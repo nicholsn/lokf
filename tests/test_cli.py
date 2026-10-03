@@ -936,3 +936,20 @@ def test_validate_refuses_a_missing_schema_flag_like_the_other_commands():
     result = runner.invoke(app, ["validate", str(BUNDLE), "--schema", "nope.yaml"])
     assert result.exit_code == 2
     assert "does not exist" in result.output
+
+
+def test_check_refs_reads_a_spaced_slot_by_its_frontmatter_key(tmp_path):
+    """A slot the schema names `in taxon` is the key `in_taxon` in frontmatter."""
+    (tmp_path / "lokf.yaml").write_text((FIXTURES.parent.parent / "lokf.yaml").read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "domain.yaml").write_text(
+        "id: https://ex.org/schema/d\nname: d\nimports: [linkml:types, lokf]\ndefault_prefix: d\n"
+        "prefixes: {d: https://ex.org/schema/d/, linkml: https://w3id.org/linkml/}\n"
+        "classes:\n  Gene: {is_a: Concept, slots: [in taxon]}\n"
+        "slots:\n  in taxon: {range: Concept, multivalued: true, slot_uri: d:in_taxon}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "kb").mkdir()
+    kb = _kb(tmp_path / "kb", "---\ntype: Gene\ntitle: G\nin_taxon: [nope]\n---\n\n# G\n")
+    result = runner.invoke(app, ["validate", str(kb), "--schema", str(tmp_path / "domain.yaml"), "--check-refs"])
+    assert result.exit_code == 1
+    assert "`in taxon` target does not resolve" in result.output

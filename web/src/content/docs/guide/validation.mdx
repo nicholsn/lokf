@@ -2,7 +2,7 @@
 title: Validation
 description: Two generated validators — JSON Schema before RDF projection and SHACL after — plus the LOKF conformance criteria.
 sidebar:
-  order: 5
+  order: 6
 ---
 
 Two independent, generated validators are available — one before RDF
@@ -71,6 +71,25 @@ uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.b
 uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 
+## Closed-world, and two more passes
+
+Both validators are closed-world: a concept naming a `type` or a frontmatter
+key the schema does not declare fails. A project's own types and keys go in
+a [domain schema](/guide/domain-schemas/), passed as `--schema`; `convert`,
+`query` and `serve` take the same flag.
+
+Schema validation sees one concept at a time, so two things escape it. Two
+files declaring one `id` each validate and then merge into one subject in
+the graph; `--check-ids` fails that. A relation target is just a string, so a
+stale or invented IRI passes; `--check-refs` resolves every typed-relation
+target in the bundle's own namespace, a relative ref or an IRI under
+`base_iri`, and leaves external resources alone. Both are opt-in, so the
+default verdict stays the schema's.
+
+```bash
+lokf validate knowledge --schema domain.yaml --check-ids --check-refs
+```
+
 ## SHACL — after projection
 
 [`lokf.shacl.ttl`](https://github.com/nicholsn/lokf/blob/main/lokf.shacl.ttl)
@@ -95,9 +114,13 @@ A bundle is **LOKF v0.2 conformant** if:
    as a one-element list, and MUST NOT reject a concept for omitting any
    optional family.
 
-:::tip[Consumers stay permissive]
-As in OKF, missing optional fields, unknown `type` values, unknown
-frontmatter keys, and broken cross-links MUST NOT cause rejection.
+:::tip[Consumers stay permissive; the validator does not]
+As in OKF, a consumer MUST NOT reject a bundle for missing optional fields,
+unknown `type` values, unknown frontmatter keys or broken cross-links, and
+`lokf convert`, `query` and `serve` accept any conformant bundle.
+`lokf validate` is stricter: a conformant bundle can fail it for an
+undeclared type or key. Conformance is the floor a consumer must accept;
+passing `lokf validate` is the bar a producer aims for.
 :::
 
 The normative text lives in the [specification](/specification/).

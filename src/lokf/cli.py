@@ -8,6 +8,7 @@
     lokf propose examples/acme-knowledge --apply      # typed relations from links
     lokf vocab                                        # the typed-relation vocabulary
     lokf vocab --all --json                           # the full vocabulary + descriptions
+    lokf adapt biolink_model.yaml                     # a vocabulary as a LOKF domain schema
     lokf skills                                        # bundled agent skills
     lokf mcp                                           # run the MCP server
     lokf --version                                     # print the lokf version
@@ -608,6 +609,101 @@ def _echo_vocab_manifest(manifest: dict) -> None:
     section("Slots", manifest["slots"])
     for enum_name, values in manifest["enums"].items():
         section(enum_name, values)
+
+
+# ---------------------------------------------------------------------------
+# adapt — a published vocabulary becomes a domain-schema import; SPEC §6.2
+# ---------------------------------------------------------------------------
+@app.command()
+def adapt(
+    vocab: Path = typer.Argument(
+        ..., exists=True, dir_okay=False,
+        help="A published LinkML vocabulary: its root schema file.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o",
+        help="Where to write the copy (default: <stem>_lokf.yaml beside the input).",
+    ),
+    root: list[str] = typer.Option(
+        [], "--root",
+        help="A class to re-root on Concept, as the vocabulary names it; repeatable. "
+        "Default: every rootless, non-mixin class that carries the vocabulary's identifier.",
+    ),
+    lokf: Optional[Path] = typer.Option(
+        None, "--lokf", exists=True, dir_okay=False,
+        help="The lokf.yaml the copy must share no name with (default: a local "
+        "checkout, else the copy packaged with lokf).",
+    ),
+    prefix: Optional[str] = typer.Option(
+        None, "--prefix",
+        help="Prefix for renamed elements (default: the vocabulary's default_prefix).",
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Report the moves; write nothing."),
+    check: bool = typer.Option(
+        False, "--check",
+        help="Write nothing; exit 1 unless --output already holds exactly this copy "
+        "and it verifies beside lokf.yaml. For CI, when either schema moves.",
+    ),
+) -> None:
+    """Copy a LinkML vocabulary into a LOKF domain schema beside lokf.yaml."""
+    from lokf import adapt as adapter
+    from lokf.schema import schema_path
+
+    import os
+    import tempfile
+
+    import yaml
+
+    out = output or vocab.with_name(f"{vocab.stem}_lokf.yaml")
+    if out.resolve() == vocab.resolve():
+        _err(f"{out} is the input; pass --output to write the copy elsewhere.")
+        raise typer.Exit(2)
+    try:
+        lokf_path = schema_path(lokf)
+        schema, report = adapter.adapt(vocab, lokf=lokf, roots=root, prefix=prefix, name=out.stem)
+    except (FileNotFoundError, ValueError, yaml.YAMLError) as exc:
+        _err(str(exc))
+        raise typer.Exit(1)
+    text = adapter.dump(schema, adapter.header(report))
+    typer.echo(f"{report.source} -> {out}")
+    for line in report.lines():
+        typer.echo(f"  {line}")
+    if report.problems:
+        raise typer.Exit(1)
+    if check:
+        if not out.exists():
+            _err(f"{out} does not exist; run without --check to write it.")
+            raise typer.Exit(1)
+        if out.read_text(encoding="utf-8") != text:
+            _err(f"{out} is stale: it differs from a fresh `lokf adapt` over {vocab.name} and {lokf_path.name}.")
+            raise typer.Exit(1)
+    if dry_run or check:
+        # Verify what would be written, so a dry run reports what a real one would.
+        with tempfile.TemporaryDirectory() as tmp:
+            probe = Path(tmp) / out.name
+            probe.write_text(text, encoding="utf-8")
+            problems = adapter.verify(probe, lokf_path)
+    else:
+        # Verify a candidate beside the output and replace it only then, so a
+        # copy that fails never overwrites one that worked.
+        out.parent.mkdir(parents=True, exist_ok=True)
+        fd, name = tempfile.mkstemp(dir=out.parent, prefix=f".{out.stem}.", suffix=".yaml")
+        candidate = Path(name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(text)
+            problems = adapter.verify(candidate, lokf_path)
+            if not problems:
+                os.replace(candidate, out)
+        finally:
+            candidate.unlink(missing_ok=True)
+    for p in problems:
+        _err(f"  problem: {p}")
+    if problems:
+        raise typer.Exit(1)
+    typer.echo(f"  verified beside {lokf_path.name}{' (dry run, nothing written)' if dry_run else ''}")
+    typer.echo("It is a LOKF domain schema: pass it as --schema, or import it from one of your own beside lokf.yaml:")
+    typer.echo(f"  imports: [linkml:types, lokf, {out.stem}]")
 
 
 # ---------------------------------------------------------------------------
