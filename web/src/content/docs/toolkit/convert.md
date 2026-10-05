@@ -56,7 +56,9 @@ uv run lokf convert examples/acme-knowledge --format nt --output acme.nt
 
 ## A domain schema
 
-A bundle that validates with `lokf validate --schema` takes the same file here:
+A bundle that validates with `lokf validate --schema` takes the same file
+here; the [Domain schemas](/guide/domain-schemas/) guide says how to write
+one, or make one from a published vocabulary with [`lokf adapt`](/toolkit/adapt/):
 
 ```bash
 uv run lokf convert knowledge --schema domain.yaml

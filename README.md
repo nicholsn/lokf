@@ -14,25 +14,17 @@ ontology are all generated from that single source.
 ## Why
 
 OKF is deliberately minimal — the only required field is `type`, links are
-untyped, and there's no shared vocabulary. LOKF adds five things while keeping
+untyped, and there's no shared vocabulary. LOKF adds six things while keeping
 OKF's ergonomics:
 
-1. **Shared meaning** — types and fields map to public ontology terms.
-2. **Typed relationships** — `dependsOn`, `derivedFrom`, `isPartOf`, … each pinned
-   to an RDF predicate, instead of one untyped markdown link.
-3. **A real graph** — the same bundle is queryable with SPARQL, validatable with
-   SHACL, and reason-able with OWL.
-4. **Documentation modes** - an optional `genre` facet (and `Tutorial`/`Explanation`
-   types) aligns each concept's prose to the four [Diátaxis](https://diataxis.fr/)
-   modes, on an axis orthogonal to `type`.
-5. **Queryable trust** — OKF v0.2's provenance, trust, and lifecycle frontmatter
-   (`sources`, `usage_window`, `generated`, `verified`, `status`, `stale_after`)
-   and the `AttestedComputation` type, each bound to PROV-O / schema.org, so
-   "where did this come from and should I trust it" is a SPARQL query rather
-   than YAML an agent has to interpret. See [SPEC §5.4](./SPEC.md).
+1. **Shared meaning** - types and fields map to public ontology terms.
+2. **Typed relationships** - `dependsOn`, `derivedFrom`, `isPartOf`, … each pinned to an RDF predicate, instead of one untyped markdown link.
+3. **A real graph** - the same bundle is queryable with SPARQL, validatable with SHACL, and reason-able with OWL.
+4. **Queryable trust** - OKF v0.2's provenance, trust, and lifecycle frontmatter (`sources`, `usage_window`, `generated`, `verified`, `status`, `stale_after`) and the `AttestedComputation` type, each bound to PROV-O / schema.org, so "where did this come from and should I trust it" is a SPARQL query rather than YAML an agent has to interpret. See [SPEC §5.4](./SPEC.md).
+5. **Domain schemas** - a project's own types and keys, declared in a LinkML schema that `imports: [lokf]`. The same validator checks them (`lokf validate --schema`), `--check-refs` resolves their relations, and `convert`, `query` and `serve --schema` project them under their own IRIs. The core vocabulary stays small; a domain extends it without forking it. See [SPEC §6.2](./SPEC.md).
+6. **Documentation modes** - an optional `genre` facet (and `Tutorial`/`Explanation` types) aligns each concept's prose to the four [Diátaxis](https://diataxis.fr/) modes, on an axis orthogonal to `type`.
 
-It stays **bidirectionally compatible**: every LOKF bundle is a valid OKF bundle,
-and every OKF bundle is valid LOKF with default mappings.
+It stays **bidirectionally compatible**: every LOKF bundle is a valid OKF bundle, and every OKF bundle is valid LOKF with default mappings — with or without its domain schema.
 
 ## Files
 
@@ -123,11 +115,9 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 <!-- --8<-- [end:validate-bundle] -->
 
-Validation is closed-world (SPEC §9): a project-specific type or key needs a schema that `imports: [lokf]`, passed via `lokf validate --schema`. Pass the same file to `lokf convert`, `query` or `serve` with `--schema` to project its
-types and keys under their own IRIs.
+Validation is closed-world (SPEC §9): a project-specific type or key needs a domain schema that `imports: [lokf]` (SPEC §6.2), passed via `lokf validate --schema`. Pass the same file to `lokf convert`, `query` or `serve` with `--schema` to project its types and keys under their own IRIs. A published LinkML vocabulary becomes such a schema's import with `lokf adapt VOCAB.yaml`; `examples/biolink/` does this for biolink-model.
 
-Schema validation sees one concept at a time, so two files declaring one `id` (a sync client's conflict copy is the usual way) pass and then merge into one subject in the graph; `--check-ids` catches that. It cannot tell a live relation target from a fabricated one either - both are valid strings.
-`--check-refs` adds that pass:
+Schema validation sees one concept at a time, so two files declaring one `id` (a sync client's conflict copy is the usual way) pass and then merge into one subject in the graph; `--check-ids` catches that. It cannot tell a live relation target from a fabricated one either - both are valid strings. `--check-refs` adds that pass:
 
 ```bash
 uv run lokf validate examples/acme-knowledge --check-refs

@@ -17,6 +17,7 @@ import re
 MODULES = [
     "lokf.model",
     "lokf.schema",
+    "lokf.adapt",
     "lokf.parse",
     "lokf.rdf",
     "lokf.store",

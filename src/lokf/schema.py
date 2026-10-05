@@ -570,7 +570,12 @@ def _with_imports(resolved: str) -> dict:
         if not _follows(name):
             continue
         part = json_dumper.to_dict(view.schema_map[name])
-        for key in ("classes", "slots", "enums"):
+        # An imported element without an explicit URI derives one from its own
+        # schema's default prefix, not from the importing schema's; say which.
+        for key, uri_key in (("classes", "class_uri"), ("slots", "slot_uri"), ("enums", "enum_uri")):
+            for element_name, element in (part.get(key) or {}).items():
+                if isinstance(element, dict) and uri_key not in element:
+                    element[uri_key] = view.get_uri(element_name, expand=False)
             merged[key].update(part.get(key) or {})
         # The dump stores each prefix as a {prefix_prefix, prefix_reference}
         # object. Keep only the IRI, as the raw YAML does.

@@ -31,6 +31,16 @@ with the 0.x caveat that a minor release may tighten validation.
   preset its prefixes. Needs the `build` extra; without the flag nothing
   changes. `lokf.schema.schema_context()` builds the context, and
   `authoring_context()` holds the fixes `lokf-build` applies to LOKF's own.
+- `lokf adapt VOCAB.yaml` writes a published LinkML vocabulary as a LOKF
+  domain schema beside `lokf.yaml`, to pass as `--schema` or import from a schema
+  of your own: its own imports folded in, its root re-rooted on `Concept`,
+  its identifier and `rdf:type` slots dropped for LOKF's, any other type
+  designator demoted, every name it shares with `lokf.yaml` renamed with the
+  IRI kept, two names with one canonical form kept apart the same way, class
+  names CamelCased and slot names underscored, and the result verified with
+  SchemaView. `just biolink` runs it over biolink-model 4.4.4
+  (`examples/biolink/`, nothing upstream committed); `--check` guards a CI
+  job. Needs only the core install.
 - A project declares its domain schema once, as `[tool.lokf] schema` in the
   `pyproject.toml` above its bundle; `validate`, `convert`, `query`, `serve`,
   `export` and the MCP server read it when `--schema` is absent, and
@@ -41,6 +51,15 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
+- `lokf validate --check-refs` reads a slot the schema names with spaces
+  (`in taxon`) by the key LinkML derives for frontmatter (`in_taxon`); it
+  looked up the spaced name and never found the value. `lokf vocab --all`
+  gives an imported class without `class_uri` its own schema's IRI, not
+  `lokf:`.
+- `lokf validate --check-refs` reads a `prefix:local` target as the CURIE it
+  is: expanded under a prefix the schema declares, and external under one it
+  does not, as the projection reads it. Previously a biolink slot's
+  `NCBITaxon:9606` was checked as a relative ref and reported unresolved.
 - `lokf validate --check-refs --schema` checks the relation slots a domain
   schema gets through `imports: [lokf]`. Previously it read only the
   domain schema file and not the schemas it imports, so it found no named
@@ -56,11 +75,12 @@ with the 0.x caveat that a minor release may tighten validation.
   schema file. Previously it resolved them against the current directory, so
   `imports: [lokf]` failed unless lokf ran from the schema's own directory.
 
-### Fixed
+### Internal
 
-- `lokf validate --schema` resolves the domain schema's imports next to the
-  schema file. Previously it resolved them against the current directory, so
-  `imports: [lokf]` failed unless lokf ran from the schema's own directory.
+- Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
+- A *Domain schemas* how-to guide on the site, with biolink-model and gist
+  as the adapted vocabularies, and a toolkit page for `lokf adapt`; the validation guide now names `--schema`, `--check-refs`
+  and `--check-ids`.
 
 ## [0.8.0] — 2026-09-16
 
