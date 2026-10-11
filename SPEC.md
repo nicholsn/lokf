@@ -159,9 +159,14 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 | `body`        |  ✅ | `schema:text`                      | string  | The markdown after the frontmatter.               |
 | `citations`   |     | `schema:citation`                  | Citation*| **Superseded** in v0.2 by `sources` (§5.4); still parsed for v0.1 docs. |
 | `additionalType` |  | `schema:additionalType`            | string  | The producer's `type` when it names no LOKF class (§8). Written by the RDF projection, not by authors. |
+| `audience`    |     | `schema:audience`                  | Audience | exact: `dcterms:audience`. An inlined `schema:PeopleAudience`: `audienceType`, `suggestedMinAge`, `suggestedMaxAge`. |
+| `typicalAgeRange` | | `schema:typicalAgeRange`          | string  | exact: `lrmi:typicalAgeRange`. schema.org's form, `8-12` or `13-` (§9.1). |
+| `educationalLevel` | | `schema:educationalLevel`        | string  | close: `dcterms:educationLevel`, `lrmi:educationalLevel` |
 <!-- --8<-- [end:core-fields-table] -->
 
-(`*` = multivalued.) Producers MAY add any other keys; consumers MUST preserve
+(`*` = multivalued.) `audience`, `typicalAgeRange` and `educationalLevel` say
+who a concept is written for, such as a version of another concept for younger
+readers; a concept without them is for the bundle's own readers. Producers MAY add any other keys; consumers MUST preserve
 unknown keys and MUST NOT reject documents that carry them (OKF §4.1).
 
 ### 5.2 Typed relationships — LOKF's core upgrade
@@ -313,7 +318,7 @@ A concept's `type` SHOULD name one of the following classes, or one a domain sch
   (`schema:alternateName`).
 
 The complete, authoritative definitions — including value objects `Field`,
-`Distribution`, `Relation`, `Citation`, and `Agent`/`Person`/`Organization` — are
+`Distribution`, `Relation`, `Citation`, `Audience`, and `Agent`/`Person`/`Organization` — are
 in `lokf.yaml`.
 
 ### 6.1 Documentation modes (Diátaxis)
@@ -553,6 +558,7 @@ rejects a malformed value rather than passing it through to RDF:
 | `generated.by`, `verified[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
 | `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
 | `email` | an address shape (`local@domain.tld`) |
+| `typicalAgeRange` | an age range as schema.org writes it: `8-12`, or `13-` for 13 and over |
 
 These tighten what was previously accepted: a bundle whose `base_iri` lacks a
 trailing `/`, or whose `by` is a bare name, validated before and does not now.
@@ -764,6 +770,7 @@ README.md               How the pieces fit and how to regenerate them.
 | `dcat`    | `http://www.w3.org/ns/dcat#`                   |
 | `adms`    | `http://www.w3.org/ns/adms#`                   |
 | `adms_status` | `http://purl.org/adms/status/`             |
+| `lrmi`    | `http://purl.org/dcx/lrmi-terms/`              |
 | `void`    | `http://rdfs.org/ns/void#`                     |
 | `dcterms` | `http://purl.org/dc/terms/`                    |
 | `prov`    | `http://www.w3.org/ns/prov#`                   |

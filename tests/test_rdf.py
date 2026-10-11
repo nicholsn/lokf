@@ -139,3 +139,28 @@ def test_standalone_file_without_id_gets_file_iri(tmp_path):
     g = rdf.graph_of(p)
     subjects = {str(s) for s, _, _ in g}
     assert p.resolve().as_uri() in subjects
+
+
+def test_who_a_concept_is_written_for_projects_under_schema_org(tmp_path):
+    """`typicalAgeRange` is a schema.org literal, and `audience` a node with
+    schema.org's age properties as typed integers."""
+    from rdflib import Literal
+    from rdflib.namespace import XSD
+
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\n---\n# KB\n", encoding="utf-8"
+    )
+    (tmp_path / "pen.md").write_text(
+        "---\ntype: GlossaryTerm\ntitle: The pen\ntypicalAgeRange: 13-18\n"
+        "audience:\n  audienceType: students\n  suggestedMinAge: 13\n---\n# The pen\n",
+        encoding="utf-8",
+    )
+    g = rdf.graph_of(tmp_path)
+    sdo = "http://schema.org/"
+    pen = URIRef("https://ex.org/kb/pen")
+    assert (pen, URIRef(sdo + "typicalAgeRange"), Literal("13-18")) in g
+    audience = g.value(pen, URIRef(sdo + "audience"))
+    assert audience is not None
+    assert (audience, URIRef(sdo + "suggestedMinAge"), Literal(13, datatype=XSD.integer)) in g
+    assert (audience, URIRef(sdo + "audienceType"), Literal("students")) in g
+

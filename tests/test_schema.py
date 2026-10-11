@@ -509,6 +509,44 @@ def test_source_author_admits_any_prefixed_actor():
     assert not re.fullmatch(by, "team:analytics")
 
 
+# -- who a concept is written for: audience, typicalAgeRange, educationalLevel -
+def test_audience_fields_map_to_schema_org_dublin_core_and_lrmi(vocab):
+    """Three optional fields say who a concept is written for, under
+    schema.org's IRIs, with Dublin Core and LRMI as mappings."""
+    schema = load_schema()
+    slots = schema["slots"]
+    assert slots["audience"]["slot_uri"] == "schema:audience"
+    assert slots["audience"]["exact_mappings"] == ["dcterms:audience"]
+    assert slots["audience"]["range"] == "Audience"
+    assert slots["audience"]["inlined"] is True
+    audience = schema["classes"]["Audience"]
+    assert audience["class_uri"] == "schema:PeopleAudience"
+    assert audience["slots"] == ["audienceType", "suggestedMinAge", "suggestedMaxAge"]
+    assert slots["typicalAgeRange"]["slot_uri"] == "schema:typicalAgeRange"
+    assert slots["typicalAgeRange"]["exact_mappings"] == ["lrmi:typicalAgeRange"]
+    assert slots["educationalLevel"]["slot_uri"] == "schema:educationalLevel"
+    assert slots["educationalLevel"]["close_mappings"] == ["dcterms:educationLevel", "lrmi:educationalLevel"]
+    for name in ("audience", "typicalAgeRange", "educationalLevel"):
+        assert name in schema["classes"]["Concept"]["slots"], name
+        assert "required" not in slots[name], name
+        assert slots[name]["in_subset"] == ["lokf_semantic"], name
+    assert vocab.expand("lrmi:typicalAgeRange") == "http://purl.org/dcx/lrmi-terms/typicalAgeRange"
+
+
+def test_typical_age_range_takes_schema_orgs_form():
+    import re
+
+    pattern = load_schema()["slots"]["typicalAgeRange"]["pattern"]
+    for value in ["8-12", "13-18", "13-", "0-5"]:
+        assert re.fullmatch(pattern, value), f"{value!r} should match {pattern!r}"
+    for value in ["8 to 12", "teens", "-12", "8-12-15", "12"]:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_was_revision_of_is_a_relation_type(vocab):
+    assert vocab.relation_types["wasRevisionOf"].uri == "http://www.w3.org/ns/prov#wasRevisionOf"
+
+
 # -- `email` pattern and `http_method` enum ----------------------------------
 def test_email_slot_has_pattern():
     import re

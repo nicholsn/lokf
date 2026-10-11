@@ -246,6 +246,24 @@ def test_joins_with_cue_reaches_reified_apply(tmp_bundle, vocab):
     ]
 
 
+def test_revised_version_cue_reaches_reified_apply(tmp_bundle, vocab):
+    """A prose 'revised version of' link classifies to wasRevisionOf, ahead
+    of the broader derivedFrom cue, and applies reified."""
+    retold = tmp_bundle / "glossary" / "active-user-retold.md"
+    retold.write_text(
+        "---\ntype: GlossaryTerm\ntitle: Active user, retold\n---\n\n"
+        "This is a revised version of [Active User](/glossary/active-user.md) for new readers.\n",
+        encoding="utf-8",
+    )
+    bundle = lokf.load_bundle(tmp_bundle)
+    [p] = propose(bundle, vocab, concept=bundle.get("glossary/active-user-retold"))
+    assert p.relation.name == "wasRevisionOf"
+    assert not p.relation.is_slot
+    assert apply([p]) == [p]
+    data = lokf.parse.parse_concept(str(retold))
+    assert data["relations"] == [{"predicate": "wasRevisionOf", "target": p.target_iri}]
+
+
 def test_cli_json_apply_composes(tmp_bundle, capsys):
     term = tmp_bundle / "glossary" / "active-user.md"
     before = term.read_text(encoding="utf-8")
