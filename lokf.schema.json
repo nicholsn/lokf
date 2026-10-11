@@ -70,6 +70,17 @@
                     ],
                     "description": "The deterministic, non-LLM verdict check over a receipt."
                 },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -151,6 +162,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -338,6 +356,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -390,6 +416,37 @@
             "title": "Attester",
             "type": "object"
         },
+        "Audience": {
+            "additionalProperties": false,
+            "description": "The readers a concept is written for, as schema.org's PeopleAudience describes them: a kind of reader and an age range. Set on a concept written for narrower readers than the bundle's own, such as a version of another concept for younger readers.",
+            "properties": {
+                "audienceType": {
+                    "description": "The kind of reader, in words, such as `students` or `dyslexic readers`.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "suggestedMaxAge": {
+                    "description": "The oldest age, in years, the concept is written for.",
+                    "minimum": 0,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "suggestedMinAge": {
+                    "description": "The youngest age, in years, the concept is written for.",
+                    "minimum": 0,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Audience",
+            "type": "object"
+        },
         "Citation": {
             "additionalProperties": false,
             "description": "A reference to an external source supporting a claim in a concept's body. Attached via the schema:citation predicate.",
@@ -439,6 +496,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -514,6 +582,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -676,6 +751,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -742,6 +825,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -829,6 +923,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -999,6 +1100,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -1103,6 +1212,17 @@
                         "null"
                     ]
                 },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -1177,6 +1297,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -1339,6 +1466,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -1421,6 +1556,17 @@
                         "null"
                     ]
                 },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -1495,6 +1641,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -1657,6 +1810,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -1815,6 +1976,17 @@
                         "null"
                     ]
                 },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -1896,6 +2068,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -2057,6 +2236,14 @@
                         "GlossaryTerm"
                     ],
                     "type": "string"
+                },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 },
                 "usage_window": {
                     "anyOf": [
@@ -2259,6 +2446,17 @@
                         "null"
                     ]
                 },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -2333,6 +2531,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -2512,6 +2717,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "unit": {
                     "description": "The unit of measurement (e.g. USD, seconds, count).",
                     "type": [
@@ -2575,6 +2788,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -2650,6 +2874,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -2827,6 +3058,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -2926,6 +3165,17 @@
                         "null"
                     ]
                 },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -3000,6 +3250,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -3177,6 +3434,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -3233,6 +3498,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -3308,6 +3584,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -3470,6 +3753,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -3526,6 +3817,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -3601,6 +3903,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -3763,6 +4072,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -3819,6 +4136,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -3894,6 +4222,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -4056,6 +4391,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -4127,6 +4470,7 @@
                 "references",
                 "dependsOn",
                 "derivedFrom",
+                "wasRevisionOf",
                 "about",
                 "sameAs",
                 "relatedTo",
@@ -4161,6 +4505,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -4236,6 +4591,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -4439,6 +4801,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -4495,6 +4865,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -4577,6 +4958,13 @@
                 },
                 "documentation": {
                     "description": "A link to the service's documentation.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -4750,6 +5138,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -4877,6 +5273,17 @@
                         "null"
                     ]
                 },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
+                },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
                     "items": {
@@ -4963,6 +5370,13 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -5133,6 +5547,14 @@
                     ],
                     "type": "string"
                 },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "usage_window": {
                     "anyOf": [
                         {
@@ -5189,6 +5611,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "audience": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Audience"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers."
                 },
                 "author": {
                     "description": "The agent(s) responsible for authoring the concept.",
@@ -5264,6 +5697,13 @@
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "educationalLevel": {
+                    "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
                         "null"
@@ -5425,6 +5865,14 @@
                         "Tutorial"
                     ],
                     "type": "string"
+                },
+                "typicalAgeRange": {
+                    "description": "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.",
+                    "pattern": "^[0-9]{1,3}-([0-9]{1,3})?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
                 },
                 "usage_window": {
                     "anyOf": [

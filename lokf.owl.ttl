@@ -11,6 +11,7 @@
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix linkml: <https://w3id.org/linkml/> .
 @prefix lokf: <https://w3id.org/lokf/> .
+@prefix lrmi: <http://purl.org/dcx/lrmi-terms/> .
 @prefix org: <http://www.w3.org/ns/org#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix pav: <http://purl.org/pav/> .
@@ -190,6 +191,51 @@ org:member a owl:Class ;
     rdfs:label "holder" ;
     rdfs:subClassOf lokf:RelationType ;
     skos:definition "The target agent holds this concept (a role)." .
+
+prov:wasRevisionOf a owl:Class ;
+    rdfs:label "wasRevisionOf" ;
+    rdfs:subClassOf lokf:RelationType ;
+    skos:definition "The concept is a revised version of the target: a derivation that keeps substantial content of the original." .
+
+lokf:Audience a owl:Class ;
+    rdfs:label "Audience" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:audienceType ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:audienceType ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:suggestedMaxAge ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:suggestedMaxAge ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:suggestedMinAge ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:audienceType ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:integer [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:integer ;
+                                owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ) ] ;
+            owl:onProperty lokf:suggestedMinAge ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:integer [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:integer ;
+                                owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ) ] ;
+            owl:onProperty lokf:suggestedMaxAge ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:suggestedMinAge ] ;
+    skos:closeMatch dcterms:AgentClass ;
+    skos:definition "The readers a concept is written for, as schema.org's PeopleAudience describes them: a kind of reader and an age range. Set on a concept written for narrower readers than the bundle's own, such as a version of another concept for younger readers." ;
+    skos:exactMatch schema1:PeopleAudience ;
+    skos:inScheme lokf:schema .
 
 lokf:BooleanParameter a owl:Class ;
     rdfs:label "boolean" ;
@@ -1047,6 +1093,18 @@ lokf:attester a owl:ObjectProperty ;
     skos:definition "The deterministic, non-LLM verdict check over a receipt." ;
     skos:inScheme lokf:schema .
 
+lokf:audience a owl:ObjectProperty ;
+    rdfs:label "audience" ;
+    rdfs:range lokf:Audience ;
+    skos:definition "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+    skos:exactMatch dcterms:audience ;
+    skos:inScheme lokf:schema .
+
+lokf:audienceType a owl:DatatypeProperty ;
+    rdfs:label "audienceType" ;
+    skos:definition "The kind of reader, in words, such as `students` or `dyslexic readers`." ;
+    skos:inScheme lokf:schema .
+
 lokf:base_iri a owl:DatatypeProperty ;
     rdfs:label "base_iri" ;
     rdfs:range [ a rdfs:Datatype ;
@@ -1106,6 +1164,14 @@ lokf:documentation a owl:DatatypeProperty ;
     rdfs:label "documentation" ;
     rdfs:range xsd:anyURI ;
     skos:definition "A link to the service's documentation." ;
+    skos:inScheme lokf:schema .
+
+lokf:educationalLevel a owl:DatatypeProperty ;
+    rdfs:label "educationalLevel" ;
+    rdfs:range xsd:string ;
+    skos:closeMatch dcterms:educationLevel,
+        lrmi:educationalLevel ;
+    skos:definition "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
     skos:inScheme lokf:schema .
 
 lokf:email a owl:DatatypeProperty ;
@@ -1268,6 +1334,24 @@ lokf:status a owl:ObjectProperty ;
     skos:note "Absence is deliberately distinguishable from an explicit `status: stable` (a consumer-side default), so no `ifabsent` is set.",
         "schema:creativeWorkStatus is text-valued by design, so the flat JSON-LD context path emitting the literal is exactly conformant schema.org usage; the enum's ADMS meaning IRIs surface on the LinkML RDF/OWL/SHACL path." .
 
+lokf:suggestedMaxAge a owl:DatatypeProperty ;
+    rdfs:label "suggestedMaxAge" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:integer [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:integer ;
+                        owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ) ] ;
+    skos:definition "The oldest age, in years, the concept is written for." ;
+    skos:inScheme lokf:schema .
+
+lokf:suggestedMinAge a owl:DatatypeProperty ;
+    rdfs:label "suggestedMinAge" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:integer [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:integer ;
+                        owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ) ] ;
+    skos:definition "The youngest age, in years, the concept is written for." ;
+    skos:inScheme lokf:schema .
+
 lokf:target a owl:ObjectProperty ;
     rdfs:label "target" ;
     rdfs:range lokf:Concept ;
@@ -1286,6 +1370,16 @@ lokf:to a owl:DatatypeProperty ;
     rdfs:range xsd:dateTime ;
     skos:closeMatch schema1:endDate ;
     skos:definition "End (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+    skos:inScheme lokf:schema .
+
+lokf:typicalAgeRange a owl:DatatypeProperty ;
+    rdfs:label "typicalAgeRange" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:string ;
+                        owl:withRestrictions ( [ xsd:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ] ) ] ) ] ;
+    skos:definition "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+    skos:exactMatch lrmi:typicalAgeRange ;
     skos:inScheme lokf:schema .
 
 lokf:url a owl:DatatypeProperty ;
@@ -1515,10 +1609,6 @@ schema1:HowTo a owl:Class ;
     lokf:diataxis_acquisition_application "application" ;
     lokf:diataxis_action_cognition "action" .
 
-xsd:integer a owl:Class ;
-    rdfs:label "integer" ;
-    rdfs:subClassOf lokf:FieldType .
-
 lokf:ConceptStatus a owl:Class ;
     rdfs:label "ConceptStatus" ;
     owl:unionOf ( adms_status:UnderDevelopment adms_status:Completed adms_status:Deprecated ) ;
@@ -1745,15 +1835,23 @@ lokf:title a owl:DatatypeProperty ;
     skos:definition "Human-readable display name." ;
     skos:inScheme lokf:schema .
 
+xsd:integer a owl:Class ;
+    rdfs:label "integer" ;
+    rdfs:subClassOf lokf:FieldType .
+
 lokf:description a owl:DatatypeProperty ;
     rdfs:label "description" ;
     skos:closeMatch dcterms:description ;
     skos:definition "A single-sentence summary of the concept." ;
     skos:inScheme lokf:schema .
 
+xsd:dateTime a owl:Class ;
+    rdfs:label "datetime" ;
+    rdfs:subClassOf lokf:FieldType .
+
 lokf:RelationType a owl:Class ;
     rdfs:label "RelationType" ;
-    owl:unionOf ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source schema1:memberOf org:member ) ;
+    owl:unionOf ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom prov:wasRevisionOf schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source schema1:memberOf org:member ) ;
     skos:definition "The recommended controlled vocabulary of relationship predicates for reified Relations. Each value carries a `meaning` mapping to its RDF predicate in schema.org, Dublin Core Terms, PROV-O, RDFS, or OWL." ;
     skos:inScheme lokf:schema ;
     linkml:permissible_values dcterms:isPartOf,
@@ -1769,12 +1867,9 @@ lokf:RelationType a owl:Class ;
         org:member,
         prov:wasAttributedTo,
         prov:wasDerivedFrom,
+        prov:wasRevisionOf,
         lokf:joinsWith,
         lokf:measures .
-
-xsd:dateTime a owl:Class ;
-    rdfs:label "datetime" ;
-    rdfs:subClassOf lokf:FieldType .
 
 lokf:type a owl:DatatypeProperty,
         owl:ObjectProperty ;
@@ -1814,6 +1909,9 @@ lokf:Concept a owl:Class ;
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:version ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:educationalLevel ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:sameAs ],
@@ -1878,6 +1976,15 @@ lokf:Concept a owl:Class ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:dependsOn ],
         [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:string ;
+                                owl:withRestrictions ( [ xsd:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ] ) ] ) ] ;
+            owl:onProperty lokf:typicalAgeRange ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:educationalLevel ],
+        [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:version ],
         [ a owl:Restriction ;
@@ -1890,6 +1997,9 @@ lokf:Concept a owl:Class ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:description ],
         [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:audience ],
+        [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:timestamp ],
         [ a owl:Restriction ;
@@ -1898,6 +2008,9 @@ lokf:Concept a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:ConceptStatus ;
             owl:onProperty lokf:status ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Audience ;
+            owl:onProperty lokf:audience ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:status ],
@@ -1957,6 +2070,12 @@ lokf:Concept a owl:Class ;
             owl:onProperty lokf:references ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
+            owl:onProperty lokf:typicalAgeRange ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:educationalLevel ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
             owl:onProperty lokf:resource ],
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
@@ -1998,6 +2117,9 @@ lokf:Concept a owl:Class ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:resource ],
         [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:audience ],
+        [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:sameAs ],
         [ a owl:Restriction ;
@@ -2009,6 +2131,9 @@ lokf:Concept a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
             owl:onProperty lokf:references ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:typicalAgeRange ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:type ],

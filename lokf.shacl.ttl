@@ -22,6 +22,13 @@ schema1:Dataset a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:dateModified ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
@@ -73,6 +80,12 @@ schema1:Dataset a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 26 ;
             sh:path schema1:genre ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class schema1:CreativeWork ;
             sh:description "External sources supporting claims in the body." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -165,6 +178,12 @@ schema1:Dataset a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 11 ;
             sh:path schema1:license ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:class dcterms:PeriodOfTime ;
             sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
@@ -210,6 +229,12 @@ schema1:DefinedTerm a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 32 ;
             sh:path schema1:expires ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -254,6 +279,13 @@ schema1:DefinedTerm a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 29 ;
             sh:path prov:wasGeneratedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -358,6 +390,12 @@ schema1:DefinedTerm a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:isPartOf ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -400,6 +438,19 @@ schema1:Organization a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 31 ;
             sh:path schema1:additionalType ],
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class dcterms:PeriodOfTime ;
             sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
@@ -411,18 +462,19 @@ schema1:Organization a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path dcterms:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:email ;
+            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:datatype xsd:dateTime ;
             sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 30 ;
             sh:path schema1:expires ],
-        [ sh:datatype xsd:string ;
-            sh:description "A name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:name ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -457,13 +509,6 @@ schema1:Organization a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:dateCreated ],
-        [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 33 ;
-            sh:path schema1:email ;
-            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
@@ -537,6 +582,12 @@ schema1:Organization a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 10 ;
             sh:path schema1:author ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -578,7 +629,13 @@ schema1:Organization a sh:NodeShape ;
             sh:description "External sources supporting claims in the body." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 12 ;
-            sh:path schema1:citation ] ;
+            sh:path schema1:citation ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ] ;
     sh:targetClass schema1:Organization .
 
 schema1:OrganizationRole a sh:NodeShape ;
@@ -600,6 +657,12 @@ schema1:OrganizationRole a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path dcterms:requires ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 37 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "The date the role began (ISO 8601 date or year)." ;
             sh:maxCount 1 ;
@@ -639,6 +702,13 @@ schema1:OrganizationRole a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 36 ;
             sh:path schema1:additionalType ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -732,6 +802,12 @@ schema1:OrganizationRole a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path schema1:about ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 39 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -818,12 +894,6 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:string ;
-            sh:description "A name." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:name ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -834,6 +904,12 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 13 ;
             sh:path lokf:relations ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -860,6 +936,13 @@ schema1:Person a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 10 ;
             sh:path schema1:author ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:email ;
+            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -881,6 +964,12 @@ schema1:Person a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 29 ;
             sh:path schema1:creativeWorkStatus ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class dcterms:PeriodOfTime ;
             sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
@@ -942,6 +1031,12 @@ schema1:Person a sh:NodeShape ;
             sh:order 11 ;
             sh:path schema1:text ],
         [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
             sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
@@ -949,12 +1044,12 @@ schema1:Person a sh:NodeShape ;
             sh:order 1 ;
             sh:path lokf:type ],
         [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 33 ;
-            sh:path schema1:email ;
-            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -992,6 +1087,13 @@ schema1:WebAPI a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path prov:wasDerivedFrom ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -1019,6 +1121,12 @@ schema1:WebAPI a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 33 ;
             sh:path schema1:expires ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 35 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -1120,6 +1228,12 @@ schema1:WebAPI a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
@@ -1176,6 +1290,12 @@ lokf:AttestedComputation a sh:NodeShape ;
     sh:closed true ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:property [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 39 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -1310,6 +1430,13 @@ lokf:AttestedComputation a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path dcterms:references ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Attester ;
             sh:description "The deterministic, non-LLM verdict check over a receipt." ;
             sh:maxCount 1 ;
@@ -1342,6 +1469,12 @@ lokf:AttestedComputation a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path schema1:sameAs ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 37 ;
+            sh:path schema1:audience ],
         [ sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -1399,6 +1532,12 @@ lokf:Document a sh:NodeShape ;
             sh:order 21 ;
             sh:path dcterms:relation ],
         [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -1425,6 +1564,12 @@ lokf:Document a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 13 ;
             sh:path lokf:relations ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
@@ -1447,6 +1592,13 @@ lokf:Document a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -1586,6 +1738,12 @@ lokf:Explanation a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:requires ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -1619,6 +1777,12 @@ lokf:Explanation a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:text ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:string ;
             sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:maxCount 1 ;
@@ -1657,6 +1821,13 @@ lokf:Explanation a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 4 ;
             sh:path schema1:url ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class rdf:Statement ;
             sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -1888,6 +2059,12 @@ lokf:Metric a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 4 ;
             sh:path lokf:type ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 35 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
@@ -1937,6 +2114,13 @@ lokf:Metric a sh:NodeShape ;
             sh:order 10 ;
             sh:path schema1:dateCreated ],
         [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -1979,6 +2163,12 @@ lokf:Metric a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 12 ;
             sh:path schema1:license ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path schema1:educationalLevel ],
         [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
             sh:in ( adms_status:UnderDevelopment adms_status:Completed adms_status:Deprecated ) ;
             sh:maxCount 1 ;
@@ -2021,6 +2211,12 @@ lokf:Playbook a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:requires ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -2093,6 +2289,12 @@ lokf:Playbook a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path dcterms:source ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class schema1:CreativeWork ;
             sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2120,6 +2322,13 @@ lokf:Playbook a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 24 ;
             sh:path schema1:genre ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:datatype xsd:dateTime ;
             sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
             sh:maxCount 1 ;
@@ -2174,6 +2383,13 @@ lokf:Policy a sh:NodeShape ;
             sh:order 10 ;
             sh:path schema1:author ],
         [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:datatype xsd:string ;
             sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
@@ -2206,6 +2422,12 @@ lokf:Policy a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:maxCount 1 ;
@@ -2260,6 +2482,12 @@ lokf:Policy a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
@@ -2363,6 +2591,12 @@ lokf:Reference a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -2454,6 +2688,13 @@ lokf:Reference a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path dcterms:relation ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Verification ;
             sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2517,7 +2758,13 @@ lokf:Reference a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
-            sh:path schema1:name ] ;
+            sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ] ;
     sh:targetClass lokf:Reference .
 
 lokf:Table a sh:NodeShape ;
@@ -2583,6 +2830,12 @@ lokf:Table a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:isPartOf ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
@@ -2594,6 +2847,13 @@ lokf:Table a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 4 ;
             sh:path schema1:name ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class prov:Agent ;
             sh:description "The agent(s) responsible for authoring the concept." ;
             sh:nodeKind sh:IRI ;
@@ -2657,6 +2917,12 @@ lokf:Table a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path dcterms:source ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
@@ -2723,6 +2989,25 @@ lokf:Tutorial a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:dateCreated ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -3009,6 +3294,32 @@ dcat:Distribution a sh:NodeShape ;
             sh:path schema1:name ] ;
     sh:targetClass dcat:Distribution .
 
+schema1:PeopleAudience a sh:NodeShape ;
+    rdfs:comment "The readers a concept is written for, as schema.org's PeopleAudience describes them: a kind of reader and an age range. Set on a concept written for narrower readers than the bundle's own, such as a version of another concept for younger readers." ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The kind of reader, in words, such as `students` or `dyslexic readers`." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path schema1:audienceType ],
+        [ sh:datatype xsd:integer ;
+            sh:description "The oldest age, in years, the concept is written for." ;
+            sh:maxCount 1 ;
+            sh:minInclusive 0 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path schema1:suggestedMaxAge ],
+        [ sh:datatype xsd:integer ;
+            sh:description "The youngest age, in years, the concept is written for." ;
+            sh:maxCount 1 ;
+            sh:minInclusive 0 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path schema1:suggestedMinAge ] ;
+    sh:targetClass schema1:PeopleAudience .
+
 rdf:Statement a sh:NodeShape ;
     rdfs:comment "A typed, reified relationship from the containing concept to a target, used when a predicate is not covered by one of the named relation slots. Modeled as an rdf:Statement (subject = the containing concept)." ;
     sh:closed true ;
@@ -3021,7 +3332,7 @@ rdf:Statement a sh:NodeShape ;
             sh:order 1 ;
             sh:path rdf:object ],
         [ sh:description "The relationship type. SHOULD be drawn from the RelationType vocabulary." ;
-            sh:in ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source schema1:memberOf org:member ) ;
+            sh:in ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom prov:wasRevisionOf schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source schema1:memberOf org:member ) ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:order 0 ;
@@ -3107,7 +3418,7 @@ dcterms:PeriodOfTime a sh:NodeShape ;
 prov:Agent a sh:NodeShape ;
     rdfs:comment "A person or organization responsible for a concept." ;
     sh:closed false ;
-    sh:ignoredProperties ( dcterms:isPartOf dcterms:references dcterms:relation dcterms:requires dcterms:source schema1:about schema1:additionalType schema1:author schema1:citation schema1:creativeWorkStatus schema1:dateCreated schema1:dateModified schema1:description schema1:expires schema1:genre schema1:hasPart schema1:isBasedOn schema1:keywords schema1:license schema1:sameAs schema1:text schema1:url schema1:version rdf:type rdfs:isDefinedBy prov:wasDerivedFrom prov:wasGeneratedBy lokf:relations lokf:usageWindow lokf:verified ) ;
+    sh:ignoredProperties ( dcterms:isPartOf dcterms:references dcterms:relation dcterms:requires dcterms:source schema1:about schema1:additionalType schema1:audience schema1:author schema1:citation schema1:creativeWorkStatus schema1:dateCreated schema1:dateModified schema1:description schema1:educationalLevel schema1:expires schema1:genre schema1:hasPart schema1:isBasedOn schema1:keywords schema1:license schema1:sameAs schema1:text schema1:typicalAgeRange schema1:url schema1:version rdf:type rdfs:isDefinedBy prov:wasDerivedFrom prov:wasGeneratedBy lokf:relations lokf:usageWindow lokf:verified ) ;
     sh:property [ sh:datatype xsd:string ;
             sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:maxCount 1 ;
@@ -3226,6 +3537,12 @@ lokf:Concept a sh:NodeShape ;
             sh:order 26 ;
             sh:path lokf:usageWindow ],
         [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:datatype xsd:string ;
             sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -3321,6 +3638,12 @@ lokf:Concept a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:sameAs ],
+        [ sh:class schema1:PeopleAudience ;
+            sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
@@ -3337,6 +3660,13 @@ lokf:Concept a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:version ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;

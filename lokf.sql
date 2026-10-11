@@ -23,9 +23,12 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: KnowledgeBundle_id Description: Autocreated FK slot
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Dataset Description: A collection of data, published or curated for access and reuse.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -41,8 +44,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Table Description: A structured, tabular dataset (e.g. a warehouse table or view) whose columns are described by Field objects under `fields`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -58,8 +64,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Metric Description: A precisely defined, measurable quantity — the canonical definition of a business or operational metric.
 --     * Slot: unit Description: The unit of measurement (e.g. USD, seconds, count).
 --     * Slot: formula Description: The calculation or definition expression for a metric.
@@ -77,8 +86,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Service Description: A callable service or API endpoint.
 --     * Slot: endpoint Description: The base URL or invocation endpoint of a service.
 --     * Slot: http_method Description: The HTTP method used to invoke the service, if applicable.
@@ -97,8 +109,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Playbook Description: A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event. Serves the Diátaxis how-to (goal-oriented) mode.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -114,8 +129,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Tutorial Description: A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by doing. The Diátaxis tutorial mode as a first-class concept type; typically links to the reference and explanation it draws on with `references`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -131,8 +149,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Explanation Description: An understanding-oriented, discursive treatment of a topic that permits reflection. The Diátaxis explanation mode as a first-class concept type; typically links to its subject matter with `about`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -148,8 +169,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Policy Description: A governance, compliance, or operational policy document.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -165,8 +189,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: GlossaryTerm Description: A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept.
 --     * Slot: definition Description: The formal definition of a term.
 --     * Slot: abbreviation Description: A short form or acronym for a term.
@@ -184,8 +211,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Reference Description: A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -201,8 +231,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Document Description: A general knowledge document that does not fit a more specific type.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -218,8 +251,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Role Description: A role an agent holds within an organization over a period of time — a job, appointment, or position. Reifies the agent–organization link so it can carry a title (roleName) and a start/end interval, following the schema.org Role and W3C ORG Membership patterns.
 --     * Slot: roleName Description: The name/title of the role held (e.g. a job title).
 --     * Slot: startDate Description: The date the role began (ISO 8601 date or year).
@@ -238,8 +274,11 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: AttestedComputation Description: A sanctioned, immutable recipe for computing a value (OKF v0.2 §10), carried as its own concept type. The frontmatter is the contract: the agent may only bind the declared `parameters`, the `executor` runs the bound computation and returns a receipt, and the `attester` deterministically compares what actually ran against this recipe. The computation text lives in the body's `# Computation` fenced block or in the file named by `computation`. Semantically a prov:Plan with an attestation contract layered on.
 --     * Slot: runtime Description: REQUIRED on an Attested Computation. How to run the computation (bigquery | postgres | dbt | python | Looker | ...); defines what `parameters` mean and how the executor and attester interpret the contract.
 --     * Slot: computation Description: Optional path to a file holding the computation; absent means the body's `# Computation` fenced block IS the computation. Minted in lokf: schema:contentUrl is the nearest real property but is scoped to MediaObject bytes.
@@ -257,10 +296,13 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: executor_id Description: How the computation is run and what evidence a run must return.
 --     * Slot: attester_id Description: The deterministic, non-LLM verdict check over a receipt.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Abstract Class: Agent Description: A person or organization responsible for a concept.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -297,10 +339,13 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Organization Description: An organization, team, or group. Usable both as an inline Agent value (publisher) and as a standalone Concept document with a body and typed relations.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -316,10 +361,13 @@
 --     * Slot: status Description: Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control.
 --     * Slot: stale_after Description: The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 --     * Slot: additionalType Description: The producer's own `type` string when it names no LOKF class.
+--     * Slot: typicalAgeRange Description: The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over.
+--     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: name Description: A name.
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Field Description: A single column / property within a Table or Dataset schema. Maps to schema:PropertyValue.
 --     * Slot: id
 --     * Slot: name Description: A name.
@@ -406,6 +454,11 @@
 --     * Slot: Person_id Description: Autocreated FK slot
 --     * Slot: Organization_id Description: Autocreated FK slot
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
+-- # Class: Audience Description: The readers a concept is written for, as schema.org's PeopleAudience describes them: a kind of reader and an age range. Set on a concept written for narrower readers than the bundle's own, such as a version of another concept for younger readers.
+--     * Slot: id
+--     * Slot: audienceType Description: The kind of reader, in words, such as `students` or `dyslexic readers`.
+--     * Slot: suggestedMinAge Description: The youngest age, in years, the concept is written for.
+--     * Slot: suggestedMaxAge Description: The oldest age, in years, the concept is written for.
 -- # Class: UsageWindow Description: The `{ from, to }` date range framing every `usage_count` signal (OKF v0.2 §5.1). Written once as a sibling of `sources`; a single Source entry MAY carry its own override.
 --     * Slot: id
 --     * Slot: from Description: Start (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
@@ -1018,13 +1071,17 @@ CREATE TABLE "Concept" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	"KnowledgeBundle_id" INTEGER,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY("KnowledgeBundle_id") REFERENCES "KnowledgeBundle" (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Agent" (
@@ -1065,6 +1122,14 @@ CREATE TABLE "Agent" (
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id)
+);
+
+CREATE TABLE "Audience" (
+	id INTEGER NOT NULL,
+	"audienceType" TEXT,
+	"suggestedMinAge" INTEGER,
+	"suggestedMaxAge" INTEGER,
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE "UsageWindow" (
@@ -1109,11 +1174,15 @@ CREATE TABLE "Dataset" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Table" (
@@ -1131,11 +1200,15 @@ CREATE TABLE "Table" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Metric" (
@@ -1155,11 +1228,15 @@ CREATE TABLE "Metric" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Service" (
@@ -1180,11 +1257,15 @@ CREATE TABLE "Service" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Playbook" (
@@ -1202,11 +1283,15 @@ CREATE TABLE "Playbook" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Tutorial" (
@@ -1224,11 +1309,15 @@ CREATE TABLE "Tutorial" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Explanation" (
@@ -1246,11 +1335,15 @@ CREATE TABLE "Explanation" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Policy" (
@@ -1268,11 +1361,15 @@ CREATE TABLE "Policy" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "GlossaryTerm" (
@@ -1292,11 +1389,15 @@ CREATE TABLE "GlossaryTerm" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Reference" (
@@ -1314,11 +1415,15 @@ CREATE TABLE "Reference" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Document" (
@@ -1336,11 +1441,15 @@ CREATE TABLE "Document" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Role" (
@@ -1361,11 +1470,15 @@ CREATE TABLE "Role" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "AttestedComputation" (
@@ -1385,15 +1498,19 @@ CREATE TABLE "AttestedComputation" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	executor_id INTEGER,
 	attester_id INTEGER,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(executor_id) REFERENCES "Executor" (id),
 	FOREIGN KEY(attester_id) REFERENCES "Attester" (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Person" (
@@ -1411,13 +1528,17 @@ CREATE TABLE "Person" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	name TEXT,
 	email TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Organization" (
@@ -1435,13 +1556,17 @@ CREATE TABLE "Organization" (
 	status VARCHAR(10),
 	stale_after DATETIME,
 	"additionalType" TEXT,
+	"typicalAgeRange" TEXT,
+	"educationalLevel" TEXT,
 	name TEXT,
 	email TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
-	FOREIGN KEY(generated_id) REFERENCES "Generation" (id)
+	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
 CREATE TABLE "Concept_tags" (
@@ -3096,6 +3221,7 @@ CREATE INDEX "ix_AttestedComputation_source_source_id" ON "AttestedComputation_s
 CREATE INDEX "ix_AttestedComputation_tags_AttestedComputation_id" ON "AttestedComputation_tags" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_tags_tags" ON "AttestedComputation_tags" (tags);
 CREATE INDEX "ix_Attester_id" ON "Attester" (id);
+CREATE INDEX "ix_Audience_id" ON "Audience" (id);
 CREATE INDEX "ix_Citation_id" ON "Citation" (id);
 CREATE INDEX "ix_Concept_about_Concept_id" ON "Concept_about" ("Concept_id");
 CREATE INDEX "ix_Concept_about_about_id" ON "Concept_about" (about_id);

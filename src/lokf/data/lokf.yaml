@@ -37,6 +37,7 @@ prefixes:
   vivo: http://vivoweb.org/ontology/core#
   adms: http://www.w3.org/ns/adms#
   adms_status: http://purl.org/adms/status/
+  lrmi: http://purl.org/dcx/lrmi-terms/
 
 default_prefix: lokf
 default_range: string
@@ -137,6 +138,9 @@ classes:
       - status
       - stale_after
       - additionalType
+      - audience
+      - typicalAgeRange
+      - educationalLevel
 
   Dataset:
     is_a: Concept
@@ -504,6 +508,20 @@ classes:
           Deliberately looser than `by`: source authorship is commonly a team
           or an org, so any `<prefix>:<id>` is admitted, where `by` stays
           confined to the §7 provenance actors the trust tiers read.
+
+  Audience:
+    description: >-
+      The readers a concept is written for, as schema.org's PeopleAudience
+      describes them: a kind of reader and an age range. Set on a concept
+      written for narrower readers than the bundle's own, such as a version
+      of another concept for younger readers.
+    class_uri: schema:PeopleAudience
+    close_mappings:
+      - dcterms:AgentClass
+    slots:
+      - audienceType
+      - suggestedMinAge
+      - suggestedMaxAge
 
   UsageWindow:
     description: >-
@@ -1164,6 +1182,65 @@ slots:
     in_subset:
       - lokf_semantic
 
+  # --- Who a concept is written for (schema.org, Dublin Core, LRMI) ---------
+  audience:
+    description: >-
+      The readers this concept is written for, such as readers aged 13 to
+      18, as an inlined Audience. Absent means the bundle's own readers.
+    range: Audience
+    inlined: true
+    slot_uri: schema:audience
+    exact_mappings:
+      - dcterms:audience
+    in_subset:
+      - lokf_semantic
+
+  audienceType:
+    description: The kind of reader, in words, such as `students` or `dyslexic readers`.
+    slot_uri: schema:audienceType
+    in_subset:
+      - lokf_semantic
+
+  suggestedMinAge:
+    description: The youngest age, in years, the concept is written for.
+    range: integer
+    minimum_value: 0
+    slot_uri: schema:suggestedMinAge
+    in_subset:
+      - lokf_semantic
+
+  suggestedMaxAge:
+    description: The oldest age, in years, the concept is written for.
+    range: integer
+    minimum_value: 0
+    slot_uri: schema:suggestedMaxAge
+    in_subset:
+      - lokf_semantic
+
+  typicalAgeRange:
+    description: >-
+      The typical age range of the concept's readers, as schema.org writes
+      it: `8-12`, or `13-` for 13 and over.
+    range: string
+    pattern: '^[0-9]{1,3}-([0-9]{1,3})?$'
+    slot_uri: schema:typicalAgeRange
+    exact_mappings:
+      - lrmi:typicalAgeRange
+    in_subset:
+      - lokf_semantic
+
+  educationalLevel:
+    description: >-
+      The level of education the concept is written for, in words or as the
+      IRI of a level in a published framework, such as a level of ISCED 2011.
+    range: string
+    slot_uri: schema:educationalLevel
+    close_mappings:
+      - dcterms:educationLevel
+      - lrmi:educationalLevel
+    in_subset:
+      - lokf_semantic
+
   # --- Bundle metadata ------------------------------------------------------
   lokf_version:
     description: The LOKF version the bundle targets (e.g. "0.2").
@@ -1548,6 +1625,11 @@ enums:
       derivedFrom:
         description: The concept was derived from the target.
         meaning: prov:wasDerivedFrom
+      wasRevisionOf:
+        description: >-
+          The concept is a revised version of the target: a derivation that
+          keeps substantial content of the original.
+        meaning: prov:wasRevisionOf
       about:
         description: The concept is about the target.
         meaning: schema:about

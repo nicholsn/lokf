@@ -69,6 +69,7 @@ DCTERMS = CurieNamespace('dcterms', 'http://purl.org/dc/terms/')
 FOAF = CurieNamespace('foaf', 'http://xmlns.com/foaf/0.1/')
 LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
 LOKF = CurieNamespace('lokf', 'https://w3id.org/lokf/')
+LRMI = CurieNamespace('lrmi', 'http://purl.org/dcx/lrmi-terms/')
 ORG = CurieNamespace('org', 'http://www.w3.org/ns/org#')
 OWL = CurieNamespace('owl', 'http://www.w3.org/2002/07/owl#')
 PAV = CurieNamespace('pav', 'http://purl.org/pav/')
@@ -253,6 +254,9 @@ class Concept(YAMLRoot):
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
     additionalType: Optional[str] = None
+    audience: Optional[Union[dict, "Audience"]] = None
+    typicalAgeRange: Optional[str] = None
+    educationalLevel: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -361,6 +365,15 @@ class Concept(YAMLRoot):
 
         if self.additionalType is not None and not isinstance(self.additionalType, str):
             self.additionalType = str(self.additionalType)
+
+        if self.audience is not None and not isinstance(self.audience, Audience):
+            self.audience = Audience(**as_dict(self.audience))
+
+        if self.typicalAgeRange is not None and not isinstance(self.typicalAgeRange, str):
+            self.typicalAgeRange = str(self.typicalAgeRange)
+
+        if self.educationalLevel is not None and not isinstance(self.educationalLevel, str):
+            self.educationalLevel = str(self.educationalLevel)
 
         super().__post_init__(**kwargs)
 
@@ -929,6 +942,9 @@ class Person(Agent):
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
     additionalType: Optional[str] = None
+    audience: Optional[Union[dict, "Audience"]] = None
+    typicalAgeRange: Optional[str] = None
+    educationalLevel: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -1038,6 +1054,15 @@ class Person(Agent):
         if self.additionalType is not None and not isinstance(self.additionalType, str):
             self.additionalType = str(self.additionalType)
 
+        if self.audience is not None and not isinstance(self.audience, Audience):
+            self.audience = Audience(**as_dict(self.audience))
+
+        if self.typicalAgeRange is not None and not isinstance(self.typicalAgeRange, str):
+            self.typicalAgeRange = str(self.typicalAgeRange)
+
+        if self.educationalLevel is not None and not isinstance(self.educationalLevel, str):
+            self.educationalLevel = str(self.educationalLevel)
+
         super().__post_init__(**kwargs)
 
 
@@ -1086,6 +1111,9 @@ class Organization(Agent):
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
     additionalType: Optional[str] = None
+    audience: Optional[Union[dict, "Audience"]] = None
+    typicalAgeRange: Optional[str] = None
+    educationalLevel: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -1194,6 +1222,15 @@ class Organization(Agent):
 
         if self.additionalType is not None and not isinstance(self.additionalType, str):
             self.additionalType = str(self.additionalType)
+
+        if self.audience is not None and not isinstance(self.audience, Audience):
+            self.audience = Audience(**as_dict(self.audience))
+
+        if self.typicalAgeRange is not None and not isinstance(self.typicalAgeRange, str):
+            self.typicalAgeRange = str(self.typicalAgeRange)
+
+        if self.educationalLevel is not None and not isinstance(self.educationalLevel, str):
+            self.educationalLevel = str(self.educationalLevel)
 
         super().__post_init__(**kwargs)
 
@@ -1386,6 +1423,37 @@ class Source(YAMLRoot):
 
         if self.id is not None and not isinstance(self.id, str):
             self.id = str(self.id)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Audience(YAMLRoot):
+    """
+    The readers a concept is written for, as schema.org's PeopleAudience describes them: a kind of reader and an age
+    range. Set on a concept written for narrower readers than the bundle's own, such as a version of another concept
+    for younger readers.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = SCHEMA["PeopleAudience"]
+    class_class_curie: ClassVar[str] = "schema:PeopleAudience"
+    class_name: ClassVar[str] = "Audience"
+    class_model_uri: ClassVar[URIRef] = LOKF.Audience
+
+    audienceType: Optional[str] = None
+    suggestedMinAge: Optional[int] = None
+    suggestedMaxAge: Optional[int] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self.audienceType is not None and not isinstance(self.audienceType, str):
+            self.audienceType = str(self.audienceType)
+
+        if self.suggestedMinAge is not None and not isinstance(self.suggestedMinAge, int):
+            self.suggestedMinAge = int(self.suggestedMinAge)
+
+        if self.suggestedMaxAge is not None and not isinstance(self.suggestedMaxAge, int):
+            self.suggestedMaxAge = int(self.suggestedMaxAge)
 
         super().__post_init__(**kwargs)
 
@@ -1598,6 +1666,10 @@ class RelationType(EnumDefinitionImpl):
         text="derivedFrom",
         description="The concept was derived from the target.",
         meaning=PROV["wasDerivedFrom"])
+    wasRevisionOf = PermissibleValue(
+        text="wasRevisionOf",
+        description="""The concept is a revised version of the target: a derivation that keeps substantial content of the original.""",
+        meaning=PROV["wasRevisionOf"])
     about = PermissibleValue(
         text="about",
         description="The concept is about the target.",
@@ -1984,6 +2056,25 @@ slots.excerpt = Slot(uri=LOKF.excerpt, name="excerpt", curie=LOKF.curie('excerpt
 
 slots.additionalType = Slot(uri=SCHEMA.additionalType, name="additionalType", curie=SCHEMA.curie('additionalType'),
                    model_uri=LOKF.additionalType, domain=None, range=Optional[str])
+
+slots.audience = Slot(uri=SCHEMA.audience, name="audience", curie=SCHEMA.curie('audience'),
+                   model_uri=LOKF.audience, domain=None, range=Optional[Union[dict, Audience]])
+
+slots.audienceType = Slot(uri=SCHEMA.audienceType, name="audienceType", curie=SCHEMA.curie('audienceType'),
+                   model_uri=LOKF.audienceType, domain=None, range=Optional[str])
+
+slots.suggestedMinAge = Slot(uri=SCHEMA.suggestedMinAge, name="suggestedMinAge", curie=SCHEMA.curie('suggestedMinAge'),
+                   model_uri=LOKF.suggestedMinAge, domain=None, range=Optional[int])
+
+slots.suggestedMaxAge = Slot(uri=SCHEMA.suggestedMaxAge, name="suggestedMaxAge", curie=SCHEMA.curie('suggestedMaxAge'),
+                   model_uri=LOKF.suggestedMaxAge, domain=None, range=Optional[int])
+
+slots.typicalAgeRange = Slot(uri=SCHEMA.typicalAgeRange, name="typicalAgeRange", curie=SCHEMA.curie('typicalAgeRange'),
+                   model_uri=LOKF.typicalAgeRange, domain=None, range=Optional[str],
+                   pattern=re.compile(r'^[0-9]{1,3}-([0-9]{1,3})?$'))
+
+slots.educationalLevel = Slot(uri=SCHEMA.educationalLevel, name="educationalLevel", curie=SCHEMA.curie('educationalLevel'),
+                   model_uri=LOKF.educationalLevel, domain=None, range=Optional[str])
 
 slots.lokf_version = Slot(uri=LOKF.lokfVersion, name="lokf_version", curie=LOKF.curie('lokfVersion'),
                    model_uri=LOKF.lokf_version, domain=None, range=Optional[str])
