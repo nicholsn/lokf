@@ -99,7 +99,8 @@ def docs_to_graph(
     declared, so a domain type keeps its own class instead of reading as
     ``lokf:Concept``.
     """
-    from rdflib import Graph
+    from rdflib import BNode, Graph, URIRef
+    from rdflib.namespace import RDF
 
     from lokf.schema import vocabulary
 
@@ -112,6 +113,14 @@ def docs_to_graph(
         format="json-ld",
         publicID=base or None,
     )
+    # JSON-LD's @id coercion connects an inlined audience but does not
+    # infer its class from the LinkML range. Supply the declared default
+    # so projected audiences satisfy the generated SHACL class constraint.
+    # Work with expanded IRIs so a custom context's unrelated `audience`
+    # property is unaffected, and preserve explicitly typed audiences.
+    for audience in list(g.objects(None, URIRef("http://schema.org/audience"))):
+        if isinstance(audience, (BNode, URIRef)) and not any(g.objects(audience, RDF.type)):
+            g.add((audience, RDF.type, URIRef("http://schema.org/PeopleAudience")))
     return g
 
 
