@@ -268,6 +268,31 @@ def test_validate_accepts_revision_on_generated_and_verified(tmp_path):
     assert result.exit_code == 0, result.output
 
 
+def test_validate_accepts_who_a_concept_is_written_for(tmp_path):
+    """`audience`, `typicalAgeRange` and `educationalLevel` validate, and an
+    age range in any form but schema.org's fails, naming the field."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    term = tmp_path / "term.md"
+    term.write_text(
+        "---\ntype: GlossaryTerm\ntitle: T, for readers aged 13 to 18\n"
+        "audience:\n  audienceType: students\n  suggestedMinAge: 13\n  suggestedMaxAge: 18\n"
+        "typicalAgeRange: 13-18\neducationalLevel: ISCED 2\n"
+        "---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    term.write_text(
+        term.read_text(encoding="utf-8").replace("typicalAgeRange: 13-18", "typicalAgeRange: teens"),
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "typicalAgeRange" in result.output
+
+
 def test_validate_accepts_okf_datetimes_and_lokf_bare_dates(tmp_path):
     """OKF §5 writes every timestamp as an ISO 8601 datetime (`stale_after:
     2026-09-23T00:00:00Z`, a datetime `usage_window`, `last_modified`); LOKF

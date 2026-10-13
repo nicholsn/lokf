@@ -39,6 +39,7 @@ CUE_TABLE: tuple[tuple[re.Pattern, str, float], ...] = tuple(
     (re.compile(pattern, re.IGNORECASE), name, confidence)
     for pattern, name, confidence in (
         (r"\bsame as\b|\balias(?:es)?\b", "sameAs", 0.8),
+        (r"\brevision of\b|\brevised (?:version )?of\b", "wasRevisionOf", 0.75),
         (r"\bderived\b|\bcomputed\b|\bbuilt from\b", "derivedFrom", 0.75),
         (r"\bpart of\b|\bwithin\b", "isPartOf", 0.75),
         (r"\bcontains?\b|\bincludes?\b|\bincluding\b", "hasPart", 0.7),

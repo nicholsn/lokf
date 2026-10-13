@@ -15,6 +15,18 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- `audience`, `typicalAgeRange` and `educationalLevel` say who a concept
+  is written for, such as a version of another concept for younger
+  readers. They map to `schema:audience` (exact `dcterms:audience`),
+  `schema:typicalAgeRange` (exact `lrmi:typicalAgeRange`) and
+  `schema:educationalLevel` (close `dcterms:educationLevel`,
+  `lrmi:educationalLevel`). `audience` holds an inlined `Audience`, a
+  `schema:PeopleAudience` with `audienceType`, `suggestedMinAge` and
+  `suggestedMaxAge`, and `typicalAgeRange` takes schema.org's `8-12` or
+  `13-` form. All three are optional.
+- `RelationType` gains `wasRevisionOf` (`prov:wasRevisionOf`), a derivation
+  that keeps substantial content of the original, and `lokf propose` reads
+  "revised version of" as its cue.
 - `lokf validate --check-ids` fails a bundle in which two files declare one
   `id` - a sync client's conflict copy, a pasted duplicate, or an explicit
   `id` equal to another file's path-derived one - naming the IRI and the
