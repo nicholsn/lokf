@@ -11,13 +11,16 @@ so nothing here prints; diagnostics go to stderr.
 """
 from __future__ import annotations
 
+import http.client
 import itertools
 import json
 import pathlib
 import shutil
 import tempfile
+import urllib.parse
 import urllib.request
 import zipfile
+import zlib
 
 import pyoxigraph as ox
 
@@ -54,8 +57,16 @@ def registry_index(registry, store) -> str:
             state = f"not loaded: {store.load_errors[e.base_iri]}"
         else:
             state = f"{e.void.get('triples', '?')} triples"
-        lines.append(f"- **{e.title or e.base_iri}**: {e.base_iri} ({state})")
+        lines.append(f"- **{_one_line(e.title or e.base_iri)}**: {e.base_iri} ({_one_line(state)})")
     return "\n".join(lines) + "\n"
+
+
+def _one_line(text: str, limit: int = 200) -> str:
+    """*text* on one line and at most *limit* characters. A member's title and
+    a load error are written by others and land in the server's instructions,
+    where a line break could start a heading or a list of their own."""
+    flat = " ".join(str(text).split())
+    return flat if len(flat) <= limit else flat[: limit - 1] + "…"
 
 
 def _term(t) -> dict:
@@ -98,33 +109,43 @@ class RegistryTools:
         self.store = store
         self.index = index if index is not None else registry_index(registry, store)
         self._tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-mcp-"))
-        self._archives: dict[str, zipfile.ZipFile | None] = {}
+        self._archives: dict[str, tuple[zipfile.ZipFile, str] | None] = {}
         self._concepts: dict[str, dict] = {}
 
     def close(self) -> None:
-        for zf in self._archives.values():
-            if zf is not None:
-                zf.close()
+        for held in self._archives.values():
+            if held is not None:
+                held[0].close()
         shutil.rmtree(self._tmp, ignore_errors=True)
 
     # -- documents, offline first (SPEC §11.4) ------------------------------
-    def _archive(self, entry) -> zipfile.ZipFile | None:
-        """The member's release zip, fetched once and checked against its checksum."""
+    def _archive(self, entry) -> tuple[zipfile.ZipFile, str] | None:
+        """The member's release zip and the folder in it that holds the
+        bundle, fetched and opened once, and only when it matches the
+        entry's checksum."""
         from lokf.registry import _fetch, _sha256
 
         url = entry.distribution.get("archive")
         if not url:
             return None
         if entry.base_iri not in self._archives:
-            zf = None
+            held = None
             try:
-                dest = self._tmp / f"{len(self._archives)}.zip"
-                path = _fetch(str(url), dest)
+                path = _fetch(str(url), self._tmp / f"{len(self._archives)}.zip")
                 if not entry.checksum or _sha256(path) == entry.checksum:
                     zf = zipfile.ZipFile(path)
-            except (OSError, ValueError, zipfile.BadZipFile):
-                zf = None
-            self._archives[entry.base_iri] = zf
+                    names = set(zf.namelist())
+                    tops = {n.split("/", 1)[0] for n in names
+                            if f"{n.split('/', 1)[0]}/index.md" in names}
+                    if "index.md" in names:
+                        held = (zf, "")
+                    elif len(tops) == 1:
+                        held = (zf, f"{tops.pop()}/")
+                    else:
+                        zf.close()
+            except (OSError, ValueError, zipfile.BadZipFile, http.client.HTTPException):
+                held = None
+            self._archives[entry.base_iri] = held
         return self._archives[entry.base_iri]
 
     def _concepts_doc(self, entry) -> dict:
@@ -152,25 +173,32 @@ class RegistryTools:
         if entry.path:
             root = pathlib.Path(entry.path).resolve()
             f = (root / name).resolve()
-            if f.is_relative_to(root) and f.is_file():
-                return f.read_text(encoding="utf-8"), "checkout"
-        zf = self._archive(entry)
-        if zf is not None:
-            names = set(zf.namelist())
-            tops = {n.split("/", 1)[0] for n in names if f"{n.split('/', 1)[0]}/index.md" in names}
-            prefix = "" if "index.md" in names else (f"{tops.pop()}/" if len(tops) == 1 else None)
-            if prefix is not None and prefix + name in names:
-                return zf.read(prefix + name).decode("utf-8"), "archive"
+            try:
+                if (f.is_relative_to(root) and f.is_file()
+                        and f.stat().st_size <= DOCUMENT_MAX_BYTES):
+                    return f.read_text(encoding="utf-8"), "checkout"
+            except (OSError, UnicodeDecodeError):
+                pass
+        held = self._archive(entry)
+        if held is not None:
+            zf, prefix = held
+            try:
+                info = zf.getinfo(prefix + name)
+                if info.file_size <= DOCUMENT_MAX_BYTES:
+                    return zf.read(info).decode("utf-8"), "archive"
+            except (KeyError, OSError, UnicodeDecodeError, zipfile.BadZipFile, zlib.error):
+                pass
         if name != "index.md" and (doc := self._concepts_doc(entry).get(iri)) is not None:
             return _as_markdown(doc), "concepts.jsonld"
-        url = entry.source_base.rstrip("/") + "/" + name if entry.source_base else ""
-        if live and url.startswith(("https://", "http://")):
+        base = entry.source_base.rstrip("/")
+        if live and base.startswith(("https://", "http://")):
             try:
+                url = base + "/" + urllib.parse.quote(name)
                 with urllib.request.urlopen(url, timeout=30) as resp:
                     data = resp.read(DOCUMENT_MAX_BYTES + 1)
                 if len(data) <= DOCUMENT_MAX_BYTES:
                     return data.decode("utf-8"), "source"
-            except (OSError, UnicodeDecodeError):
+            except (OSError, ValueError, UnicodeDecodeError, http.client.HTTPException):
                 return None
         return None
 
@@ -250,7 +278,10 @@ class RegistryTools:
         each with the graph that asserted it: {iri, triples: [{graph, subject,
         predicate, object: {value, kind}}], count, truncated}. depth is at most
         3 hops and limit at most 2000 triples; truncated says the limit cut it."""
-        quads, truncated = self._around([iri], depth, limit)
+        try:
+            quads, truncated = self._around([iri], depth, limit)
+        except ValueError as exc:
+            return {"error": f"not an absolute IRI: {exc}"}
         return {
             "iri": iri, "count": len(quads), "truncated": truncated,
             "triples": [
@@ -270,7 +301,10 @@ class RegistryTools:
                    "turtle": ox.RdfFormat.TURTLE}
         if format not in formats:
             return {"error": f"format must be one of {', '.join(formats)}"}
-        quads, truncated = self._around(list(iris), depth, limit)
+        try:
+            quads, truncated = self._around(list(iris), depth, limit)
+        except ValueError as exc:
+            return {"error": f"not an absolute IRI: {exc}"}
         if format == "turtle":
             data = ox.serialize([ox.Triple(q.subject, q.predicate, q.object) for q in quads],
                                 format=formats[format], prefixes=self.store.prefixes)
