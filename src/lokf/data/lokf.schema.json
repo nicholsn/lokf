@@ -489,6 +489,158 @@
         },
         "Checksum": {
             "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "md5"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{32}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha1"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{40}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha224"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{56}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha256",
+                                    "sha3_256",
+                                    "blake2b256"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{64}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha384",
+                                    "sha3_384",
+                                    "blake2b384"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{96}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha512",
+                                    "sha3_512",
+                                    "blake2b512"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{128}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                }
+            ],
             "description": "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it.",
             "properties": {
                 "algorithm": {
