@@ -259,3 +259,16 @@ def test_turtle_uses_the_schemas_prefixes():
     ttl = rdf.serialize(bundle, "ttl")
     assert "@prefix schema: <http://schema.org/> ." in ttl
     assert "schema1:" not in ttl
+
+
+def test_nt_keeps_a_literal_with_unicode_line_breaks_whole(tmp_path):
+    """U+2028, U+0085 and form feed sit raw inside an N-Triples literal; sorting
+    the lines must not split the statement there."""
+    from rdflib import Graph
+
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\n---\n", encoding="utf-8")
+    (tmp_path / "odd.md").write_text(
+        '---\ntype: Concept\ntitle: Odd\ndescription: "one\\u2028two\\u0085three\\ffour"\n---\nbody\n',
+        encoding="utf-8",
+    )
+    assert len(Graph().parse(data=rdf.serialize(tmp_path, "nt"), format="nt")) > 0

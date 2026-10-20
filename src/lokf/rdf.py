@@ -255,5 +255,7 @@ def serialize(
     data = g.serialize(format=rdflib_fmt)
     text = data if isinstance(data, str) else data.decode("utf-8")
     if rdflib_fmt == "nt":
-        text = "\n".join(sorted(line for line in text.splitlines() if line.strip())) + "\n"
+        # Split on newlines only: N-Triples escapes them, but writes other
+        # line breaks a literal may hold (U+2028, U+0085, form feed) as they are.
+        text = "\n".join(sorted(line for line in text.split("\n") if line.strip())) + "\n"
     return text

@@ -106,7 +106,8 @@ def _canonicalize_rdf(path: pathlib.Path, fmt: str, header: str = "") -> None:
     text = _relabel_bnodes(g).serialize(format=fmt)
     if fmt == "nt":
         # N-Triples has no grouping, so line order is the only variable left.
-        text = "\n".join(sorted(t for t in text.splitlines() if t.strip())) + "\n"
+        # Newlines only: a literal's U+2028 is written raw, not as a line break.
+        text = "\n".join(sorted(t for t in text.split("\n") if t.strip())) + "\n"
     path.write_text(header + text, encoding="utf-8")
     after = len(Graph().parse(str(path), format=fmt))
     if after != before:

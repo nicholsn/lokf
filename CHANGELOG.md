@@ -20,6 +20,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - Turtle output writes schema.org terms as `schema:`, not rdflib's `schema1:`.
 
+- Sorting N-Triples splits on newlines only, so a literal holding U+2028 no
+  longer breaks `graph.nt`.
+
 - SHACL artifacts now match the authoring RDF projection, preserve separate
   Source/Citation shapes, and avoid false failures from inherited properties
   and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
