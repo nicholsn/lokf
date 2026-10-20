@@ -26,9 +26,11 @@ _RESULT_FORMATS = {
     "tsv": ox.QueryResultsFormat.TSV,
 }
 
-# The query form, skipping any leading comments and PREFIX/BASE declarations.
+# The query form, skipping any leading comments and PREFIX/BASE declarations,
+# whether each sits on a line of its own or they share one with the query.
 _QUERY_FORM = re.compile(
-    r"^(?:\s*(?:#[^\n]*|(?:prefix|base)\b[^\n]*)\n)*\s*(select|ask|construct|describe)\b",
+    r"^(?:\s+|#[^\n]*|prefix\s+[^\s:]*:\s*<[^>]*>|base\s*<[^>]*>)*"
+    r"(select|ask|construct|describe)\b",
     re.IGNORECASE,
 )
 
