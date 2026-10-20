@@ -226,8 +226,16 @@ def test_exclusions_project_apart_from_sources(tmp_path):
 def test_serialize_is_byte_stable_with_blank_nodes():
     """Blank nodes are labelled from content, so the same input gives the same bytes."""
     bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
-    for fmt in ("nt", "ttl"):
-        assert rdf.serialize(bundle, fmt) == rdf.serialize(bundle, fmt)
+    for fmt in ("nt", "ttl", "n3", "trig", "jsonld"):
+        assert rdf.serialize(bundle, fmt) == rdf.serialize(bundle, fmt), fmt
+
+
+def test_construct_answers_are_byte_stable():
+    from lokf.store import GraphStore
+
+    bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
+    q = "CONSTRUCT WHERE { ?s ?p ?o }"
+    assert GraphStore.from_bundle(bundle).construct(q, "nt") == GraphStore.from_bundle(bundle).construct(q, "nt")
 
 
 def test_relabel_keeps_nodes_apart_that_differ_only_in_term_kind():

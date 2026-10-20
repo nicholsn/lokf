@@ -15,8 +15,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
-- `lokf export`, `lokf convert` and the MCP server label blank nodes from content
-  and sort N-Triples lines, so one bundle always gives the same bytes.
+- `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label
+  blank nodes from content and fix their order, so one bundle gives the same
+  bytes in N-Triples, Turtle, N3, TriG and JSON-LD.
 
 - Turtle output writes schema.org terms as `schema:`, not rdflib's `schema1:`.
 

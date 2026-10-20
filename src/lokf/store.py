@@ -167,17 +167,15 @@ class GraphStore:
         return bool(self.query(sparql, **kw))
 
     def construct(self, sparql: str, fmt: str = "ttl", **kw) -> str:
-        """Run a CONSTRUCT/DESCRIBE and serialize the resulting graph."""
-        from lokf.rdf import _rdflib_format
+        """Run a CONSTRUCT/DESCRIBE and serialize the resulting graph, the
+        same bytes for the same answer (:func:`lokf.rdf.serialize_graph`)."""
+        from lokf.rdf import serialize_graph
         from rdflib import Graph
 
         triples = self.query(sparql, **kw)
         g = Graph()
         g.parse(data=triples.serialize(format=ox.RdfFormat.N_TRIPLES), format="nt")
-        for prefix, ns in self.prefixes.items():
-            g.bind(prefix, ns)
-        data = g.serialize(format=_rdflib_format(fmt))
-        return data if isinstance(data, str) else data.decode("utf-8")
+        return serialize_graph(g, fmt, self.prefixes)
 
     def serialize_results(self, sparql: str, fmt: str = "json", **kw) -> bytes:
         """Run a SELECT/ASK and serialize results in the SPARQL results format."""

@@ -185,6 +185,7 @@ def relabel_bnodes(g):
     """
     import hashlib
     from rdflib import BNode, Graph
+    from rdflib.graph import DATASET_DEFAULT_GRAPH_ID
 
     def hashed(term) -> dict:
         labels = {n: "0" for n in g.all_nodes() if isinstance(n, BNode)}
@@ -222,12 +223,61 @@ def relabel_bnodes(g):
         buckets.setdefault(h, []).append(b)
     mapping = {b: BNode(f"x{h}{i}") for h, bs in buckets.items() for i, b in enumerate(bs)}
 
-    out_g = Graph()
+    out_g = Graph(identifier=DATASET_DEFAULT_GRAPH_ID)  # not a random graph name in TriG
     for prefix, ns in g.namespaces():
         out_g.bind(prefix, ns)
     for s, p, o in g:
         out_g.add((mapping.get(s, s), p, mapping.get(o, o)))
     return out_g
+
+
+def _sorted_jsonld(text: str) -> str:
+    """rdflib's JSON-LD with its node list and value arrays in a fixed order.
+
+    Both are unordered in JSON-LD, and rdflib fills them in whatever order its
+    store hands back, so the same graph prints differently from run to run.
+    An ``@list`` keeps its order: it is the one ordered array.
+    """
+    def key(value) -> str:
+        return json.dumps(value, sort_keys=True, ensure_ascii=False)
+
+    def node(obj):
+        if not isinstance(obj, dict):
+            return obj
+        return {k: (sorted((node(v) for v in vs), key=key)
+                    if isinstance(vs, list) and k != "@list" else vs)
+                for k, vs in obj.items()}
+
+    data = json.loads(text)
+    if isinstance(data, list):
+        data = sorted((node(n) for n in data), key=lambda n: (n.get("@id", ""), key(n)))
+    return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+
+
+def serialize_graph(g, fmt: str = "ttl", prefixes: dict[str, str] | None = None) -> str:
+    """Serialize *g* to RDF text in *fmt*, the same bytes for the same graph.
+
+    Blank nodes, which rdflib labels at random, are relabelled from content,
+    N-Triples lines sorted and JSON-LD arrays put in order, so N-Triples,
+    Turtle, N3, TriG and JSON-LD come out the same every run. RDF/XML keeps
+    the same labels, but rdflib may order its descriptions differently.
+    *prefixes* are bound over rdflib's defaults, which map ``schema:`` to
+    https://schema.org/ and would leave LOKF's http://schema.org/ terms as
+    ``schema1:``.
+    """
+    rdflib_fmt = _rdflib_format(fmt)
+    g = relabel_bnodes(g)
+    for prefix, ns in (prefixes or {}).items():
+        g.bind(prefix, ns, override=True, replace=True)
+    data = g.serialize(format=rdflib_fmt)
+    text = data if isinstance(data, str) else data.decode("utf-8")
+    if rdflib_fmt == "json-ld":
+        text = _sorted_jsonld(text)
+    if rdflib_fmt == "nt":
+        # Split on newlines only: N-Triples escapes them, but writes other
+        # line breaks a literal may hold (U+2028, U+0085, form feed) as they are.
+        text = "\n".join(sorted(line for line in text.split("\n") if line.strip())) + "\n"
+    return text
 
 
 def serialize(
@@ -237,25 +287,10 @@ def serialize(
     schema: str | pathlib.Path | None = None,
 ) -> str:
     """Serialize a concept file or bundle to RDF text in *fmt* (default Turtle),
-    under the domain *schema* when one is given.
-
-    Nested objects (sources, verified events, distributions) project as blank
-    nodes, which rdflib labels at random. They are relabelled from content and
-    N-Triples lines sorted, so the same bundle always gives the same bytes.
-    The schema's prefixes are bound over rdflib's defaults, which map
-    ``schema:`` to https://schema.org/ and would leave LOKF's http://schema.org/
-    terms as ``schema1:``.
-    """
+    under the domain *schema* when one is given, the same bytes for the same
+    bundle (see :func:`serialize_graph`)."""
     from lokf.schema import vocabulary
 
-    rdflib_fmt = _rdflib_format(fmt)
-    g = relabel_bnodes(graph_of(source, context, schema=schema))
-    for prefix, ns in vocabulary(schema).prefixes.items():
-        g.bind(prefix, ns, override=True, replace=True)
-    data = g.serialize(format=rdflib_fmt)
-    text = data if isinstance(data, str) else data.decode("utf-8")
-    if rdflib_fmt == "nt":
-        # Split on newlines only: N-Triples escapes them, but writes other
-        # line breaks a literal may hold (U+2028, U+0085, form feed) as they are.
-        text = "\n".join(sorted(line for line in text.split("\n") if line.strip())) + "\n"
-    return text
+    return serialize_graph(
+        graph_of(source, context, schema=schema), fmt, vocabulary(schema).prefixes
+    )
