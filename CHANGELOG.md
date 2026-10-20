@@ -29,6 +29,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- Validate reserved change logs, rejecting malformed dates and warning about
+  duplicate dates or groups not ordered newest-first.
+
 - Trust summaries report the latest human review and whether content changed
   since that review, without changing the existing trust tiers.
 

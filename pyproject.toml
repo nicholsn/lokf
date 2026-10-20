@@ -47,6 +47,7 @@ dependencies = [
 # schema/context directly.
 build = [
     "linkml>=1.12.0",
+    "markdown-it-py>=3",
 ]
 # Project a bundle to tables/DataFrames (`lokf tables`, lokf.tables). Optional:
 # only needed for the tabular writers, not for RDF/graph use.

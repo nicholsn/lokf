@@ -558,6 +558,14 @@ or an IRI under `base_iri` — because a bundle can only vouch for what it
 contains; `definedBy` and `source` are defined as taking an external resource,
 so off-site targets are not errors.
 
+### Change-log checks
+
+Validation reads every `log.md` within the bundle. Level-two date headings
+must contain a valid calendar date in `YYYY-MM-DD` form; malformed headings
+are errors. Duplicate dates and dates not ordered newest-first are warnings.
+Diagnostics include the file and line. Code examples are not date headings;
+missing logs and empty logs are valid.
+
 ### 9.1 Field constraints
 
 With LinkML 1.12.0 or newer, optional enum-valued fields (for example
