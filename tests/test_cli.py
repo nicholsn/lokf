@@ -978,3 +978,20 @@ def test_check_refs_reads_a_spaced_slot_by_its_frontmatter_key(tmp_path):
     result = runner.invoke(app, ["validate", str(kb), "--schema", str(tmp_path / "domain.yaml"), "--check-refs"])
     assert result.exit_code == 1
     assert "`in taxon` target does not resolve" in result.output
+
+
+def test_validate_names_nested_unknown_fields(tmp_path):
+    import yaml
+    for field, value, path in [
+        ("generated", {"by": "process:x", "mispelled": "x"}, "/generated"),
+        ("verified", [{"by": "human:x", "mispelled": "x"}], "/verified/0"),
+        ("sources", [{"resource": "https://example.org", "mispelled": "x"}], "/sources/0"),
+    ]:
+        (tmp_path / "index.md").write_text("---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n")
+        (tmp_path / "term.md").write_text("---\n" + yaml.safe_dump(
+            {"type": "Service", "title": "Example", field: value}) + "---\nExample")
+        result = runner.invoke(app, ["validate", str(tmp_path)])
+        assert result.exit_code == 1, result.output
+        assert path in result.output
+        assert "mispelled" in result.output
+        assert "was unexpected" in result.output

@@ -185,16 +185,26 @@ def _class_defs(schema_file: str) -> dict:
     return json.loads(JsonSchemaGenerator(schema_file, not_closed=False).serialize())["$defs"]
 
 
+def _nested_errors(error):
+    """Descend union failures, omitting branches incompatible with the value type."""
+    if not error.context:
+        yield error
+        return
+    branches = {}
+    for child in error.context:
+        branch = next(iter(child.schema_path), None)
+        branches.setdefault(branch, []).append(child)
+    compatible = [group for group in branches.values() if not any(
+        child.validator == "type" and list(child.absolute_path) == list(error.absolute_path)
+        for child in group
+    )]
+    for group in compatible or branches.values():
+        for child in group:
+            yield from _nested_errors(child)
+
+
 def _sharpen_anyof_message(message: str, source, defs: dict) -> str:
-    """A concept failing LOKF's ~15-way class `anyOf` often can't be
-    disambiguated by jsonschema's own `best_match` (several classes fail the
-    same way, so it gives up and reports the whole `anyOf`, naming no
-    property - see lokf-issue.md). Every concept pins its own class via a
-    required `type:` key, so re-validate just against that one class's
-    subschema instead: usually one precise error, e.g. "'ects' was
-    unexpected". When `type` itself doesn't name a known class, point at
-    the real fix - a domain schema declaring it - instead.
-    """
+    """Select the declared concept class, then expose nested field failures."""
     if "is not valid under any of the given schemas" not in message:
         return message
     instance = getattr(source, "instance", None)
@@ -202,6 +212,8 @@ def _sharpen_anyof_message(message: str, source, defs: dict) -> str:
         return message
     class_name = instance.get("type")
     if not isinstance(class_name, str) or class_name not in defs:
+        if "type" not in instance:
+            return message
         return (
             f"{message}\n  hint: `type: {class_name!r}` isn't a class this schema "
             "declares. A project-specific type needs a domain schema that "
@@ -211,10 +223,16 @@ def _sharpen_anyof_message(message: str, source, defs: dict) -> str:
 
     sub = {"$defs": defs, **defs[class_name]}
     validator = jsonschema.validators.validator_for(sub)(sub)
-    specifics = [err.message for err in validator.iter_errors(instance)]
-    if not specifics:
-        return message
-    return f"{message}\n  on {class_name}: " + "; ".join(specifics)
+    specifics = []
+    prefix = list(getattr(source, "absolute_path", []))
+    for error in validator.iter_errors(instance):
+        for detail in _nested_errors(error):
+            path = "/" + "/".join(str(part).replace("~", "~0").replace("/", "~1")
+                                   for part in prefix + list(detail.absolute_path))
+            text = f"{path}: {detail.message}"
+            if text not in specifics:
+                specifics.append(text)
+    return f"{message}\n  on {class_name}: " + "; ".join(specifics) if specifics else message
 
 
 # ---------------------------------------------------------------------------
