@@ -603,3 +603,9 @@ def test_replacement_slot_and_enum(vocab):
     assert vocab.relation_slots["isReplacedBy"].uri == "http://purl.org/dc/terms/isReplacedBy"
     assert vocab.relation_types["isReplacedBy"].is_slot
     assert load_schema()["slots"]["isReplacedBy"]["multivalued"] is True
+
+
+def test_packaged_validation_artifacts_match_published_files():
+    from importlib.resources import files
+    for name in ("lokf.schema.json", "lokf.shacl.ttl"):
+        assert (files("lokf") / "data" / name).read_bytes() == (ROOT / name).read_bytes()

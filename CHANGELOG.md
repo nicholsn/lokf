@@ -29,6 +29,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- Wheels ship the generated JSON Schema and SHACL artifacts alongside the
+  source schema and authoring context.
+
 - `isReplacedBy` relates a deprecated concept to one or more successors, with
   RDF mapping, reference checks, and replacement-language proposal cues.
 

@@ -241,3 +241,9 @@ key, so wherever CC-BY-4.0 appears inside a generated file it is the schema's
 license, not the package's. The published package declares `Apache-2.0`, which
 is the license of the code you install.
 
+
+
+The installed package includes `lokf/data/lokf.schema.json` and
+`lokf/data/lokf.shacl.ttl`, synchronized by `lokf-build`. Python hosts can read
+these with `importlib.resources.files("lokf").joinpath("data", filename)`;
+non-Python clients can use the same versioned artifacts from the repository.

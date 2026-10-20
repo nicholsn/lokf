@@ -259,6 +259,8 @@ def generate(root: pathlib.Path) -> None:
         data.mkdir(parents=True, exist_ok=True)
         shutil.copy(root / "lokf.yaml", data / "lokf.yaml")
         shutil.copy(root / "lokf.context.jsonld", data / "lokf.context.jsonld")
+        for artifact in ("lokf.schema.json", "lokf.shacl.ttl"):
+            shutil.copy(root / artifact, data / artifact)
         # Typed Python bindings for the vocabulary: `from lokf.datamodel import
         # Metric`, etc. LinkML dataclasses (backed by linkml_runtime) that
         # validate required fields and round-trip to JSON / YAML / RDF.
