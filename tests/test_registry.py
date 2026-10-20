@@ -619,3 +619,17 @@ def test_from_registry_skips_a_member_whose_content_fails(tmp_path):
     graphs = {r["g"] for r in store.select("SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }")}
     assert graphs == {"https://a.example/kb/"}
 
+
+def test_unresolved_targets_skip_vocabulary_terms_and_unloaded_owners(tmp_path):
+    from lokf.registry import unresolved_targets
+    from lokf.store import GraphStore
+
+    a = _kb(tmp_path / "a", "https://a.example/kb/", {
+        "x": "references:\n  - https://w3id.org/lokf/Metric\n  - https://b.example/kb/y\n",
+    })
+    reg = Registry(path=tmp_path / "r.yaml")
+    reg.add(entry_for_bundle(a))
+    reg.add(RepoEntry(base_iri="https://b.example/kb/"))  # nothing to load it from
+    store = GraphStore.from_registry(reg)
+    assert "https://b.example/kb/" in store.load_errors
+    assert unresolved_targets(reg, store) == []

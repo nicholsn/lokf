@@ -586,7 +586,9 @@ def unresolved_targets(registry: Registry, store) -> list[Unresolved]:
     *store* is a :class:`lokf.store.GraphStore` built with
     :meth:`~lokf.store.GraphStore.from_registry`. This is ``--check-refs``
     across bundles: a target under the asserting member's own ``base_iri`` is
-    that bundle's own check, and is skipped here.
+    that bundle's own check, and is skipped here. So is a term of the LOKF
+    vocabulary no member owns, which is not a concept, and a target whose
+    owner failed to load, which cannot be checked (the load error says so).
     """
     import pyoxigraph as ox
 
@@ -607,7 +609,10 @@ def unresolved_targets(registry: Registry, store) -> list[Unresolved]:
                 continue
             owner = registry.owner(target)
             if owner is None:
-                out.add((graph, pred, target, "unowned"))
+                if not target.startswith(VOCAB_NS):
+                    out.add((graph, pred, target, "unowned"))
+            elif owner.base_iri in store.load_errors:
+                continue
             elif not any(
                 store.store.quads_for_pattern(
                     q.object, None, None, ox.NamedNode(owner.base_iri)
