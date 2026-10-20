@@ -221,3 +221,10 @@ def test_exclusions_project_apart_from_sources(tmp_path):
     assert (excluded, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("human:jsmith")) in g
     based_on = {str(g.value(o, URIRef(sdo + "url"))) for o in g.objects(concept, URIRef(sdo + "isBasedOn"))}
     assert based_on == {"docs/a.md"}
+
+
+def test_serialize_is_byte_stable_with_blank_nodes():
+    """Blank nodes are labelled from content, so the same input gives the same bytes."""
+    bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
+    for fmt in ("nt", "ttl"):
+        assert rdf.serialize(bundle, fmt) == rdf.serialize(bundle, fmt)

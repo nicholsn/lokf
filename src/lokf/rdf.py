@@ -169,6 +169,47 @@ def graph_of(
     return docs_to_graph([doc], context, schema=schema)
 
 
+def relabel_bnodes(g):
+    """Return a copy of *g* whose blank-node labels are derived from content.
+
+    rdflib mints blank-node ids from uuid4, so identical input yields different
+    labels every run. Each node is hashed from its own incoming and outgoing
+    edges, iterated to a fixpoint so nested blank nodes converge; structurally
+    indistinguishable nodes then get a stable index. This only renames blank
+    nodes - no triple is added, dropped or rewritten.
+
+    (rdflib's own ``to_canonical_graph`` is not usable here: on these
+    almost-entirely-blank-node SHACL graphs it returns different labels for the
+    same content, the same weakness that makes ``to_isomorphic`` report a false
+    negative on lokf.shacl.ttl.)
+    """
+    import hashlib
+    from rdflib import BNode, Graph
+
+    labels = {n: "0" for n in g.all_nodes() if isinstance(n, BNode)}
+    for _ in range(12):
+        nxt = {}
+        for b in labels:
+            out = sorted((str(p), labels.get(o, str(o))) for _, p, o in g.triples((b, None, None)))
+            inc = sorted((labels.get(s, str(s)), str(p)) for s, p, _ in g.triples((None, None, b)))
+            nxt[b] = hashlib.sha256(repr((out, inc)).encode()).hexdigest()[:24]
+        if nxt == labels:
+            break
+        labels = nxt
+
+    buckets: dict = {}
+    for b, h in sorted(labels.items(), key=lambda kv: (kv[1], str(kv[0]))):
+        buckets.setdefault(h, []).append(b)
+    mapping = {b: BNode(f"x{h}{i}") for h, bs in buckets.items() for i, b in enumerate(bs)}
+
+    out_g = Graph()
+    for prefix, ns in g.namespaces():
+        out_g.bind(prefix, ns)
+    for s, p, o in g:
+        out_g.add((mapping.get(s, s), p, mapping.get(o, o)))
+    return out_g
+
+
 def serialize(
     source: str | pathlib.Path,
     fmt: str = "ttl",
@@ -176,7 +217,16 @@ def serialize(
     schema: str | pathlib.Path | None = None,
 ) -> str:
     """Serialize a concept file or bundle to RDF text in *fmt* (default Turtle),
-    under the domain *schema* when one is given."""
-    g = graph_of(source, context, schema=schema)
-    data = g.serialize(format=_rdflib_format(fmt))
-    return data if isinstance(data, str) else data.decode("utf-8")
+    under the domain *schema* when one is given.
+
+    Nested objects (sources, verified events, distributions) project as blank
+    nodes, which rdflib labels at random. They are relabelled from content and
+    N-Triples lines sorted, so the same bundle always gives the same bytes.
+    """
+    rdflib_fmt = _rdflib_format(fmt)
+    g = relabel_bnodes(graph_of(source, context, schema=schema))
+    data = g.serialize(format=rdflib_fmt)
+    text = data if isinstance(data, str) else data.decode("utf-8")
+    if rdflib_fmt == "nt":
+        text = "\n".join(sorted(line for line in text.splitlines() if line.strip())) + "\n"
+    return text
