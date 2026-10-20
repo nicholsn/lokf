@@ -338,7 +338,9 @@ A concept's `type` SHOULD name one of the following classes, or one a domain sch
 
 - **Dataset / Table** — `fields` (a list of `Field`: `name`, `datatype`
   [`FieldType` → XSD], `description`, `unit`, `is_key`, `constraints`);
-  `distribution` (`dcat:Distribution`).
+  `distribution` (`dcat:Distribution`: `access_url`, `media_type`, `byte_size`
+  [`dcat:byteSize`], and a `checksum` [`spdx:Checksum`: `algorithm`,
+  `checksum_value`] that a consumer recomputes before trusting the bytes).
 - **Metric** — `unit` (`schema:unitText`), `formula` (`lokf:formula`),
   `measures` (`lokf:measures`, → a Concept).
 - **Service** — `endpoint` (`schema:url`), `http_method` (`HttpMethod`: `GET`/`POST`/`PUT`/`PATCH`/`DELETE`/`HEAD`/`OPTIONS`, uppercase — the method name is a case-sensitive wire token), `documentation`.
@@ -346,7 +348,7 @@ A concept's `type` SHOULD name one of the following classes, or one a domain sch
   (`schema:alternateName`).
 
 The complete, authoritative definitions — including value objects `Field`,
-`Distribution`, `Relation`, `Citation`, `Audience`, and `Agent`/`Person`/`Organization` — are
+`Distribution`, `Checksum`, `Relation`, `Citation`, `Audience`, and `Agent`/`Person`/`Organization` — are
 in `lokf.yaml`.
 
 ### 6.1 Documentation modes (Diátaxis)

@@ -13,6 +13,11 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- `Distribution` takes an optional `checksum` (`spdx:Checksum`, as DCAT 3
+  models it) and `byte_size` (`dcat:byteSize`).
+
 ### Fixed
 
 - SHACL artifacts now match the authoring RDF projection, preserve separate

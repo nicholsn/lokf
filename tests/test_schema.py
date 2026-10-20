@@ -654,3 +654,34 @@ def test_the_generated_datamodel_agrees_on_what_is_required():
     dm.Exclusion(resource="tests", reason="behavioural tests")  # `by` optional
     with pytest.raises(ValueError):
         dm.Exclusion(resource="tests")
+
+
+# -- a distribution's checksum and size (DCAT 3) -----------------------------
+def test_distribution_checksum_follows_dcat_3(vocab):
+    """`checksum` is DCAT 3's spdx:checksum to an spdx:Checksum node, and
+    `byte_size` is dcat:byteSize; both optional."""
+    schema = load_schema()
+    slots = schema["slots"]
+    assert schema["classes"]["Distribution"]["slots"][-2:] == ["checksum", "byte_size"]
+    assert slots["checksum"]["slot_uri"] == "spdx:checksum"
+    assert slots["checksum"]["range"] == "Checksum"
+    assert slots["byte_size"]["slot_uri"] == "dcat:byteSize"
+    assert slots["byte_size"]["minimum_value"] == 0
+    checksum = schema["classes"]["Checksum"]
+    assert checksum["class_uri"] == "spdx:Checksum"
+    assert checksum["slots"] == ["algorithm", "checksum_value"]
+    assert slots["algorithm"]["slot_uri"] == "spdx:algorithm"
+    assert slots["checksum_value"]["slot_uri"] == "spdx:checksumValue"
+    for name in ("checksum", "byte_size"):
+        assert "required" not in slots[name], name
+    meaning = schema["enums"]["ChecksumAlgorithm"]["permissible_values"]["sha256"]["meaning"]
+    assert vocab.expand(meaning) == "http://spdx.org/rdf/terms#checksumAlgorithm_sha256"
+
+
+def test_checksum_value_is_lowercase_hex():
+    import re
+
+    pattern = load_schema()["slots"]["checksum_value"]["pattern"]
+    assert re.fullmatch(pattern, "e6a8030d" * 8)
+    for value in ["E6A8030D", "sha256:e6a8", "e6 a8", ""]:
+        assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"

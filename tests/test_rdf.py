@@ -221,3 +221,28 @@ def test_exclusions_project_apart_from_sources(tmp_path):
     assert (excluded, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("human:jsmith")) in g
     based_on = {str(g.value(o, URIRef(sdo + "url"))) for o in g.objects(concept, URIRef(sdo + "isBasedOn"))}
     assert based_on == {"docs/a.md"}
+
+
+def test_distribution_checksum_projects_as_dcat_3(tmp_path):
+    """A distribution's checksum is an spdx:Checksum node and its size dcat:byteSize."""
+    from rdflib import Literal
+    from rdflib.namespace import XSD
+
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\n---\n# KB\n", encoding="utf-8"
+    )
+    digest = "e6a8030d" * 8
+    (tmp_path / "release.md").write_text(
+        "---\ntype: Dataset\ntitle: Release\ndistribution:\n"
+        "  - access_url: https://ex.org/r/v1.zip\n    byte_size: 12345\n"
+        f"    checksum:\n      algorithm: sha256\n      checksum_value: {digest}\n"
+        "---\n# Release\n",
+        encoding="utf-8",
+    )
+    g = rdf.graph_of(tmp_path)
+    dcat, spdx = "http://www.w3.org/ns/dcat#", "http://spdx.org/rdf/terms#"
+    dist = g.value(URIRef("https://ex.org/kb/release"), URIRef(dcat + "distribution"))
+    assert (dist, URIRef(dcat + "byteSize"), Literal(12345, datatype=XSD.integer)) in g
+    checksum = g.value(dist, URIRef(spdx + "checksum"))
+    assert (checksum, URIRef(spdx + "algorithm"), Literal("sha256")) in g
+    assert (checksum, URIRef(spdx + "checksumValue"), Literal(digest)) in g
