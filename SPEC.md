@@ -182,6 +182,7 @@ against `base_iri`). All are optional and multivalued.
 | `hasPart`     | `schema:hasPart`             | The target is part of this concept.       |
 | `references`  | `dcterms:references`         | This concept refers to the target.        |
 | `dependsOn`   | `dcterms:requires`           | This concept depends on the target.       |
+| `isReplacedBy` | `dcterms:isReplacedBy`       | The target supersedes this concept.       |
 | `derivedFrom` | `prov:wasDerivedFrom`        | Provenance: derived from the target.      |
 | `about`       | `schema:about`               | Subject matter of this concept.           |
 | `sameAs`      | `schema:sameAs`              | Same entity as the target (close `owl:sameAs`). |
@@ -189,6 +190,10 @@ against `base_iri`). All are optional and multivalued.
 | `definedBy`   | `rdfs:isDefinedBy`           | A resource that formally defines this.    |
 | `source`      | `dcterms:source`             | Sourced/derived from the target.          |
 <!-- --8<-- [end:rel-table] -->
+
+`isReplacedBy` belongs on the retired concept and may name multiple successors
+when it splits. It asserts supersession, not equivalence, and does not
+automatically change either concept's status.
 
 For predicates outside this set, use the generic **`relations`** field — a list of
 reified `Relation` objects, each a `predicate` (drawn from the `RelationType`

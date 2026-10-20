@@ -191,6 +191,10 @@
       "@type": "@id",
       "@id": "dcterms:isPartOf"
     },
+    "isReplacedBy": {
+      "@type": "@id",
+      "@id": "dcterms:isReplacedBy"
+    },
     "last_modified": {
       "@type": "xsd:dateTime",
       "@id": "schema:dateModified"

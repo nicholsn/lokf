@@ -140,6 +140,11 @@ dcterms:isPartOf a owl:Class ;
     rdfs:subClassOf lokf:RelationType ;
     skos:definition "The concept is a part of the target." .
 
+dcterms:isReplacedBy a owl:Class ;
+    rdfs:label "isReplacedBy" ;
+    rdfs:subClassOf lokf:RelationType ;
+    skos:definition "The concept is superseded by the target." .
+
 dcterms:references a owl:Class ;
     rdfs:label "references" ;
     rdfs:subClassOf lokf:RelationType ;
@@ -683,6 +688,12 @@ lokf:isPartOf a owl:ObjectProperty ;
     rdfs:range lokf:Concept ;
     skos:closeMatch schema1:isPartOf ;
     skos:definition "The target concept that this concept is a part of." ;
+    skos:inScheme lokf:schema .
+
+lokf:isReplacedBy a owl:ObjectProperty ;
+    rdfs:label "isReplacedBy" ;
+    rdfs:range lokf:Concept ;
+    skos:definition "A concept that supersedes this one, without asserting equivalence." ;
     skos:inScheme lokf:schema .
 
 lokf:joinsWith a owl:Class ;
@@ -1851,10 +1862,11 @@ xsd:dateTime a owl:Class ;
 
 lokf:RelationType a owl:Class ;
     rdfs:label "RelationType" ;
-    owl:unionOf ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom prov:wasRevisionOf schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source schema1:memberOf org:member ) ;
+    owl:unionOf ( dcterms:isPartOf schema1:hasPart dcterms:references dcterms:requires prov:wasDerivedFrom dcterms:isReplacedBy prov:wasRevisionOf schema1:about owl:sameAs dcterms:relation prov:wasAttributedTo rdfs:isDefinedBy lokf:measures lokf:joinsWith dcterms:source schema1:memberOf org:member ) ;
     skos:definition "The recommended controlled vocabulary of relationship predicates for reified Relations. Each value carries a `meaning` mapping to its RDF predicate in schema.org, Dublin Core Terms, PROV-O, RDFS, or OWL." ;
     skos:inScheme lokf:schema ;
     linkml:permissible_values dcterms:isPartOf,
+        dcterms:isReplacedBy,
         dcterms:references,
         dcterms:relation,
         dcterms:requires,
@@ -2103,6 +2115,9 @@ lokf:Concept a owl:Class ;
             owl:onProperty lokf:generated ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
+            owl:onProperty lokf:isReplacedBy ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
             owl:onProperty lokf:tags ],
         [ a owl:Restriction ;
             owl:allValuesFrom lokf:Concept ;
@@ -2156,6 +2171,9 @@ lokf:Concept a owl:Class ;
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:created ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Concept ;
+            owl:onProperty lokf:isReplacedBy ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:citations ] ;

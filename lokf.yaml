@@ -125,6 +125,7 @@ classes:
       - references
       - dependsOn
       - derivedFrom
+      - isReplacedBy
       - about
       - sameAs
       - relatedTo
@@ -857,6 +858,14 @@ slots:
     range: Concept
     multivalued: true
     slot_uri: prov:wasDerivedFrom
+    in_subset:
+      - lokf_semantic
+
+  isReplacedBy:
+    description: A concept that supersedes this one, without asserting equivalence.
+    range: Concept
+    multivalued: true
+    slot_uri: dcterms:isReplacedBy
     in_subset:
       - lokf_semantic
 
@@ -1625,6 +1634,9 @@ enums:
       derivedFrom:
         description: The concept was derived from the target.
         meaning: prov:wasDerivedFrom
+      isReplacedBy:
+        description: The concept is superseded by the target.
+        meaning: dcterms:isReplacedBy
       wasRevisionOf:
         description: >-
           The concept is a revised version of the target: a derivation that

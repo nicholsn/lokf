@@ -519,6 +519,9 @@
 -- # Class: Concept_derivedFrom
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Concept_isReplacedBy
+--     * Slot: Concept_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Concept_about
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -552,6 +555,9 @@
 -- # Class: Dataset_derivedFrom
 --     * Slot: Dataset_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Dataset_isReplacedBy
+--     * Slot: Dataset_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Dataset_about
 --     * Slot: Dataset_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -585,6 +591,9 @@
 -- # Class: Table_derivedFrom
 --     * Slot: Table_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Table_isReplacedBy
+--     * Slot: Table_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Table_about
 --     * Slot: Table_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -621,6 +630,9 @@
 -- # Class: Metric_derivedFrom
 --     * Slot: Metric_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Metric_isReplacedBy
+--     * Slot: Metric_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Metric_about
 --     * Slot: Metric_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -654,6 +666,9 @@
 -- # Class: Service_derivedFrom
 --     * Slot: Service_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Service_isReplacedBy
+--     * Slot: Service_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Service_about
 --     * Slot: Service_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -687,6 +702,9 @@
 -- # Class: Playbook_derivedFrom
 --     * Slot: Playbook_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Playbook_isReplacedBy
+--     * Slot: Playbook_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Playbook_about
 --     * Slot: Playbook_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -720,6 +738,9 @@
 -- # Class: Tutorial_derivedFrom
 --     * Slot: Tutorial_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Tutorial_isReplacedBy
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Tutorial_about
 --     * Slot: Tutorial_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -753,6 +774,9 @@
 -- # Class: Explanation_derivedFrom
 --     * Slot: Explanation_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Explanation_isReplacedBy
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Explanation_about
 --     * Slot: Explanation_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -786,6 +810,9 @@
 -- # Class: Policy_derivedFrom
 --     * Slot: Policy_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Policy_isReplacedBy
+--     * Slot: Policy_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Policy_about
 --     * Slot: Policy_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -819,6 +846,9 @@
 -- # Class: GlossaryTerm_derivedFrom
 --     * Slot: GlossaryTerm_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: GlossaryTerm_isReplacedBy
+--     * Slot: GlossaryTerm_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: GlossaryTerm_about
 --     * Slot: GlossaryTerm_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -852,6 +882,9 @@
 -- # Class: Reference_derivedFrom
 --     * Slot: Reference_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Reference_isReplacedBy
+--     * Slot: Reference_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Reference_about
 --     * Slot: Reference_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -885,6 +918,9 @@
 -- # Class: Document_derivedFrom
 --     * Slot: Document_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Document_isReplacedBy
+--     * Slot: Document_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Document_about
 --     * Slot: Document_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -924,6 +960,9 @@
 -- # Class: Role_derivedFrom
 --     * Slot: Role_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Role_isReplacedBy
+--     * Slot: Role_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Role_about
 --     * Slot: Role_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -957,6 +996,9 @@
 -- # Class: AttestedComputation_derivedFrom
 --     * Slot: AttestedComputation_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: AttestedComputation_isReplacedBy
+--     * Slot: AttestedComputation_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: AttestedComputation_about
 --     * Slot: AttestedComputation_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -990,6 +1032,9 @@
 -- # Class: Person_derivedFrom
 --     * Slot: Person_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Person_isReplacedBy
+--     * Slot: Person_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Person_about
 --     * Slot: Person_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -1023,6 +1068,9 @@
 -- # Class: Organization_derivedFrom
 --     * Slot: Organization_id Description: Autocreated FK slot
 --     * Slot: derivedFrom_id Description: An entity this concept was derived from (provenance).
+-- # Class: Organization_isReplacedBy
+--     * Slot: Organization_id Description: Autocreated FK slot
+--     * Slot: isReplacedBy_id Description: A concept that supersedes this one, without asserting equivalence.
 -- # Class: Organization_about
 --     * Slot: Organization_id Description: Autocreated FK slot
 --     * Slot: about_id Description: The subject matter this concept is about.
@@ -1616,6 +1664,14 @@ CREATE TABLE "Concept_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Concept_isReplacedBy" (
+	"Concept_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Concept_id", "isReplacedBy_id"),
+	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Concept_about" (
 	"Concept_id" TEXT,
 	about_id TEXT,
@@ -1915,6 +1971,14 @@ CREATE TABLE "Dataset_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Dataset_isReplacedBy" (
+	"Dataset_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Dataset_id", "isReplacedBy_id"),
+	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Dataset_about" (
 	"Dataset_id" TEXT,
 	about_id TEXT,
@@ -2000,6 +2064,14 @@ CREATE TABLE "Table_derivedFrom" (
 	PRIMARY KEY ("Table_id", "derivedFrom_id"),
 	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+
+CREATE TABLE "Table_isReplacedBy" (
+	"Table_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Table_id", "isReplacedBy_id"),
+	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
 );
 
 CREATE TABLE "Table_about" (
@@ -2097,6 +2169,14 @@ CREATE TABLE "Metric_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Metric_isReplacedBy" (
+	"Metric_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Metric_id", "isReplacedBy_id"),
+	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Metric_about" (
 	"Metric_id" TEXT,
 	about_id TEXT,
@@ -2182,6 +2262,14 @@ CREATE TABLE "Service_derivedFrom" (
 	PRIMARY KEY ("Service_id", "derivedFrom_id"),
 	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+
+CREATE TABLE "Service_isReplacedBy" (
+	"Service_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Service_id", "isReplacedBy_id"),
+	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
 );
 
 CREATE TABLE "Service_about" (
@@ -2271,6 +2359,14 @@ CREATE TABLE "Playbook_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Playbook_isReplacedBy" (
+	"Playbook_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Playbook_id", "isReplacedBy_id"),
+	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Playbook_about" (
 	"Playbook_id" TEXT,
 	about_id TEXT,
@@ -2356,6 +2452,14 @@ CREATE TABLE "Tutorial_derivedFrom" (
 	PRIMARY KEY ("Tutorial_id", "derivedFrom_id"),
 	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+
+CREATE TABLE "Tutorial_isReplacedBy" (
+	"Tutorial_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Tutorial_id", "isReplacedBy_id"),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
 );
 
 CREATE TABLE "Tutorial_about" (
@@ -2445,6 +2549,14 @@ CREATE TABLE "Explanation_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Explanation_isReplacedBy" (
+	"Explanation_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Explanation_id", "isReplacedBy_id"),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Explanation_about" (
 	"Explanation_id" TEXT,
 	about_id TEXT,
@@ -2530,6 +2642,14 @@ CREATE TABLE "Policy_derivedFrom" (
 	PRIMARY KEY ("Policy_id", "derivedFrom_id"),
 	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+
+CREATE TABLE "Policy_isReplacedBy" (
+	"Policy_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Policy_id", "isReplacedBy_id"),
+	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
 );
 
 CREATE TABLE "Policy_about" (
@@ -2619,6 +2739,14 @@ CREATE TABLE "GlossaryTerm_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "GlossaryTerm_isReplacedBy" (
+	"GlossaryTerm_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("GlossaryTerm_id", "isReplacedBy_id"),
+	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "GlossaryTerm_about" (
 	"GlossaryTerm_id" TEXT,
 	about_id TEXT,
@@ -2706,6 +2834,14 @@ CREATE TABLE "Reference_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Reference_isReplacedBy" (
+	"Reference_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Reference_id", "isReplacedBy_id"),
+	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Reference_about" (
 	"Reference_id" TEXT,
 	about_id TEXT,
@@ -2791,6 +2927,14 @@ CREATE TABLE "Document_derivedFrom" (
 	PRIMARY KEY ("Document_id", "derivedFrom_id"),
 	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+
+CREATE TABLE "Document_isReplacedBy" (
+	"Document_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Document_id", "isReplacedBy_id"),
+	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
 );
 
 CREATE TABLE "Document_about" (
@@ -2896,6 +3040,14 @@ CREATE TABLE "Role_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Role_isReplacedBy" (
+	"Role_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Role_id", "isReplacedBy_id"),
+	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Role_about" (
 	"Role_id" TEXT,
 	about_id TEXT,
@@ -2981,6 +3133,14 @@ CREATE TABLE "AttestedComputation_derivedFrom" (
 	PRIMARY KEY ("AttestedComputation_id", "derivedFrom_id"),
 	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
+);
+
+CREATE TABLE "AttestedComputation_isReplacedBy" (
+	"AttestedComputation_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("AttestedComputation_id", "isReplacedBy_id"),
+	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
 );
 
 CREATE TABLE "AttestedComputation_about" (
@@ -3070,6 +3230,14 @@ CREATE TABLE "Person_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Person_isReplacedBy" (
+	"Person_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Person_id", "isReplacedBy_id"),
+	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Person_about" (
 	"Person_id" TEXT,
 	about_id TEXT,
@@ -3157,6 +3325,14 @@ CREATE TABLE "Organization_derivedFrom" (
 	FOREIGN KEY("derivedFrom_id") REFERENCES "Concept" (id)
 );
 
+CREATE TABLE "Organization_isReplacedBy" (
+	"Organization_id" TEXT,
+	"isReplacedBy_id" TEXT,
+	PRIMARY KEY ("Organization_id", "isReplacedBy_id"),
+	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id),
+	FOREIGN KEY("isReplacedBy_id") REFERENCES "Concept" (id)
+);
+
 CREATE TABLE "Organization_about" (
 	"Organization_id" TEXT,
 	about_id TEXT,
@@ -3210,6 +3386,8 @@ CREATE INDEX "ix_AttestedComputation_hasPart_hasPart_id" ON "AttestedComputation
 CREATE INDEX "ix_AttestedComputation_id" ON "AttestedComputation" (id);
 CREATE INDEX "ix_AttestedComputation_isPartOf_AttestedComputation_id" ON "AttestedComputation_isPartOf" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_isPartOf_isPartOf_id" ON "AttestedComputation_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_AttestedComputation_isReplacedBy_AttestedComputation_id" ON "AttestedComputation_isReplacedBy" ("AttestedComputation_id");
+CREATE INDEX "ix_AttestedComputation_isReplacedBy_isReplacedBy_id" ON "AttestedComputation_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_AttestedComputation_references_AttestedComputation_id" ON "AttestedComputation_references" ("AttestedComputation_id");
 CREATE INDEX "ix_AttestedComputation_references_references_id" ON "AttestedComputation_references" (references_id);
 CREATE INDEX "ix_AttestedComputation_relatedTo_AttestedComputation_id" ON "AttestedComputation_relatedTo" ("AttestedComputation_id");
@@ -3236,6 +3414,8 @@ CREATE INDEX "ix_Concept_hasPart_hasPart_id" ON "Concept_hasPart" ("hasPart_id")
 CREATE INDEX "ix_Concept_id" ON "Concept" (id);
 CREATE INDEX "ix_Concept_isPartOf_Concept_id" ON "Concept_isPartOf" ("Concept_id");
 CREATE INDEX "ix_Concept_isPartOf_isPartOf_id" ON "Concept_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Concept_isReplacedBy_Concept_id" ON "Concept_isReplacedBy" ("Concept_id");
+CREATE INDEX "ix_Concept_isReplacedBy_isReplacedBy_id" ON "Concept_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Concept_references_Concept_id" ON "Concept_references" ("Concept_id");
 CREATE INDEX "ix_Concept_references_references_id" ON "Concept_references" (references_id);
 CREATE INDEX "ix_Concept_relatedTo_Concept_id" ON "Concept_relatedTo" ("Concept_id");
@@ -3259,6 +3439,8 @@ CREATE INDEX "ix_Dataset_hasPart_hasPart_id" ON "Dataset_hasPart" ("hasPart_id")
 CREATE INDEX "ix_Dataset_id" ON "Dataset" (id);
 CREATE INDEX "ix_Dataset_isPartOf_Dataset_id" ON "Dataset_isPartOf" ("Dataset_id");
 CREATE INDEX "ix_Dataset_isPartOf_isPartOf_id" ON "Dataset_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Dataset_isReplacedBy_Dataset_id" ON "Dataset_isReplacedBy" ("Dataset_id");
+CREATE INDEX "ix_Dataset_isReplacedBy_isReplacedBy_id" ON "Dataset_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Dataset_references_Dataset_id" ON "Dataset_references" ("Dataset_id");
 CREATE INDEX "ix_Dataset_references_references_id" ON "Dataset_references" (references_id);
 CREATE INDEX "ix_Dataset_relatedTo_Dataset_id" ON "Dataset_relatedTo" ("Dataset_id");
@@ -3283,6 +3465,8 @@ CREATE INDEX "ix_Document_hasPart_hasPart_id" ON "Document_hasPart" ("hasPart_id
 CREATE INDEX "ix_Document_id" ON "Document" (id);
 CREATE INDEX "ix_Document_isPartOf_Document_id" ON "Document_isPartOf" ("Document_id");
 CREATE INDEX "ix_Document_isPartOf_isPartOf_id" ON "Document_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Document_isReplacedBy_Document_id" ON "Document_isReplacedBy" ("Document_id");
+CREATE INDEX "ix_Document_isReplacedBy_isReplacedBy_id" ON "Document_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Document_references_Document_id" ON "Document_references" ("Document_id");
 CREATE INDEX "ix_Document_references_references_id" ON "Document_references" (references_id);
 CREATE INDEX "ix_Document_relatedTo_Document_id" ON "Document_relatedTo" ("Document_id");
@@ -3309,6 +3493,8 @@ CREATE INDEX "ix_Explanation_hasPart_hasPart_id" ON "Explanation_hasPart" ("hasP
 CREATE INDEX "ix_Explanation_id" ON "Explanation" (id);
 CREATE INDEX "ix_Explanation_isPartOf_Explanation_id" ON "Explanation_isPartOf" ("Explanation_id");
 CREATE INDEX "ix_Explanation_isPartOf_isPartOf_id" ON "Explanation_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Explanation_isReplacedBy_Explanation_id" ON "Explanation_isReplacedBy" ("Explanation_id");
+CREATE INDEX "ix_Explanation_isReplacedBy_isReplacedBy_id" ON "Explanation_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Explanation_references_Explanation_id" ON "Explanation_references" ("Explanation_id");
 CREATE INDEX "ix_Explanation_references_references_id" ON "Explanation_references" (references_id);
 CREATE INDEX "ix_Explanation_relatedTo_Explanation_id" ON "Explanation_relatedTo" ("Explanation_id");
@@ -3334,6 +3520,8 @@ CREATE INDEX "ix_GlossaryTerm_hasPart_hasPart_id" ON "GlossaryTerm_hasPart" ("ha
 CREATE INDEX "ix_GlossaryTerm_id" ON "GlossaryTerm" (id);
 CREATE INDEX "ix_GlossaryTerm_isPartOf_GlossaryTerm_id" ON "GlossaryTerm_isPartOf" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_isPartOf_isPartOf_id" ON "GlossaryTerm_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_GlossaryTerm_isReplacedBy_GlossaryTerm_id" ON "GlossaryTerm_isReplacedBy" ("GlossaryTerm_id");
+CREATE INDEX "ix_GlossaryTerm_isReplacedBy_isReplacedBy_id" ON "GlossaryTerm_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_GlossaryTerm_references_GlossaryTerm_id" ON "GlossaryTerm_references" ("GlossaryTerm_id");
 CREATE INDEX "ix_GlossaryTerm_references_references_id" ON "GlossaryTerm_references" (references_id);
 CREATE INDEX "ix_GlossaryTerm_relatedTo_GlossaryTerm_id" ON "GlossaryTerm_relatedTo" ("GlossaryTerm_id");
@@ -3358,6 +3546,8 @@ CREATE INDEX "ix_Metric_hasPart_hasPart_id" ON "Metric_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Metric_id" ON "Metric" (id);
 CREATE INDEX "ix_Metric_isPartOf_Metric_id" ON "Metric_isPartOf" ("Metric_id");
 CREATE INDEX "ix_Metric_isPartOf_isPartOf_id" ON "Metric_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Metric_isReplacedBy_Metric_id" ON "Metric_isReplacedBy" ("Metric_id");
+CREATE INDEX "ix_Metric_isReplacedBy_isReplacedBy_id" ON "Metric_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Metric_measures_Metric_id" ON "Metric_measures" ("Metric_id");
 CREATE INDEX "ix_Metric_measures_measures_id" ON "Metric_measures" (measures_id);
 CREATE INDEX "ix_Metric_references_Metric_id" ON "Metric_references" ("Metric_id");
@@ -3383,6 +3573,8 @@ CREATE INDEX "ix_Organization_hasPart_hasPart_id" ON "Organization_hasPart" ("ha
 CREATE INDEX "ix_Organization_id" ON "Organization" (id);
 CREATE INDEX "ix_Organization_isPartOf_Organization_id" ON "Organization_isPartOf" ("Organization_id");
 CREATE INDEX "ix_Organization_isPartOf_isPartOf_id" ON "Organization_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Organization_isReplacedBy_Organization_id" ON "Organization_isReplacedBy" ("Organization_id");
+CREATE INDEX "ix_Organization_isReplacedBy_isReplacedBy_id" ON "Organization_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Organization_references_Organization_id" ON "Organization_references" ("Organization_id");
 CREATE INDEX "ix_Organization_references_references_id" ON "Organization_references" (references_id);
 CREATE INDEX "ix_Organization_relatedTo_Organization_id" ON "Organization_relatedTo" ("Organization_id");
@@ -3407,6 +3599,8 @@ CREATE INDEX "ix_Person_hasPart_hasPart_id" ON "Person_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Person_id" ON "Person" (id);
 CREATE INDEX "ix_Person_isPartOf_Person_id" ON "Person_isPartOf" ("Person_id");
 CREATE INDEX "ix_Person_isPartOf_isPartOf_id" ON "Person_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Person_isReplacedBy_Person_id" ON "Person_isReplacedBy" ("Person_id");
+CREATE INDEX "ix_Person_isReplacedBy_isReplacedBy_id" ON "Person_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Person_references_Person_id" ON "Person_references" ("Person_id");
 CREATE INDEX "ix_Person_references_references_id" ON "Person_references" (references_id);
 CREATE INDEX "ix_Person_relatedTo_Person_id" ON "Person_relatedTo" ("Person_id");
@@ -3430,6 +3624,8 @@ CREATE INDEX "ix_Playbook_hasPart_hasPart_id" ON "Playbook_hasPart" ("hasPart_id
 CREATE INDEX "ix_Playbook_id" ON "Playbook" (id);
 CREATE INDEX "ix_Playbook_isPartOf_Playbook_id" ON "Playbook_isPartOf" ("Playbook_id");
 CREATE INDEX "ix_Playbook_isPartOf_isPartOf_id" ON "Playbook_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Playbook_isReplacedBy_Playbook_id" ON "Playbook_isReplacedBy" ("Playbook_id");
+CREATE INDEX "ix_Playbook_isReplacedBy_isReplacedBy_id" ON "Playbook_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Playbook_references_Playbook_id" ON "Playbook_references" ("Playbook_id");
 CREATE INDEX "ix_Playbook_references_references_id" ON "Playbook_references" (references_id);
 CREATE INDEX "ix_Playbook_relatedTo_Playbook_id" ON "Playbook_relatedTo" ("Playbook_id");
@@ -3453,6 +3649,8 @@ CREATE INDEX "ix_Policy_hasPart_hasPart_id" ON "Policy_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Policy_id" ON "Policy" (id);
 CREATE INDEX "ix_Policy_isPartOf_Policy_id" ON "Policy_isPartOf" ("Policy_id");
 CREATE INDEX "ix_Policy_isPartOf_isPartOf_id" ON "Policy_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Policy_isReplacedBy_Policy_id" ON "Policy_isReplacedBy" ("Policy_id");
+CREATE INDEX "ix_Policy_isReplacedBy_isReplacedBy_id" ON "Policy_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Policy_references_Policy_id" ON "Policy_references" ("Policy_id");
 CREATE INDEX "ix_Policy_references_references_id" ON "Policy_references" (references_id);
 CREATE INDEX "ix_Policy_relatedTo_Policy_id" ON "Policy_relatedTo" ("Policy_id");
@@ -3476,6 +3674,8 @@ CREATE INDEX "ix_Reference_hasPart_hasPart_id" ON "Reference_hasPart" ("hasPart_
 CREATE INDEX "ix_Reference_id" ON "Reference" (id);
 CREATE INDEX "ix_Reference_isPartOf_Reference_id" ON "Reference_isPartOf" ("Reference_id");
 CREATE INDEX "ix_Reference_isPartOf_isPartOf_id" ON "Reference_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Reference_isReplacedBy_Reference_id" ON "Reference_isReplacedBy" ("Reference_id");
+CREATE INDEX "ix_Reference_isReplacedBy_isReplacedBy_id" ON "Reference_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Reference_references_Reference_id" ON "Reference_references" ("Reference_id");
 CREATE INDEX "ix_Reference_references_references_id" ON "Reference_references" (references_id);
 CREATE INDEX "ix_Reference_relatedTo_Reference_id" ON "Reference_relatedTo" ("Reference_id");
@@ -3502,6 +3702,8 @@ CREATE INDEX "ix_Role_holder_holder_id" ON "Role_holder" (holder_id);
 CREATE INDEX "ix_Role_id" ON "Role" (id);
 CREATE INDEX "ix_Role_isPartOf_Role_id" ON "Role_isPartOf" ("Role_id");
 CREATE INDEX "ix_Role_isPartOf_isPartOf_id" ON "Role_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Role_isReplacedBy_Role_id" ON "Role_isReplacedBy" ("Role_id");
+CREATE INDEX "ix_Role_isReplacedBy_isReplacedBy_id" ON "Role_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Role_memberOf_Role_id" ON "Role_memberOf" ("Role_id");
 CREATE INDEX "ix_Role_memberOf_memberOf_id" ON "Role_memberOf" ("memberOf_id");
 CREATE INDEX "ix_Role_references_Role_id" ON "Role_references" ("Role_id");
@@ -3527,6 +3729,8 @@ CREATE INDEX "ix_Service_hasPart_hasPart_id" ON "Service_hasPart" ("hasPart_id")
 CREATE INDEX "ix_Service_id" ON "Service" (id);
 CREATE INDEX "ix_Service_isPartOf_Service_id" ON "Service_isPartOf" ("Service_id");
 CREATE INDEX "ix_Service_isPartOf_isPartOf_id" ON "Service_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Service_isReplacedBy_Service_id" ON "Service_isReplacedBy" ("Service_id");
+CREATE INDEX "ix_Service_isReplacedBy_isReplacedBy_id" ON "Service_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Service_references_Service_id" ON "Service_references" ("Service_id");
 CREATE INDEX "ix_Service_references_references_id" ON "Service_references" (references_id);
 CREATE INDEX "ix_Service_relatedTo_Service_id" ON "Service_relatedTo" ("Service_id");
@@ -3551,6 +3755,8 @@ CREATE INDEX "ix_Table_hasPart_hasPart_id" ON "Table_hasPart" ("hasPart_id");
 CREATE INDEX "ix_Table_id" ON "Table" (id);
 CREATE INDEX "ix_Table_isPartOf_Table_id" ON "Table_isPartOf" ("Table_id");
 CREATE INDEX "ix_Table_isPartOf_isPartOf_id" ON "Table_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Table_isReplacedBy_Table_id" ON "Table_isReplacedBy" ("Table_id");
+CREATE INDEX "ix_Table_isReplacedBy_isReplacedBy_id" ON "Table_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Table_references_Table_id" ON "Table_references" ("Table_id");
 CREATE INDEX "ix_Table_references_references_id" ON "Table_references" (references_id);
 CREATE INDEX "ix_Table_relatedTo_Table_id" ON "Table_relatedTo" ("Table_id");
@@ -3574,6 +3780,8 @@ CREATE INDEX "ix_Tutorial_hasPart_hasPart_id" ON "Tutorial_hasPart" ("hasPart_id
 CREATE INDEX "ix_Tutorial_id" ON "Tutorial" (id);
 CREATE INDEX "ix_Tutorial_isPartOf_Tutorial_id" ON "Tutorial_isPartOf" ("Tutorial_id");
 CREATE INDEX "ix_Tutorial_isPartOf_isPartOf_id" ON "Tutorial_isPartOf" ("isPartOf_id");
+CREATE INDEX "ix_Tutorial_isReplacedBy_Tutorial_id" ON "Tutorial_isReplacedBy" ("Tutorial_id");
+CREATE INDEX "ix_Tutorial_isReplacedBy_isReplacedBy_id" ON "Tutorial_isReplacedBy" ("isReplacedBy_id");
 CREATE INDEX "ix_Tutorial_references_Tutorial_id" ON "Tutorial_references" ("Tutorial_id");
 CREATE INDEX "ix_Tutorial_references_references_id" ON "Tutorial_references" (references_id);
 CREATE INDEX "ix_Tutorial_relatedTo_Tutorial_id" ON "Tutorial_relatedTo" ("Tutorial_id");

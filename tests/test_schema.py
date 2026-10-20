@@ -19,7 +19,7 @@ def test_relation_slots_discovered(vocab):
     # The ten Concept-level typed-relation keys, Metric's `measures`, and
     # Role's `memberOf` / `holder`.
     assert set(vocab.relation_slots) == {
-        "isPartOf", "hasPart", "references", "dependsOn", "derivedFrom",
+        "isPartOf", "hasPart", "references", "dependsOn", "derivedFrom", "isReplacedBy",
         "about", "sameAs", "relatedTo", "definedBy", "source", "measures",
         "memberOf", "holder",
     }
@@ -597,3 +597,9 @@ def test_schema_context_of_a_domain_falls_back_to_lokf():
     for key, value in ctx.items():
         iri = value.get("@id") if isinstance(value, dict) else value
         assert not _vocab_relative(iri), key
+
+
+def test_replacement_slot_and_enum(vocab):
+    assert vocab.relation_slots["isReplacedBy"].uri == "http://purl.org/dc/terms/isReplacedBy"
+    assert vocab.relation_types["isReplacedBy"].is_slot
+    assert load_schema()["slots"]["isReplacedBy"]["multivalued"] is True
