@@ -267,6 +267,29 @@ def release_difference(a: RepoEntry, b: RepoEntry) -> str | None:
     return None
 
 
+def fill_locations(held: RepoEntry, new: RepoEntry) -> bool:
+    """Copy into *held* the locations *new* knows and it lacks, or knows only
+    as a local path; True if any.
+
+    For one registrant adding a second location of a release it registered
+    (the URL of a zip first added from disk, say). A walk of a registry tree
+    never calls it: there a deeper registry could add an unchecked
+    ``distribution.rdf`` to an entry a registry above it vouched for.
+    """
+    changed = False
+    for name in ("repo", "source_base", "path"):
+        if not getattr(held, name) and getattr(new, name):
+            setattr(held, name, getattr(new, name))
+            changed = True
+    for key, value in new.distribution.items():
+        current = held.distribution.get(key)
+        # A published URL beats a local path for the same artifact.
+        if current is None or (is_url(str(value)) and not is_url(str(current))):
+            if current != value:
+                held.distribution[key] = value
+                changed = True
+    return changed
+
 
 _FIELDS = dataclasses.fields(RepoEntry)
 _ENTRY_FIELDS = {f.name for f in _FIELDS}

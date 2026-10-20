@@ -552,3 +552,30 @@ def test_release_difference_ignores_void_and_names_a_lone_checksum():
     lone = release_difference(a, RepoEntry(base_iri="https://a/", checksum="sha256:" + "0" * 64))
     assert lone.startswith("checksum (one entry has one")
 
+
+def test_cli_add_records_a_later_location_of_the_same_release(tmp_path, http_files):
+    base, www = http_files
+    archive = _zip_bundle(tmp_path)
+    shutil.copy(archive, www / "k.zip")
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    url = f"{base}/k.zip"
+    first = runner.invoke(app, ["registry", "add", str(archive), "--archive-url", url, "-r", str(manifest)])
+    assert first.exit_code == 0, first.output
+    again = runner.invoke(app, ["registry", "add", url, "--source-base", "https://src/", "-r", str(manifest)])
+    assert again.exit_code == 0 and "recorded the locations it lacked" in again.output
+    raw = yaml.safe_load(manifest.read_text())["repos"]
+    assert len(raw) == 1 and raw[0]["source_base"] == "https://src/"
+
+
+def test_cli_add_replaces_a_local_zip_path_with_its_url(tmp_path, http_files):
+    base, www = http_files
+    archive = _zip_bundle(tmp_path)
+    shutil.copy(archive, www / "k.zip")
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    runner.invoke(app, ["registry", "add", str(archive), "-r", str(manifest)])
+    assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": archive.name}
+    again = runner.invoke(app, ["registry", "add", f"{base}/k.zip", "-r", str(manifest)])
+    assert "recorded the locations it lacked" in again.output
+    assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": f"{base}/k.zip"}

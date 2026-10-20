@@ -1007,7 +1007,15 @@ def registry_add(
         _err(f"cannot register {source}: {exc}")
         raise typer.Exit(1)
     if not added:
-        typer.echo(f"{entry.base_iri} is already registered at this release in {registry}")
+        from lokf.registry import fill_locations
+
+        held = next(e for e in reg.repos if e.base_iri == entry.base_iri)
+        if fill_locations(held, entry):
+            reg.save()
+            typer.echo(f"{entry.base_iri} is already registered at this release in "
+                       f"{registry}; recorded the locations it lacked")
+        else:
+            typer.echo(f"{entry.base_iri} is already registered at this release in {registry}")
         return
     reg.save()
     foreign = sum(1 for iri in entry.id_index if not iri.startswith(entry.base_iri))
