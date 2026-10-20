@@ -1178,15 +1178,18 @@ def registry_mcp(
     ),
 ) -> None:
     """Run the lokf-registry MCP server (stdio) over the federation (SPEC §11.4)."""
-    from lokf.registry import load_registry
+    import signal
+
     from lokf.registry_mcp import RegistryTools, build_server
 
-    if not registry.exists():
-        _err(f"{registry} not found — run `lokf registry init` first")
-        raise typer.Exit(1)
+    reg = _manifest(registry)
     store = _registry_store(registry, quads)
     text = index.read_text(encoding="utf-8") if index else None
-    tools = RegistryTools(load_registry(registry), store, index=text)
+    tools = RegistryTools(reg, store, index=text)
+    # A client stops a stdio server with SIGTERM as often as by closing its
+    # input; exiting through SystemExit lets the finally below remove the
+    # downloaded archives.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     _err(f"lokf-registry: {len(store)} quads from {quads or registry}; five tools; stdio")
     try:
         build_server(tools).run(transport="stdio")

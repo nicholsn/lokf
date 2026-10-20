@@ -11,14 +11,16 @@ so nothing here prints; diagnostics go to stderr.
 """
 from __future__ import annotations
 
+import hashlib
 import http.client
 import itertools
 import json
 import pathlib
 import shutil
 import tempfile
+import threading
+import time
 import urllib.parse
-import urllib.request
 import zipfile
 import zlib
 
@@ -32,6 +34,9 @@ LIMIT_MAX = 2000
 ROWS_MAX = 1000
 #: The most a live document fetch may read.
 DOCUMENT_MAX_BYTES = 5 * 1024 * 1024
+#: How long a member's archive or concepts.jsonld that could not be fetched
+#: is left alone before the next call tries it again.
+RETRY_SECONDS = 300
 
 _RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
@@ -53,10 +58,16 @@ def registry_index(registry, store) -> str:
     if registry.id:
         lines += [registry.id, ""]
     for e in registry.repos:
+        # The store says what loaded, also for one read from a built
+        # federation.nq, where a member the build skipped has no graph.
+        graph = ox.NamedNode(e.base_iri)
         if e.base_iri in store.load_errors:
             state = f"not loaded: {store.load_errors[e.base_iri]}"
+        elif not store.store.contains_named_graph(graph):
+            state = "not loaded"
         else:
-            state = f"{e.void.get('triples', '?')} triples"
+            count = sum(1 for _ in store.store.quads_for_pattern(None, None, None, graph))
+            state = f"{count} triples"
         lines.append(f"- **{_one_line(e.title or e.base_iri)}**: {e.base_iri} ({_one_line(state)})")
     return "\n".join(lines) + "\n"
 
@@ -105,18 +116,36 @@ class RegistryTools:
     """The five tools over one registry and the store built from it."""
 
     def __init__(self, registry, store, index: str | None = None):
-        self.registry = registry
+        self.registry = registry.located()  # relative locations read beside the manifest
         self.store = store
-        self.index = index if index is not None else registry_index(registry, store)
+        self.index = index if index is not None else registry_index(self.registry, store)
         self._tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-mcp-"))
-        self._archives: dict[str, tuple[zipfile.ZipFile, str] | None] = {}
-        self._concepts: dict[str, dict] = {}
+        # The SDK runs tools in worker threads, so two first calls can race to
+        # fetch one member's files; the lock makes the second wait and reuse.
+        self._lock = threading.Lock()
+        self._archives: dict[str, tuple[tuple[zipfile.ZipFile, str] | None, float]] = {}
+        self._concepts: dict[str, tuple[dict, float]] = {}
 
     def close(self) -> None:
-        for held in self._archives.values():
+        for held, _ in self._archives.values():
             if held is not None:
                 held[0].close()
         shutil.rmtree(self._tmp, ignore_errors=True)
+
+    def _cached(self, cache: dict, key: str):
+        """The cached value for *key*, or None when absent or a failure old
+        enough to try again."""
+        hit = cache.get(key)
+        if hit is None:
+            return None
+        value, failed_at = hit
+        if failed_at and time.monotonic() - failed_at > RETRY_SECONDS:
+            return None
+        return hit
+
+    def _scratch(self, entry, suffix: str) -> pathlib.Path:
+        """A file of this member's own, so no two members share a name."""
+        return self._tmp / (hashlib.sha256(entry.base_iri.encode()).hexdigest()[:16] + suffix)
 
     # -- documents, offline first (SPEC §11.4) ------------------------------
     def _archive(self, entry) -> tuple[zipfile.ZipFile, str] | None:
@@ -128,10 +157,13 @@ class RegistryTools:
         url = entry.distribution.get("archive")
         if not url:
             return None
-        if entry.base_iri not in self._archives:
+        with self._lock:
+            hit = self._cached(self._archives, entry.base_iri)
+            if hit is not None:
+                return hit[0]
             held = None
             try:
-                path = _fetch(str(url), self._tmp / f"{len(self._archives)}.zip")
+                path = _fetch(str(url), self._scratch(entry, ".zip"))
                 if not entry.checksum or _sha256(path) == entry.checksum:
                     zf = zipfile.ZipFile(path)
                     names = set(zf.namelist())
@@ -145,8 +177,8 @@ class RegistryTools:
                         zf.close()
             except (OSError, ValueError, zipfile.BadZipFile, http.client.HTTPException):
                 held = None
-            self._archives[entry.base_iri] = held
-        return self._archives[entry.base_iri]
+            self._archives[entry.base_iri] = (held, 0.0 if held else time.monotonic())
+            return held
 
     def _concepts_doc(self, entry) -> dict:
         """The member's concepts.jsonld by IRI, read once."""
@@ -155,29 +187,33 @@ class RegistryTools:
         url = entry.distribution.get("concepts")
         if not url:
             return {}
-        if entry.base_iri not in self._concepts:
+        with self._lock:
+            hit = self._cached(self._concepts, entry.base_iri)
+            if hit is not None:
+                return hit[0]
             docs: dict = {}
+            failed = 0.0
             try:
-                path = _fetch(str(url), self._tmp / f"c{len(self._concepts)}.jsonld")
+                path = _fetch(str(url), self._scratch(entry, ".jsonld"))
                 for doc in json.loads(path.read_text(encoding="utf-8")).get("@graph") or []:
                     if isinstance(doc, dict) and isinstance(doc.get("id"), str):
                         docs[doc["id"]] = doc
-            except (OSError, ValueError, AttributeError):
-                pass
-            self._concepts[entry.base_iri] = docs
-        return self._concepts[entry.base_iri]
+            except (OSError, ValueError, AttributeError, http.client.HTTPException):
+                failed = time.monotonic()
+            self._concepts[entry.base_iri] = (docs, failed)
+            return docs
 
     def _markdown(self, entry, name: str, iri: str, live: bool) -> tuple[str, str] | None:
         """A document's text and where it was read: the local checkout, the
         release zip, concepts.jsonld, else (when *live*) the source URL."""
         if entry.path:
-            root = pathlib.Path(entry.path).resolve()
-            f = (root / name).resolve()
-            try:
+            try:  # resolve() itself refuses a NUL a reader typed into the IRI
+                root = pathlib.Path(entry.path).resolve()
+                f = (root / name).resolve()
                 if (f.is_relative_to(root) and f.is_file()
                         and f.stat().st_size <= DOCUMENT_MAX_BYTES):
                     return f.read_text(encoding="utf-8"), "checkout"
-            except (OSError, UnicodeDecodeError):
+            except (OSError, ValueError, UnicodeDecodeError):
                 pass
         held = self._archive(entry)
         if held is not None:
@@ -192,9 +228,11 @@ class RegistryTools:
             return _as_markdown(doc), "concepts.jsonld"
         base = entry.source_base.rstrip("/")
         if live and base.startswith(("https://", "http://")):
+            from lokf.registry import open_url  # refuses redirects into the local network
+
             try:
                 url = base + "/" + urllib.parse.quote(name)
-                with urllib.request.urlopen(url, timeout=30) as resp:
+                with open_url(url, timeout=30) as resp:
                     data = resp.read(DOCUMENT_MAX_BYTES + 1)
                 if len(data) <= DOCUMENT_MAX_BYTES:
                     return data.decode("utf-8"), "source"
@@ -273,12 +311,15 @@ class RegistryTools:
             if got is not None:
                 try:
                     data = parse_concept_text(got[0], name)
-                except ValueError:
-                    return out
-                out["concept"] = {
-                    "type": data.get("type"), "title": data.get("title"),
-                    "description": data.get("description"), "trust": trust.trust_summary(data),
-                }
+                    out["concept"] = {
+                        "type": data.get("type"), "title": data.get("title"),
+                        "description": data.get("description"),
+                        "trust": trust.trust_summary(data),
+                    }
+                # Someone else's frontmatter can fail in many ways (bad YAML, a
+                # list where a mapping belongs); the owner is still the answer.
+                except Exception:  # noqa: BLE001
+                    out["concept"] = None
         return out
 
     def neighbors(self, iri: str, depth: int = 1, limit: int = LIMIT_DEFAULT) -> dict:
@@ -328,20 +369,19 @@ class RegistryTools:
         {columns, rows, truncated} with at most limit rows (1000 at most); ASK
         {boolean}; CONSTRUCT or DESCRIBE {turtle, count, truncated} with at
         most 2000 triples. SERVICE is refused, as ``lokf serve`` refuses it."""
-        from lokf.store import query_form
-
         limit = max(1, min(int(limit), ROWS_MAX))
         try:
-            form = query_form(query)
-            if form in ("construct", "describe"):
-                triples = list(itertools.islice(self.store.query(query), LIMIT_MAX + 1))
+            # The answer's own type says what the query was, however its
+            # prologue is laid out.
+            result = self.store.query(query)
+            if isinstance(result, ox.QueryTriples):
+                triples = list(itertools.islice(result, LIMIT_MAX + 1))
                 data = ox.serialize(triples[:LIMIT_MAX], format=ox.RdfFormat.TURTLE,
                                     prefixes=self.store.prefixes)
                 return {"turtle": data.decode("utf-8"), "count": min(len(triples), LIMIT_MAX),
                         "truncated": len(triples) > LIMIT_MAX}
-            if form == "ask":
-                return {"boolean": self.store.ask(query)}
-            result = self.store.query(query)
+            if isinstance(result, ox.QueryBoolean):
+                return {"boolean": bool(result)}
             columns = [v.value for v in result.variables]
             rows = [
                 {c: (s[c].value if s[c] is not None else None) for c in columns}
@@ -377,7 +417,7 @@ class RegistryTools:
         if name != "index.md":
             try:
                 summary = trust.trust_summary(parse_concept_text(text, name))
-            except ValueError:
+            except Exception:  # noqa: BLE001 — the text is still worth returning
                 summary = None
         return {"iri": iri, "owner": self._owner(res.entry), "path": name,
                 "read_from": where, "markdown": text, "trust": summary}
