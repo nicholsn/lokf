@@ -631,6 +631,7 @@ rejects a malformed value rather than passing it through to RDF:
 | `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
 | `email` | an address shape (`local@domain.tld`) |
 | `typicalAgeRange` | an age range as schema.org writes it: `8-12`, or `13-` for 13 and over |
+| `distribution[].checksum.checksum_value` | a whole digest in lowercase hex: 32, 40, 56, 64, 96 or 128 digits |
 
 These tighten what was previously accepted: a bundle whose `base_iri` lacks a
 trailing `/`, or whose `by` is a bare name, validated before and does not now.

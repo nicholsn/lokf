@@ -678,10 +678,11 @@ def test_distribution_checksum_follows_dcat_3(vocab):
     assert vocab.expand(meaning) == "http://spdx.org/rdf/terms#checksumAlgorithm_sha256"
 
 
-def test_checksum_value_is_lowercase_hex():
+def test_checksum_value_is_a_whole_lowercase_hex_digest():
     import re
 
     pattern = load_schema()["slots"]["checksum_value"]["pattern"]
-    assert re.fullmatch(pattern, "e6a8030d" * 8)
-    for value in ["E6A8030D", "sha256:e6a8", "e6 a8", ""]:
+    for length in (32, 40, 56, 64, 96, 128):
+        assert re.fullmatch(pattern, "e" * length), length
+    for value in ["E6A8030D" * 8, "sha256:" + "e" * 64, "e6 a8", "", "e" * 63, "e" * 65]:
         assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
