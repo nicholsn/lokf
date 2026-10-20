@@ -216,8 +216,9 @@ def generate(root: pathlib.Path) -> None:
         ),
     )
 
-    with open(root / "lokf.shacl.ttl", "w") as f:
-        run(["gen-shacl", str(schema)], stdout=f)
+    from lokf.shacl import build_shapes
+
+    build_shapes(schema).serialize(destination=root / "lokf.shacl.ttl", format="turtle")
     _canonicalize_rdf(root / "lokf.shacl.ttl", "turtle")
 
     # The relational projection of the schema: CREATE TABLE DDL with foreign

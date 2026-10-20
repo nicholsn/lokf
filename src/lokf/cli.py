@@ -259,6 +259,9 @@ def validate(
         "resolves to a concept in the bundle - something JSON Schema cannot "
         "express. External resources are not checked.",
     ),
+    shacl: bool = typer.Option(
+        False, "--shacl", help="Also validate the projected RDF graph (requires lokf[shacl]).",
+    ),
     check_resources: bool = typer.Option(
         False, "--check-resources",
         help="Check local resource paths; never fetch remote identifiers.",
@@ -305,6 +308,13 @@ def validate(
     """
     from lokf.model import load_bundle
     from lokf.schema import schema_path
+
+    if shacl:
+        try:
+            import pyshacl  # noqa: F401
+        except ModuleNotFoundError:
+            _err("SHACL validation needs the optional extra: pip install 'lokf[shacl]'")
+            raise typer.Exit(1)
 
     # LinkML is deliberately not a core dependency (see pyproject's `build`
     # extra), so validation is opt-in. Import the validator rather than shelling
@@ -391,6 +401,23 @@ def validate(
             _err(f"[{severity}] {message}")
             failed = failed or severity == "ERROR"
 
+    if shacl and not failed:
+        from importlib.resources import files
+        from rdflib import Graph
+        from lokf.shacl import build_shapes, validate_graph
+
+        packaged = files("lokf") / "data"
+        if schema is None and sch.read_bytes() == (packaged / "lokf.yaml").read_bytes():
+            shapes = Graph().parse(data=(packaged / "lokf.shacl.ttl").read_text(), format="turtle")
+        else:
+            shapes = build_shapes(sch)
+        conforms, _, report_text = validate_graph(
+            bundle.graph(schema=schema), shapes, bundle.base_iri, bundle.by_iri(),
+        )
+        if not conforms:
+            _err(report_text)
+            failed = True
+
     if failed:
         raise typer.Exit(1)
     ok = (
@@ -403,6 +430,8 @@ def validate(
         ok += " Every IRI is declared by one file."
     if check_resources:
         ok += " Local resource checks completed."
+    if shacl:
+        ok += " RDF conforms to SHACL shapes."
     typer.echo(ok)
 
 

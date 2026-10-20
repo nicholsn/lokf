@@ -49,6 +49,10 @@ build = [
     "linkml>=1.12.0",
     "markdown-it-py>=3",
 ]
+shacl = [
+    "lokf[build]",
+    "pyshacl>=0.30,<1",
+]
 # Project a bundle to tables/DataFrames (`lokf tables`, lokf.tables). Optional:
 # only needed for the tabular writers, not for RDF/graph use.
 tables = [
@@ -69,7 +73,7 @@ lokf-mcp = "lokf.mcp_server:main"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
-    "lokf[build]",
+    "lokf[build,shacl]",
     "lokf[tables]",
 ]
 

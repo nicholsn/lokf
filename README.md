@@ -79,14 +79,15 @@ uv sync
 just build      # == uv run lokf-build
 ```
 
-Or run the individual generators by hand:
+The individual generators produce raw LinkML artifacts. Use `lokf-build` to
+apply the authoring-context and SHACL adjustments and synchronize packaged copies:
 
 <!-- --8<-- [start:gen-commands] -->
 ```bash
 # JSON-LD context (aliased type->@type, id->@id for authoring)
 uv run gen-jsonld-context lokf.yaml > lokf.context.base.jsonld
 uv run gen-json-schema     lokf.yaml > lokf.schema.json
-uv run gen-shacl           lokf.yaml > lokf.shacl.ttl
+uv run lokf-build  # includes SHACL adapted to the authoring RDF projection
 uv run gen-owl             lokf.yaml > lokf.owl.ttl
 ```
 <!-- --8<-- [end:gen-commands] -->
@@ -114,6 +115,28 @@ uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.b
 uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 <!-- --8<-- [end:validate-bundle] -->
+
+To also validate the projected graph, install `lokf[shacl]` and run:
+
+```bash
+lokf validate knowledge --shacl
+lokf validate knowledge --shacl --schema domain.yaml
+```
+
+The command checks nested values, local relation ranges, and RDF node kinds.
+It recognizes Concept inheritance and mixins, and leaves external referenced
+IRIs unverified without fetching them. Explicit concept IDs remain local even
+outside the bundle namespace. Domain shapes are generated from the selected
+schema. The shipped shapes use distinct shape identifiers for classes sharing
+an RDF class, and validate the authoring projection (`type` is `rdf:type`,
+optional enums are literals, and provenance objects can be untyped).
+
+For direct Python graph checks, `lokf.shacl.validate_graph(graph, shapes,
+base_iri, concept_iris)` applies the same local/external policy and embedded
+class hierarchy. The unmodified artifact assumes referenced classes are known;
+a standalone SHACL engine must supply that hierarchy as ontology data and
+choose its own external-reference policy. JSON Schema retains closed-field and
+per-field cardinality checks where multiple authoring fields share one predicate.
 
 Validation is closed-world (SPEC §9): a project-specific type or key needs a domain schema that `imports: [lokf]` (SPEC §6.2), passed via `lokf validate --schema`. Pass the same file to `lokf convert`, `query` or `serve` with `--schema` to project its types and keys under their own IRIs. A published LinkML vocabulary becomes such a schema's import with `lokf adapt VOCAB.yaml`; `examples/biolink/` does this for biolink-model.
 

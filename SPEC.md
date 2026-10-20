@@ -92,7 +92,7 @@ the LOKF package is generated from it and MUST NOT be edited by hand:
 |-------------------------|-------------------------|-----------------------------------------------------|
 | `lokf.context.jsonld`   | `gen-jsonld-context`\*  | Turns concept frontmatter into JSON-LD / RDF.       |
 | `lokf.schema.json`      | `gen-json-schema`       | Validates concept frontmatter (JSON Schema).        |
-| `lokf.shacl.ttl`        | `gen-shacl`             | Validates the resulting RDF graph (SHACL).          |
+| `lokf.shacl.ttl`        | `lokf-build`             | Validates the resulting RDF graph (SHACL).          |
 | `lokf.owl.ttl`          | `gen-owl`               | Class/property ontology for reasoning & alignment.  |
 
 \* The published context additionally aliases OKF's `type` field to the JSON-LD
@@ -551,14 +551,26 @@ Two independent, generated validators are available:
 The reference bundle in `examples/` passes JSON Schema validation for all eight
 concepts and for the assembled `KnowledgeBundle`.
 
-Neither validator sees across files: two files declaring one `id` each
+`lokf validate --shacl` adds graph validation after frontmatter validation;
+install `lokf[shacl]` to enable it. `--schema` selects the domain schema for
+both projection and shapes. SHACL shapes follow the authoring context: class
+inheritance and mixins are recognized, provenance objects are checked through
+their containing properties, and enum literals and URI-typed resource literals
+match conversion. Shapes are open; JSON Schema enforces undeclared keys and
+individual field cardinalities that RDF aliases cannot distinguish.
+
+Local relation values must have the declared class, including explicit local
+IDs outside `base_iri`. External referenced IRIs are not fetched and their
+classes remain unverified. A missing local relation target therefore fails
+SHACL; `--check-refs` remains the lighter frontmatter-only existence check.
+
+Neither validator detects duplicate IDs across files: two files declaring one `id` each
 validate on their own and then merge into one subject in the graph. `lokf
 validate --check-ids` adds that pass, failing a bundle in which any IRI is
-declared by more than one file. Nor does either check referential integrity:
-a relation target is just a string to JSON Schema, so a stale or invented IRI
-passes. `lokf validate --check-refs` adds that pass, over every typed-relation
+declared by more than one file. JSON Schema alone cannot check referential integrity: a relation target is
+just a string, so a stale or invented IRI passes. `lokf validate --check-refs` adds that pass, over every typed-relation
 slot and each `relations[].target`. Both are opt-in, so the default verdict
-stays the schema's. Its scope is the bundle's own namespace — a relative ref,
+uses JSON Schema plus reserved-log checks. Reference-check scope is the bundle's own namespace — a relative ref,
 or an IRI under `base_iri` — because a bundle can only vouch for what it
 contains; `definedBy` and `source` are defined as taking an external resource,
 so off-site targets are not errors.
