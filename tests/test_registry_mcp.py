@@ -106,6 +106,13 @@ def test_read_document_stays_inside_the_bundle(tools):
     assert "error" in tools.read_document("https://elsewhere.example/q")
 
 
+def test_neighbors_describe_blank_nodes_in_the_same_hop(tools):
+    """A concept's sources come back with it, not one hop later."""
+    triples = tools.neighbors(A + "x")["triples"]
+    assert any(t["predicate"] == "http://schema.org/url" and t["object"]["value"] == "docs/a.md"
+               for t in triples)
+
+
 def test_a_malformed_iri_is_an_error_answer(tools):
     assert "not an absolute IRI" in tools.neighbors("not an iri")["error"]
     assert "not an absolute IRI" in tools.subgraph([A + "x", "relative/path"])["error"]

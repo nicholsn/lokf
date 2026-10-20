@@ -216,19 +216,26 @@ class RegistryTools:
     def _around(self, iris: list[str], depth: int, limit: int):
         """The quads within *depth* hops of *iris*, in and out, across every
         graph, at most *limit* of them, and whether the limit cut the walk.
-        A class is not expanded: every concept of that type hangs on it."""
+
+        A blank node is part of what it hangs from (a source, a verified event,
+        a reified relation), so it is described in the hop that reaches it
+        rather than costing one. A class is not expanded: every concept of
+        that type hangs on it. Raises ``ValueError`` for a malformed IRI.
+        """
         depth = max(1, min(int(depth), DEPTH_MAX))
         limit = max(1, min(int(limit), LIMIT_MAX))
         raw = self.store.store
-        seen, frontier = set(iris), list(iris)
+        frontier = [ox.NamedNode(iri) for iri in iris]
+        seen: set = set(frontier)
         quads: dict = {}
         for _ in range(depth):
-            nxt: list[str] = []
-            for node in frontier:
-                n = ox.NamedNode(node)
+            nxt: list = []
+            stack = list(frontier)
+            while stack:
+                node = stack.pop()
                 for q in itertools.chain(
-                    raw.quads_for_pattern(n, None, None, None),
-                    raw.quads_for_pattern(None, None, n, None),
+                    raw.quads_for_pattern(node, None, None, None),
+                    raw.quads_for_pattern(None, None, node, None),
                 ):
                     if q in quads:
                         continue
@@ -238,9 +245,10 @@ class RegistryTools:
                     if q.predicate.value == _RDF_TYPE:
                         continue
                     for t in (q.subject, q.object):
-                        if isinstance(t, ox.NamedNode) and t.value not in seen:
-                            seen.add(t.value)
-                            nxt.append(t.value)
+                        if t in seen or not isinstance(t, (ox.NamedNode, ox.BlankNode)):
+                            continue
+                        seen.add(t)
+                        (stack if isinstance(t, ox.BlankNode) else nxt).append(t)
             frontier = nxt
         return list(quads), False
 
