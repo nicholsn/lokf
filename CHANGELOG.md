@@ -15,6 +15,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
+- A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no
+  longer slips a `SERVICE` past the refusal in `lokf serve` and `query`.
+
 - SHACL artifacts now match the authoring RDF projection, preserve separate
   Source/Citation shapes, and avoid false failures from inherited properties
   and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
