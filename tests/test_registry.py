@@ -541,3 +541,14 @@ def test_an_id_in_the_entrys_own_namespace_under_the_vocabulary_is_allowed():
     assert len(reg.repos) == 1
     with pytest.raises(ValueError, match="vocabulary namespace"):
         reg.add(RepoEntry(base_iri="https://b.example/", id_index={VOCAB_NS + "Metric": "m"}))
+
+
+def test_release_difference_ignores_void_and_names_a_lone_checksum():
+    from lokf.registry import release_difference
+
+    a = RepoEntry(base_iri="https://a/", source_base="https://s/", void={"triples": 6})
+    assert release_difference(a, RepoEntry(base_iri="https://a/", source_base="https://s/",
+                                           void={"triples": 7})) is None
+    lone = release_difference(a, RepoEntry(base_iri="https://a/", checksum="sha256:" + "0" * 64))
+    assert lone.startswith("checksum (one entry has one")
+

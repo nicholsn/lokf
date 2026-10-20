@@ -243,24 +243,29 @@ class Registry:
         )
 
 
-#: The fields that say which release an entry describes, checksum first.
-_RELEASE_FIELDS = ("checksum", "repo", "source_base", "distribution", "void", "id_index")
+#: The fields that say which release an entry describes, when no checksum does.
+_RELEASE_FIELDS = ("repo", "source_base", "distribution", "id_index")
 
 
 def release_difference(a: RepoEntry, b: RepoEntry) -> str | None:
-    """The first field that shows *a* and *b* describe different releases, or None.
+    """What shows *a* and *b* describe different releases, or None.
 
     Two checksums decide it alone: the same digest is the same bytes, whatever
-    either entry says about where they are. Otherwise every release field must
-    match. ``title``, ``path`` and ``status`` are a registry's own notes, not
-    the release, and are not compared.
+    either entry says about where they are. One checksum without the other
+    cannot be compared, so it counts as a difference. Otherwise every release
+    field must match. ``title``, ``path`` and ``status`` are a registry's own
+    notes, and ``void`` is counted by whichever lokf registered the entry;
+    none of them is the release, and none is compared.
     """
     if a.checksum and b.checksum:
         return None if a.checksum == b.checksum else "checksum"
+    if a.checksum or b.checksum:
+        return "checksum (one entry has one, the other none)"
     for name in _RELEASE_FIELDS:
         if getattr(a, name) != getattr(b, name):
             return name
     return None
+
 
 
 _FIELDS = dataclasses.fields(RepoEntry)
