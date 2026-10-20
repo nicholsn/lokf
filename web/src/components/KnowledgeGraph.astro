@@ -16,6 +16,7 @@
       placeholder="Search nodes by label…"
       autocomplete="off"
     />
+    <p class="lokf-graph__shown" aria-live="polite" hidden></p>
     <div class="lokf-graph__filters">
       <fieldset class="lokf-graph__fieldset" data-filter="type">
         <legend>Node types</legend>
@@ -157,7 +158,11 @@
     // Filters: a checkbox per type and per predicate.
     const typeBox = root.querySelector('[data-filter="type"]') as HTMLElement;
     const predBox = root.querySelector('[data-filter="predicate"]') as HTMLElement;
-    const checkbox = (value: string, swatch?: string) => {
+    const tally = (values: string[]) =>
+      values.reduce((m, v) => m.set(v, (m.get(v) ?? 0) + 1), new Map<string, number>());
+    const typeCount = tally(graph.nodes.map((n) => n.data.type));
+    const predCount = tally(graph.edges.map((e) => e.data.predicate));
+    const checkbox = (value: string, count: number, swatch?: string) => {
       const label = document.createElement("label");
       const input = document.createElement("input");
       input.type = "checkbox";
@@ -170,12 +175,35 @@
         dot.style.background = swatch;
         label.append(dot);
       }
-      label.append(document.createTextNode(" " + value));
+      const name = document.createElement("span");
+      name.textContent = value;
+      const tallied = document.createElement("span");
+      tallied.className = "lokf-graph__count";
+      tallied.textContent = String(count);
+      label.append(name, tallied);
       input.addEventListener("change", applyFilters);
       return label;
     };
-    types.forEach((t) => typeBox.append(checkbox(t, colorOf[t])));
-    predicates.forEach((p) => predBox.append(checkbox(p)));
+    types.forEach((t) => typeBox.append(checkbox(t, typeCount.get(t) ?? 0, colorOf[t])));
+    predicates.forEach((p) => predBox.append(checkbox(p, predCount.get(p) ?? 0)));
+    // "All" and "None" on each group, so a reader with many boxes can keep
+    // one or two in two clicks.
+    [typeBox, predBox].forEach((box) => {
+      const bar = document.createElement("div");
+      bar.className = "lokf-graph__all";
+      for (const [text, on] of [["All", true], ["None", false]] as const) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = text;
+        b.addEventListener("click", () => {
+          box.querySelectorAll<HTMLInputElement>("input").forEach((i) => (i.checked = on));
+          applyFilters();
+        });
+        bar.append(b);
+      }
+      box.querySelector("legend")!.after(bar);
+    });
+    const shown = root.querySelector(".lokf-graph__shown") as HTMLElement;
 
     function checkedValues(box: HTMLElement) {
       return new Set(
@@ -189,6 +217,11 @@
       cy.edges().forEach((e) =>
         e.toggleClass("hidden", !okPreds.has(e.data("predicate"))),
       );
+      // A filter that hides anything says so, so no part of the graph goes
+      // missing unremarked.
+      const filtered = root.querySelector(".lokf-graph__filters input:not(:checked)") !== null;
+      shown.hidden = !filtered;
+      shown.textContent = `${cy.nodes(":visible").length} of ${cy.nodes().length} concepts shown`;
     }
 
     // Search dims non-matching nodes.
@@ -304,17 +337,61 @@
     color: var(--sl-color-gray-2);
     padding: 0 0.3rem;
   }
+  /* Each row is a whole click target, so the filters read as controls. */
   .lokf-graph__fieldset label {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    line-height: 1.8;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border-radius: 0.3rem;
     cursor: pointer;
   }
+  .lokf-graph__fieldset label:hover {
+    background: var(--sl-color-gray-6);
+  }
+  .lokf-graph__fieldset input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    flex: none;
+    accent-color: var(--sl-color-accent);
+    cursor: pointer;
+  }
+  .lokf-graph__count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .lokf-graph__fieldset .lokf-graph__all {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.1rem 0 0.3rem;
+  }
+  .lokf-graph__all button {
+    font-size: 0.72rem;
+    padding: 0.1rem 0.55rem;
+    color: var(--sl-color-text);
+    background: var(--sl-color-black);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3rem;
+    cursor: pointer;
+  }
+  .lokf-graph__all button:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+  }
+  .lokf-graph .lokf-graph__shown {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-2);
+  }
   .lokf-graph__swatch {
-    width: 0.7rem;
-    height: 0.7rem;
+    width: 0.8rem;
+    height: 0.8rem;
     border-radius: 50%;
     flex: none;
   }
@@ -351,18 +428,31 @@
     border-radius: 0.5rem;
     background: var(--sl-color-gray-7, var(--sl-color-black));
   }
-  /* Full-screen graph browser: the whole explorer — search, filters, and
-     graph — fills the viewport, with the graph stage taking the leftover
-     height. */
+  /* Full-screen graph browser: search and filters in a side panel that
+     scrolls on its own, and the graph stage takes the rest, so however many
+     filters there are, the graph keeps the full height. */
   .lokf-graph.is-fullscreen {
     margin: 0;
     padding: 1rem;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(12rem, 18rem) 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 1rem;
     background: var(--sl-color-bg);
   }
+  .lokf-graph.is-fullscreen .lokf-graph__controls {
+    min-height: 0;
+    margin: 0;
+    overflow-y: auto;
+  }
+  .lokf-graph.is-fullscreen .lokf-graph__filters {
+    flex-direction: column;
+  }
+  .lokf-graph.is-fullscreen .lokf-graph__fieldset {
+    flex: none;
+    min-width: 0;
+  }
   .lokf-graph.is-fullscreen .lokf-graph__stage {
-    flex: 1;
     min-height: 0;
   }
   .lokf-graph.is-fullscreen .lokf-graph__canvas {
