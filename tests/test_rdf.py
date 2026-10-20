@@ -186,3 +186,15 @@ def test_audience_projection_preserves_explicit_types_and_custom_properties():
     audience = g.value(URIRef(doc["id"]), URIRef("https://ex.org/otherAudience"))
     assert audience is not None
     assert not list(g.objects(audience, RDF.type))
+
+
+def test_replacement_multiple_successors_and_reference_checks(tmp_path):
+    from lokf.model import load_bundle
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://example.org/\ntitle: KB\n---\n")
+    (tmp_path / "old.md").write_text("---\ntype: Service\ntitle: Old\nstatus: deprecated\nisReplacedBy: [new, split]\n---\n")
+    (tmp_path / "new.md").write_text("---\ntype: Service\ntitle: New\n---\n")
+    graph = rdf.graph_of(tmp_path)
+    predicate = URIRef("http://purl.org/dc/terms/isReplacedBy")
+    assert set(graph.objects(URIRef("https://example.org/old"), predicate)) == {
+        URIRef("https://example.org/new"), URIRef("https://example.org/split")}
+    assert load_bundle(tmp_path).dangling_refs() == [("old", "isReplacedBy", "split")]

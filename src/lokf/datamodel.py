@@ -241,6 +241,7 @@ class Concept(YAMLRoot):
     references: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     dependsOn: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     derivedFrom: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
+    isReplacedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     about: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     sameAs: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     relatedTo: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
@@ -323,6 +324,10 @@ class Concept(YAMLRoot):
         if not isinstance(self.derivedFrom, list):
             self.derivedFrom = [self.derivedFrom] if self.derivedFrom is not None else []
         self.derivedFrom = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.derivedFrom]
+
+        if not isinstance(self.isReplacedBy, list):
+            self.isReplacedBy = [self.isReplacedBy] if self.isReplacedBy is not None else []
+        self.isReplacedBy = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.isReplacedBy]
 
         if not isinstance(self.about, list):
             self.about = [self.about] if self.about is not None else []
@@ -929,6 +934,7 @@ class Person(Agent):
     references: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     dependsOn: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     derivedFrom: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
+    isReplacedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     about: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     sameAs: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     relatedTo: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
@@ -1011,6 +1017,10 @@ class Person(Agent):
         if not isinstance(self.derivedFrom, list):
             self.derivedFrom = [self.derivedFrom] if self.derivedFrom is not None else []
         self.derivedFrom = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.derivedFrom]
+
+        if not isinstance(self.isReplacedBy, list):
+            self.isReplacedBy = [self.isReplacedBy] if self.isReplacedBy is not None else []
+        self.isReplacedBy = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.isReplacedBy]
 
         if not isinstance(self.about, list):
             self.about = [self.about] if self.about is not None else []
@@ -1098,6 +1108,7 @@ class Organization(Agent):
     references: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     dependsOn: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     derivedFrom: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
+    isReplacedBy: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     about: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     sameAs: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     relatedTo: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
@@ -1180,6 +1191,10 @@ class Organization(Agent):
         if not isinstance(self.derivedFrom, list):
             self.derivedFrom = [self.derivedFrom] if self.derivedFrom is not None else []
         self.derivedFrom = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.derivedFrom]
+
+        if not isinstance(self.isReplacedBy, list):
+            self.isReplacedBy = [self.isReplacedBy] if self.isReplacedBy is not None else []
+        self.isReplacedBy = [v if isinstance(v, ConceptId) else ConceptId(v) for v in self.isReplacedBy]
 
         if not isinstance(self.about, list):
             self.about = [self.about] if self.about is not None else []
@@ -1666,6 +1681,10 @@ class RelationType(EnumDefinitionImpl):
         text="derivedFrom",
         description="The concept was derived from the target.",
         meaning=PROV["wasDerivedFrom"])
+    isReplacedBy = PermissibleValue(
+        text="isReplacedBy",
+        description="The concept is superseded by the target.",
+        meaning=DCTERMS["isReplacedBy"])
     wasRevisionOf = PermissibleValue(
         text="wasRevisionOf",
         description="""The concept is a revised version of the target: a derivation that keeps substantial content of the original.""",
@@ -1953,6 +1972,9 @@ slots.dependsOn = Slot(uri=DCTERMS.requires, name="dependsOn", curie=DCTERMS.cur
 
 slots.derivedFrom = Slot(uri=PROV.wasDerivedFrom, name="derivedFrom", curie=PROV.curie('wasDerivedFrom'),
                    model_uri=LOKF.derivedFrom, domain=None, range=Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]])
+
+slots.isReplacedBy = Slot(uri=DCTERMS.isReplacedBy, name="isReplacedBy", curie=DCTERMS.curie('isReplacedBy'),
+                   model_uri=LOKF.isReplacedBy, domain=None, range=Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]])
 
 slots.about = Slot(uri=SCHEMA.about, name="about", curie=SCHEMA.curie('about'),
                    model_uri=LOKF.about, domain=None, range=Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]])

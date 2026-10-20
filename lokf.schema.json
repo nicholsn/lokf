@@ -237,6 +237,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -666,6 +676,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -1027,6 +1047,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },
@@ -1421,6 +1451,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -1777,6 +1817,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },
@@ -2231,6 +2281,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },
@@ -2729,6 +2789,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -3085,6 +3155,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },
@@ -3496,6 +3576,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -3834,6 +3924,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },
@@ -4181,6 +4281,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -4520,6 +4630,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -4724,6 +4844,7 @@
                 "references",
                 "dependsOn",
                 "derivedFrom",
+                "isReplacedBy",
                 "wasRevisionOf",
                 "about",
                 "sameAs",
@@ -4918,6 +5039,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },
@@ -5306,6 +5437,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },
@@ -5743,6 +5884,16 @@
                         "null"
                     ]
                 },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "license": {
                     "description": "The license under which the concept or bundle is offered.",
                     "type": [
@@ -6074,6 +6225,16 @@
                 },
                 "isPartOf": {
                     "description": "The target concept that this concept is a part of.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReplacedBy": {
+                    "description": "A concept that supersedes this one, without asserting equivalence.",
                     "items": {
                         "type": "string"
                     },

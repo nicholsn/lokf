@@ -38,6 +38,7 @@ _INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
 CUE_TABLE: tuple[tuple[re.Pattern, str, float], ...] = tuple(
     (re.compile(pattern, re.IGNORECASE), name, confidence)
     for pattern, name, confidence in (
+        (r"\breplaced by\b|\bsuperseded by\b", "isReplacedBy", 0.8),
         (r"\bsame as\b|\balias(?:es)?\b", "sameAs", 0.8),
         (r"\brevision of\b|\brevised (?:version )?of\b", "wasRevisionOf", 0.75),
         (r"\bderived\b|\bcomputed\b|\bbuilt from\b", "derivedFrom", 0.75),

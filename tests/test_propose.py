@@ -286,3 +286,14 @@ def test_cli_json_apply_composes(tmp_bundle, capsys):
     # Re-running finds nothing left to propose.
     assert main(["propose", str(tmp_bundle), "--json", "--apply"]) == 0
     assert json.loads(capsys.readouterr().out) == []
+
+
+def test_replacement_cue_applies_in_successor_direction(tmp_bundle, vocab):
+    retired = tmp_bundle / "glossary" / "retired.md"
+    retired.write_text("---\ntype: GlossaryTerm\ntitle: Retired\nstatus: deprecated\n---\n"
+                       "Superseded by [Active User](/glossary/active-user.md).\n")
+    bundle = lokf.load_bundle(tmp_bundle)
+    [p] = propose(bundle, vocab, concept=bundle.get("glossary/retired"))
+    assert p.relation.name == "isReplacedBy"
+    assert apply([p]) == [p]
+    assert lokf.parse.parse_concept(str(retired))["isReplacedBy"] == [p.target_iri]

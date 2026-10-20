@@ -29,6 +29,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- `isReplacedBy` relates a deprecated concept to one or more successors, with
+  RDF mapping, reference checks, and replacement-language proposal cues.
+
 - Opt-in local resource existence checks with an explicit root, symlink
   containment, and diagnostics for ambiguous source descriptions.
 
