@@ -29,6 +29,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- Opt-in local resource existence checks with an explicit root, symlink
+  containment, and diagnostics for ambiguous source descriptions.
+
 - Validate reserved change logs, rejecting malformed dates and warning about
   duplicate dates or groups not ordered newest-first.
 
