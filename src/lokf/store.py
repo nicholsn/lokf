@@ -183,7 +183,7 @@ class GraphStore:
         """
         import hashlib
 
-        from lokf.registry import load_tree, member_ntriples
+        from lokf.registry import has_bundle, load_tree, member_ntriples
 
         if not hasattr(registry, "repos"):
             registry = load_tree(registry)
@@ -191,6 +191,8 @@ class GraphStore:
         store = ox.Store()
         errors: dict[str, str] = {}
         for entry in registry.repos:
+            if not has_bundle(entry):
+                continue  # a registry's namespace, with no bundle of its own to load
             graph = ox.NamedNode(entry.base_iri)
             tag = "m" + hashlib.sha256(entry.base_iri.encode()).hexdigest()[:12] + "_"
 

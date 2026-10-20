@@ -1018,12 +1018,14 @@ def registry_add(
 
         held = next(e for e in reg.repos if e.base_iri == entry.base_iri)
         if fill_locations(held, entry):
+            _check_tree(reg, source)
             reg.save()
             typer.echo(f"{entry.base_iri} is already registered at this release in "
                        f"{registry}; recorded the locations it lacked")
         else:
             typer.echo(f"{entry.base_iri} is already registered at this release in {registry}")
         return
+    _check_tree(reg, source)
     reg.save()
     foreign = sum(1 for iri in entry.id_index if not iri.startswith(entry.base_iri))
     typer.echo(
@@ -1031,6 +1033,19 @@ def registry_add(
         f"({entry.void.get('triples', 0)} triples) in {registry}"
         + (f"; indexed {foreign} explicit id(s) outside base_iri" if foreign else "")
     )
+
+
+def _check_tree(reg, source: str) -> None:
+    """Refuse an add that would break the tree below *reg*: a bundle that a
+    sub-registry names at another release, say, which the top manifest alone
+    cannot show."""
+    from lokf.registry import load_tree
+
+    try:
+        load_tree(reg)
+    except (ValueError, OSError) as exc:
+        _err(f"cannot register {source}: the registry tree would not load: {exc}")
+        raise typer.Exit(1)
 
 
 @registry_app.command("list")
@@ -1044,9 +1059,11 @@ def registry_list(
     if not reg.repos:
         typer.echo("(no members registered)")
         return
+    from lokf.registry import is_catalog
+
     for e in sorted(reg.repos, key=lambda e: e.base_iri):
-        triples = e.void.get("triples", "?")
-        typer.echo(f"{e.base_iri}\t{e.title}\t{triples} triples\t{e.status}")
+        size = f"registry {e.registry}" if is_catalog(e) else f"{e.void.get('triples', '?')} triples"
+        typer.echo(f"{e.base_iri}\t{e.title}\t{size}\t{e.status}")
 
 
 @registry_app.command("resolve")
@@ -1056,8 +1073,9 @@ def registry_resolve(
         Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
     ),
 ) -> None:
-    """Resolve an IRI to its owning bundle, Concept ID, and source URL (offline).
+    """Resolve an IRI to its owning bundle, Concept ID, and source URL.
 
+    Reads no bundle; only a sub-registry the tree names by URL is fetched.
     Exits non-zero for an IRI no member owns — a tolerated dangling cross-link,
     not owned here.
     """
@@ -1094,6 +1112,8 @@ def _registry_tree(registry: Path):
         raise typer.Exit(1)
     for note in tree.notes:
         _err(note)
+    for skipped in tree.skipped:
+        _err(f"skipped registry {skipped}")
     return tree
 
 
@@ -1139,12 +1159,13 @@ def registry_build(
     """
     import pyoxigraph as ox
 
-    from lokf.registry import unresolved_targets
+    from lokf.registry import has_bundle, unresolved_targets
 
     reg = _registry_tree(registry)
     store = _registry_store(registry, None, reg)
-    loaded = len(reg.repos) - len(store.load_errors)
-    if reg.repos and not loaded:
+    members = [e for e in reg.repos if has_bundle(e)]
+    loaded = len(members) - len(store.load_errors)
+    if members and not loaded:
         _err(f"no member of {registry} could be loaded")
         raise typer.Exit(1)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1153,11 +1174,11 @@ def registry_build(
     # them, and not on the other line breaks a literal may hold (U+2028).
     lines = sorted(line for line in text.split("\n") if line.strip())
     (out_dir / "federation.nq").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    typer.echo(f"wrote {out_dir}/federation.nq ({len(lines)} quads, {loaded} of {len(reg.repos)} members)")
+    typer.echo(f"wrote {out_dir}/federation.nq ({len(lines)} quads, {loaded} of {len(members)} members)")
     unresolved = unresolved_targets(reg, store)
     for u in unresolved:
         typer.echo(f"{u.kind}: {u.target} (asserted in {u.graph} via {u.predicate})")
-    if strict and (unresolved or store.load_errors):
+    if strict and (unresolved or store.load_errors or reg.skipped):
         raise typer.Exit(1)
 
 

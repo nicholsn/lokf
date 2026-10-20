@@ -739,12 +739,15 @@ repos:
 ```
 
 A member may be a registry in turn, as DCAT lists a catalog with `dcat:catalog`
-beside its datasets. Its entry has `type: dcat:Catalog` and a `registry` field
-locating that registry's manifest, a URL or a path resolved beside the manifest
-that lists it; it may also describe a bundle of its own, such as a domain's
-bundle. Every registry bounds a federated graph of its own, and the registry a
-walk starts from is that walk's top. Its `max_depth` (3 when absent) says how
-many tiers below it the walk follows.
+beside its datasets. Its entry has a `registry` field locating that registry's
+manifest, a URL or a path resolved beside the manifest that lists it, and
+`type: dcat:Catalog`; it may also describe a bundle of its own, such as a
+domain's bundle. Either way its `base_iri` is reserved like any member's.
+Every registry bounds a federated graph of its own, and the registry a walk
+starts from is that walk's top. Its `max_depth` (3 when absent) says how many
+tiers below it the walk follows, tier by tier. A manifest read from a URL
+may point only at URLs, never at a local path, and a registry the walk
+cannot read is left out and reported, as an unreachable member is.
 
 ```yaml
 max_depth: 3
@@ -791,8 +794,8 @@ target is *already* a correct triple. Five rules keep it trustworthy:
 4. **One release per namespace.** Registries in one tree may name the same
    bundle, as every tier names a shared upper ontology. Named at one release
    (the same `checksum`, or the same entry when neither has one) it joins once,
-   under all of them; named at two releases the tree is refused, because a
-   named graph holds one release.
+   under all of them, as the registry nearest the top lists it; named at two
+   releases the tree is refused, because a named graph holds one release.
 5. **No cycles.** A registry may not name itself or a registry above it.
 
 An IRI owned by no entry is returned as a tolerated **dangling link**, not an
