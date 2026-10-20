@@ -289,6 +289,9 @@ def validate(
     every concept IRI declared by exactly one file. Both are opt-in so that
     the default stays the schema, as OKF's permissive stance intends.
 
+    Reserved ``log.md`` files are also checked: malformed date headings are
+    errors; duplicate dates and out-of-order groups are warnings.
+
     Needs LinkML, which the core install leaves out: ``pip install
     'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
     """
@@ -342,6 +345,12 @@ def validate(
     # on (its exit code is `1 if severity_counter[Severity.ERROR] > 0`) - a
     # warning is reported without failing the command.
     failed = any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results)
+
+    from lokf.logs import check_logs
+
+    for severity, path, line, message in check_logs(bundle_dir):
+        _err(f"[{severity}] {path}:{line}: {message}")
+        failed = failed or severity == "ERROR"
 
     if check_ids:
         # Two files declaring one `id` each validate on their own and then
