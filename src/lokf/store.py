@@ -168,21 +168,25 @@ class GraphStore:
         store = ox.Store()
         errors: dict[str, str] = {}
         for entry in registry.repos:
-            try:
-                nt = member_ntriples(entry)
-            except (ValueError, OSError) as exc:
-                errors[entry.base_iri] = str(exc)
-                continue
             graph = ox.NamedNode(entry.base_iri)
             tag = "m" + hashlib.sha256(entry.base_iri.encode()).hexdigest()[:12] + "_"
 
             def local(term, tag=tag):
                 return ox.BlankNode(tag + term.value) if isinstance(term, ox.BlankNode) else term
 
-            store.extend(
-                ox.Quad(local(t.subject), t.predicate, local(t.object), graph)
-                for t in ox.parse(nt, format=ox.RdfFormat.N_TRIPLES)
-            )
+            # A member's own content can fail in many ways (bad frontmatter, a
+            # schema LinkML rejects, a malformed graph.nt). Each failure is that
+            # member's alone, and it is parsed whole before any of it is added,
+            # so a member either loads completely or not at all.
+            try:
+                quads = [
+                    ox.Quad(local(t.subject), t.predicate, local(t.object), graph)
+                    for t in ox.parse(member_ntriples(entry), format=ox.RdfFormat.N_TRIPLES)
+                ]
+            except Exception as exc:  # noqa: BLE001
+                errors[entry.base_iri] = f"{type(exc).__name__}: {exc}".splitlines()[0]
+                continue
+            store.extend(quads)
         out = cls(store, union=True, **kw)
         out.load_errors = errors
         return out

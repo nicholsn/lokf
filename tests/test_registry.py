@@ -602,3 +602,20 @@ def test_cli_registry_build_and_query(tmp_path):
         "SELECT ?g WHERE { GRAPH ?g { <https://b.example/kb/y> ?p ?o } } LIMIT 1",
     ])
     assert q.exit_code == 0 and "https://b.example/kb/" in q.output
+
+
+def test_from_registry_skips_a_member_whose_content_fails(tmp_path):
+    """Broken frontmatter in one member, or a malformed graph.nt, is that
+    member's failure alone; nothing of it reaches the store."""
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    (tmp_path / "b" / "z.md").write_text("---\ntype: Concept\ntitle: [unclosed\n---\n", encoding="utf-8")
+    bad_nt = tmp_path / "graph.nt"
+    bad_nt.write_text("<https://c.example/kb/x> <http://p> .\n", encoding="utf-8")
+    reg.repos.append(RepoEntry(base_iri="https://c.example/kb/", distribution={"rdf": str(bad_nt)}))
+    store = GraphStore.from_registry(reg)
+    assert set(store.load_errors) == {"https://b.example/kb/", "https://c.example/kb/"}
+    graphs = {r["g"] for r in store.select("SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }")}
+    assert graphs == {"https://a.example/kb/"}
+
