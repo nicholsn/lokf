@@ -18,6 +18,9 @@ with the 0.x caveat that a minor release may tighten validation.
 - A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no
   longer slips a `SERVICE` past the refusal in `lokf serve` and `query`.
 
+- `query_form` reads a query whose `PREFIX` or `BASE` shares its line, so a
+  one-line ASK or CONSTRUCT is no longer run as a SELECT.
+
 - SHACL artifacts now match the authoring RDF projection, preserve separate
   Source/Citation shapes, and avoid false failures from inherited properties
   and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
