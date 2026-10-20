@@ -13,6 +13,16 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Changed
+
+- Require LinkML and linkml-runtime 1.12.0 or newer, and regenerate the
+  committed schema and Python bindings with 1.12.0. Optional enum fields
+  such as `status` and `genre` now accept explicit null values, matching
+  runtime validation. Invalid non-null enum values remain errors.
+- Generated JSON Schema now enforces closed classes at the bundle root
+  as well as on concepts; undeclared bundle metadata is rejected by
+  schema validation. Runtime validation and the published artifact agree.
+
 ### Added
 
 - `audience`, `typicalAgeRange` and `educationalLevel` say who a concept

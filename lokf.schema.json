@@ -197,8 +197,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -321,7 +334,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -606,8 +626,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -716,7 +749,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -955,8 +995,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -1065,7 +1118,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -1321,8 +1381,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -1431,7 +1504,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -1665,8 +1745,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -1775,7 +1868,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -1866,7 +1966,14 @@
                     ]
                 },
                 "datatype": {
-                    "$ref": "#/$defs/FieldType",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/FieldType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "The data type of a field."
                 },
                 "description": {
@@ -2092,8 +2199,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -2202,7 +2322,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -2562,8 +2689,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -2682,7 +2822,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -2906,8 +3053,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -3023,7 +3183,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -3118,7 +3285,14 @@
                     ]
                 },
                 "type": {
-                    "$ref": "#/$defs/ParameterType",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ParameterType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "The parameter's datatype, written with the authoring key `type` verbatim and drawn from ParameterType."
                 }
             },
@@ -3282,8 +3456,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -3399,7 +3586,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -3608,8 +3802,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -3718,7 +3925,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -3927,8 +4141,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -4037,7 +4264,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -4246,8 +4480,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -4356,7 +4603,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -4622,8 +4876,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -4766,7 +5033,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -4989,8 +5263,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -5003,7 +5290,14 @@
                     ]
                 },
                 "http_method": {
-                    "$ref": "#/$defs/HttpMethod",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/HttpMethod"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "The HTTP method used to invoke the service, if applicable."
                 },
                 "id": {
@@ -5103,7 +5397,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -5402,8 +5703,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -5512,7 +5826,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -5721,8 +6042,21 @@
                     "description": "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent."
                 },
                 "genre": {
-                    "$ref": "#/$defs/DiataxisMode",
-                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*."
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiataxisMode"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The Di\u00e1taxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*.",
+                    "examples": [
+                        "tutorial",
+                        "how-to",
+                        "reference",
+                        "explanation"
+                    ]
                 },
                 "hasPart": {
                     "description": "A concept that is a part of this concept.",
@@ -5831,7 +6165,14 @@
                     ]
                 },
                 "status": {
-                    "$ref": "#/$defs/ConceptStatus",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ConceptStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
                     "description": "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control."
                 },
                 "tags": {
@@ -5968,9 +6309,9 @@
     },
     "$id": "https://w3id.org/lokf/schema",
     "$schema": "https://json-schema.org/draft/2019-09/schema",
-    "additionalProperties": true,
+    "additionalProperties": false,
     "description": "A self-contained, hierarchical collection of concept documents \u2014 the unit of distribution (a git repo, tarball, or subdirectory). Maps to a DCAT Catalog. When a whole bundle is serialized as a single JSON-LD document, this class is the tree root; individual concept files validate against Concept (or a subclass).",
-    "metamodel_version": "1.11.0",
+    "metamodel_version": "1.12.0",
     "properties": {
         "base_iri": {
             "description": "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink. Absolute http(s), ending in `/` or `#` so ids mint by plain concatenation and prefix routing respects segment boundaries (`\u2026/team/` never captures `\u2026/team-archive/`).",

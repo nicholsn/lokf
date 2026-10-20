@@ -549,6 +549,12 @@ so off-site targets are not errors.
 
 ### 9.1 Field constraints
 
+With LinkML 1.12.0 or newer, optional enum-valued fields (for example
+`status` and `genre`) accept explicit null as well as omission. Non-null
+values must still belong to the declared enum. The published JSON Schema
+and runtime validation use this same policy. Undeclared bundle-level keys
+are rejected by schema validation, as are undeclared concept fields.
+
 Several fields carry a `pattern` in the schema, so the generated JSON Schema
 rejects a malformed value rather than passing it through to RDF:
 
