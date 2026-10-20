@@ -15,6 +15,10 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
+- SHACL artifacts now match the authoring RDF projection, preserve separate
+  Source/Citation shapes, and avoid false failures from inherited properties
+  and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
+
 - Nested validation errors name the field path and unexpected provenance keys.
 
 ### Changed
@@ -28,6 +32,10 @@ with the 0.x caveat that a minor release may tighten validation.
   schema validation. Runtime validation and the published artifact agree.
 
 ### Added
+
+- `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
+  local relation range checks, inheritance/mixins, nested value constraints,
+  and domain schemas. External reference classes remain unverified.
 
 - Wheels ship the generated JSON Schema and SHACL artifacts alongside the
   source schema and authoring context.
