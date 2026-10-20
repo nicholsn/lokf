@@ -558,6 +558,22 @@ or an IRI under `base_iri` — because a bundle can only vouch for what it
 contains; `definedBy` and `source` are defined as taking an external resource,
 so off-site targets are not errors.
 
+### Local resource checks
+
+`lokf validate --check-resources` checks local `resource` and
+`sources[].resource` paths. Use `--root DIR` to choose their resolution root;
+the default is the nearest enclosing Git repository, or the bundle's parent
+outside Git. Files and directories are accepted. Missing paths and paths
+escaping the root (including through symlinks) are errors. URI/CURIE values
+are never fetched. Use portable relative paths; Windows drive paths cannot
+be checked on a non-Windows host.
+
+A Source may contain a prose scope description. Unprefixed Source values
+containing whitespace are reported as unchecked descriptions, with a warning.
+Prefix local paths containing spaces with `./` (or use an absolute path within
+the root) to make them unambiguous. Concept `resource` values are always paths
+or identifiers, not scope descriptions. No resource checks run by default.
+
 ### Change-log checks
 
 Validation reads every `log.md` within the bundle. Level-two date headings

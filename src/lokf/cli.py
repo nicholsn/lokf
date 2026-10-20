@@ -259,6 +259,14 @@ def validate(
         "resolves to a concept in the bundle - something JSON Schema cannot "
         "express. External resources are not checked.",
     ),
+    check_resources: bool = typer.Option(
+        False, "--check-resources",
+        help="Check local resource paths; never fetch remote identifiers.",
+    ),
+    root: Optional[Path] = typer.Option(
+        None, "--root", exists=True, file_okay=False,
+        help="Resource root (default: nearest enclosing Git root, else bundle parent).",
+    ),
     check_ids: bool = typer.Option(
         False, "--check-ids",
         help="Also check that every concept IRI is declared by one file. Two "
@@ -322,6 +330,9 @@ def validate(
         _err(str(exc))
         raise typer.Exit(1)
 
+    if root is not None and not check_resources:
+        _err("--root requires --check-resources")
+        raise typer.Exit(2)
     bundle = load_bundle(bundle_dir)
     doc = dict(bundle.meta)
     doc["concepts"] = bundle.docs()
@@ -373,6 +384,13 @@ def validate(
             )
         failed = failed or bool(dangling)
 
+    if check_resources:
+        from lokf.resources import check_resources as resource_findings, resource_root
+
+        for severity, message in resource_findings(bundle, root or resource_root(bundle_dir)):
+            _err(f"[{severity}] {message}")
+            failed = failed or severity == "ERROR"
+
     if failed:
         raise typer.Exit(1)
     ok = (
@@ -383,6 +401,8 @@ def validate(
         ok += " All in-namespace relation targets resolve."
     if check_ids:
         ok += " Every IRI is declared by one file."
+    if check_resources:
+        ok += " Local resource checks completed."
     typer.echo(ok)
 
 
