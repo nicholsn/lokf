@@ -252,3 +252,10 @@ def test_relabel_keeps_nodes_apart_that_differ_only_in_term_kind():
     }
     assert len(outs) == 1
 
+
+def test_turtle_uses_the_schemas_prefixes():
+    """schema.org terms print as `schema:`, not rdflib's fallback `schema1:`."""
+    bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
+    ttl = rdf.serialize(bundle, "ttl")
+    assert "@prefix schema: <http://schema.org/> ." in ttl
+    assert "schema1:" not in ttl

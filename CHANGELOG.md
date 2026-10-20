@@ -18,6 +18,8 @@ with the 0.x caveat that a minor release may tighten validation.
 - `lokf export`, `lokf convert` and the MCP server label blank nodes from content
   and sort N-Triples lines, so one bundle always gives the same bytes.
 
+- Turtle output writes schema.org terms as `schema:`, not rdflib's `schema1:`.
+
 - SHACL artifacts now match the authoring RDF projection, preserve separate
   Source/Citation shapes, and avoid false failures from inherited properties
   and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.

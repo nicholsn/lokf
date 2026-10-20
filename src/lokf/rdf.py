@@ -242,9 +242,16 @@ def serialize(
     Nested objects (sources, verified events, distributions) project as blank
     nodes, which rdflib labels at random. They are relabelled from content and
     N-Triples lines sorted, so the same bundle always gives the same bytes.
+    The schema's prefixes are bound over rdflib's defaults, which map
+    ``schema:`` to https://schema.org/ and would leave LOKF's http://schema.org/
+    terms as ``schema1:``.
     """
+    from lokf.schema import vocabulary
+
     rdflib_fmt = _rdflib_format(fmt)
     g = relabel_bnodes(graph_of(source, context, schema=schema))
+    for prefix, ns in vocabulary(schema).prefixes.items():
+        g.bind(prefix, ns, override=True, replace=True)
     data = g.serialize(format=rdflib_fmt)
     text = data if isinstance(data, str) else data.decode("utf-8")
     if rdflib_fmt == "nt":
