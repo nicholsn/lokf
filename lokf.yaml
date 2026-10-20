@@ -71,6 +71,18 @@ subsets:
 # ---------------------------------------------------------------------------
 # Classes
 # ---------------------------------------------------------------------------
+types:
+  HexBinary:
+    description: Binary data written as hexadecimal digits; maps to xsd:hexBinary.
+    typeof: string
+    uri: xsd:hexBinary
+
+  NonNegativeInteger:
+    description: A whole number, 0 or more; maps to xsd:nonNegativeInteger.
+    typeof: integer
+    uri: xsd:nonNegativeInteger
+    minimum_value: 0
+
 classes:
   KnowledgeBundle:
     description: >-
@@ -433,6 +445,66 @@ classes:
     slots:
       - algorithm
       - checksum_value
+    slot_usage:
+      algorithm:
+        required: true
+      checksum_value:
+        required: true
+    rules:
+      - description: A md5 digest has 32 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [md5]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{32}$'
+      - description: A sha1 digest has 40 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha1]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{40}$'
+      - description: A sha224 digest has 56 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha224]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{56}$'
+      - description: A sha256, sha3_256, blake2b256 digest has 64 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha256, sha3_256, blake2b256]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{64}$'
+      - description: A sha384, sha3_384, blake2b384 digest has 96 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha384, sha3_384, blake2b384]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{96}$'
+      - description: A sha512, sha3_512, blake2b512 digest has 128 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha512, sha3_512, blake2b512]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{128}$'
 
   Relation:
     description: >-
@@ -1111,8 +1183,7 @@ slots:
 
   byte_size:
     description: The size of the distribution in bytes.
-    range: integer
-    minimum_value: 0
+    range: NonNegativeInteger
     slot_uri: dcat:byteSize
     in_subset:
       - lokf_semantic
@@ -1120,7 +1191,6 @@ slots:
   algorithm:
     description: The algorithm that computed a checksum.
     range: ChecksumAlgorithm
-    required: true
     slot_uri: spdx:algorithm
     in_subset:
       - lokf_semantic
@@ -1130,9 +1200,8 @@ slots:
       The checksum as lowercase hexadecimal digits, as many as the
       algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the
       256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones).
-    range: string
+    range: HexBinary
     pattern: '^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$'
-    required: true
     slot_uri: spdx:checksumValue
     in_subset:
       - lokf_semantic
@@ -1996,26 +2065,38 @@ enums:
       resist tampering.
     permissible_values:
       sha1:
+        description: SHA-1 (FIPS 180-4); identifies bytes but no longer resists tampering.
         meaning: spdx:checksumAlgorithm_sha1
       sha224:
+        description: SHA-224 (FIPS 180-4).
         meaning: spdx:checksumAlgorithm_sha224
       sha256:
+        description: SHA-256 (FIPS 180-4).
         meaning: spdx:checksumAlgorithm_sha256
       sha384:
+        description: SHA-384 (FIPS 180-4).
         meaning: spdx:checksumAlgorithm_sha384
       sha512:
+        description: SHA-512 (FIPS 180-4).
         meaning: spdx:checksumAlgorithm_sha512
       sha3_256:
+        description: SHA3-256 (FIPS 202).
         meaning: spdx:checksumAlgorithm_sha3_256
       sha3_384:
+        description: SHA3-384 (FIPS 202).
         meaning: spdx:checksumAlgorithm_sha3_384
       sha3_512:
+        description: SHA3-512 (FIPS 202).
         meaning: spdx:checksumAlgorithm_sha3_512
       blake2b256:
+        description: BLAKE2b with a 256-bit digest (RFC 7693).
         meaning: spdx:checksumAlgorithm_blake2b256
       blake2b384:
+        description: BLAKE2b with a 384-bit digest (RFC 7693).
         meaning: spdx:checksumAlgorithm_blake2b384
       blake2b512:
+        description: BLAKE2b with a 512-bit digest (RFC 7693).
         meaning: spdx:checksumAlgorithm_blake2b512
       md5:
+        description: MD5 (RFC 1321); identifies bytes but no longer resists tampering.
         meaning: spdx:checksumAlgorithm_md5

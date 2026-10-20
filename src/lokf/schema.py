@@ -156,6 +156,13 @@ _PARAMETER_KINDS = {
 }
 
 
+#: ChecksumAlgorithm's values in lokf.yaml, each naming an SPDX individual.
+_CHECKSUM_ALGORITHMS = (
+    "sha1", "sha224", "sha256", "sha384", "sha512", "sha3_256", "sha3_384",
+    "sha3_512", "blake2b256", "blake2b384", "blake2b512", "md5",
+)
+
+
 def authoring_context(context: dict) -> dict:
     """Return a ``gen-jsonld-context`` ``@context`` mapping made fit for OKF
     frontmatter. ``lokf-build`` publishes LOKF's own context this way, and
@@ -171,6 +178,14 @@ def authoring_context(context: dict) -> dict:
     # terms. Same mechanism by which class names like "Metric" expand as @type.
     for value, cls in _PARAMETER_KINDS.items():
         ctx[value] = {"@id": f"https://w3id.org/lokf/{cls}"}
+    # A checksum's `algorithm` names the SPDX individual DCAT 3 expects, not a
+    # string. Its terms are scoped to that key, so the bare names stay plain
+    # words everywhere else in a concept.
+    if isinstance(ctx.get("algorithm"), dict):
+        scoped = dict(ctx["algorithm"].get("@context") or {})
+        scoped.update({v: f"http://spdx.org/rdf/terms#checksumAlgorithm_{v}"
+                       for v in _CHECKSUM_ALGORITHMS})
+        ctx["algorithm"] = {**ctx["algorithm"], "@type": "@vocab", "@context": scoped}
     # `author` must NOT be @id-coerced: OKF §7 actor strings ("team:ga4-docs",
     # "human:kliu") are literals, and coercion would silently mint IRIs in
     # unregistered URI schemes. Inlined Agent objects are unaffected.

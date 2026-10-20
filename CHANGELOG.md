@@ -16,7 +16,8 @@ with the 0.x caveat that a minor release may tighten validation.
 ### Added
 
 - `Distribution` takes an optional `checksum` (`spdx:Checksum`, as DCAT 3
-  models it) and `byte_size` (`dcat:byteSize`).
+  models it: the SPDX algorithm individual and an `xsd:hexBinary` digest as
+  long as that algorithm's) and `byte_size` (`dcat:byteSize`).
 
 ### Fixed
 

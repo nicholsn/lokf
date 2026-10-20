@@ -666,14 +666,21 @@ def test_distribution_checksum_follows_dcat_3(vocab):
     assert slots["checksum"]["slot_uri"] == "spdx:checksum"
     assert slots["checksum"]["range"] == "Checksum"
     assert slots["byte_size"]["slot_uri"] == "dcat:byteSize"
-    assert slots["byte_size"]["minimum_value"] == 0
+    assert schema["types"]["NonNegativeInteger"]["uri"] == "xsd:nonNegativeInteger"
+    assert slots["byte_size"]["range"] == "NonNegativeInteger"
+    assert schema["types"]["HexBinary"]["uri"] == "xsd:hexBinary"
+    assert slots["checksum_value"]["range"] == "HexBinary"
     checksum = schema["classes"]["Checksum"]
     assert checksum["class_uri"] == "spdx:Checksum"
     assert checksum["slots"] == ["algorithm", "checksum_value"]
     assert slots["algorithm"]["slot_uri"] == "spdx:algorithm"
     assert slots["checksum_value"]["slot_uri"] == "spdx:checksumValue"
-    for name in ("checksum", "byte_size"):
+    # Required only inside a Checksum, so a domain schema's own slot of the
+    # same name is not made required.
+    for name in ("checksum", "byte_size", "algorithm", "checksum_value"):
         assert "required" not in slots[name], name
+    assert checksum["slot_usage"]["algorithm"]["required"] is True
+    assert checksum["slot_usage"]["checksum_value"]["required"] is True
     meaning = schema["enums"]["ChecksumAlgorithm"]["permissible_values"]["sha256"]["meaning"]
     assert vocab.expand(meaning) == "http://spdx.org/rdf/terms#checksumAlgorithm_sha256"
 
@@ -686,3 +693,31 @@ def test_checksum_value_is_a_whole_lowercase_hex_digest():
         assert re.fullmatch(pattern, "e" * length), length
     for value in ["E6A8030D" * 8, "sha256:" + "e" * 64, "e6 a8", "", "e" * 63, "e" * 65]:
         assert not re.fullmatch(pattern, value), f"{value!r} should not match {pattern!r}"
+
+
+def test_the_scoped_algorithm_names_match_the_enum():
+    from lokf.schema import _CHECKSUM_ALGORITHMS
+
+    values = load_schema()["enums"]["ChecksumAlgorithm"]["permissible_values"]
+    assert set(_CHECKSUM_ALGORITHMS) == set(values)
+    for name, value in values.items():
+        assert value["meaning"] == f"spdx:checksumAlgorithm_{name}" and value["description"], name
+
+
+def test_a_digest_must_be_as_long_as_its_algorithm_makes_it(tmp_path):
+    from typer.testing import CliRunner
+
+    from lokf.cli import app
+
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\n---\n", encoding="utf-8")
+
+    def release(algorithm, digits):
+        (tmp_path / "r.md").write_text(
+            "---\ntype: Dataset\ntitle: R\ndistribution:\n  - access_url: https://ex.org/r.zip\n"
+            f"    checksum:\n      algorithm: {algorithm}\n      checksum_value: {'e' * digits}\n---\n",
+            encoding="utf-8",
+        )
+        return CliRunner().invoke(app, ["validate", str(tmp_path)]).exit_code
+
+    assert release("sha256", 64) == 0 and release("md5", 32) == 0 and release("sha512", 128) == 0
+    assert release("sha256", 32) == 1 and release("md5", 64) == 1

@@ -226,7 +226,7 @@ def test_exclusions_project_apart_from_sources(tmp_path):
 def test_distribution_checksum_projects_as_dcat_3(tmp_path):
     """A distribution's checksum is an spdx:Checksum node and its size dcat:byteSize."""
     from rdflib import Literal
-    from rdflib.namespace import XSD
+    from rdflib.namespace import RDF, XSD
 
     (tmp_path / "index.md").write_text(
         "---\nbase_iri: https://ex.org/kb/\n---\n# KB\n", encoding="utf-8"
@@ -242,7 +242,18 @@ def test_distribution_checksum_projects_as_dcat_3(tmp_path):
     g = rdf.graph_of(tmp_path)
     dcat, spdx = "http://www.w3.org/ns/dcat#", "http://spdx.org/rdf/terms#"
     dist = g.value(URIRef("https://ex.org/kb/release"), URIRef(dcat + "distribution"))
-    assert (dist, URIRef(dcat + "byteSize"), Literal(12345, datatype=XSD.integer)) in g
+    assert (dist, URIRef(dcat + "byteSize"), Literal("12345", datatype=XSD.nonNegativeInteger)) in g
     checksum = g.value(dist, URIRef(spdx + "checksum"))
-    assert (checksum, URIRef(spdx + "algorithm"), Literal("sha256")) in g
-    assert (checksum, URIRef(spdx + "checksumValue"), Literal(digest)) in g
+    assert (checksum, RDF.type, URIRef(spdx + "Checksum")) in g
+    assert (checksum, URIRef(spdx + "algorithm"), URIRef(spdx + "checksumAlgorithm_sha256")) in g
+    assert (checksum, URIRef(spdx + "checksumValue"), Literal(digest, datatype=XSD.hexBinary)) in g
+
+
+def test_algorithm_names_are_iris_only_under_algorithm(tmp_path):
+    """The SPDX names are scoped to `algorithm`: elsewhere `sha256` is a word."""
+    from rdflib import Literal
+
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\n---\n", encoding="utf-8")
+    (tmp_path / "w.md").write_text("---\ntype: GlossaryTerm\ntitle: sha256\n---\n", encoding="utf-8")
+    g = rdf.graph_of(tmp_path)
+    assert (URIRef("https://ex.org/kb/w"), URIRef("http://schema.org/name"), Literal("sha256")) in g

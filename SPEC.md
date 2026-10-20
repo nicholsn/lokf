@@ -339,8 +339,10 @@ A concept's `type` SHOULD name one of the following classes, or one a domain sch
 - **Dataset / Table** — `fields` (a list of `Field`: `name`, `datatype`
   [`FieldType` → XSD], `description`, `unit`, `is_key`, `constraints`);
   `distribution` (`dcat:Distribution`: `access_url`, `media_type`, `byte_size`
-  [`dcat:byteSize`], and a `checksum` [`spdx:Checksum`: `algorithm`,
-  `checksum_value`] that a consumer recomputes before trusting the bytes).
+  [`dcat:byteSize`, `xsd:nonNegativeInteger`], and a `checksum` [an
+  `spdx:Checksum` whose `algorithm` projects as the SPDX individual, such as
+  `spdx:checksumAlgorithm_sha256`, and whose `checksum_value` is
+  `xsd:hexBinary`] that a consumer recomputes before trusting the bytes).
 - **Metric** — `unit` (`schema:unitText`), `formula` (`lokf:formula`),
   `measures` (`lokf:measures`, → a Concept).
 - **Service** — `endpoint` (`schema:url`), `http_method` (`HttpMethod`: `GET`/`POST`/`PUT`/`PATCH`/`DELETE`/`HEAD`/`OPTIONS`, uppercase — the method name is a case-sensitive wire token), `documentation`.
@@ -631,7 +633,7 @@ rejects a malformed value rather than passing it through to RDF:
 | `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
 | `email` | an address shape (`local@domain.tld`) |
 | `typicalAgeRange` | an age range as schema.org writes it: `8-12`, or `13-` for 13 and over |
-| `distribution[].checksum.checksum_value` | a whole digest in lowercase hex: 32, 40, 56, 64, 96 or 128 digits |
+| `distribution[].checksum.checksum_value` | a whole digest in lowercase hex, as long as its `algorithm` makes it: 32 (md5), 40 (sha1), 56 (sha224), 64, 96 or 128 digits |
 
 These tighten what was previously accepted: a bundle whose `base_iri` lacks a
 trailing `/`, or whose `by` is a bare name, validated before and does not now.
