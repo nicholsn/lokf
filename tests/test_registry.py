@@ -741,3 +741,116 @@ def test_cli_add_replaces_a_local_zip_path_with_its_url(tmp_path, http_files):
     again = runner.invoke(app, ["registry", "add", f"{base}/k.zip", "-r", str(manifest)])
     assert "recorded the locations it lacked" in again.output
     assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": f"{base}/k.zip"}
+
+
+# -- registries of registries (SPEC §11.2-11.4) -------------------------------
+def _manifest(path: pathlib.Path, entries: list[RepoEntry], **kw) -> pathlib.Path:
+    reg = Registry(path=path, id=f"urn:reg:{path.stem}", **kw)
+    reg.repos = entries
+    reg.save()
+    return path
+
+
+def _catalog(base_iri: str, registry: str, **kw) -> RepoEntry:
+    return RepoEntry(base_iri=base_iri, type="dcat:Catalog", registry=registry, **kw)
+
+
+def test_load_tree_joins_a_shared_bundle_once(tmp_path):
+    """The diamond rule: two sub-registries naming one release of a bundle."""
+    from lokf.registry import load_tree
+
+    upper = RepoEntry(base_iri="https://upper.example/kb/", source_base="https://u/")
+    _manifest(tmp_path / "a.yaml", [upper, RepoEntry(base_iri="https://corp.example/a/knowledge/")])
+    _manifest(tmp_path / "b.yaml", [upper, RepoEntry(base_iri="https://corp.example/b/knowledge/")])
+    top = _manifest(tmp_path / "top.yaml", [
+        _catalog("https://corp.example/a/", "a.yaml"),
+        _catalog("https://corp.example/b/", "b.yaml"),
+    ])
+    tree = load_tree(top)
+    assert sorted(e.base_iri for e in tree.repos) == [
+        "https://corp.example/a/knowledge/",
+        "https://corp.example/b/knowledge/",
+        "https://upper.example/kb/",
+    ]
+    assert tree.owner("https://upper.example/kb/term").source_base == "https://u/"
+
+
+def test_load_tree_refuses_two_releases_of_one_bundle(tmp_path):
+    from lokf.registry import load_tree
+
+    _manifest(tmp_path / "a.yaml", [RepoEntry(base_iri="https://upper.example/kb/", checksum="sha256:" + "1" * 64)])
+    _manifest(tmp_path / "b.yaml", [RepoEntry(base_iri="https://upper.example/kb/", checksum="sha256:" + "2" * 64)])
+    top = _manifest(tmp_path / "top.yaml", [
+        _catalog("https://corp.example/a/", "a.yaml"),
+        _catalog("https://corp.example/b/", "b.yaml"),
+    ])
+    with pytest.raises(ValueError, match="b.yaml: .*another release.*checksum"):
+        load_tree(top)
+
+
+def test_load_tree_refuses_a_registry_naming_one_above_it(tmp_path):
+    from lokf.registry import load_tree
+
+    _manifest(tmp_path / "sub.yaml", [_catalog("https://corp.example/top/", "top.yaml")])
+    top = _manifest(tmp_path / "top.yaml", [_catalog("https://corp.example/sub/", "sub.yaml")])
+    with pytest.raises(ValueError, match="names a registry above it"):
+        load_tree(top)
+    _manifest(tmp_path / "self.yaml", [_catalog("https://corp.example/me/", "self.yaml")])
+    with pytest.raises(ValueError, match="above it"):
+        load_tree(tmp_path / "self.yaml")
+
+
+def test_load_tree_stops_at_max_depth_with_a_note(tmp_path):
+    from lokf.registry import load_tree
+
+    _manifest(tmp_path / "t2.yaml", [RepoEntry(base_iri="https://corp.example/t2/knowledge/")])
+    (tmp_path / "t1").mkdir()
+    _manifest(tmp_path / "t1" / "t1.yaml", [
+        RepoEntry(base_iri="https://corp.example/t1/knowledge/"),
+        _catalog("https://corp.example/t2/", "../t2.yaml"),  # resolved beside t1.yaml
+    ])
+    top = _manifest(tmp_path / "top.yaml", [_catalog("https://corp.example/t1/", "t1/t1.yaml")], max_depth=1)
+    tree = load_tree(top)
+    assert [e.base_iri for e in tree.repos] == ["https://corp.example/t1/knowledge/"]
+    assert len(tree.notes) == 1 and "deeper than max_depth 1" in tree.notes[0]
+    assert len(load_tree(top, max_depth=2).repos) == 2
+
+
+def test_catalog_entry_with_a_bundle_of_its_own_joins_too(tmp_path):
+    from lokf.registry import load_tree
+
+    _manifest(tmp_path / "legal.yaml", [RepoEntry(base_iri="https://corp.example/legal/lob-a/knowledge/")])
+    top = _manifest(tmp_path / "top.yaml", [
+        _catalog("https://corp.example/legal/knowledge/", "legal.yaml", path=str(BUNDLE)),
+    ])
+    tree = load_tree(top)
+    assert {e.base_iri for e in tree.repos} == {
+        "https://corp.example/legal/knowledge/",
+        "https://corp.example/legal/lob-a/knowledge/",
+    }
+    # The manifest keeps the catalog entry's type and registry on a round trip.
+    raw = yaml.safe_load(top.read_text())["repos"][0]
+    assert raw["type"] == "dcat:Catalog" and raw["registry"] == "legal.yaml"
+
+
+def test_terminal_segment_namespaces_mirror_the_tree():
+    """Each tier's base_iri ending in its own segment does not nest; the tier's
+    path alone does (SPEC §11.3 rule 2)."""
+    reg = Registry(path=pathlib.Path("x"))
+    for b in ("https://corp.example/knowledge/", "https://corp.example/legal/knowledge/",
+              "https://corp.example/legal/lob-a/knowledge/"):
+        reg.add(RepoEntry(base_iri=b))
+    with pytest.raises(ValueError, match="nests"):
+        reg.add(RepoEntry(base_iri="https://corp.example/legal/"))
+
+
+def test_cli_registry_build_follows_the_tree(tmp_path):
+    a = tmp_path / "a"
+    _write_bundle(a, "https://corp.example/a/knowledge/", "x", None)
+    _manifest(tmp_path / "sub.yaml", [entry_for_bundle(a)])
+    top = _manifest(tmp_path / "top.yaml", [_catalog("https://corp.example/sub/", "sub.yaml")])
+    built = runner.invoke(app, ["registry", "build", "-r", str(top), "-d", str(tmp_path / "out")])
+    assert built.exit_code == 0, built.output
+    assert "1 of 1 members" in built.output
+    res = runner.invoke(app, ["registry", "resolve", "https://corp.example/a/knowledge/x", "-r", str(top)])
+    assert res.exit_code == 0 and "concept_id: x" in res.output

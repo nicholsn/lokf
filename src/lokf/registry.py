@@ -41,6 +41,11 @@ import yaml
 VOCAB_NS = "https://w3id.org/lokf/"
 REGISTRY_VERSION = "0.1"
 DEFAULT_REGISTRY = "lokf-registry.yaml"
+#: An entry of this type is a registry in turn (SPEC §11.2): its ``registry``
+#: field locates that registry's manifest, which a walk of the tree follows.
+CATALOG = "dcat:Catalog"
+#: How many tiers below the top registry a walk follows, unless it sets ``max_depth``.
+DEFAULT_MAX_DEPTH = 3
 #: Ceiling on a bundle archive's size, downloaded and unpacked, so a hostile
 #: zip or an endless response cannot fill the disk.
 MAX_ARCHIVE_BYTES = 1 << 30
@@ -67,6 +72,8 @@ class RepoEntry:
     id_index: dict = field(default_factory=dict)  # explicit-id IRI -> Concept ID
     sensitivity: str | None = None
     status: str = "ok"
+    type: str | None = None  # CATALOG for a registry that is a member of this one
+    registry: str | None = None  # a CATALOG entry's manifest, a URL or a path beside this one
 
 
 @dataclass
@@ -117,6 +124,9 @@ class Registry:
     publisher: dict = field(default_factory=dict)
     version: str = REGISTRY_VERSION
     repos: list[RepoEntry] = field(default_factory=list)
+    max_depth: int | None = None  # tiers a walk of the tree follows, for a top registry
+    #: What a walk of the tree left out and why (see :func:`load_tree`); not saved.
+    notes: list[str] = field(default_factory=list)
 
     # -- resolution ---------------------------------------------------------
     def _match(self, iri: str) -> tuple[RepoEntry | None, str | None, str | None]:
@@ -233,6 +243,8 @@ class Registry:
             d["title"] = self.title
         if self.publisher:
             d["publisher"] = self.publisher
+        if self.max_depth is not None:
+            d["max_depth"] = self.max_depth
         d["repos"] = [_entry_dict(e) for e in self.repos]
         return d
 
@@ -384,7 +396,73 @@ def load_registry(path: str | pathlib.Path) -> Registry:
         publisher=data.get("publisher") or {},
         version=str(data.get("lokf_registry_version") or REGISTRY_VERSION),
         repos=repos,
+        max_depth=data.get("max_depth"),
     )
+
+
+def _locate(ref: str, parent: str) -> str:
+    """*ref*, a sub-registry's manifest, resolved against its parent's location."""
+    if is_url(ref) or ref.startswith("file://"):
+        return ref
+    if is_url(parent):
+        return urllib.parse.urljoin(parent, ref)
+    return str((pathlib.Path(parent).parent / ref).resolve())
+
+
+def load_tree(path: str | pathlib.Path, max_depth: int | None = None) -> Registry:
+    """A registry and every registry below it, as one flat registry of bundles.
+
+    A ``dcat:Catalog`` entry is followed to the manifest its ``registry`` field
+    names, resolved against the manifest that lists it, to *max_depth* tiers
+    below the top (else the top's ``max_depth``, else
+    :data:`DEFAULT_MAX_DEPTH`); a deeper one is left out with a note. A
+    catalog entry that also names a bundle of its own (``path`` or a
+    ``distribution``) joins as a member too.
+
+    A bundle that two registries name joins once when both name the same
+    release, as :meth:`Registry.add` decides (the diamond rule); at two
+    releases it raises ``ValueError``, since a named graph holds one release.
+    So does a registry that names itself or a registry above it.
+    """
+    top_path = pathlib.Path(path).resolve()
+    top = load_registry(top_path)
+    limit = max_depth if max_depth is not None else top.max_depth
+    limit = DEFAULT_MAX_DEPTH if limit is None else int(limit)
+    flat = Registry(path=top.path, id=top.id, title=top.title, publisher=top.publisher,
+                    version=top.version, max_depth=top.max_depth)
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-tree-"))
+
+    def add(entry: RepoEntry, where: str) -> None:
+        try:
+            flat.add(dataclasses.replace(entry))
+        except ValueError as exc:
+            raise ValueError(f"{where}: {exc}") from None
+
+    def walk(reg: Registry, where: str, depth: int, above: frozenset[str]) -> None:
+        for e in reg.repos:
+            if e.type != CATALOG:
+                add(e, where)
+                continue
+            if not e.registry:
+                raise ValueError(f"{where}: catalog entry {e.base_iri} names no registry")
+            if e.path or e.distribution:
+                add(e, where)
+            loc = _locate(e.registry, where)
+            if loc in above:
+                raise ValueError(f"{where}: {e.base_iri} names a registry above it, {loc}")
+            if depth + 1 > limit:
+                flat.notes.append(f"not followed: {loc}, deeper than max_depth {limit}")
+                continue
+            sub = load_registry(_fetch(loc, tmp / f"{sum(1 for _ in tmp.iterdir())}.yaml"))
+            if sub.id and sub.id in above:
+                raise ValueError(f"{where}: {e.base_iri} names a registry above it, {sub.id}")
+            walk(sub, loc, depth + 1, above | {loc} | ({sub.id} if sub.id else set()))
+
+    try:
+        walk(top, str(top_path), 0, frozenset({str(top_path)} | ({top.id} if top.id else set())))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    return flat
 
 
 def entry_for_bundle(

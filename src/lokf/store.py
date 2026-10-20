@@ -171,7 +171,8 @@ class GraphStore:
         """Build a store holding each registry member in a named graph whose
         IRI is its ``base_iri`` (SPEC §11.4).
 
-        *registry* is a :class:`lokf.registry.Registry` or a manifest path. A
+        *registry* is a :class:`lokf.registry.Registry` or a manifest path,
+        read with every registry below it (:func:`lokf.registry.load_tree`). A
         member that cannot be loaded is skipped and its reason kept in
         :attr:`load_errors`, so one unreachable member does not stop the rest.
         Each member's blank nodes are canonicalised (RDFC-1.0) and then
@@ -182,10 +183,10 @@ class GraphStore:
         """
         import hashlib
 
-        from lokf.registry import load_registry, member_ntriples
+        from lokf.registry import load_tree, member_ntriples
 
         if not hasattr(registry, "repos"):
-            registry = load_registry(registry)
+            registry = load_tree(registry)
         registry = registry.located()
         store = ox.Store()
         errors: dict[str, str] = {}

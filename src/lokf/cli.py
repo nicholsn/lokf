@@ -1061,7 +1061,7 @@ def registry_resolve(
     Exits non-zero for an IRI no member owns — a tolerated dangling cross-link,
     not owned here.
     """
-    res = _manifest(registry).resolve(iri)
+    res = _registry_tree(registry).resolve(iri)
     if res.external:
         typer.echo(f"{iri}\n  external: not owned by any registered bundle")
         raise typer.Exit(1)
@@ -1076,8 +1076,29 @@ def registry_resolve(
 
 
 
-def _registry_store(registry: Path, quads: Optional[Path], reg=None):
-    """A union store over *registry*'s members, or over a built *quads* file.
+def _registry_tree(registry: Path):
+    """*registry* with every registry below it, as one flat registry.
+
+    A broken tree (two releases of one bundle, a cycle) is a clean error, and
+    what the walk left out is named on stderr.
+    """
+    from lokf.registry import load_tree
+
+    if not registry.exists():
+        _err(f"{registry} not found — run `lokf registry init` first")
+        raise typer.Exit(1)
+    try:
+        tree = load_tree(registry)
+    except (ValueError, OSError) as exc:
+        _err(f"cannot read the registry tree: {exc}")
+        raise typer.Exit(1)
+    for note in tree.notes:
+        _err(note)
+    return tree
+
+
+def _registry_store(registry: Path, quads: Optional[Path], tree=None):
+    """A union store over the tree's members, or over a built *quads* file.
 
     Members that cannot be loaded are named on stderr and skipped; a
     manifest or quads file that cannot be read is a clean error.
@@ -1090,7 +1111,7 @@ def _registry_store(registry: Path, quads: Optional[Path], reg=None):
         except (SyntaxError, ValueError, OSError) as exc:
             _err(f"cannot read {quads}: {exc}")
             raise typer.Exit(1)
-    store = GraphStore.from_registry(reg if reg is not None else _manifest(registry))
+    store = GraphStore.from_registry(tree if tree is not None else _registry_tree(registry))
     for base_iri, why in store.load_errors.items():
         _err(f"skipped {base_iri}: {why}")
     return store
@@ -1120,7 +1141,7 @@ def registry_build(
 
     from lokf.registry import unresolved_targets
 
-    reg = _manifest(registry)
+    reg = _registry_tree(registry)
     store = _registry_store(registry, None, reg)
     loaded = len(reg.repos) - len(store.load_errors)
     if reg.repos and not loaded:
@@ -1193,10 +1214,10 @@ def registry_mcp(
 
     from lokf.registry_mcp import RegistryTools, build_server
 
-    reg = _manifest(registry)
-    store = _registry_store(registry, quads)
+    tree = _registry_tree(registry)
+    store = _registry_store(registry, quads, tree)
     text = index.read_text(encoding="utf-8") if index else None
-    tools = RegistryTools(reg, store, index=text)
+    tools = RegistryTools(tree, store, index=text)
     # A client stops a stdio server with SIGTERM as often as by closing its
     # input; exiting through SystemExit lets the finally below remove the
     # downloaded archives.
