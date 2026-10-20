@@ -158,14 +158,17 @@ class Registry:
         )
 
     # -- mutation -----------------------------------------------------------
-    def add(self, entry: RepoEntry) -> None:
-        """Validate and append *entry*. Raises ``ValueError`` on conflict.
+    def add(self, entry: RepoEntry) -> bool:
+        """Validate and append *entry*; return False when it is already there.
 
         A base_iri must be non-empty, end in a path separator (``/`` or ``#``)
         so prefix routing respects segment boundaries (``…/team/`` never
         captures ``…/team-archive/``), stay clear of the vocabulary namespace,
-        and neither duplicate nor nest with an existing member (either would
-        make routing ambiguous).
+        and not nest with an existing member (that would make routing
+        ambiguous). An entry for a registered base_iri is accepted, and not
+        appended, when it describes the same release (see
+        :func:`release_difference`), so the union of two registries that name
+        one bundle can be built; at another release it raises ``ValueError``.
         """
         b = entry.base_iri
         if not b:
@@ -179,7 +182,13 @@ class Registry:
             )
         for e in self.repos:
             if e.base_iri == b:
-                raise ValueError(f"base_iri already registered: {b}")
+                differs = release_difference(e, entry)
+                if differs:
+                    raise ValueError(
+                        f"base_iri already registered at another release: {b} "
+                        f"({differs} differs)"
+                    )
+                return False
             if b.startswith(e.base_iri) or e.base_iri.startswith(b):
                 raise ValueError(
                     f"base_iri {b!r} nests with registered {e.base_iri!r}; "
@@ -211,6 +220,7 @@ class Registry:
                         f"of registered {e.base_iri!r}"
                     )
         self.repos.append(entry)
+        return True
 
     def to_dict(self) -> dict:
         """The manifest as a plain dict for YAML serialization."""
@@ -231,6 +241,26 @@ class Registry:
             yaml.safe_dump(self.to_dict(), sort_keys=False, allow_unicode=True),
             encoding="utf-8",
         )
+
+
+#: The fields that say which release an entry describes, checksum first.
+_RELEASE_FIELDS = ("checksum", "repo", "source_base", "distribution", "void", "id_index")
+
+
+def release_difference(a: RepoEntry, b: RepoEntry) -> str | None:
+    """The first field that shows *a* and *b* describe different releases, or None.
+
+    Two checksums decide it alone: the same digest is the same bytes, whatever
+    either entry says about where they are. Otherwise every release field must
+    match. ``title``, ``path`` and ``status`` are a registry's own notes, not
+    the release, and are not compared.
+    """
+    if a.checksum and b.checksum:
+        return None if a.checksum == b.checksum else "checksum"
+    for name in _RELEASE_FIELDS:
+        if getattr(a, name) != getattr(b, name):
+            return name
+    return None
 
 
 _FIELDS = dataclasses.fields(RepoEntry)

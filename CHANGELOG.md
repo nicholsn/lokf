@@ -21,6 +21,9 @@ with the 0.x caveat that a minor release may tighten validation.
 - `query_form` reads a query whose `PREFIX` or `BASE` shares its line, so a
   one-line ASK or CONSTRUCT is no longer run as a SELECT.
 
+- `Registry.add` accepts an entry for a registered `base_iri` when it names the
+  same release, so two registries that share a bundle can be merged.
+
 - `lokf registry add` takes a bundle zip or its URL and records the archive and
   its `checksum`; local locations are written relative to the manifest.
 
