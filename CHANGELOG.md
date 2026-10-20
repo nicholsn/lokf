@@ -13,6 +13,10 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Fixed
+
+- Nested validation errors name the field path and unexpected provenance keys.
+
 ### Changed
 
 - Require LinkML and linkml-runtime 1.12.0 or newer, and regenerate the
