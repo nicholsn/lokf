@@ -6,7 +6,11 @@ bundle, and the ``lokf registry`` CLI round-trip.
 """
 from __future__ import annotations
 
+import hashlib
+import os
 import pathlib
+import shutil
+import zipfile
 
 import pytest
 import yaml
@@ -17,6 +21,7 @@ from lokf.registry import (
     VOCAB_NS,
     RepoEntry,
     Registry,
+    entry_for_archive,
     entry_for_bundle,
     load_registry,
 )
@@ -114,11 +119,118 @@ def _write_bundle(root: pathlib.Path, base_iri: str, concept: str, explicit_id: 
 
 
 def test_entry_for_bundle_harvests_diverging_explicit_id(tmp_path):
-    """A concept whose explicit id escapes base_iri lands in id_index."""
+    """A concept whose explicit id escapes base_iri lands in id_index when allowed."""
     root = tmp_path / "kb"
     _write_bundle(root, "https://ex.org/kb/", "legacy", "https://ex.org/legacy/thing")
-    entry = entry_for_bundle(root)
+    entry = entry_for_bundle(root, allow_foreign_ids=True)
     assert entry.id_index == {"https://ex.org/legacy/thing": "legacy"}
+
+
+def test_entry_for_bundle_refuses_foreign_id_by_default(tmp_path):
+    """SPEC §11.3 rule 3: an id outside base_iri is refused unless declared."""
+    root = tmp_path / "kb"
+    _write_bundle(root, "https://a.example/knowledge/", "x", "https://elsewhere.example/x")
+    with pytest.raises(ValueError, match="outside base_iri"):
+        entry_for_bundle(root)
+
+
+def test_entry_for_bundle_records_the_absolute_path(tmp_path):
+    """A directory stays loadable with or without --source-base."""
+    assert entry_for_bundle(BUNDLE, source_base="https://x/").path == str(BUNDLE)
+    assert entry_for_bundle(BUNDLE).path == str(BUNDLE)
+
+
+def test_cli_add_writes_local_locations_relative_to_the_manifest(tmp_path):
+    """A manifest built on a CI runner reads the same in any checkout."""
+    archive = _zip_bundle(tmp_path)
+
+    def added(*args) -> dict:
+        manifest = tmp_path / "fed" / f"r{len(list(tmp_path.glob('fed/*.yaml')))}.yaml"
+        runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+        r = runner.invoke(app, ["registry", "add", *args, "-r", str(manifest)])
+        assert r.exit_code == 0, r.output
+        return yaml.safe_load(manifest.read_text())["repos"][0]
+
+    raw = added(str(BUNDLE), "--source-base", "https://x/")
+    assert raw["path"] == pathlib.Path(os.path.relpath(BUNDLE, tmp_path / "fed")).as_posix()
+    assert added(str(archive))["distribution"] == {"archive": "../knowledge-v1.zip"}
+    url = "https://releases.example/knowledge-v1.zip"
+    raw = added(str(archive), "--archive-url", url)
+    assert raw["distribution"] == {"archive": url} and "path" not in raw
+
+
+def test_cli_add_refuses_archive_url_for_a_directory(tmp_path):
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    r = runner.invoke(app, ["registry", "add", str(BUNDLE), "--archive-url", "https://x/k.zip", "-r", str(manifest)])
+    assert r.exit_code == 1 and "apply to a zip" in r.output
+
+
+def test_add_refuses_id_in_another_members_namespace():
+    reg = Registry(path=pathlib.Path("x"))
+    reg.add(RepoEntry(base_iri="https://a.example/"))
+    with pytest.raises(ValueError, match="lies in registered"):
+        reg.add(RepoEntry(base_iri="https://b.example/", id_index={"https://a.example/x": "x"}))
+
+
+def test_add_refuses_base_iri_capturing_an_indexed_id():
+    reg = Registry(path=pathlib.Path("x"))
+    reg.add(RepoEntry(base_iri="https://b.example/", id_index={"https://a.example/x": "x"}))
+    with pytest.raises(ValueError, match="captures explicit id"):
+        reg.add(RepoEntry(base_iri="https://a.example/"))
+
+
+# -- entry building from a release zip ---------------------------------------
+def _zip_bundle(tmp_path: pathlib.Path, top: str = "knowledge") -> pathlib.Path:
+    """The example bundle zipped under *top*/, as a KTL release ships it."""
+    archive = tmp_path / "knowledge-v1.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        for f in BUNDLE.rglob("*"):
+            if f.is_file():
+                zf.write(f, f"{top}/{f.relative_to(BUNDLE)}" if top else str(f.relative_to(BUNDLE)))
+    return archive
+
+
+def _digest(path: pathlib.Path) -> str:
+    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+@pytest.mark.parametrize("top", ["knowledge", ""])
+def test_entry_for_archive_unpacks_and_records_checksum(tmp_path, top):
+    archive = _zip_bundle(tmp_path, top)
+    entry = entry_for_archive(archive, source_base="https://x/", checksum=_digest(archive))
+    assert entry.base_iri == "https://acme.example/knowledge/"
+    assert entry.void["triples"] == 157
+    assert entry.checksum == _digest(archive)
+    assert entry.path is None and entry.source_base == "https://x/"
+    assert entry.distribution == {"archive": str(archive.resolve())}
+
+
+def test_entry_for_archive_without_source_base_has_no_runner_path(tmp_path):
+    entry = entry_for_archive(_zip_bundle(tmp_path))
+    assert entry.path is None and entry.source_base == ""
+
+
+def test_entry_for_archive_refuses_checksum_mismatch(tmp_path):
+    with pytest.raises(ValueError, match="checksum mismatch"):
+        entry_for_archive(_zip_bundle(tmp_path), checksum="0" * 64)
+
+
+def test_entry_for_archive_refuses_unsafe_member(tmp_path):
+    archive = tmp_path / "evil.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("../escape.md", "x")
+    with pytest.raises(ValueError, match="unsafe member"):
+        entry_for_archive(archive)
+
+
+def test_entry_for_archive_from_url_records_distribution(tmp_path, monkeypatch):
+    archive = _zip_bundle(tmp_path)
+    monkeypatch.setattr("lokf.registry._download", lambda url, dest: shutil.copy(archive, dest))
+    url = "https://example.org/releases/knowledge-v1.zip"
+    entry = entry_for_archive(url)
+    assert entry.distribution == {"archive": url}
+    assert entry.checksum == _digest(archive)
 
 
 # -- CLI round-trip ---------------------------------------------------------
@@ -160,9 +272,42 @@ def test_cli_add_rejects_second_copy_of_same_bundle(tmp_path):
     assert again.exit_code == 1 and "already registered" in again.output
 
 
+def test_cli_add_registers_a_zip(tmp_path):
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    archive = _zip_bundle(tmp_path)
+    add = runner.invoke(app, ["registry", "add", str(archive), "-r", str(manifest)])
+    assert add.exit_code == 0, add.output
+    raw = yaml.safe_load(manifest.read_text())["repos"][0]
+    assert raw["checksum"] == _digest(archive) and "path" not in raw
+
+
+def test_cli_add_reports_foreign_ids_when_allowed(tmp_path):
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    root = tmp_path / "kb"
+    _write_bundle(root, "https://a.example/knowledge/", "x", "https://elsewhere.example/x")
+    refused = runner.invoke(app, ["registry", "add", str(root), "-r", str(manifest)])
+    assert refused.exit_code == 1 and "outside base_iri" in refused.output
+    allowed = runner.invoke(
+        app, ["registry", "add", str(root), "-r", str(manifest), "--allow-foreign-ids"]
+    )
+    assert allowed.exit_code == 0 and "1 explicit id(s) outside base_iri" in allowed.output
+
+
 def test_cli_list_missing_manifest_is_clean_error(tmp_path):
     r = runner.invoke(app, ["registry", "list", "-r", str(tmp_path / "nope.yaml")])
     assert r.exit_code == 1 and "not found" in r.output
+
+
+@pytest.mark.parametrize("text", ["repos: [\n", "- a list\n"])
+def test_cli_reports_a_malformed_manifest_cleanly(tmp_path, text):
+    manifest = tmp_path / "lokf-registry.yaml"
+    manifest.write_text(text, encoding="utf-8")
+    for args in (["list"], ["resolve", "https://x/"], ["add", str(BUNDLE)]):
+        r = runner.invoke(app, ["registry", *args, "-r", str(manifest)])
+        assert r.exit_code == 1 and "cannot read the registry" in r.output, args
+        assert r.exception is None or isinstance(r.exception, SystemExit), args
 
 
 def test_cli_init_creates_parent_dirs(tmp_path):
@@ -215,6 +360,18 @@ def test_prefix_beats_stale_id_index():
     assert res.entry.base_iri == "https://ex.org/kb/"
 
 
+def test_own_id_index_names_the_concept_under_base_iri(tmp_path):
+    """An explicit id under base_iri that differs from the file path routes to
+    the concept that declares it, not to a document named after the IRI."""
+    root = tmp_path / "kb"
+    _write_bundle(root, "https://ex.org/kb/", "legacy", "https://ex.org/kb/old/thing")
+    reg = Registry(path=pathlib.Path("x"))
+    reg.add(entry_for_bundle(root, source_base="https://src/"))
+    res = reg.resolve("https://ex.org/kb/old/thing")
+    assert res.via == "id_index" and res.concept_id == "legacy"
+    assert res.source_url == "https://src/legacy.md"
+
+
 def test_load_registry_tolerates_null_fields(tmp_path):
     """A hand-edited manifest with null id_index/void/repos doesn't crash lookups."""
     manifest = tmp_path / "r.yaml"
@@ -248,3 +405,118 @@ def test_load_registry_round_trips(tmp_path):
     # the on-disk form drops empty fields
     raw = yaml.safe_load(manifest.read_text())
     assert "id_index" not in raw["repos"][0]
+
+
+def test_entry_for_archive_refuses_too_many_entries(tmp_path, monkeypatch):
+    monkeypatch.setattr("lokf.registry.MAX_ARCHIVE_ENTRIES", 3)
+    with pytest.raises(ValueError, match="more than 3"):
+        entry_for_archive(_zip_bundle(tmp_path))
+
+
+# -- downloads and unpacking ---------------------------------------------------
+@pytest.fixture
+def http_files(tmp_path):
+    """A local HTTP server over tmp_path/www; yields its base URL."""
+    import functools
+    import http.server
+    import threading
+
+    www = tmp_path / "www"
+    www.mkdir()
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(www))
+    handler.log_message = lambda *a: None
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{srv.server_address[1]}", www
+    srv.shutdown()
+
+
+def test_entry_for_archive_downloads_for_real(tmp_path, http_files):
+    base, www = http_files
+    archive = _zip_bundle(tmp_path)
+    shutil.copy(archive, www / "k.zip")
+    entry = entry_for_archive(f"{base}/k.zip")
+    assert entry.checksum == _digest(archive) and entry.distribution == {"archive": f"{base}/k.zip"}
+    with pytest.raises(OSError):
+        entry_for_archive(f"{base}/missing.zip")
+
+
+def test_download_over_the_cap_leaves_no_file(tmp_path, http_files, monkeypatch):
+    from lokf.registry import _download
+
+    base, www = http_files
+    (www / "big.zip").write_bytes(b"x" * 4096)
+    dest = tmp_path / "out.zip"
+    with pytest.raises(ValueError, match="larger than 1024"):
+        _download(f"{base}/big.zip", dest, max_bytes=1024)
+    assert not dest.exists()
+
+
+def test_redirects_refuse_downgrades_and_the_local_network():
+    import urllib.error
+    import urllib.request
+
+    from lokf.registry import _Redirects
+
+    req = urllib.request.Request("https://releases.example/k.zip")
+    with pytest.raises(urllib.error.URLError, match="refused redirect from"):
+        _Redirects(local_ok=False).redirect_request(req, None, 302, "Found", {}, "http://cdn.example/k.zip")
+    with pytest.raises(urllib.error.URLError, match="local network"):
+        _Redirects(local_ok=False).redirect_request(req, None, 302, "Found", {}, "https://127.0.0.1/admin")
+    with pytest.raises(urllib.error.URLError):
+        _Redirects(local_ok=True).redirect_request(req, None, 302, "Found", {}, "file:///etc/passwd")
+
+
+def test_a_corrupt_zip_is_a_clean_error(tmp_path):
+    archive = _zip_bundle(tmp_path)
+    data = bytearray(archive.read_bytes())
+    i = data.index(b"base_iri")  # inside index.md's stored bytes
+    data[i:i + 8] = b"BASE_IRI"  # same length, wrong CRC
+    archive.write_bytes(bytes(data))
+    with pytest.raises(ValueError, match="cannot be unpacked"):
+        entry_for_archive(archive)
+
+
+def test_an_absolute_member_path_is_refused(tmp_path):
+    archive = tmp_path / "abs.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("/etc/evil.md", "x")
+    with pytest.raises(ValueError, match="unsafe member"):
+        entry_for_archive(archive)
+
+
+@pytest.mark.parametrize("entry,message", [
+    ("- base_iri: [https://a/]\n", "has no base_iri"),
+    ("- title: no base\n", "has no base_iri"),
+    ("- just a string\n", "must be a mapping"),
+    ("- base_iri: https://a/\n  distribution: https://a/graph.nt\n", "distribution must be a dict"),
+    ("- base_iri: https://a/\n  title: [a, b]\n", "title must be a str"),
+    ("- base_iri: https://a/\n  checksum: md5:abc\n", "checksum must be"),
+])
+def test_load_registry_names_a_malformed_entry(tmp_path, entry, message):
+    manifest = tmp_path / "r.yaml"
+    manifest.write_text("repos:\n" + entry, encoding="utf-8")
+    with pytest.raises(ValueError, match=f"repos\\\\[0\\\\].*{message}|{message}"):
+        load_registry(manifest)
+
+
+def test_load_registry_normalises_a_hand_written_checksum(tmp_path):
+    manifest = tmp_path / "r.yaml"
+    manifest.write_text("repos:\n- base_iri: https://a/\n  checksum: " + "AB" * 32 + "\n", encoding="utf-8")
+    assert load_registry(manifest).repos[0].checksum == "sha256:" + "ab" * 32
+
+
+def test_add_refuses_an_id_two_members_index():
+    reg = Registry(path=pathlib.Path("x"))
+    reg.add(RepoEntry(base_iri="https://a.example/", id_index={"https://legacy.example/x": "x"}))
+    with pytest.raises(ValueError, match="already indexed by"):
+        reg.add(RepoEntry(base_iri="https://b.example/", id_index={"https://legacy.example/x": "y"}))
+
+
+def test_an_id_in_the_entrys_own_namespace_under_the_vocabulary_is_allowed():
+    reg = Registry(path=pathlib.Path("x"))
+    own = VOCAB_NS + "examples/"
+    reg.add(RepoEntry(base_iri=own, id_index={own + "old/x": "x"}))
+    assert len(reg.repos) == 1
+    with pytest.raises(ValueError, match="vocabulary namespace"):
+        reg.add(RepoEntry(base_iri="https://b.example/", id_index={VOCAB_NS + "Metric": "m"}))
