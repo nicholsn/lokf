@@ -391,7 +391,7 @@
 -- # Class: Checksum Description: A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it.
 --     * Slot: id
 --     * Slot: algorithm Description: The algorithm that computed a checksum.
---     * Slot: checksum_value Description: The checksum as lowercase hexadecimal digits.
+--     * Slot: checksum_value Description: The checksum as lowercase hexadecimal digits, as many as the algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the 256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones).
 -- # Class: Relation Description: A typed, reified relationship from the containing concept to a target, used when a predicate is not covered by one of the named relation slots. Modeled as an rdf:Statement (subject = the containing concept).
 --     * Slot: id
 --     * Slot: predicate Description: The relationship type. SHOULD be drawn from the RelationType vocabulary.

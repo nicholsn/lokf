@@ -3322,20 +3322,20 @@ lokf:ChecksumShape a sh:NodeShape ;
     rdfs:comment "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it." ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "The checksum as lowercase hexadecimal digits." ;
+    sh:property [ sh:description "The algorithm that computed a checksum." ;
+            sh:in ( "sha1" "sha224" "sha256" "sha384" "sha512" "sha3_256" "sha3_384" "sha3_512" "blake2b256" "blake2b384" "blake2b512" "md5" ) ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:order 0 ;
+            sh:path spdx:algorithm ],
+        [ sh:datatype xsd:string ;
+            sh:description "The checksum as lowercase hexadecimal digits, as many as the algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the 256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones)." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path spdx:checksumValue ;
-            sh:pattern "^[0-9a-f]+$" ],
-        [ sh:description "The algorithm that computed a checksum." ;
-            sh:in ( "sha1" "sha224" "sha256" "sha384" "sha512" "sha3_256" "sha3_384" "sha3_512" "blake2b256" "blake2b384" "blake2b512" "md5" ) ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:order 0 ;
-            sh:path spdx:algorithm ] .
+            sh:pattern "^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$" ] .
 
 lokf:ConceptShape a sh:NodeShape ;
     rdfs:comment "A single unit of knowledge within a bundle, represented as one markdown document. The abstract base of every LOKF type. Its own IRI (`id`) is the RDF subject; the markdown body and typed relations become triples about that subject." ;

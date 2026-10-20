@@ -316,7 +316,7 @@ lokf:Checksum a owl:Class ;
             owl:allValuesFrom [ a rdfs:Datatype ;
                     owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
                                 owl:onDatatype xsd:string ;
-                                owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]+$" ] ) ] ) ] ;
+                                owl:withRestrictions ( [ xsd:pattern "^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$" ] ) ] ) ] ;
             owl:onProperty lokf:checksum_value ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
@@ -1293,8 +1293,8 @@ lokf:checksum_value a owl:DatatypeProperty ;
     rdfs:range [ a rdfs:Datatype ;
             owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
                         owl:onDatatype xsd:string ;
-                        owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]+$" ] ) ] ) ] ;
-    skos:definition "The checksum as lowercase hexadecimal digits." ;
+                        owl:withRestrictions ( [ xsd:pattern "^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$" ] ) ] ) ] ;
+    skos:definition "The checksum as lowercase hexadecimal digits, as many as the algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the 256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones)." ;
     skos:inScheme lokf:schema .
 
 lokf:computation a owl:DatatypeProperty ;

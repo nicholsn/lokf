@@ -1126,9 +1126,12 @@ slots:
       - lokf_semantic
 
   checksum_value:
-    description: The checksum as lowercase hexadecimal digits.
+    description: >-
+      The checksum as lowercase hexadecimal digits, as many as the
+      algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the
+      256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones).
     range: string
-    pattern: '^[0-9a-f]+$'
+    pattern: '^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$'
     required: true
     slot_uri: spdx:checksumValue
     in_subset:

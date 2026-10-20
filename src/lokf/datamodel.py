@@ -2175,7 +2175,7 @@ slots.algorithm = Slot(uri=SPDX.algorithm, name="algorithm", curie=SPDX.curie('a
 
 slots.checksum_value = Slot(uri=SPDX.checksumValue, name="checksum_value", curie=SPDX.curie('checksumValue'),
                    model_uri=LOKF.checksum_value, domain=None, range=str,
-                   pattern=re.compile(r'^[0-9a-f]+$'))
+                   pattern=re.compile(r'^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$'))
 
 slots.formula = Slot(uri=LOKF.formula, name="formula", curie=LOKF.curie('formula'),
                    model_uri=LOKF.formula, domain=None, range=Optional[str])
