@@ -1163,6 +1163,36 @@ def registry_serve(
     store = _registry_store(registry, quads)
     serve_store(store, str(quads or registry), host=host, port=port)
 
+
+@registry_app.command("mcp")
+def registry_mcp(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    quads: Optional[Path] = typer.Option(
+        None, "--quads", exists=True, dir_okay=False, help=_QUADS_HELP
+    ),
+    index: Optional[Path] = typer.Option(
+        None, "--index", exists=True, dir_okay=False,
+        help="Markdown to serve as the index instead of the one built from the manifest.",
+    ),
+) -> None:
+    """Run the lokf-registry MCP server (stdio) over the federation (SPEC §11.4)."""
+    from lokf.registry import load_registry
+    from lokf.registry_mcp import RegistryTools, build_server
+
+    if not registry.exists():
+        _err(f"{registry} not found — run `lokf registry init` first")
+        raise typer.Exit(1)
+    store = _registry_store(registry, quads)
+    text = index.read_text(encoding="utf-8") if index else None
+    tools = RegistryTools(load_registry(registry), store, index=text)
+    _err(f"lokf-registry: {len(store)} quads from {quads or registry}; five tools; stdio")
+    try:
+        build_server(tools).run(transport="stdio")
+    finally:
+        tools.close()
+
 def main(argv: list[str] | None = None) -> int:
     """Programmatic entry point (tests use ``typer.testing.CliRunner``).
 

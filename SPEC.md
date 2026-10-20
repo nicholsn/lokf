@@ -791,7 +791,9 @@ The intended runtime model, layered on the primitives above:
 - **Agent surface.** A `lokf registry` CLI and a `lokf-registry` MCP server
   expose `resolve_iri`, `neighbors`, `subgraph`, `federated_sparql`, and
   `read_document`, each depth/breadth-bounded so a cross-bundle hop is a single
-  token-frugal call rather than a chatty chain.
+  token-frugal call rather than a chatty chain. `lokf registry mcp` serves these
+  five tools over the store `lokf registry build` describes, with the
+  registry's index as the server's instructions.
 
 ### 11.5 Governance
 

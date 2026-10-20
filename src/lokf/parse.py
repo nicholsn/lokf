@@ -61,12 +61,16 @@ def parse_concept(path: str) -> dict:
     Raises ``ValueError`` with a clear message if the file has no ``---``
     delimited YAML frontmatter (e.g. a plain markdown or reserved file).
     """
+    return parse_concept_text(open(path, encoding="utf-8").read(), path)
+
+
+def parse_concept_text(raw: str, where: str = "<text>") -> dict:
+    """:func:`parse_concept` for markdown already read; *where* names it in errors."""
     import yaml
 
-    raw = open(path, encoding="utf-8").read()
     parts = raw.split("---", 2)
     if len(parts) < 3:
-        raise ValueError(f"{path}: no YAML frontmatter (expected a '---' delimited block)")
+        raise ValueError(f"{where}: no YAML frontmatter (expected a '---' delimited block)")
     _, front, body = parts
     d = yaml.safe_load(front) or {}
     d["body"] = body.strip()
