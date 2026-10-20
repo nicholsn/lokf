@@ -22,6 +22,7 @@
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "schema": "http://schema.org/",
     "skos": "http://www.w3.org/2004/02/skos/core#",
+    "spdx": "http://spdx.org/rdf/terms#",
     "vivo": "http://vivoweb.org/ontology/core#",
     "@vocab": "https://w3id.org/lokf/",
     "abbreviation": {
@@ -37,6 +38,14 @@
     },
     "additionalType": {
       "@id": "schema:additionalType"
+    },
+    "algorithm": {
+      "@context": {
+        "text": "skos:notation",
+        "description": "skos:prefLabel",
+        "meaning": "@id"
+      },
+      "@id": "spdx:algorithm"
     },
     "at": {
       "@type": "xsd:dateTime",
@@ -65,6 +74,17 @@
     },
     "by": {
       "@id": "prov:wasAssociatedWith"
+    },
+    "byte_size": {
+      "@type": "xsd:integer",
+      "@id": "dcat:byteSize"
+    },
+    "checksum": {
+      "@type": "@id",
+      "@id": "spdx:checksum"
+    },
+    "checksum_value": {
+      "@id": "spdx:checksumValue"
     },
     "citations": {
       "@type": "@id",
@@ -371,6 +391,9 @@
     },
     "Audience": {
       "@id": "schema:PeopleAudience"
+    },
+    "Checksum": {
+      "@id": "spdx:Checksum"
     },
     "Citation": {
       "@id": "schema:CreativeWork"

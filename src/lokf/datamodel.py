@@ -78,6 +78,7 @@ RDF = CurieNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 RDFS = CurieNamespace('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
 SCHEMA = CurieNamespace('schema', 'http://schema.org/')
 SKOS = CurieNamespace('skos', 'http://www.w3.org/2004/02/skos/core#')
+SPDX = CurieNamespace('spdx', 'http://spdx.org/rdf/terms#')
 VIVO = CurieNamespace('vivo', 'http://vivoweb.org/ontology/core#')
 XSD = CurieNamespace('xsd', 'http://www.w3.org/2001/XMLSchema#')
 DEFAULT_ = LOKF
@@ -1316,6 +1317,8 @@ class Distribution(YAMLRoot):
     description: Optional[str] = None
     access_url: Optional[Union[str, URIorCURIE]] = None
     media_type: Optional[str] = None
+    checksum: Optional[Union[dict, "Checksum"]] = None
+    byte_size: Optional[int] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self.name is not None and not isinstance(self.name, str):
@@ -1329,6 +1332,42 @@ class Distribution(YAMLRoot):
 
         if self.media_type is not None and not isinstance(self.media_type, str):
             self.media_type = str(self.media_type)
+
+        if self.checksum is not None and not isinstance(self.checksum, Checksum):
+            self.checksum = Checksum(**as_dict(self.checksum))
+
+        if self.byte_size is not None and not isinstance(self.byte_size, int):
+            self.byte_size = int(self.byte_size)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Checksum(YAMLRoot):
+    """
+    A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as
+    DCAT 3 attaches it.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = SPDX["Checksum"]
+    class_class_curie: ClassVar[str] = "spdx:Checksum"
+    class_name: ClassVar[str] = "Checksum"
+    class_model_uri: ClassVar[URIRef] = LOKF.Checksum
+
+    algorithm: Union[str, "ChecksumAlgorithm"] = None
+    checksum_value: str = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.algorithm):
+            self.MissingRequiredField("algorithm")
+        if not isinstance(self.algorithm, ChecksumAlgorithm):
+            self.algorithm = ChecksumAlgorithm(self.algorithm)
+
+        if self._is_empty(self.checksum_value):
+            self.MissingRequiredField("checksum_value")
+        if not isinstance(self.checksum_value, str):
+            self.checksum_value = str(self.checksum_value)
 
         super().__post_init__(**kwargs)
 
@@ -1950,6 +1989,53 @@ class HttpMethod(EnumDefinitionImpl):
         description="""The IANA HTTP request method registry, restricted to the methods a LOKF Service is realistically documented as being invoked with. Permissible value names are uppercase (unlike this schema's other enums) because the method name is a case-sensitive wire token, not an authoring convenience label.""",
     )
 
+class ChecksumAlgorithm(EnumDefinitionImpl):
+    """
+    Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5
+    identify bytes but no longer resist tampering.
+    """
+    sha1 = PermissibleValue(
+        text="sha1",
+        meaning=SPDX["checksumAlgorithm_sha1"])
+    sha224 = PermissibleValue(
+        text="sha224",
+        meaning=SPDX["checksumAlgorithm_sha224"])
+    sha256 = PermissibleValue(
+        text="sha256",
+        meaning=SPDX["checksumAlgorithm_sha256"])
+    sha384 = PermissibleValue(
+        text="sha384",
+        meaning=SPDX["checksumAlgorithm_sha384"])
+    sha512 = PermissibleValue(
+        text="sha512",
+        meaning=SPDX["checksumAlgorithm_sha512"])
+    sha3_256 = PermissibleValue(
+        text="sha3_256",
+        meaning=SPDX["checksumAlgorithm_sha3_256"])
+    sha3_384 = PermissibleValue(
+        text="sha3_384",
+        meaning=SPDX["checksumAlgorithm_sha3_384"])
+    sha3_512 = PermissibleValue(
+        text="sha3_512",
+        meaning=SPDX["checksumAlgorithm_sha3_512"])
+    blake2b256 = PermissibleValue(
+        text="blake2b256",
+        meaning=SPDX["checksumAlgorithm_blake2b256"])
+    blake2b384 = PermissibleValue(
+        text="blake2b384",
+        meaning=SPDX["checksumAlgorithm_blake2b384"])
+    blake2b512 = PermissibleValue(
+        text="blake2b512",
+        meaning=SPDX["checksumAlgorithm_blake2b512"])
+    md5 = PermissibleValue(
+        text="md5",
+        meaning=SPDX["checksumAlgorithm_md5"])
+
+    _defn = EnumDefinition(
+        name="ChecksumAlgorithm",
+        description="""Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer resist tampering.""",
+    )
+
 # Slots
 class slots:
     pass
@@ -2077,6 +2163,19 @@ slots.access_url = Slot(uri=DCAT.accessURL, name="access_url", curie=DCAT.curie(
 
 slots.media_type = Slot(uri=DCAT.mediaType, name="media_type", curie=DCAT.curie('mediaType'),
                    model_uri=LOKF.media_type, domain=None, range=Optional[str])
+
+slots.checksum = Slot(uri=SPDX.checksum, name="checksum", curie=SPDX.curie('checksum'),
+                   model_uri=LOKF.checksum, domain=None, range=Optional[Union[dict, Checksum]])
+
+slots.byte_size = Slot(uri=DCAT.byteSize, name="byte_size", curie=DCAT.curie('byteSize'),
+                   model_uri=LOKF.byte_size, domain=None, range=Optional[int])
+
+slots.algorithm = Slot(uri=SPDX.algorithm, name="algorithm", curie=SPDX.curie('algorithm'),
+                   model_uri=LOKF.algorithm, domain=None, range=Union[str, "ChecksumAlgorithm"])
+
+slots.checksum_value = Slot(uri=SPDX.checksumValue, name="checksum_value", curie=SPDX.curie('checksumValue'),
+                   model_uri=LOKF.checksum_value, domain=None, range=str,
+                   pattern=re.compile(r'^[0-9a-f]+$'))
 
 slots.formula = Slot(uri=LOKF.formula, name="formula", curie=LOKF.curie('formula'),
                    model_uri=LOKF.formula, domain=None, range=Optional[str])

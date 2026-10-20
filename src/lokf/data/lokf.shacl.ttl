@@ -8,6 +8,7 @@
 @prefix schema1: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 lokf:AttestedComputationShape a sh:NodeShape ;
@@ -3317,6 +3318,25 @@ lokf:AttesterShape a sh:NodeShape ;
 
 lokf:BooleanParameter rdfs:subClassOf lokf:Parameter .
 
+lokf:ChecksumShape a sh:NodeShape ;
+    rdfs:comment "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it." ;
+    sh:closed false ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The checksum as lowercase hexadecimal digits." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path spdx:checksumValue ;
+            sh:pattern "^[0-9a-f]+$" ],
+        [ sh:description "The algorithm that computed a checksum." ;
+            sh:in ( "sha1" "sha224" "sha256" "sha384" "sha512" "sha3_256" "sha3_384" "sha3_512" "blake2b256" "blake2b384" "blake2b512" "md5" ) ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:order 0 ;
+            sh:path spdx:algorithm ] .
+
 lokf:ConceptShape a sh:NodeShape ;
     rdfs:comment "A single unit of knowledge within a bundle, represented as one markdown document. The abstract base of every LOKF type. Its own IRI (`id`) is the RDF subject; the markdown body and typed relations become triples about that subject." ;
     sh:closed false ;
@@ -3603,12 +3623,25 @@ lokf:DistributionShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path schema1:name ],
+        [ sh:description "A digest of the distribution's bytes, for checking a download." ;
+            sh:maxCount 1 ;
+            sh:node lokf:ChecksumShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 4 ;
+            sh:path spdx:checksum ],
         [ sh:datatype xsd:string ;
             sh:description "The media (MIME) type of a distribution." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path dcat:mediaType ],
+        [ sh:datatype xsd:integer ;
+            sh:description "The size of the distribution in bytes." ;
+            sh:maxCount 1 ;
+            sh:minInclusive 0 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path dcat:byteSize ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;

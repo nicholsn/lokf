@@ -487,6 +487,46 @@
             "title": "Audience",
             "type": "object"
         },
+        "Checksum": {
+            "additionalProperties": false,
+            "description": "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it.",
+            "properties": {
+                "algorithm": {
+                    "$ref": "#/$defs/ChecksumAlgorithm",
+                    "description": "The algorithm that computed a checksum."
+                },
+                "checksum_value": {
+                    "description": "The checksum as lowercase hexadecimal digits.",
+                    "pattern": "^[0-9a-f]+$",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "algorithm",
+                "checksum_value"
+            ],
+            "title": "Checksum",
+            "type": "object"
+        },
+        "ChecksumAlgorithm": {
+            "description": "Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer resist tampering.",
+            "enum": [
+                "sha1",
+                "sha224",
+                "sha256",
+                "sha384",
+                "sha512",
+                "sha3_256",
+                "sha3_384",
+                "sha3_512",
+                "blake2b256",
+                "blake2b384",
+                "blake2b512",
+                "md5"
+            ],
+            "title": "ChecksumAlgorithm",
+            "type": "string"
+        },
         "Citation": {
             "additionalProperties": false,
             "description": "A reference to an external source supporting a claim in a concept's body. Attached via the schema:citation predicate.",
@@ -1285,6 +1325,25 @@
                         "string",
                         "null"
                     ]
+                },
+                "byte_size": {
+                    "description": "The size of the distribution in bytes.",
+                    "minimum": 0,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "checksum": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Checksum"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "A digest of the distribution's bytes, for checking a download."
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",

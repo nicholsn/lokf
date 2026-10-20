@@ -384,8 +384,14 @@
 --     * Slot: description Description: A single-sentence summary of the concept.
 --     * Slot: access_url Description: A URL that gives access to a distribution.
 --     * Slot: media_type Description: The media (MIME) type of a distribution.
+--     * Slot: byte_size Description: The size of the distribution in bytes.
 --     * Slot: Dataset_id Description: Autocreated FK slot
 --     * Slot: Table_id Description: Autocreated FK slot
+--     * Slot: checksum_id Description: A digest of the distribution's bytes, for checking a download.
+-- # Class: Checksum Description: A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it.
+--     * Slot: id
+--     * Slot: algorithm Description: The algorithm that computed a checksum.
+--     * Slot: checksum_value Description: The checksum as lowercase hexadecimal digits.
 -- # Class: Relation Description: A typed, reified relationship from the containing concept to a target, used when a predicate is not covered by one of the named relation slots. Modeled as an rdf:Statement (subject = the containing concept).
 --     * Slot: id
 --     * Slot: predicate Description: The relationship type. SHOULD be drawn from the RelationType vocabulary.
@@ -1193,6 +1199,13 @@ CREATE TABLE "Agent" (
 	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id)
 );
 
+CREATE TABLE "Checksum" (
+	id INTEGER NOT NULL,
+	algorithm VARCHAR(10) NOT NULL,
+	checksum_value TEXT NOT NULL,
+	PRIMARY KEY (id)
+);
+
 CREATE TABLE "Audience" (
 	id INTEGER NOT NULL,
 	"audienceType" TEXT,
@@ -1761,11 +1774,14 @@ CREATE TABLE "Distribution" (
 	description TEXT,
 	access_url TEXT,
 	media_type TEXT,
+	byte_size INTEGER,
 	"Dataset_id" TEXT,
 	"Table_id" TEXT,
+	checksum_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
-	FOREIGN KEY("Table_id") REFERENCES "Table" (id)
+	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
+	FOREIGN KEY(checksum_id) REFERENCES "Checksum" (id)
 );
 
 CREATE TABLE "Relation" (
@@ -3461,6 +3477,7 @@ CREATE INDEX "ix_AttestedComputation_tags_AttestedComputation_id" ON "AttestedCo
 CREATE INDEX "ix_AttestedComputation_tags_tags" ON "AttestedComputation_tags" (tags);
 CREATE INDEX "ix_Attester_id" ON "Attester" (id);
 CREATE INDEX "ix_Audience_id" ON "Audience" (id);
+CREATE INDEX "ix_Checksum_id" ON "Checksum" (id);
 CREATE INDEX "ix_Citation_id" ON "Citation" (id);
 CREATE INDEX "ix_Concept_about_Concept_id" ON "Concept_about" ("Concept_id");
 CREATE INDEX "ix_Concept_about_about_id" ON "Concept_about" (about_id);

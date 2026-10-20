@@ -38,6 +38,7 @@ prefixes:
   adms: http://www.w3.org/ns/adms#
   adms_status: http://purl.org/adms/status/
   lrmi: http://purl.org/dcx/lrmi-terms/
+  spdx: http://spdx.org/rdf/terms#
 
 default_prefix: lokf
 default_range: string
@@ -421,6 +422,17 @@ classes:
       - description
       - access_url
       - media_type
+      - checksum
+      - byte_size
+
+  Checksum:
+    description: >-
+      A digest of a distribution's bytes, which a consumer recomputes before
+      trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it.
+    class_uri: spdx:Checksum
+    slots:
+      - algorithm
+      - checksum_value
 
   Relation:
     description: >-
@@ -1086,6 +1098,39 @@ slots:
   media_type:
     description: The media (MIME) type of a distribution.
     slot_uri: dcat:mediaType
+    in_subset:
+      - lokf_semantic
+
+  checksum:
+    description: A digest of the distribution's bytes, for checking a download.
+    range: Checksum
+    inlined: true
+    slot_uri: spdx:checksum
+    in_subset:
+      - lokf_semantic
+
+  byte_size:
+    description: The size of the distribution in bytes.
+    range: integer
+    minimum_value: 0
+    slot_uri: dcat:byteSize
+    in_subset:
+      - lokf_semantic
+
+  algorithm:
+    description: The algorithm that computed a checksum.
+    range: ChecksumAlgorithm
+    required: true
+    slot_uri: spdx:algorithm
+    in_subset:
+      - lokf_semantic
+
+  checksum_value:
+    description: The checksum as lowercase hexadecimal digits.
+    range: string
+    pattern: '^[0-9a-f]+$'
+    required: true
+    slot_uri: spdx:checksumValue
     in_subset:
       - lokf_semantic
 
@@ -1940,3 +1985,34 @@ enums:
         description: Like GET, but returns headers only, no body.
       OPTIONS:
         description: Describe the communication options for the resource.
+
+  ChecksumAlgorithm:
+    description: >-
+      Digest algorithms for a Checksum, each mapped to its SPDX individual.
+      Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer
+      resist tampering.
+    permissible_values:
+      sha1:
+        meaning: spdx:checksumAlgorithm_sha1
+      sha224:
+        meaning: spdx:checksumAlgorithm_sha224
+      sha256:
+        meaning: spdx:checksumAlgorithm_sha256
+      sha384:
+        meaning: spdx:checksumAlgorithm_sha384
+      sha512:
+        meaning: spdx:checksumAlgorithm_sha512
+      sha3_256:
+        meaning: spdx:checksumAlgorithm_sha3_256
+      sha3_384:
+        meaning: spdx:checksumAlgorithm_sha3_384
+      sha3_512:
+        meaning: spdx:checksumAlgorithm_sha3_512
+      blake2b256:
+        meaning: spdx:checksumAlgorithm_blake2b256
+      blake2b384:
+        meaning: spdx:checksumAlgorithm_blake2b384
+      blake2b512:
+        meaning: spdx:checksumAlgorithm_blake2b512
+      md5:
+        meaning: spdx:checksumAlgorithm_md5

@@ -20,6 +20,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix schema1: <http://schema.org/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
 @prefix vivo: <http://vivoweb.org/ontology/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
@@ -187,6 +188,54 @@ schema1:memberOf a owl:Class ;
     rdfs:subClassOf lokf:RelationType ;
     skos:definition "The concept (a role) is held within the target organization." .
 
+spdx:checksumAlgorithm_blake2b256 a owl:Class ;
+    rdfs:label "blake2b256" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_blake2b384 a owl:Class ;
+    rdfs:label "blake2b384" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_blake2b512 a owl:Class ;
+    rdfs:label "blake2b512" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_md5 a owl:Class ;
+    rdfs:label "md5" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha1 a owl:Class ;
+    rdfs:label "sha1" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha224 a owl:Class ;
+    rdfs:label "sha224" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha256 a owl:Class ;
+    rdfs:label "sha256" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha384 a owl:Class ;
+    rdfs:label "sha384" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha3_256 a owl:Class ;
+    rdfs:label "sha3_256" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha3_384 a owl:Class ;
+    rdfs:label "sha3_384" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha3_512 a owl:Class ;
+    rdfs:label "sha3_512" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
+spdx:checksumAlgorithm_sha512 a owl:Class ;
+    rdfs:label "sha512" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm .
+
 rdfs:isDefinedBy a owl:Class ;
     rdfs:label "definedBy" ;
     rdfs:subClassOf lokf:RelationType ;
@@ -249,6 +298,33 @@ lokf:BooleanParameter a owl:Class ;
     lokf:xsd_value_space xsd:boolean,
         "xsd:boolean" .
 
+lokf:Checksum a owl:Class ;
+    rdfs:label "Checksum" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:checksum_value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:checksum_value ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:ChecksumAlgorithm ;
+            owl:onProperty lokf:algorithm ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:algorithm ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:string ;
+                                owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]+$" ] ) ] ) ] ;
+            owl:onProperty lokf:checksum_value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:algorithm ] ;
+    skos:definition "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it." ;
+    skos:exactMatch spdx:Checksum ;
+    skos:inScheme lokf:schema .
+
 lokf:Citation a owl:Class ;
     rdfs:label "Citation" ;
     rdfs:subClassOf [ a owl:Restriction ;
@@ -310,6 +386,9 @@ lokf:Distribution a owl:Class ;
             owl:onProperty lokf:access_url ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
+            owl:onProperty lokf:byte_size ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
             owl:onProperty lokf:name ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
@@ -322,13 +401,31 @@ lokf:Distribution a owl:Class ;
             owl:onProperty lokf:media_type ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
+            owl:onProperty lokf:byte_size ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
             owl:onProperty lokf:access_url ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Checksum ;
+            owl:onProperty lokf:checksum ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:media_type ],
         [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:checksum ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:checksum ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:name ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:integer [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:integer ;
+                                owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ) ] ;
+            owl:onProperty lokf:byte_size ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:name ],
@@ -1141,6 +1238,12 @@ lokf:additionalType a owl:DatatypeProperty ;
     skos:note "Set by the RDF projection, not normally authored. `lokf validate` still rejects an undeclared `type`; this slot is how the permissive consumers (`convert`, `query`, `serve`) honour OKF §11.",
         "The concept is then typed `lokf:Concept` (SPEC §8) and the original spelling is kept here, so an OKF type such as `BigQuery Table` survives the RDF projection." .
 
+lokf:algorithm a owl:ObjectProperty ;
+    rdfs:label "algorithm" ;
+    rdfs:range lokf:ChecksumAlgorithm ;
+    skos:definition "The algorithm that computed a checksum." ;
+    skos:inScheme lokf:schema .
+
 lokf:attester a owl:ObjectProperty ;
     rdfs:label "attester" ;
     rdfs:range lokf:Attester ;
@@ -1169,6 +1272,30 @@ lokf:base_iri a owl:DatatypeProperty ;
     skos:definition "The base IRI against which Concept IDs are resolved to produce each concept's stable `id`. An identifier namespace, not a hyperlink. Absolute http(s), ending in `/` or `#` so ids mint by plain concatenation and prefix routing respects segment boundaries (`…/team/` never captures `…/team-archive/`)." ;
     skos:inScheme lokf:schema ;
     skos:note "It need not resolve to a live page (a 404 is valid) — only a well-formed absolute IRI with an authority is required. A resolvable \"Cool URI\" is the ideal, not a requirement." .
+
+lokf:byte_size a owl:DatatypeProperty ;
+    rdfs:label "byte_size" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:integer [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:integer ;
+                        owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ) ] ;
+    skos:definition "The size of the distribution in bytes." ;
+    skos:inScheme lokf:schema .
+
+lokf:checksum a owl:ObjectProperty ;
+    rdfs:label "checksum" ;
+    rdfs:range lokf:Checksum ;
+    skos:definition "A digest of the distribution's bytes, for checking a download." ;
+    skos:inScheme lokf:schema .
+
+lokf:checksum_value a owl:DatatypeProperty ;
+    rdfs:label "checksum_value" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:string ;
+                        owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]+$" ] ) ] ) ] ;
+    skos:definition "The checksum as lowercase hexadecimal digits." ;
+    skos:inScheme lokf:schema .
 
 lokf:computation a owl:DatatypeProperty ;
     rdfs:label "computation" ;
@@ -1888,9 +2015,23 @@ lokf:title a owl:DatatypeProperty ;
     skos:definition "Human-readable display name." ;
     skos:inScheme lokf:schema .
 
-xsd:integer a owl:Class ;
-    rdfs:label "integer" ;
-    rdfs:subClassOf lokf:FieldType .
+lokf:ChecksumAlgorithm a owl:Class ;
+    rdfs:label "ChecksumAlgorithm" ;
+    owl:unionOf ( spdx:checksumAlgorithm_sha1 spdx:checksumAlgorithm_sha224 spdx:checksumAlgorithm_sha256 spdx:checksumAlgorithm_sha384 spdx:checksumAlgorithm_sha512 spdx:checksumAlgorithm_sha3_256 spdx:checksumAlgorithm_sha3_384 spdx:checksumAlgorithm_sha3_512 spdx:checksumAlgorithm_blake2b256 spdx:checksumAlgorithm_blake2b384 spdx:checksumAlgorithm_blake2b512 spdx:checksumAlgorithm_md5 ) ;
+    skos:definition "Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer resist tampering." ;
+    skos:inScheme lokf:schema ;
+    linkml:permissible_values spdx:checksumAlgorithm_blake2b256,
+        spdx:checksumAlgorithm_blake2b384,
+        spdx:checksumAlgorithm_blake2b512,
+        spdx:checksumAlgorithm_md5,
+        spdx:checksumAlgorithm_sha1,
+        spdx:checksumAlgorithm_sha224,
+        spdx:checksumAlgorithm_sha256,
+        spdx:checksumAlgorithm_sha384,
+        spdx:checksumAlgorithm_sha3_256,
+        spdx:checksumAlgorithm_sha3_384,
+        spdx:checksumAlgorithm_sha3_512,
+        spdx:checksumAlgorithm_sha512 .
 
 lokf:description a owl:DatatypeProperty ;
     rdfs:label "description" ;
@@ -1905,6 +2046,10 @@ lokf:resource a owl:DatatypeProperty ;
         prov:specializationOf ;
     skos:definition "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
     skos:inScheme lokf:schema .
+
+xsd:integer a owl:Class ;
+    rdfs:label "integer" ;
+    rdfs:subClassOf lokf:FieldType .
 
 xsd:dateTime a owl:Class ;
     rdfs:label "datetime" ;
