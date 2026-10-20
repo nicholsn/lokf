@@ -1065,19 +1065,21 @@ def registry_resolve(
 
 
 
-def _registry_store(registry: Path, quads: Optional[Path]):
+def _registry_store(registry: Path, quads: Optional[Path], reg=None):
     """A union store over *registry*'s members, or over a built *quads* file.
 
-    Members that cannot be loaded are named on stderr and skipped.
+    Members that cannot be loaded are named on stderr and skipped; a
+    manifest or quads file that cannot be read is a clean error.
     """
     from lokf.store import GraphStore
 
     if quads is not None:
-        return GraphStore.from_quads(quads.read_bytes())
-    if not registry.exists():
-        _err(f"{registry} not found — run `lokf registry init` first")
-        raise typer.Exit(1)
-    store = GraphStore.from_registry(registry)
+        try:
+            return GraphStore.from_quads(quads.read_bytes())
+        except (SyntaxError, ValueError, OSError) as exc:
+            _err(f"cannot read {quads}: {exc}")
+            raise typer.Exit(1)
+    store = GraphStore.from_registry(reg if reg is not None else _manifest(registry))
     for base_iri, why in store.load_errors.items():
         _err(f"skipped {base_iri}: {why}")
     return store
@@ -1105,15 +1107,20 @@ def registry_build(
     """
     import pyoxigraph as ox
 
-    from lokf.registry import load_registry, unresolved_targets
+    from lokf.registry import unresolved_targets
 
-    store = _registry_store(registry, None)
-    reg = load_registry(registry)
+    reg = _manifest(registry)
+    store = _registry_store(registry, None, reg)
+    loaded = len(reg.repos) - len(store.load_errors)
+    if reg.repos and not loaded:
+        _err(f"no member of {registry} could be loaded")
+        raise typer.Exit(1)
     out_dir.mkdir(parents=True, exist_ok=True)
     text = store.dump(ox.RdfFormat.N_QUADS).decode("utf-8")
-    lines = sorted(line for line in text.splitlines() if line.strip())
+    # One statement per line: split on newlines only, as N-Quads escapes
+    # them, and not on the other line breaks a literal may hold (U+2028).
+    lines = sorted(line for line in text.split("\n") if line.strip())
     (out_dir / "federation.nq").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    loaded = len(reg.repos) - len(store.load_errors)
     typer.echo(f"wrote {out_dir}/federation.nq ({len(lines)} quads, {loaded} of {len(reg.repos)} members)")
     unresolved = unresolved_targets(reg, store)
     for u in unresolved:

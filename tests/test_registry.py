@@ -635,6 +635,17 @@ def test_unresolved_targets_skip_vocabulary_terms_and_unloaded_owners(tmp_path):
     assert unresolved_targets(reg, store) == []
 
 
+def test_from_and_from_named_are_not_overridden_by_the_union(tmp_path):
+    from lokf.store import GraphStore
+
+    store = GraphStore.from_registry(_federation(tmp_path))
+    one = "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }"
+    union = int(store.select(one)[0]["n"])
+    only_a = int(store.select(one.replace("WHERE", "FROM <https://a.example/kb/> WHERE"))[0]["n"])
+    assert 0 < only_a < union
+    named = "SELECT (COUNT(*) AS ?n) FROM NAMED <https://a.example/kb/> WHERE { ?s ?p ?o }"
+    assert int(store.select(named)[0]["n"]) == 0  # FROM NAMED alone: an empty default graph
+
 
 def test_relative_locations_are_read_against_the_manifest(tmp_path, monkeypatch):
     from lokf.store import GraphStore
@@ -661,3 +672,13 @@ def test_registry_build_is_byte_stable_across_processes(tmp_path):
         outs.append((tmp_path / name / "federation.nq").read_bytes())
     assert b"_:m" in outs[0] and outs[0] == outs[1]
 
+
+def test_registry_build_fails_when_nothing_loads(tmp_path):
+    manifest = tmp_path / "r.yaml"
+    manifest.write_text("repos:\n- base_iri: https://gone.example/\n", encoding="utf-8")
+    r = runner.invoke(app, ["registry", "build", "-r", str(manifest), "-d", str(tmp_path / "out")])
+    assert r.exit_code == 1 and "no member" in r.output
+    bad = tmp_path / "bad.nq"
+    bad.write_text("not n-quads\n", encoding="utf-8")
+    q = runner.invoke(app, ["registry", "query", "--quads", str(bad), "ASK { ?s ?p ?o }"])
+    assert q.exit_code == 1 and "cannot read" in q.output

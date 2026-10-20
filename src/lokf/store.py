@@ -56,6 +56,22 @@ def query_form(sparql: str) -> str:
     return m.group(1).lower() if m else "select"
 
 
+_FROM_KEYWORD = re.compile(r"(?<![\w?$:.\-])from(?![\w:.\-])", re.IGNORECASE)
+
+
+def _has_dataset_clause(sparql: str) -> bool:
+    """True if the query names its own dataset with FROM or FROM NAMED, which
+    a registry store's union default graph must not override."""
+    if "from" not in sparql.lower():
+        return False
+    from rdflib.plugins.sparql import prepareQuery
+
+    try:
+        return prepareQuery(sparql).algebra.get("datasetClause") is not None
+    except Exception:  # noqa: BLE001 — rdflib's limits are not the engine's
+        return bool(_FROM_KEYWORD.search(_SPARQL_NOT_CODE.sub(" ", sparql)))
+
+
 def _prefix_header(prefixes: dict[str, str]) -> str:
     return "".join(f"PREFIX {p}: <{ns}>\n" for p, ns in prefixes.items())
 
@@ -106,8 +122,10 @@ class GraphStore:
     per-query ``PREFIX`` block.
 
     A store built from a registry holds one named graph per member and sets
-    ``union``: queries then read the default graph as the union of all of
-    them, and ``GRAPH ?g`` still names the member that asserted a triple.
+    ``union``: a query with no FROM or FROM NAMED of its own then reads the
+    default graph as the union of all of them, and ``GRAPH ?g`` still names
+    the member that asserted a triple. The union counts a triple once for
+    each member that asserts it, so a count across members wants DISTINCT.
     """
 
     def __init__(
@@ -222,7 +240,7 @@ class GraphStore:
                 "SPARQL SERVICE (federated query) is disabled: it would let a "
                 "query drive outbound network requests"
             )
-        if self.union:
+        if self.union and not _has_dataset_clause(full):
             kw.setdefault("use_default_graph_as_union", True)
         return self.store.query(full, **kw)
 
