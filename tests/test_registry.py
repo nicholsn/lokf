@@ -633,3 +633,31 @@ def test_unresolved_targets_skip_vocabulary_terms_and_unloaded_owners(tmp_path):
     store = GraphStore.from_registry(reg)
     assert "https://b.example/kb/" in store.load_errors
     assert unresolved_targets(reg, store) == []
+
+
+
+def test_relative_locations_are_read_against_the_manifest(tmp_path, monkeypatch):
+    from lokf.store import GraphStore
+
+    root = tmp_path / "fed"
+    _kb(root / "a", "https://a.example/kb/", {"x": ""})
+    manifest = root / "lokf-registry.yaml"
+    manifest.write_text("repos:\n- base_iri: https://a.example/kb/\n  path: a\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)  # anywhere but beside the manifest
+    store = GraphStore.from_registry(manifest)
+    assert store.load_errors == {} and len(store) > 0
+
+
+def test_registry_build_is_byte_stable_across_processes(tmp_path):
+    import subprocess
+    import sys
+
+    reg = _federation(tmp_path)
+    reg.save()
+    outs = []
+    for name in ("one", "two"):
+        subprocess.run([sys.executable, "-m", "lokf.cli", "registry", "build", "-r", str(reg.path),
+                        "-d", str(tmp_path / name)], check=True, capture_output=True)
+        outs.append((tmp_path / name / "federation.nq").read_bytes())
+    assert b"_:m" in outs[0] and outs[0] == outs[1]
+

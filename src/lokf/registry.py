@@ -226,6 +226,13 @@ class Registry:
         d["repos"] = [_entry_dict(e) for e in self.repos]
         return d
 
+    def located(self) -> "Registry":
+        """A copy whose local locations are absolute, read against the
+        manifest's directory: a relative ``path`` or ``distribution`` value
+        names a file beside the manifest, wherever the process runs."""
+        base = self.path.parent.resolve() if self.path else None
+        return dataclasses.replace(self, repos=[_located(e, base) for e in self.repos])
+
     def save(self) -> None:
         """Write the manifest back to :attr:`path` (block-style YAML)."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -233,6 +240,25 @@ class Registry:
             yaml.safe_dump(self.to_dict(), sort_keys=False, allow_unicode=True),
             encoding="utf-8",
         )
+
+
+def _located(entry: RepoEntry, base: pathlib.Path | None) -> RepoEntry:
+    """*entry* with its relative local locations made absolute against *base*."""
+    located = dataclasses.replace(entry, distribution=dict(entry.distribution))
+    if base is None:
+        return located
+
+    def local(value: str) -> str:
+        if is_url(value) or value.startswith("file://") or pathlib.Path(value).is_absolute():
+            return value
+        return str((base / value).resolve())
+
+    if located.path:
+        located.path = local(located.path)
+    for key, value in located.distribution.items():
+        if isinstance(value, str) and value:
+            located.distribution[key] = local(value)
+    return located
 
 
 _FIELDS = dataclasses.fields(RepoEntry)
@@ -544,9 +570,11 @@ def member_ntriples(entry: RepoEntry) -> str:
     Tries the local checkout in ``path``, projected under the domain schema
     its project declares; then ``distribution.rdf`` (a ``graph.nt`` from
     ``lokf export``); then ``distribution.archive``, checked against
-    ``checksum`` and projected under core LOKF. Raises ``ValueError`` when the
-    entry names none of them, or ``OSError`` when the one it names is
-    unreachable.
+    ``checksum`` and projected under core LOKF. Only the archive is checked:
+    a ``distribution.rdf`` is trusted as the manifest lists it. Relative
+    locations are read as :meth:`Registry.located` leaves them. Raises
+    ``ValueError`` when the entry names none of them, or ``OSError`` when the
+    one it names is unreachable.
     """
     from lokf import rdf
     from lokf.schema import domain_schema
@@ -562,7 +590,8 @@ def member_ntriples(entry: RepoEntry) -> str:
             archive = _fetch(str(entry.distribution["archive"]), tmp / "bundle.zip")
             if entry.checksum and _sha256(archive) != entry.checksum:
                 raise ValueError(f"archive does not match checksum {entry.checksum}")
-            return rdf.serialize(_unpack(archive, tmp / "unpacked"), "nt")
+            root = _unpack(archive, tmp / "unpacked", label=str(entry.distribution["archive"]))
+            return rdf.serialize(root, "nt")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     raise ValueError("no local path, distribution.rdf or distribution.archive to load")

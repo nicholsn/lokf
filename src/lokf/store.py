@@ -156,8 +156,11 @@ class GraphStore:
         *registry* is a :class:`lokf.registry.Registry` or a manifest path. A
         member that cannot be loaded is skipped and its reason kept in
         :attr:`load_errors`, so one unreachable member does not stop the rest.
-        Blank-node labels are prefixed per member, so two members' nodes never
-        merge and the same inputs always give the same labels.
+        Each member's blank nodes are canonicalised (RDFC-1.0) and then
+        prefixed with a hash of its ``base_iri``, so two members' nodes never
+        merge and the same inputs always give the same labels, however the
+        producer labelled them. Relative locations are read against the
+        manifest (:meth:`lokf.registry.Registry.located`).
         """
         import hashlib
 
@@ -165,6 +168,7 @@ class GraphStore:
 
         if not hasattr(registry, "repos"):
             registry = load_registry(registry)
+        registry = registry.located()
         store = ox.Store()
         errors: dict[str, str] = {}
         for entry in registry.repos:
@@ -179,10 +183,9 @@ class GraphStore:
             # member's alone, and it is parsed whole before any of it is added,
             # so a member either loads completely or not at all.
             try:
-                quads = [
-                    ox.Quad(local(t.subject), t.predicate, local(t.object), graph)
-                    for t in ox.parse(member_ntriples(entry), format=ox.RdfFormat.N_TRIPLES)
-                ]
+                member = ox.Dataset(ox.parse(member_ntriples(entry), format=ox.RdfFormat.N_TRIPLES))
+                member.canonicalize(ox.CanonicalizationAlgorithm.RDFC_1_0)
+                quads = [ox.Quad(local(q.subject), q.predicate, local(q.object), graph) for q in member]
             except Exception as exc:  # noqa: BLE001
                 errors[entry.base_iri] = f"{type(exc).__name__}: {exc}".splitlines()[0]
                 continue
