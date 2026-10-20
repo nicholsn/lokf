@@ -282,6 +282,17 @@ false `xsd:integer` typing of a non-literal node.
 
 ---
 
+### 5.5 Consumer review freshness
+
+Trust summaries retain the three existing trust tiers and additionally expose
+`human_reviewed_at` (the latest valid human review, in UTC) and
+`edited_since_human_review`. The latter is true only when the last meaningful
+edit is later than that review. Comparisons preserve time-of-day and normalize
+offsets; bare dates and naive timestamps use UTC. Missing or malformed times
+produce false, meaning unknown rather than proof that content is unchanged.
+A verification's revision identifier does not change this derivation.
+
+
 ## 6. The type vocabulary
 
 A concept's `type` SHOULD name one of the following classes, or one a domain schema declares (§6.2). Each LOKF class maps to a public ontology term; consumers MUST tolerate unknown values by treating the concept as a generic `lokf:Concept` (OKF §4.1 / §9).
