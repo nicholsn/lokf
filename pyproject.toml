@@ -36,7 +36,7 @@ dependencies = [
     # Runtime for the generated dataclass bindings (src/lokf/datamodel.py).
     # linkml_runtime is light; the heavy `linkml` generator stays in the
     # `build` extra used only to regenerate artifacts.
-    "linkml-runtime>=1.8",
+    "linkml-runtime>=1.12.0",
     # `[tool.lokf] schema` in pyproject.toml; tomllib is 3.11+.
     "tomli>=2.0; python_version < '3.11'",
 ]
@@ -46,7 +46,7 @@ dependencies = [
 # Not needed for convert/query/serve/propose/tables, which read the committed
 # schema/context directly.
 build = [
-    "linkml>=1.8.5",
+    "linkml>=1.12.0",
 ]
 # Project a bundle to tables/DataFrames (`lokf tables`, lokf.tables). Optional:
 # only needed for the tabular writers, not for RDF/graph use.

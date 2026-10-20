@@ -265,19 +265,12 @@ def generate(root: pathlib.Path) -> None:
         # Committed so an installed wheel ships them.
         with open(root / "src" / "lokf" / "datamodel.py", "w") as f:
             run(["gen-python", str(schema)], stdout=f)
-        # The OKF v0.2 `from` slot (UsageWindow.from) is a Python keyword;
-        # gen-python emits it verbatim, which is a SyntaxError. Alias the
-        # generated attribute to `from_` — the YAML key and JSON-LD term
-        # stay `from`.
+        # LinkML 1.12+ emits Python keyword slots as `from_` itself.
         dm = root / "src" / "lokf" / "datamodel.py"
         text = dm.read_text(encoding="utf-8")
-        # `self.from` accesses and the `from:`-annotated dataclass field, in
-        # code positions only (docstrings/comments talk about "from" freely).
-        patched = re.sub(r"\b(\w+)\.from\b", r"\1.from_", text)  # self.from, slots.from
-        patched = re.sub(r"^(\s+)from(: .*=.*)$", r"\1from_\2", patched, flags=re.M)
         # Reconstruction call sites rebuild UsageWindow from raw dicts still
         # keyed `from` (the YAML/JSON-LD term); rename the key at the call.
-        patched = patched.replace(
+        patched = text.replace(
             "UsageWindow(**as_dict(self.usage_window))",
             'UsageWindow(**{("from_" if k == "from" else k): v'
             " for k, v in as_dict(self.usage_window).items()})",
