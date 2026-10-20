@@ -226,7 +226,7 @@ def test_entry_for_archive_refuses_unsafe_member(tmp_path):
 
 def test_entry_for_archive_from_url_records_distribution(tmp_path, monkeypatch):
     archive = _zip_bundle(tmp_path)
-    monkeypatch.setattr("lokf.registry._download", lambda url, dest: shutil.copy(archive, dest))
+    monkeypatch.setattr("lokf.registry._download", lambda url, dest, **kw: shutil.copy(archive, dest))
     url = "https://example.org/releases/knowledge-v1.zip"
     entry = entry_for_archive(url)
     assert entry.distribution == {"archive": url}
@@ -520,3 +520,85 @@ def test_an_id_in_the_entrys_own_namespace_under_the_vocabulary_is_allowed():
     assert len(reg.repos) == 1
     with pytest.raises(ValueError, match="vocabulary namespace"):
         reg.add(RepoEntry(base_iri="https://b.example/", id_index={VOCAB_NS + "Metric": "m"}))
+
+
+# -- federated store (SPEC §11.4) -------------------------------------------
+def _kb(root: pathlib.Path, base_iri: str, concepts: dict[str, str]) -> pathlib.Path:
+    """A bundle at *root* whose concepts are given as frontmatter bodies."""
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "index.md").write_text(f"---\nbase_iri: {base_iri}\ntitle: T\n---\n", encoding="utf-8")
+    for name, fm in concepts.items():
+        (root / f"{name}.md").write_text(f"---\ntype: Concept\ntitle: {name}\n{fm}---\n", encoding="utf-8")
+    return root
+
+
+SOURCE = "sources:\n  - title: S\n    url: https://s.example/doc\n"
+
+
+def _federation(tmp_path) -> Registry:
+    a = _kb(tmp_path / "a", "https://a.example/kb/", {
+        "x": SOURCE + "references:\n"
+        "  - https://b.example/kb/y\n"
+        "  - https://b.example/kb/nope\n"
+        "  - https://c.example/z\n",
+    })
+    b = _kb(tmp_path / "b", "https://b.example/kb/", {"y": SOURCE})
+    reg = Registry(path=tmp_path / "lokf-registry.yaml")
+    reg.add(entry_for_bundle(a))
+    reg.add(entry_for_bundle(b))
+    return reg
+
+
+def test_from_registry_loads_one_named_graph_per_member(tmp_path):
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    store = GraphStore.from_registry(reg)
+    rows = store.select("SELECT ?g (COUNT(*) AS ?n) WHERE { GRAPH ?g { ?s ?p ?o } } GROUP BY ?g")
+    graphs = {r["g"]: int(r["n"]) for r in rows}
+    assert set(graphs) == {"https://a.example/kb/", "https://b.example/kb/"}
+    # The union default graph holds both, and the members' blank nodes stay apart.
+    union = store.select("SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }")[0]["n"]
+    assert int(union) == sum(graphs.values())
+    assert len(store.rdflib_graph()) == int(union)
+
+
+def test_from_registry_skips_an_unloadable_member(tmp_path):
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    reg.repos.append(RepoEntry(base_iri="https://gone.example/"))
+    store = GraphStore.from_registry(reg)
+    assert set(store.load_errors) == {"https://gone.example/"}
+    assert len(store) > 0
+
+
+def test_unresolved_targets_names_unowned_and_missing(tmp_path):
+    from lokf.registry import unresolved_targets
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    found = {(u.target, u.kind) for u in unresolved_targets(reg, GraphStore.from_registry(reg))}
+    assert found == {
+        ("https://b.example/kb/nope", "missing"),
+        ("https://c.example/z", "unowned"),
+    }
+
+
+def test_cli_registry_build_and_query(tmp_path):
+    reg = _federation(tmp_path)
+    reg.save()
+    manifest, out = str(reg.path), tmp_path / "fed"
+    built = runner.invoke(app, ["registry", "build", "-r", manifest, "-d", str(out)])
+    assert built.exit_code == 0, built.output
+    assert "2 of 2 members" in built.output
+    assert "unowned: https://c.example/z" in built.output
+    assert "missing: https://b.example/kb/nope" in built.output
+    strict = runner.invoke(app, ["registry", "build", "-r", manifest, "-d", str(out), "--strict"])
+    assert strict.exit_code == 1
+
+    q = runner.invoke(app, [
+        "registry", "query", "--quads", str(out / "federation.nq"),
+        "SELECT ?g WHERE { GRAPH ?g { <https://b.example/kb/y> ?p ?o } } LIMIT 1",
+    ])
+    assert q.exit_code == 0 and "https://b.example/kb/" in q.output

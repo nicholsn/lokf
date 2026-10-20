@@ -509,10 +509,17 @@ def query(
     ),
 ) -> None:
     """Run SPARQL over a knowledge base loaded into an in-memory store."""
-    from lokf.store import GraphStore, query_form
+    from lokf.store import GraphStore
 
     schema = _schema_or_exit(schema, source)
-    store = GraphStore.from_bundle(source, schema=schema)
+    _run_query(GraphStore.from_bundle(source, schema=schema), sparql, format)
+
+
+def _run_query(store, sparql: str, format: str) -> None:
+    """Run *sparql* on *store* and print it in *format* (shared by
+    ``query`` and ``registry query``)."""
+    from lokf.store import query_form
+
     form = query_form(sparql)
     try:
         if form in ("construct", "describe"):
@@ -1056,6 +1063,98 @@ def registry_resolve(
         typer.echo("  concept_id: (namespace root — not a concept)")
     typer.echo(f"  via:        {res.via}")
 
+
+
+def _registry_store(registry: Path, quads: Optional[Path]):
+    """A union store over *registry*'s members, or over a built *quads* file.
+
+    Members that cannot be loaded are named on stderr and skipped.
+    """
+    from lokf.store import GraphStore
+
+    if quads is not None:
+        return GraphStore.from_quads(quads.read_bytes())
+    if not registry.exists():
+        _err(f"{registry} not found — run `lokf registry init` first")
+        raise typer.Exit(1)
+    store = GraphStore.from_registry(registry)
+    for base_iri, why in store.load_errors.items():
+        _err(f"skipped {base_iri}: {why}")
+    return store
+
+
+_QUADS_HELP = "Load this federation.nq from `lokf registry build` instead of fetching members."
+
+
+@registry_app.command("build")
+def registry_build(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    out_dir: Path = typer.Option(
+        ..., "--out-dir", "-d", help="Directory to write federation.nq to."
+    ),
+    strict: bool = typer.Option(
+        False, "--strict", help="Exit 1 when a member fails to load or a target does not resolve."
+    ),
+) -> None:
+    """Load each member into a named graph (its base_iri) and write them as N-Quads.
+
+    Also reports every typed-relation target, outside the asserting member,
+    that no member owns or that its owner does not hold.
+    """
+    import pyoxigraph as ox
+
+    from lokf.registry import load_registry, unresolved_targets
+
+    store = _registry_store(registry, None)
+    reg = load_registry(registry)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    text = store.dump(ox.RdfFormat.N_QUADS).decode("utf-8")
+    lines = sorted(line for line in text.splitlines() if line.strip())
+    (out_dir / "federation.nq").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    loaded = len(reg.repos) - len(store.load_errors)
+    typer.echo(f"wrote {out_dir}/federation.nq ({len(lines)} quads, {loaded} of {len(reg.repos)} members)")
+    unresolved = unresolved_targets(reg, store)
+    for u in unresolved:
+        typer.echo(f"{u.kind}: {u.target} (asserted in {u.graph} via {u.predicate})")
+    if strict and (unresolved or store.load_errors):
+        raise typer.Exit(1)
+
+
+@registry_app.command("query")
+def registry_query(
+    sparql: str = typer.Argument(..., help="A SPARQL query; GRAPH ?g binds a member's base_iri."),
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    quads: Optional[Path] = typer.Option(
+        None, "--quads", exists=True, dir_okay=False, help=_QUADS_HELP
+    ),
+    format: str = typer.Option(
+        "table", "--format", "-f", help="table | json | csv | tsv | ttl (CONSTRUCT)."
+    ),
+) -> None:
+    """Run SPARQL over every member at once, the default graph being their union."""
+    _run_query(_registry_store(registry, quads), sparql, format)
+
+
+@registry_app.command("serve")
+def registry_serve(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    quads: Optional[Path] = typer.Option(
+        None, "--quads", exists=True, dir_okay=False, help=_QUADS_HELP
+    ),
+    host: str = typer.Option("127.0.0.1", help="Bind host."),
+    port: int = typer.Option(8000, help="Bind port."),
+) -> None:
+    """Publish the federation locally: SPARQL endpoint + live graph viz."""
+    from lokf.server import serve_store
+
+    store = _registry_store(registry, quads)
+    serve_store(store, str(quads or registry), host=host, port=port)
 
 def main(argv: list[str] | None = None) -> int:
     """Programmatic entry point (tests use ``typer.testing.CliRunner``).

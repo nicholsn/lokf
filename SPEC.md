@@ -781,6 +781,9 @@ The intended runtime model, layered on the primitives above:
   Members load **lazily** — only as a walk reaches into their namespace — so an
   agent never pays to materialize the whole federation to answer a local
   question.
+  `lokf registry build` loads every member eagerly into this shape and writes
+  it as N-Quads, reporting relation targets no member owns or holds;
+  `lokf registry query` and `lokf registry serve` run over the same store.
 - **Document access.** A concept's source markdown is fetched by
   `source_base + concept_id + ".md"` through an offline-first chain: a local
   checkout, else the cached `concepts.jsonld`, else a live fetch — every path

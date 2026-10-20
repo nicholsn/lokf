@@ -13,6 +13,11 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- `lokf registry build`, `query` and `serve`: one named graph per member, keyed
+  by its `base_iri`, queried as a union (SPEC §11.4).
+
 ### Fixed
 
 - A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no

@@ -104,11 +104,23 @@ class GraphStore:
     ``prefixes`` (the schema's namespace table) are prepended to every query
     and update, so ``lokf:``/``schema:``/``prov:`` and friends work without a
     per-query ``PREFIX`` block.
+
+    A store built from a registry holds one named graph per member and sets
+    ``union``: queries then read the default graph as the union of all of
+    them, and ``GRAPH ?g`` still names the member that asserted a triple.
     """
 
-    def __init__(self, store: ox.Store, prefixes: dict[str, str] | None = None):
+    def __init__(
+        self,
+        store: ox.Store,
+        prefixes: dict[str, str] | None = None,
+        union: bool = False,
+    ):
         self.store = store
         self.prefixes = prefixes if prefixes is not None else vocabulary().prefixes
+        self.union = union
+        #: base_iri -> why that member could not be loaded (registry stores only).
+        self.load_errors: dict[str, str] = {}
 
     # -- construction -------------------------------------------------------
     @classmethod
@@ -136,6 +148,52 @@ class GraphStore:
             kw.setdefault("prefixes", vocabulary(schema).prefixes)
         return cls.from_graph(rdf.graph_of(path, schema=schema), **kw)
 
+    @classmethod
+    def from_registry(cls, registry, **kw) -> "GraphStore":
+        """Build a store holding each registry member in a named graph whose
+        IRI is its ``base_iri`` (SPEC §11.4).
+
+        *registry* is a :class:`lokf.registry.Registry` or a manifest path. A
+        member that cannot be loaded is skipped and its reason kept in
+        :attr:`load_errors`, so one unreachable member does not stop the rest.
+        Blank-node labels are prefixed per member, so two members' nodes never
+        merge and the same inputs always give the same labels.
+        """
+        import hashlib
+
+        from lokf.registry import load_registry, member_ntriples
+
+        if not hasattr(registry, "repos"):
+            registry = load_registry(registry)
+        store = ox.Store()
+        errors: dict[str, str] = {}
+        for entry in registry.repos:
+            try:
+                nt = member_ntriples(entry)
+            except (ValueError, OSError) as exc:
+                errors[entry.base_iri] = str(exc)
+                continue
+            graph = ox.NamedNode(entry.base_iri)
+            tag = "m" + hashlib.sha256(entry.base_iri.encode()).hexdigest()[:12] + "_"
+
+            def local(term, tag=tag):
+                return ox.BlankNode(tag + term.value) if isinstance(term, ox.BlankNode) else term
+
+            store.extend(
+                ox.Quad(local(t.subject), t.predicate, local(t.object), graph)
+                for t in ox.parse(nt, format=ox.RdfFormat.N_TRIPLES)
+            )
+        out = cls(store, union=True, **kw)
+        out.load_errors = errors
+        return out
+
+    @classmethod
+    def from_quads(cls, data: str | bytes, **kw) -> "GraphStore":
+        """Build a union store from N-Quads, such as ``lokf registry build`` writes."""
+        store = ox.Store()
+        store.load(data, format=ox.RdfFormat.N_QUADS)
+        return cls(store, union=True, **kw)
+
     def __len__(self) -> int:
         return len(self.store)
 
@@ -157,6 +215,8 @@ class GraphStore:
                 "SPARQL SERVICE (federated query) is disabled: it would let a "
                 "query drive outbound network requests"
             )
+        if self.union:
+            kw.setdefault("use_default_graph_as_union", True)
         return self.store.query(full, **kw)
 
     def select(self, sparql: str, **kw) -> list[dict]:
@@ -207,12 +267,17 @@ class GraphStore:
     def rdflib_graph(self, sparql: str | None = None):
         """The store (or a CONSTRUCT/DESCRIBE result) as an :class:`rdflib.Graph`.
 
-        With no query, the whole store is returned. This backs the live graph
-        visualization, which projects the graph to cytoscape elements.
+        With no query, the whole store is returned (the union of its named
+        graphs for a registry store). This backs the live graph visualization,
+        which projects the graph to cytoscape elements.
         """
         from rdflib import Graph
 
-        if sparql is None:
+        if sparql is None and self.union:
+            nt = self.query("CONSTRUCT WHERE { ?s ?p ?o }").serialize(
+                format=ox.RdfFormat.N_TRIPLES
+            )
+        elif sparql is None:
             nt = self.store.dump(
                 format=ox.RdfFormat.N_TRIPLES, from_graph=ox.DefaultGraph()
             )
@@ -225,5 +290,11 @@ class GraphStore:
         return g
 
     def dump(self, fmt=ox.RdfFormat.TURTLE) -> bytes:
-        """Serialize the whole store (default graph) as RDF text."""
-        return self.store.dump(format=fmt, from_graph=ox.DefaultGraph())
+        """Serialize the whole store as RDF text: the default graph, or for a
+        registry store every named graph (a dataset format such as N-Quads)
+        or their union (a triple format)."""
+        if not self.union:
+            return self.store.dump(format=fmt, from_graph=ox.DefaultGraph())
+        if fmt.supports_datasets:
+            return self.store.dump(format=fmt)
+        return self.query("CONSTRUCT WHERE { ?s ?p ?o }").serialize(format=fmt)

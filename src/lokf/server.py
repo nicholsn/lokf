@@ -121,9 +121,14 @@ def serve(source, host: str = "127.0.0.1", port: int = 8000, schema=None) -> Non
     """Load *source*, under the domain *schema* when one is given, and serve it
     until interrupted."""
     store = GraphStore.from_bundle(source, schema=schema)
+    serve_store(store, f"{source}{f' under {schema}' if schema else ''}", host, port)
+
+
+def serve_store(store: GraphStore, label: str, host: str = "127.0.0.1", port: int = 8000) -> None:
+    """Serve an already-built *store* (a bundle's or a registry's) until interrupted."""
     httpd = build_server(store, host, port)
     bound_host, bound_port = httpd.server_address[0], httpd.server_address[1]
-    print(f"lokf: {len(store)} triples from {source}{f' under {schema}' if schema else ''}")
+    print(f"lokf: {len(store)} triples from {label}")
     print(f"lokf: SPARQL endpoint  http://{bound_host}:{bound_port}/sparql")
     print(f"lokf: graph explorer   http://{bound_host}:{bound_port}/")
     print("lokf: Ctrl-C to stop")
