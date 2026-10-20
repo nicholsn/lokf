@@ -228,3 +228,27 @@ def test_serialize_is_byte_stable_with_blank_nodes():
     bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
     for fmt in ("nt", "ttl"):
         assert rdf.serialize(bundle, fmt) == rdf.serialize(bundle, fmt)
+
+
+def test_relabel_keeps_nodes_apart_that_differ_only_in_term_kind():
+    """A plain "1", a typed 1 and the IRI <1> hash apart, so each blank node
+    keeps one label whatever ids rdflib minted for it."""
+    import json as _json
+
+    from rdflib import Graph
+
+    doc = {
+        "@context": {"ex": "http://ex/", "xsd": "http://www.w3.org/2001/XMLSchema#"},
+        "@id": "http://ex/s",
+        "ex:q": [{"ex:p": "1"}, {"ex:p": {"@value": "1", "@type": "xsd:integer"}},
+                 {"ex:p": {"@id": "http://ex/1"}},
+                 # parents that differ only through such children
+                 {"ex:r": {"ex:p": "2"}}, {"ex:r": {"ex:p": {"@value": "2", "@type": "xsd:integer"}}}],
+    }
+    outs = {
+        "\n".join(sorted(rdf.relabel_bnodes(Graph().parse(data=_json.dumps(doc), format="json-ld"))
+                         .serialize(format="nt").splitlines()))
+        for _ in range(12)
+    }
+    assert len(outs) == 1
+

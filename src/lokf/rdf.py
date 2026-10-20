@@ -174,7 +174,7 @@ def relabel_bnodes(g):
 
     rdflib mints blank-node ids from uuid4, so identical input yields different
     labels every run. Each node is hashed from its own incoming and outgoing
-    edges, iterated to a fixpoint so nested blank nodes converge; structurally
+    edges, iterated so nested blank nodes converge; structurally
     indistinguishable nodes then get a stable index. This only renames blank
     nodes - no triple is added, dropped or rewritten.
 
@@ -186,16 +186,36 @@ def relabel_bnodes(g):
     import hashlib
     from rdflib import BNode, Graph
 
-    labels = {n: "0" for n in g.all_nodes() if isinstance(n, BNode)}
-    for _ in range(12):
-        nxt = {}
-        for b in labels:
-            out = sorted((str(p), labels.get(o, str(o))) for _, p, o in g.triples((b, None, None)))
-            inc = sorted((labels.get(s, str(s)), str(p)) for s, p, _ in g.triples((None, None, b)))
-            nxt[b] = hashlib.sha256(repr((out, inc)).encode()).hexdigest()[:24]
-        if nxt == labels:
-            break
-        labels = nxt
+    def hashed(term) -> dict:
+        labels = {n: "0" for n in g.all_nodes() if isinstance(n, BNode)}
+        for _ in range(12):
+            nxt = {}
+            for b in labels:
+                out = sorted((str(p), labels.get(o, term(o))) for _, p, o in g.triples((b, None, None)))
+                inc = sorted((labels.get(s, term(s)), str(p)) for s, p, _ in g.triples((None, None, b)))
+                nxt[b] = hashlib.sha256(repr((out, inc)).encode()).hexdigest()[:24]
+            if nxt == labels:
+                break
+            labels = nxt
+        return labels
+
+    def n3_signature(b, labels) -> tuple:
+        out = sorted((str(p), labels.get(o, o.n3())) for _, p, o in g.triples((b, None, None)))
+        inc = sorted((labels.get(s, s.n3()), str(p)) for s, p, _ in g.triples((None, None, b)))
+        return tuple(out), tuple(inc)
+
+    # str() cannot tell a plain "1" from a typed 1 or the IRI <1>. Nodes it
+    # merges that way share a label and would take their index from rdflib's
+    # random ids, so such a graph is hashed again with terms in N3 form. Only
+    # then: a graph without those twins keeps the labels it always had.
+    labels = hashed(str)
+    groups: dict = {}
+    for b, h in labels.items():
+        groups.setdefault(h, []).append(b)
+    if any(
+        len({n3_signature(b, labels) for b in bs}) > 1 for bs in groups.values() if len(bs) > 1
+    ):
+        labels = hashed(lambda t: t.n3())
 
     buckets: dict = {}
     for b, h in sorted(labels.items(), key=lambda kv: (kv[1], str(kv[0]))):
