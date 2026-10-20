@@ -49,6 +49,8 @@ def test_list_concepts():
 def test_describe_concept():
     d = mcp.describe_concept(BUNDLE, "metrics/weekly-active-users")
     assert d["type"] == "Metric"
+    assert "human_reviewed_at" in d["trust"]
+    assert "edited_since_human_review" in d["trust"]
     assert d["turtle"]
     assert "lokf:Metric" in d["turtle"]
 

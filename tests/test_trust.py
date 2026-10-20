@@ -91,6 +91,8 @@ def test_trust_summary_shape():
         "stale": True,
         "generated_at": AGENT["at"],
         "verified_count": 1,
+        "human_reviewed_at": HUMAN["at"],
+        "edited_since_human_review": False,
     }
 
 
@@ -104,3 +106,26 @@ def test_spaced_okf_type_normalizes(tmp_path):
         encoding="utf-8",
     )
     assert parse_concept(str(p))["type"] == "AttestedComputation"
+
+
+def test_review_freshness_normalizes_and_selects_latest():
+    data = {"generated": {"at": "2026-06-25T14:00:01Z"}, "verified": [
+        {"by": "human:a", "at": "2026-06-25"},
+        {"by": "human:b", "at": "2026-06-25T10:00:00-04:00", "revision": "old"},
+        {"by": "human:c", "at": "bad"},
+        {"by": "process:x", "at": "2027-01-01"},
+    ]}
+    assert trust.human_reviewed_at(data) == "2026-06-25T14:00:00Z"
+    assert trust.edited_since_human_review(data)
+    assert trust.trust_tier(data) == "human-reviewed"
+    data["verified"].append({"by": "human:d", "at": "2026-06-25T14:00:01Z"})
+    assert not trust.edited_since_human_review(data)
+
+
+def test_review_freshness_missing_malformed_and_legacy():
+    for data in [{}, {"verified": HUMAN}, {"generated": {"at": "bad"}, "verified": HUMAN},
+                 {"generated": {"at": "2027-01-01"}, "verified": {"by": "human:a", "at": "bad"}}]:
+        assert not trust.edited_since_human_review(data)
+    assert trust.edited_since_human_review({"timestamp": "2027-01-01", "verified": HUMAN})
+    assert not trust.edited_since_human_review({"generated": {}, "timestamp": "2027-01-01", "verified": HUMAN})
+    assert trust.human_reviewed_at({"verified": {"by": "human:a", "at": dt.date(2026, 1, 1)}}) == "2026-01-01T00:00:00Z"

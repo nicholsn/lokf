@@ -25,6 +25,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- Trust summaries report the latest human review and whether content changed
+  since that review, without changing the existing trust tiers.
+
 - `audience`, `typicalAgeRange` and `educationalLevel` say who a concept
   is written for, such as a version of another concept for younger
   readers. They map to `schema:audience` (exact `dcterms:audience`),

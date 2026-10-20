@@ -107,6 +107,43 @@ def generated_at(data: dict) -> str | None:
     return str(ts) if ts else None
 
 
+def _as_datetime(value) -> dt.datetime | None:
+    """Read an ISO timestamp in UTC; dates and naive times use UTC."""
+    try:
+        if isinstance(value, dt.datetime):
+            parsed = value
+        elif isinstance(value, dt.date):
+            parsed = dt.datetime.combine(value, dt.time())
+        elif isinstance(value, str):
+            parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+        else:
+            return None
+        return (parsed if parsed.tzinfo else parsed.replace(tzinfo=dt.timezone.utc)).astimezone(dt.timezone.utc)
+    except (ValueError, OverflowError):
+        return None
+
+
+def human_reviewed_at(data: dict) -> str | None:
+    """Latest valid human review timestamp, normalized to UTC."""
+    times = [
+        at for event in verifications(data)
+        if is_human_actor(event.get("by"))
+        if (at := _as_datetime(event.get("at"))) is not None
+    ]
+    return max(times).isoformat().replace("+00:00", "Z") if times else None
+
+
+def edited_since_human_review(data: dict) -> bool:
+    """Whether a meaningful edit follows the latest dated human review.
+
+    Missing or malformed timestamps mean unknown (False), not unchanged.
+    Review revision identifiers do not alter this timestamp comparison.
+    """
+    generated = _as_datetime(generated_at(data))
+    reviewed = _as_datetime(human_reviewed_at(data))
+    return generated > reviewed if generated is not None and reviewed is not None else False
+
+
 def trust_summary(data: dict, today: dt.date | None = None) -> dict:
     """All derived signals in one dict — the shape consumer surfaces show."""
     return {
@@ -115,4 +152,6 @@ def trust_summary(data: dict, today: dt.date | None = None) -> dict:
         "stale": is_stale(data, today),
         "generated_at": generated_at(data),
         "verified_count": len(verifications(data)),
+        "human_reviewed_at": human_reviewed_at(data),
+        "edited_since_human_review": edited_since_human_review(data),
     }
