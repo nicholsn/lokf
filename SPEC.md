@@ -273,7 +273,8 @@ exclusion never projects as `schema:isBasedOn`, so the graph does not claim the
 concept is based on what it set aside, and the relation is per concept: one
 concept may use a material another leaves out. With it a coverage check can
 tell "nobody looked at this" from "someone looked and set it aside".
-`exclusions` is LOKF's own field.
+`lokf validate` warns when one concept lists the same material under both
+`sources` and `exclusions`. `exclusions` is LOKF's own field.
 
 **Actors** (`generated.by`, `verified[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
 (`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain

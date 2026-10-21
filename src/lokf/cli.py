@@ -373,6 +373,11 @@ def validate(
         _err(f"[{severity}] {path}:{line}: {message}")
         failed = failed or severity == "ERROR"
 
+    from lokf.resources import exclusion_conflicts
+
+    for severity, message in exclusion_conflicts(bundle):
+        _err(f"[{severity}] {message}")
+
     if check_ids:
         # Two files declaring one `id` each validate on their own and then
         # merge into one subject in the graph; the schema sees concepts one at

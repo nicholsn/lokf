@@ -61,3 +61,24 @@ def _entries(concept, field: str) -> list[tuple[int, dict]]:
         return []
     return [(i, e) for i, e in enumerate(entries) if isinstance(e, dict)]
 
+def _same_material(value) -> str | None:
+    """*value* as a comparison key: ``./docs/a.md``, ``docs/a.md`` and
+    ``docs/a.md/`` name one material."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    key = value.strip()
+    while key.startswith('./'):
+        key = key[2:]
+    return key.rstrip('/') or key
+
+
+def exclusion_conflicts(bundle):
+    """Yield a warning for each material one concept lists both as a source
+    and as an exclusion: it cannot be derived from and left out at once."""
+    for concept in bundle.concepts:
+        used = {_same_material(e.get('resource')) for _, e in _entries(concept, 'sources')}
+        for i, entry in _entries(concept, 'exclusions'):
+            key = _same_material(entry.get('resource'))
+            if key is not None and key in used:
+                yield 'WARNING', (f'{bundle.iri(concept)}: `exclusions[{i}].resource` is also '
+                                  f'one of its sources: {entry.get("resource")!r}')

@@ -64,3 +64,15 @@ def test_exclusions_are_checked_as_sources_are(tmp_path):
     assert 'exclusions[1].resource' in findings[0][1]
     assert 'exclusions[2].resource' in findings[1][1]
 
+def test_a_material_both_used_and_excluded_is_a_warning(tmp_path):
+    from lokf.resources import exclusion_conflicts
+
+    b = bundle_at(tmp_path / 'knowledge', sources=[{'resource': 'docs/a.md'}, {'resource': 'tests/x.md'}],
+                  exclusions=[{'resource': './docs/a.md', 'reason': 'r'},
+                              {'resource': 'tests', 'reason': 'the folder, less the file used'}])
+    findings = list(exclusion_conflicts(b))
+    assert len(findings) == 1 and findings[0][0] == 'WARNING'
+    assert 'exclusions[0].resource' in findings[0][1]
+    r = CliRunner().invoke(app, ['validate', str(tmp_path / 'knowledge')])
+    assert r.exit_code == 0 and 'also one of its sources' in r.output
+
