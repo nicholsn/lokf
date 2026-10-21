@@ -2087,7 +2087,7 @@
                     ]
                 },
                 "by": {
-                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event.",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 },
@@ -6449,7 +6449,7 @@
                     ]
                 },
                 "by": {
-                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).",
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event.",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 },
