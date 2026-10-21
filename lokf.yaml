@@ -549,6 +549,9 @@ classes:
       - by
       - at
       - revision
+    slot_usage:
+      by:
+        required: true
 
   Verification:
     description: >-
@@ -567,6 +570,13 @@ classes:
       - by
       - at
       - revision
+    slot_usage:
+      by:
+        required: true
+        notes:
+          - >-
+            Required by LOKF, though OKF does not mark it so: trust tiers are
+            derived from it.
 
   Parameter:
     description: >-
@@ -655,6 +665,10 @@ slots:
     identifier: true
     range: uriorcurie
     slot_uri: schema:identifier
+    notes:
+      - >-
+        The schema requires an id, unlike OKF. A concept file may leave it
+        out, since the toolkit fills it from the base IRI and the Concept ID.
     in_subset:
       - lokf_semantic
 
@@ -1436,8 +1450,8 @@ slots:
       The actor that performed the event, as a plain OKF §7 actor string
       (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal,
       never an IRI. Trust tiers derive from the `human:` prefix via string
-      inspection (SPARQL STRSTARTS).
-    required: true
+      inspection (SPARQL STRSTARTS). Required on a generation or
+      verification event.
     range: string
     pattern: '^(human|process):\S+$|^[^\s/]+/[^\s/]+$'
     slot_uri: prov:wasAssociatedWith

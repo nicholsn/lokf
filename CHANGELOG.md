@@ -30,6 +30,9 @@ with the 0.x caveat that a minor release may tighten validation.
 - Generated JSON Schema now enforces closed classes at the bundle root
   as well as on concepts; undeclared bundle metadata is rejected by
   schema validation. Runtime validation and the published artifact agree.
+- `by` is required by the event classes (`generated`, `verified`) rather than
+  on the slot, and the schema notes where LOKF requires more than OKF: `id`,
+  and `by` on a verification.
 
 ### Added
 

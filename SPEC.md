@@ -139,7 +139,7 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 
 ### 5.1 Core frontmatter fields
 
-`type` is the only required field (as in OKF). All others are optional.
+`type` is the only required field (as in OKF). All others are optional. The schema also requires `id`, which the toolkit fills when a concept leaves it out.
 
 <!-- --8<-- [start:core-fields-table] -->
 | Field         | OKF | RDF property (`slot_uri`)          | Range   | Notes                                             |
@@ -230,7 +230,7 @@ distinguishable, never rejected).
 | `sources`      |  ✅ | `schema:isBasedOn`              | Source*      | close: `dcterms:source`, `prov:wasDerivedFrom` (primary IRI is owned by `derivedFrom`). |
 | `usage_window` |  ✅ | `lokf:usageWindow`              | UsageWindow  | `{from, to}` → `dcat:startDate`/`dcat:endDate` on a `dcterms:PeriodOfTime`. Sibling of `sources`; a Source entry MAY override. |
 | `generated`    |  ✅ | `prov:wasGeneratedBy`           | Generation   | `{by, at}` → `prov:wasAssociatedWith` + `prov:endedAtTime` on a `prov:Activity`. Supersedes `timestamp`. |
-| `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`). A bare mapping MUST be read as a one-element list. |
+| `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`); `by` is REQUIRED, since trust tiers derive from it. A bare mapping MUST be read as a one-element list. |
 | `status`       |  ✅ | `schema:creativeWorkStatus`     | enum         | `draft \| stable \| deprecated`; absent ⇒ stable. Enum meanings: ADMS status IRIs. |
 | `stale_after`  |  ✅ | `schema:expires`                | dateTime     | The instant from which the concept is stale (OKF §5.5). A bare `YYYY-MM-DD` means that day at `00:00:00Z`. |
 <!-- --8<-- [end:trust-fields-table] -->
