@@ -38,6 +38,10 @@ sources:
     title: WAU Look (production dashboard)
     author: "team:analytics"
     usage_count: 3200
+exclusions:
+  - resource: https://looker.acme.example/looks/wau-staging
+    reason: a staging copy of the WAU Look, rebuilt nightly from sampled data
+    by: "human:jsmith@acme"
 usage_window: { from: 2026-06-01, to: 2026-06-30 }
 ---
 

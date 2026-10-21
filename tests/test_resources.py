@@ -51,3 +51,16 @@ def test_default_root_and_cli_opt_in(tmp_path):
     (tmp_path / 'missing.txt').write_text('present')
     assert runner.invoke(app, ['validate', str(b.root), '--check-resources', '--root', str(tmp_path)]).exit_code == 0
     assert runner.invoke(app, ['validate', str(b.root), '--root', str(tmp_path)]).exit_code == 2
+
+
+def test_exclusions_are_checked_as_sources_are(tmp_path):
+    (tmp_path / 'tests').mkdir()
+    b = bundle_at(tmp_path / 'knowledge', exclusions=[
+        {'resource': 'tests', 'reason': 'behavioural tests'},
+        {'resource': 'docs/gone.md', 'reason': 'a retelling'},
+        {'resource': 'every generated file', 'reason': 'regenerated on build'}])
+    findings = list(check_resources(b, tmp_path))
+    assert [s for s, _ in findings] == ['ERROR', 'WARNING']
+    assert 'exclusions[1].resource' in findings[0][1]
+    assert 'exclusions[2].resource' in findings[1][1]
+

@@ -130,7 +130,7 @@ def test_get_vocabulary_all_returns_the_full_manifest():
 
 def test_bundle_summary():
     summary = mcp.bundle_summary(BUNDLE)
-    assert summary["triple_count"] == 153
+    assert summary["triple_count"] == 157
     assert summary["concept_count"] == 8
     assert summary["relation_edge_count"] == 12
 

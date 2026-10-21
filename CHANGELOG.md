@@ -36,6 +36,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- `exclusions` on a concept: materials looked at and left out on purpose, each
+  with a required `reason` and an optional `by`, projected as `lokf:excludes`.
+
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,
   and domain schemas. External reference classes remain unverified.

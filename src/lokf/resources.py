@@ -16,19 +16,17 @@ def resource_root(bundle_dir: Path) -> Path:
 def check_resources(bundle, root: Path):
     """Yield (severity, message), preserving scope descriptions as warnings.
 
-    Source values containing whitespace need ./, ../ or an absolute path to
-    be unambiguously local. Concept resource values are always identifiers or
+    Source and exclusion values containing whitespace need ./, ../ or an
+    absolute path to be unambiguously local. Concept resource values are always identifiers or
     paths. Resolve symlinks before enforcing containment under the root.
     """
     root = root.resolve()
     for concept in bundle.concepts:
         values = [('resource', concept.data.get('resource'), False)]
-        sources = concept.data.get('sources') or []
-        if isinstance(sources, dict):
-            sources = [sources]
-        if isinstance(sources, list):
-            values.extend((f'sources[{i}].resource', source.get('resource'), True)
-                          for i, source in enumerate(sources) if isinstance(source, dict))
+        # An exclusion names a material as a source does, scope descriptions included.
+        for field in ('sources', 'exclusions'):
+            values.extend((f'{field}[{i}].resource', entry.get('resource'), True)
+                          for i, entry in _entries(concept, field))
         for key, value, source in values:
             if not isinstance(value, str) or not value:
                 continue  # Shape and required fields are checked by the schema.
@@ -52,3 +50,14 @@ def check_resources(bundle, root: Path):
                     yield 'ERROR', f'{label} names no file or directory: {value!r} (looked at {path})'
             except (OSError, RuntimeError, ValueError) as exc:
                 yield 'ERROR', f'{label} cannot resolve {value!r}: {exc}'
+
+
+def _entries(concept, field: str) -> list[tuple[int, dict]]:
+    """The mapping entries of a list field with their positions in it."""
+    entries = concept.data.get(field) or []
+    if isinstance(entries, dict):
+        entries = [entries]
+    if not isinstance(entries, list):
+        return []
+    return [(i, e) for i, e in enumerate(entries) if isinstance(e, dict)]
+
