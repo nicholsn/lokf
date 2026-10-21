@@ -42,6 +42,18 @@ def check_resources(bundle, root: Path):
             if windows_path and os.name != 'nt':
                 yield 'ERROR', f'{label} uses a Windows path that cannot be checked on this platform: {value!r}'
                 continue
+            if source and any(c in value for c in '*?['):
+                # A pattern (docs/*.svg) names the files it matches; it holds
+                # when one of them lies inside the root.
+                if value.startswith(('/', '\\')) or '..' in Path(value).parts:
+                    yield 'ERROR', f'{label} is a pattern reaching outside resource root {root}: {value!r}'
+                else:
+                    try:
+                        if not any(m.resolve().is_relative_to(root) for m in root.glob(value)):
+                            yield 'ERROR', f'{label} matches no file or directory: {value!r} (under {root})'
+                    except (OSError, ValueError) as exc:
+                        yield 'ERROR', f'{label} is not a pattern that can be checked: {value!r}: {exc}'
+                continue
             try:
                 path = (root / value).resolve()
                 if not path.is_relative_to(root):

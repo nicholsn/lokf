@@ -42,6 +42,9 @@ with the 0.x caveat that a minor release may tighten validation.
 - `lokf validate` warns when a concept lists one material as both a source and
   an exclusion.
 
+- `--check-resources` accepts a pattern such as `docs/*.svg` in a source or an
+  exclusion when it matches a file inside the root.
+
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,
   and domain schemas. External reference classes remain unverified.
