@@ -15,25 +15,7 @@ lokf:AttestedComputationShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 35 ;
-            sh:path schema1:creativeWorkStatus ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 36 ;
-            sh:path schema1:expires ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 39 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
-        [ sh:class lokf:Concept ;
+    sh:property [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
@@ -66,6 +48,13 @@ lokf:AttestedComputationShape a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 30 ;
             sh:path schema1:genre ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 40 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -81,22 +70,44 @@ lokf:AttestedComputationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path schema1:about ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 36 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 17 ;
             sh:path schema1:citation ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
             sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
+            sh:node lokf:AudienceShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:order 39 ;
+            sh:path schema1:audience ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 35 ;
+            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:isPartOf ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path schema1:expires ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:datatype xsd:string ;
             sh:description "REQUIRED on an Attested Computation. How to run the computation (bigquery | postgres | dbt | python | Looker | ...); defines what `parameters` mean and how the executor and attester interpret the contract." ;
             sh:maxCount 1 ;
@@ -135,18 +146,18 @@ lokf:AttestedComputationShape a sh:NodeShape ;
                         sh:nodeKind sh:BlankNodeOrIRI ] ) ;
             sh:order 15 ;
             sh:path schema1:author ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 40 ;
-            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 14 ;
             sh:path schema1:license ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 41 ;
+            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -158,12 +169,6 @@ lokf:AttestedComputationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 29 ;
             sh:path dcterms:source ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 38 ;
-            sh:path schema1:audience ],
         [ sh:datatype xsd:anyURI ;
             sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:nodeKind sh:Literal ;
@@ -174,12 +179,6 @@ lokf:AttestedComputationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path dcterms:isReplacedBy ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 32 ;
-            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -190,6 +189,12 @@ lokf:AttestedComputationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:hasPart ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:additionalType ],
         [ sh:datatype xsd:anyURI ;
             sh:description "Optional path to a file holding the computation; absent means the body's `# Computation` fenced block IS the computation. Minted in lokf: schema:contentUrl is the nearest real property but is scoped to MediaObject bytes." ;
             sh:maxCount 1 ;
@@ -201,18 +206,23 @@ lokf:AttestedComputationShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:dateModified ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 37 ;
-            sh:path schema1:additionalType ],
         [ sh:description "The deterministic, non-LLM verdict check over a receipt." ;
             sh:maxCount 1 ;
             sh:node lokf:AttesterShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 4 ;
             sh:path lokf:attester ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 33 ;
+            sh:path lokf:usageWindow ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path lokf:excludes ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -228,11 +238,6 @@ lokf:AttestedComputationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path prov:wasDerivedFrom ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 34 ;
-            sh:path lokf:verified ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -255,16 +260,23 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 3 ;
             sh:path rdf:type ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 31 ;
-            sh:path lokf:verified ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( "tutorial" "how-to" "reference" "explanation" ) ;
             sh:maxCount 1 ;
             sh:order 27 ;
             sh:path schema1:genre ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 31 ;
+            sh:path prov:wasGeneratedBy ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
@@ -286,6 +298,11 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 2 ;
             sh:path schema1:identifier ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path lokf:excludes ],
         [ sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:node lokf:SourceShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -307,12 +324,6 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:license ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 35 ;
-            sh:path schema1:audience ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
@@ -323,29 +334,33 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path dcterms:relation ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 33 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that supersedes this one, without asserting equivalence." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path dcterms:isReplacedBy ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:usageWindow ],
         [ sh:description "Accessible forms of the dataset." ;
             sh:node lokf:DistributionShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 0 ;
             sh:path dcat:distribution ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 36 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
+            sh:node lokf:AudienceShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 30 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:order 36 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
@@ -362,11 +377,13 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 9 ;
             sh:path schema1:dateCreated ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
-            sh:order 32 ;
-            sh:path schema1:creativeWorkStatus ],
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -377,34 +394,21 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path prov:wasDerivedFrom ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:requires ],
         [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 37 ;
-            sh:path schema1:educationalLevel ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:additionalType ],
-        [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:keywords ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path lokf:verified ],
         [ sh:datatype xsd:anyURI ;
             sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:nodeKind sh:Literal ;
@@ -415,6 +419,12 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -425,6 +435,12 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path schema1:about ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -437,12 +453,6 @@ lokf:DatasetShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 10 ;
             sh:path schema1:version ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 33 ;
-            sh:path schema1:expires ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -455,18 +465,17 @@ lokf:DocumentShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:datatype xsd:anyURI ;
+    sh:property [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:verified ],
+        [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 9 ;
             sh:path schema1:license ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
         [ sh:description "The agent(s) responsible for authoring the concept." ;
             sh:or ( [ sh:datatype xsd:string ] [ sh:node lokf:AgentShape ;
                         sh:nodeKind sh:BlankNodeOrIRI ] ) ;
@@ -497,21 +506,28 @@ lokf:DocumentShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:about ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( "tutorial" "how-to" "reference" "explanation" ) ;
             sh:maxCount 1 ;
             sh:order 25 ;
             sh:path schema1:genre ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -524,28 +540,28 @@ lokf:DocumentShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:version ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path dcterms:source ],
         [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
-        [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:text ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 27 ;
+            sh:path lokf:excludes ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -556,34 +572,45 @@ lokf:DocumentShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 14 ;
             sh:path dcterms:isPartOf ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:requires ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+            sh:order 32 ;
+            sh:path schema1:expires ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that supersedes this one, without asserting equivalence." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:isReplacedBy ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
             sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:anyURI ;
             sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:nodeKind sh:Literal ;
@@ -625,29 +652,17 @@ lokf:DocumentShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
+            sh:node lokf:UsageWindowShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
-            sh:path schema1:sameAs ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ] ;
+            sh:path schema1:sameAs ] ;
     sh:targetClass lokf:Document .
 
 lokf:ExplanationShape a sh:NodeShape ;
@@ -676,12 +691,23 @@ lokf:ExplanationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
             sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
+            sh:node lokf:GenerationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:verified ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
@@ -703,12 +729,6 @@ lokf:ExplanationShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:dateCreated ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -719,13 +739,11 @@ lokf:ExplanationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path schema1:sameAs ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -736,28 +754,6 @@ lokf:ExplanationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -773,12 +769,19 @@ lokf:ExplanationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:requires ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -795,22 +798,28 @@ lokf:ExplanationShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:text ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that supersedes this one, without asserting equivalence." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:isReplacedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 1 ;
             sh:path rdf:type ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
@@ -822,6 +831,17 @@ lokf:ExplanationShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 9 ;
             sh:path schema1:license ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 27 ;
+            sh:path lokf:excludes ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -865,47 +885,59 @@ lokf:GlossaryTermShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path schema1:sameAs ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:requires ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:expires ],
         [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
             sh:node lokf:VerificationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 31 ;
+            sh:order 32 ;
             sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
             sh:path dcterms:references ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path lokf:excludes ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path schema1:about ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 32 ;
-            sh:path schema1:creativeWorkStatus ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:isPartOf ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 25 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
@@ -922,12 +954,11 @@ lokf:GlossaryTermShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 14 ;
             sh:path schema1:citation ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
             sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 35 ;
-            sh:path schema1:audience ],
+            sh:order 33 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -940,40 +971,29 @@ lokf:GlossaryTermShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:license ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 30 ;
-            sh:path prov:wasGeneratedBy ],
         [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 37 ;
-            sh:path schema1:educationalLevel ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:additionalType ],
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:dateModified ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 33 ;
-            sh:path schema1:expires ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 2 ;
             sh:path schema1:identifier ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 31 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that supersedes this one, without asserting equivalence." ;
             sh:nodeKind sh:IRI ;
@@ -994,13 +1014,6 @@ lokf:GlossaryTermShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 26 ;
             sh:path dcterms:source ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 36 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -1039,11 +1052,23 @@ lokf:GlossaryTermShape a sh:NodeShape ;
             sh:order 7 ;
             sh:path schema1:keywords ],
         [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:additionalType ],
+        [ sh:datatype xsd:string ;
             sh:description "The formal definition of a term." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path skos:definition ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 36 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "A short form or acronym for a term." ;
             sh:maxCount 1 ;
@@ -1125,23 +1150,36 @@ lokf:MetricShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path prov:wasGeneratedBy ],
+        [ sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
             sh:node lokf:RelationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 16 ;
             sh:path lokf:relations ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:expires ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 12 ;
             sh:path schema1:license ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:expires ],
         [ sh:datatype xsd:string ;
             sh:description "The unit of measurement (e.g. USD, seconds, count)." ;
             sh:maxCount 1 ;
@@ -1159,6 +1197,12 @@ lokf:MetricShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
             sh:path schema1:hasPart ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 39 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -1169,29 +1213,16 @@ lokf:MetricShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path dcterms:isReplacedBy ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 31 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:order 33 ;
+            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
             sh:order 27 ;
             sh:path dcterms:source ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 37 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 32 ;
-            sh:path lokf:verified ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
@@ -1203,6 +1234,11 @@ lokf:MetricShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path schema1:about ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 34 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -1212,13 +1248,19 @@ lokf:MetricShape a sh:NodeShape ;
             sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 35 ;
+            sh:order 36 ;
             sh:path schema1:additionalType ],
         [ sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:node lokf:SourceShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 29 ;
             sh:path schema1:isBasedOn ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 37 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -1235,17 +1277,6 @@ lokf:MetricShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 2 ;
             sh:path lokf:measures ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 36 ;
-            sh:path schema1:audience ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 33 ;
-            sh:path schema1:creativeWorkStatus ],
         [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
@@ -1288,17 +1319,16 @@ lokf:MetricShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 3 ;
             sh:path schema1:identifier ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 30 ;
-            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path prov:wasDerivedFrom ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:excludes ],
         [ sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -1309,12 +1339,6 @@ lokf:MetricShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:isPartOf ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 38 ;
-            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -1334,7 +1358,13 @@ lokf:MetricShape a sh:NodeShape ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
             sh:order 5 ;
-            sh:path schema1:name ] ;
+            sh:path schema1:name ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 31 ;
+            sh:path lokf:usageWindow ] ;
     sh:targetClass lokf:Metric .
 
 lokf:OrganizationShape a sh:NodeShape ;
@@ -1342,14 +1372,7 @@ lokf:OrganizationShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 37 ;
-            sh:path schema1:email ;
-            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
-        [ sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
+    sh:property [ sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:node lokf:SourceShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 26 ;
@@ -1365,11 +1388,24 @@ lokf:OrganizationShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
             sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( "tutorial" "how-to" "reference" "explanation" ) ;
             sh:maxCount 1 ;
@@ -1427,18 +1463,6 @@ lokf:OrganizationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ],
         [ sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -1449,6 +1473,19 @@ lokf:OrganizationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:about ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:email ;
+            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:description "Typed relationships whose predicate is not covered by a named relation slot. Each entry is a reified Relation (predicate + target)." ;
             sh:node lokf:RelationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -1459,17 +1496,12 @@ lokf:OrganizationShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
+            sh:node lokf:UsageWindowShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
-        [ sh:datatype xsd:string ;
-            sh:description "A name." ;
-            sh:nodeKind sh:Literal ;
-            sh:order 36 ;
-            sh:path schema1:name ],
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -1486,6 +1518,13 @@ lokf:OrganizationShape a sh:NodeShape ;
             sh:order 2 ;
             sh:path schema1:name ],
         [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -1494,43 +1533,39 @@ lokf:OrganizationShape a sh:NodeShape ;
         [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
             sh:node lokf:VerificationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
+            sh:order 30 ;
             sh:path lokf:verified ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 27 ;
+            sh:path lokf:excludes ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
             sh:order 31 ;
-            sh:path schema1:expires ],
+            sh:path schema1:creativeWorkStatus ],
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path schema1:name ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:references ],
         [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -1554,20 +1589,7 @@ lokf:PersonShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
-        [ sh:datatype xsd:string ;
+    sh:property [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -1578,17 +1600,18 @@ lokf:PersonShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:references ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
+        [ sh:datatype xsd:string ;
+            sh:description "Contact email address." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:email ;
+            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -1625,27 +1648,15 @@ lokf:PersonShape a sh:NodeShape ;
             sh:order 14 ;
             sh:path dcterms:isPartOf ],
         [ sh:datatype xsd:string ;
-            sh:description "A name." ;
-            sh:nodeKind sh:Literal ;
-            sh:order 36 ;
-            sh:path schema1:name ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ],
-        [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path schema1:name ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
+        [ sh:datatype xsd:string ;
+            sh:description "A name." ;
             sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
+            sh:order 37 ;
+            sh:path schema1:name ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( "tutorial" "how-to" "reference" "explanation" ) ;
             sh:maxCount 1 ;
@@ -1656,6 +1667,18 @@ lokf:PersonShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 13 ;
             sh:path lokf:relations ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -1666,13 +1689,6 @@ lokf:PersonShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
-        [ sh:datatype xsd:string ;
-            sh:description "Contact email address." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 37 ;
-            sh:path schema1:email ;
-            sh:pattern "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -1682,18 +1698,18 @@ lokf:PersonShape a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:node lokf:UsageWindowShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
+            sh:order 28 ;
             sh:path lokf:usageWindow ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:description "The materials this concept derives from, each carrying objective credibility signals. Markdown footnotes join to entries via `sources[].id`. Supersedes `citations` and the body `# Citations` convention." ;
             sh:node lokf:SourceShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 26 ;
             sh:path schema1:isBasedOn ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -1706,22 +1722,28 @@ lokf:PersonShape a sh:NodeShape ;
             sh:order 11 ;
             sh:path schema1:text ],
         [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
-        [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
             sh:order 5 ;
             sh:path schema1:keywords ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 9 ;
             sh:path schema1:license ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -1733,22 +1755,40 @@ lokf:PersonShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path dcterms:source ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:description "The agent(s) responsible for authoring the concept." ;
             sh:or ( [ sh:datatype xsd:string ] [ sh:node lokf:AgentShape ;
                         sh:nodeKind sh:BlankNodeOrIRI ] ) ;
             sh:order 10 ;
             sh:path schema1:author ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:verified ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 27 ;
+            sh:path lokf:excludes ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path schema1:description ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
@@ -1766,29 +1806,17 @@ lokf:PlaybookShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path dcterms:source ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -1819,11 +1847,6 @@ lokf:PlaybookShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:isReplacedBy ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -1840,12 +1863,11 @@ lokf:PlaybookShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 14 ;
             sh:path dcterms:isPartOf ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
             sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
@@ -1868,6 +1890,11 @@ lokf:PlaybookShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:version ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 27 ;
+            sh:path lokf:excludes ],
         [ sh:datatype xsd:anyURI ;
             sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:nodeKind sh:Literal ;
@@ -1888,28 +1915,24 @@ lokf:PlaybookShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path schema1:description ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -1920,6 +1943,12 @@ lokf:PlaybookShape a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 25 ;
             sh:path schema1:genre ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -1935,30 +1964,46 @@ lokf:PlaybookShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 5 ;
             sh:path schema1:keywords ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:verified ],
         [ sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 1 ;
             sh:path rdf:type ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
-            sh:path schema1:text ] ;
+            sh:path schema1:text ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ] ;
     sh:targetClass lokf:Playbook .
 
 lokf:PolicyShape a sh:NodeShape ;
@@ -1966,18 +2011,18 @@ lokf:PolicyShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:class lokf:Concept ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path schema1:sameAs ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that supersedes this one, without asserting equivalence." ;
             sh:nodeKind sh:IRI ;
@@ -1998,17 +2043,17 @@ lokf:PolicyShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
@@ -2020,6 +2065,12 @@ lokf:PolicyShape a sh:NodeShape ;
                         sh:nodeKind sh:BlankNodeOrIRI ] ) ;
             sh:order 10 ;
             sh:path schema1:author ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -2030,12 +2081,6 @@ lokf:PolicyShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path schema1:name ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -2051,12 +2096,28 @@ lokf:PolicyShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 12 ;
             sh:path schema1:citation ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 32 ;
-            sh:path schema1:additionalType ],
+            sh:path schema1:expires ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 27 ;
+            sh:path lokf:excludes ],
         [ sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -2077,6 +2138,11 @@ lokf:PolicyShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:requires ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:verified ],
         [ sh:datatype xsd:string ;
             sh:description "The markdown body of the concept document (everything after the frontmatter). Mapped to schema:text; carried as a field only in the JSON-LD / JSON serialization, not duplicated in the frontmatter." ;
             sh:maxCount 1 ;
@@ -2108,22 +2174,12 @@ lokf:PolicyShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -2140,19 +2196,13 @@ lokf:PolicyShape a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:node lokf:GenerationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
+            sh:order 29 ;
             sh:path prov:wasGeneratedBy ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
             sh:order 5 ;
             sh:path schema1:keywords ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -2166,7 +2216,13 @@ lokf:ReferenceShape a sh:NodeShape ;
     sh:closed false ;
     sh:ignoredProperties ( rdf:type ) ;
     sh:nodeKind sh:IRI ;
-    sh:property [ sh:class lokf:Concept ;
+    sh:property [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
+        [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
@@ -2176,28 +2232,16 @@ lokf:ReferenceShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
             sh:path prov:wasDerivedFrom ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ],
+            sh:order 27 ;
+            sh:path lokf:excludes ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( "tutorial" "how-to" "reference" "explanation" ) ;
             sh:maxCount 1 ;
@@ -2218,6 +2262,11 @@ lokf:ReferenceShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:about ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -2244,12 +2293,6 @@ lokf:ReferenceShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:references ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
@@ -2261,17 +2304,17 @@ lokf:ReferenceShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:isReplacedBy ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:dateModified ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -2284,11 +2327,28 @@ lokf:ReferenceShape a sh:NodeShape ;
             sh:order 11 ;
             sh:path schema1:text ],
         [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:verified ],
+        [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path schema1:description ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -2315,23 +2375,30 @@ lokf:ReferenceShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:version ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 12 ;
             sh:path schema1:citation ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
@@ -2342,18 +2409,6 @@ lokf:ReferenceShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 26 ;
             sh:path schema1:isBasedOn ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -2371,24 +2426,11 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 31 ;
             sh:path schema1:isBasedOn ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path prov:wasGeneratedBy ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
             sh:order 10 ;
             sh:path schema1:keywords ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 39 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -2420,12 +2462,17 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 18 ;
             sh:path lokf:relations ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 40 ;
-            sh:path schema1:educationalLevel ],
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 33 ;
+            sh:path lokf:usageWindow ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path lokf:excludes ],
         [ sh:class lokf:Concept ;
             sh:description "A generic association to another concept." ;
             sh:nodeKind sh:IRI ;
@@ -2436,6 +2483,19 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 28 ;
             sh:path rdfs:isDefinedBy ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 41 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 40 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
@@ -2446,6 +2506,12 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:hasPart ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path schema1:expires ],
         [ sh:description "The agent(s) responsible for authoring the concept." ;
             sh:or ( [ sh:datatype xsd:string ] [ sh:node lokf:AgentShape ;
                         sh:nodeKind sh:BlankNodeOrIRI ] ) ;
@@ -2456,29 +2522,22 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 4 ;
             sh:path org:member ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 35 ;
+            sh:path lokf:verified ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 36 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:description ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 38 ;
-            sh:path schema1:audience ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 35 ;
-            sh:path schema1:creativeWorkStatus ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 32 ;
-            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -2532,11 +2591,6 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 9 ;
             sh:path schema1:url ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 34 ;
-            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
@@ -2547,6 +2601,12 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
             sh:path dcterms:references ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 39 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "The date the role began (ISO 8601 date or year)." ;
             sh:maxCount 1 ;
@@ -2557,7 +2617,7 @@ lokf:RoleShape a sh:NodeShape ;
             sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 37 ;
+            sh:order 38 ;
             sh:path schema1:additionalType ],
         [ sh:datatype xsd:string ;
             sh:description "The name/title of the role held (e.g. a job title)." ;
@@ -2576,12 +2636,12 @@ lokf:RoleShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 6 ;
             sh:path rdf:type ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 36 ;
-            sh:path schema1:expires ],
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
@@ -2616,12 +2676,6 @@ lokf:ServiceShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 29 ;
             sh:path schema1:isBasedOn ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:additionalType ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
@@ -2639,23 +2693,28 @@ lokf:ServiceShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 10 ;
             sh:path schema1:dateCreated ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 37 ;
+            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "The target concept that this concept is a part of." ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:isPartOf ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 30 ;
-            sh:path lokf:usageWindow ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 38 ;
-            sh:path schema1:educationalLevel ],
+            sh:order 35 ;
+            sh:path schema1:expires ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:excludes ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
@@ -2671,33 +2730,29 @@ lokf:ServiceShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 18 ;
             sh:path schema1:hasPart ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 32 ;
-            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path schema1:about ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 33 ;
+            sh:path lokf:verified ],
         [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:version ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 36 ;
-            sh:path schema1:audience ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 33 ;
-            sh:path schema1:creativeWorkStatus ],
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The base URL or invocation endpoint of a service." ;
             sh:nodeKind sh:Literal ;
@@ -2723,6 +2778,12 @@ lokf:ServiceShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:url ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 31 ;
+            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
@@ -2738,6 +2799,12 @@ lokf:ServiceShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 16 ;
             sh:path lokf:relations ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:additionalType ],
         [ sh:datatype xsd:string ;
             sh:description "A single-sentence summary of the concept." ;
             sh:maxCount 1 ;
@@ -2759,6 +2826,12 @@ lokf:ServiceShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 27 ;
             sh:path dcterms:source ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -2769,35 +2842,27 @@ lokf:ServiceShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 26 ;
             sh:path rdfs:isDefinedBy ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:expires ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( "tutorial" "how-to" "reference" "explanation" ) ;
             sh:maxCount 1 ;
             sh:order 28 ;
             sh:path schema1:genre ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 37 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:references ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
             sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 31 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:order 34 ;
+            sh:path schema1:creativeWorkStatus ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 39 ;
+            sh:path schema1:educationalLevel ],
         [ sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;
@@ -2815,16 +2880,29 @@ lokf:TableShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 6 ;
             sh:path schema1:url ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
-            sh:order 32 ;
-            sh:path schema1:creativeWorkStatus ],
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path lokf:excludes ],
         [ sh:description "External sources supporting claims in the body." ;
             sh:node lokf:CitationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 14 ;
             sh:path schema1:citation ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 31 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:description "The agent(s) responsible for authoring the concept." ;
             sh:or ( [ sh:datatype xsd:string ] [ sh:node lokf:AgentShape ;
                         sh:nodeKind sh:BlankNodeOrIRI ] ) ;
@@ -2840,24 +2918,12 @@ lokf:TableShape a sh:NodeShape ;
             sh:maxCount 1 ;
             sh:order 27 ;
             sh:path schema1:genre ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:additionalType ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 11 ;
             sh:path schema1:license ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 37 ;
-            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "The subject matter this concept is about." ;
             sh:nodeKind sh:IRI ;
@@ -2894,28 +2960,44 @@ lokf:TableShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path schema1:hasPart ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 30 ;
-            sh:path prov:wasGeneratedBy ],
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:additionalType ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:requires ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 33 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:datatype xsd:string ;
             sh:description "Short cross-cutting keywords for categorization." ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;
             sh:path schema1:keywords ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 32 ;
+            sh:path lokf:verified ],
         [ sh:datatype xsd:string ;
             sh:description "A version string for the concept's content." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 10 ;
             sh:path schema1:version ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 36 ;
+            sh:path schema1:audience ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
@@ -2926,22 +3008,17 @@ lokf:TableShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 24 ;
             sh:path dcterms:relation ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 31 ;
-            sh:path lokf:verified ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:usageWindow ],
         [ sh:description "Accessible forms of the dataset." ;
             sh:node lokf:DistributionShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 0 ;
             sh:path dcat:distribution ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
@@ -2958,19 +3035,18 @@ lokf:TableShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 23 ;
             sh:path schema1:sameAs ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 33 ;
-            sh:path schema1:expires ],
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 36 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+            sh:order 38 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that supersedes this one, without asserting equivalence." ;
             sh:nodeKind sh:IRI ;
@@ -2992,12 +3068,6 @@ lokf:TableShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path prov:wasDerivedFrom ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 35 ;
-            sh:path schema1:audience ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
@@ -3025,17 +3095,6 @@ lokf:TutorialShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:isReplacedBy ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A resource that formally defines this concept." ;
             sh:nodeKind sh:IRI ;
@@ -3073,17 +3132,6 @@ lokf:TutorialShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 9 ;
             sh:path schema1:license ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime of the last meaningful change." ;
             sh:nodeKind sh:Literal ;
@@ -3094,6 +3142,11 @@ lokf:TutorialShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path dcterms:relation ],
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 30 ;
+            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -3104,39 +3157,72 @@ lokf:TutorialShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 20 ;
             sh:path schema1:about ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
         [ sh:description "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
+            sh:maxCount 1 ;
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 27 ;
+            sh:path lokf:excludes ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
         [ sh:class lokf:Concept ;
             sh:description "A concept this concept depends on." ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:requires ],
         [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+            sh:path schema1:audience ],
         [ sh:description "The Diátaxis documentation mode of the concept's markdown body (tutorial, how-to, reference, or explanation). An optional facet orthogonal to `type`: `type` says what the concept is *about*, `genre` says how its prose *serves the reader*." ;
             sh:in ( "tutorial" "how-to" "reference" "explanation" ) ;
             sh:maxCount 1 ;
             sh:order 25 ;
             sh:path schema1:genre ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
             sh:order 15 ;
             sh:path schema1:hasPart ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
         [ sh:class lokf:Concept ;
             sh:description "A concept or resource this concept refers to." ;
             sh:nodeKind sh:IRI ;
@@ -3148,12 +3234,6 @@ lokf:TutorialShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:version ],
-        [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ],
         [ sh:datatype xsd:anyURI ;
             sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:nodeKind sh:Literal ;
@@ -3196,23 +3276,18 @@ lokf:TutorialShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 14 ;
             sh:path dcterms:isPartOf ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+        [ sh:datatype xsd:string ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
+            sh:nodeKind sh:Literal ;
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
             sh:order 21 ;
-            sh:path schema1:sameAs ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ] ;
+            sh:path schema1:sameAs ] ;
     sh:targetClass lokf:Tutorial .
 
 schema1:DefinedTerm rdfs:subClassOf lokf:Concept .
@@ -3257,23 +3332,22 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 0 ;
             sh:path schema1:identifier ],
-        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
-            sh:maxCount 1 ;
-            sh:node lokf:UsageWindowShape ;
+        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
+            sh:node lokf:VerificationShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 27 ;
-            sh:path lokf:usageWindow ],
-        [ sh:datatype xsd:string ;
-            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 35 ;
-            sh:path schema1:educationalLevel ],
+            sh:order 30 ;
+            sh:path lokf:verified ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that supersedes this one, without asserting equivalence." ;
             sh:nodeKind sh:IRI ;
             sh:order 19 ;
             sh:path dcterms:isReplacedBy ],
+        [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
+            sh:maxCount 1 ;
+            sh:node lokf:UsageWindowShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 28 ;
+            sh:path lokf:usageWindow ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The license under which the concept or bundle is offered." ;
             sh:maxCount 1 ;
@@ -3286,11 +3360,18 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:order 20 ;
             sh:path schema1:about ],
         [ sh:datatype xsd:string ;
-            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
-            sh:order 32 ;
-            sh:path schema1:additionalType ],
+            sh:order 35 ;
+            sh:path schema1:typicalAgeRange ;
+            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
+            sh:maxCount 1 ;
+            sh:node lokf:GenerationShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 29 ;
+            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "A concept that is a part of this concept." ;
             sh:nodeKind sh:IRI ;
@@ -3301,22 +3382,22 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 16 ;
             sh:path dcterms:references ],
-        [ sh:description "Verification events confirming the content against its sources or resource. Independent of `generated`: who wrote a concept need not be who confirmed it. Trust tiers derive from the actors: absent = unverified; only non-human actors = machine-confirmed; any `human:<id>` actor = human-reviewed." ;
-            sh:node lokf:VerificationShape ;
+        [ sh:description "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+            sh:node lokf:ExclusionShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 29 ;
-            sh:path lokf:verified ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 31 ;
-            sh:path schema1:expires ],
+            sh:order 27 ;
+            sh:path lokf:excludes ],
         [ sh:description "The agent(s) responsible for authoring the concept." ;
             sh:or ( [ sh:datatype xsd:string ] [ sh:node lokf:AgentShape ;
                         sh:nodeKind sh:BlankNodeOrIRI ] ) ;
             sh:order 10 ;
             sh:path schema1:author ],
+        [ sh:datatype xsd:string ;
+            sh:description "The producer's own `type` string when it names no LOKF class." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path schema1:additionalType ],
         [ sh:datatype xsd:string ;
             sh:description "Human-readable display name." ;
             sh:nodeKind sh:Literal ;
@@ -3333,6 +3414,24 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 8 ;
             sh:path schema1:version ],
+        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
+            sh:maxCount 1 ;
+            sh:node lokf:AudienceShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 34 ;
+            sh:path schema1:audience ],
+        [ sh:datatype xsd:string ;
+            sh:description "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 36 ;
+            sh:path schema1:educationalLevel ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "The absolute instant on or after which the concept is stale (OKF §5.5: stale when now >= stale_after), an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path schema1:expires ],
         [ sh:datatype xsd:anyURI ;
             sh:description "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
             sh:nodeKind sh:Literal ;
@@ -3348,12 +3447,6 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:nodeKind sh:BlankNodeOrIRI ;
             sh:order 13 ;
             sh:path lokf:relations ],
-        [ sh:description "How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent." ;
-            sh:maxCount 1 ;
-            sh:node lokf:GenerationShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 28 ;
-            sh:path prov:wasGeneratedBy ],
         [ sh:class lokf:Concept ;
             sh:description "An IRI asserting this concept is the same entity as another." ;
             sh:nodeKind sh:IRI ;
@@ -3369,12 +3462,6 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 1 ;
             sh:path rdf:type ],
-        [ sh:description "The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers." ;
-            sh:maxCount 1 ;
-            sh:node lokf:AudienceShape ;
-            sh:nodeKind sh:BlankNodeOrIRI ;
-            sh:order 33 ;
-            sh:path schema1:audience ],
         [ sh:class lokf:Concept ;
             sh:description "An entity this concept was derived from (provenance)." ;
             sh:nodeKind sh:IRI ;
@@ -3390,11 +3477,6 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 17 ;
             sh:path dcterms:requires ],
-        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
-            sh:in ( "draft" "stable" "deprecated" ) ;
-            sh:maxCount 1 ;
-            sh:order 30 ;
-            sh:path schema1:creativeWorkStatus ],
         [ sh:datatype xsd:dateTime ;
             sh:description "ISO 8601 datetime the concept was created." ;
             sh:maxCount 1 ;
@@ -3428,13 +3510,11 @@ lokf:ConceptShape a sh:NodeShape ;
             sh:nodeKind sh:IRI ;
             sh:order 22 ;
             sh:path dcterms:relation ],
-        [ sh:datatype xsd:string ;
-            sh:description "The typical age range of the concept's readers, as schema.org writes it: `8-12`, or `13-` for 13 and over." ;
+        [ sh:description "Lifecycle status of the concept: draft | stable | deprecated. Absent means stable. Advisory, never access control." ;
+            sh:in ( "draft" "stable" "deprecated" ) ;
             sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 34 ;
-            sh:path schema1:typicalAgeRange ;
-            sh:pattern "^[0-9]{1,3}-([0-9]{1,3})?$" ],
+            sh:order 31 ;
+            sh:path schema1:creativeWorkStatus ],
         [ sh:class lokf:Concept ;
             sh:description "A resource from which this concept is derived or sourced." ;
             sh:nodeKind sh:IRI ;
@@ -3627,6 +3707,31 @@ lokf:CitationShape a sh:NodeShape ;
             sh:order 2 ;
             sh:path schema1:description ] .
 
+lokf:ExclusionShape a sh:NodeShape ;
+    rdfs:comment "A material the concept's author looked at and left out on purpose, with the reason: a test suite, a generated file, a retelling of another page. With it a checker can tell \"nobody looked at this\" from \"someone looked and set it aside\", and a reviewer can see who decided." ;
+    sh:closed false ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The actor who decided to leave it out, as an OKF §7 actor string (`human:<id>`, `process:<id>`, `<producer>/<version>`)." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path prov:wasAssociatedWith ;
+            sh:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "REQUIRED. What was left out, written as a Source's `resource` is: an absolute URL, a bundle-relative path, or a scope descriptor." ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path schema1:url ],
+        [ sh:datatype xsd:string ;
+            sh:description "Why the material was left out, in a sentence a reviewer can check." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path lokf:reason ] .
+
 lokf:GenerationShape a sh:NodeShape ;
     rdfs:comment "How and when the current content was produced (OKF v0.2 `generated`, §5.2). Modeled as the PROV activity that generated the concept, so \"who wrote this, when\" is a one-hop join from the concept via prov:wasGeneratedBy, with both slots keeping PROV's activity-side semantics (prov:wasAssociatedWith, prov:endedAtTime) — domain/range correct with no reasoner or subproperty entailment required." ;
     sh:closed false ;
@@ -3644,7 +3749,7 @@ lokf:GenerationShape a sh:NodeShape ;
             sh:order 2 ;
             sh:path lokf:revision ],
         [ sh:datatype xsd:string ;
-            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event." ;
+            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -3738,25 +3843,25 @@ lokf:VerificationShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path lokf:revision ],
-        [ sh:datatype xsd:dateTime ;
-            sh:description "ISO 8601 datetime at which the event completed." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 1 ;
-            sh:path prov:endedAtTime ],
         [ sh:datatype xsd:string ;
-            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event." ;
+            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path prov:wasAssociatedWith ;
-            sh:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] .
+            sh:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ],
+        [ sh:datatype xsd:dateTime ;
+            sh:description "ISO 8601 datetime at which the event completed." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path prov:endedAtTime ] .
 
 lokf:AgentShape a sh:NodeShape ;
     rdfs:comment "A person or organization responsible for a concept." ;
     sh:closed false ;
-    sh:ignoredProperties ( dcterms:isPartOf dcterms:isReplacedBy dcterms:references dcterms:relation dcterms:requires dcterms:source schema1:about schema1:additionalType schema1:audience schema1:author schema1:citation schema1:creativeWorkStatus schema1:dateCreated schema1:dateModified schema1:description schema1:educationalLevel schema1:expires schema1:genre schema1:hasPart schema1:isBasedOn schema1:keywords schema1:license schema1:sameAs schema1:text schema1:typicalAgeRange schema1:url schema1:version rdf:type rdfs:isDefinedBy prov:wasDerivedFrom prov:wasGeneratedBy lokf:relations lokf:usageWindow lokf:verified ) ;
+    sh:ignoredProperties ( dcterms:isPartOf dcterms:isReplacedBy dcterms:references dcterms:relation dcterms:requires dcterms:source schema1:about schema1:additionalType schema1:audience schema1:author schema1:citation schema1:creativeWorkStatus schema1:dateCreated schema1:dateModified schema1:description schema1:educationalLevel schema1:expires schema1:genre schema1:hasPart schema1:isBasedOn schema1:keywords schema1:license schema1:sameAs schema1:text schema1:typicalAgeRange schema1:url schema1:version rdf:type rdfs:isDefinedBy prov:wasDerivedFrom prov:wasGeneratedBy lokf:excludes lokf:relations lokf:usageWindow lokf:verified ) ;
     sh:property [ sh:description "The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm)." ;
             sh:minCount 1 ;
             sh:nodeKind sh:IRI ;

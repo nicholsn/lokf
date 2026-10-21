@@ -174,6 +174,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "executor": {
                     "anyOf": [
                         {
@@ -624,6 +634,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "generated": {
                     "anyOf": [
                         {
@@ -990,6 +1010,16 @@
                     "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -1399,6 +1429,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "generated": {
                     "anyOf": [
                         {
@@ -1630,6 +1670,34 @@
             "title": "Document",
             "type": "object"
         },
+        "Exclusion": {
+            "additionalProperties": false,
+            "description": "A material the concept's author looked at and left out on purpose, with the reason: a test suite, a generated file, a retelling of another page. With it a checker can tell \"nobody looked at this\" from \"someone looked and set it aside\", and a reviewer can see who decided.",
+            "properties": {
+                "by": {
+                    "description": "The actor who decided to leave it out, as an OKF \u00a77 actor string (`human:<id>`, `process:<id>`, `<producer>/<version>`).",
+                    "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "reason": {
+                    "description": "Why the material was left out, in a sentence a reviewer can check.",
+                    "type": "string"
+                },
+                "resource": {
+                    "description": "REQUIRED. What was left out, written as a Source's `resource` is: an absolute URL, a bundle-relative path, or a scope descriptor.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "resource",
+                "reason"
+            ],
+            "title": "Exclusion",
+            "type": "object"
+        },
         "Executor": {
             "additionalProperties": false,
             "description": "How an Attested Computation is run (OKF v0.2 \u00a710.2): `resource` names run instructions or code a runner follows; `receipt` declares the field names a run must return \u2014 the evidence surface the attester inspects. No established vocabulary has an execution-interface class, so the IRI is honestly lokf-minted; schema:EntryPoint (an invocation specification) is the nearest real term.",
@@ -1770,6 +1838,16 @@
                     "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -2087,7 +2165,7 @@
                     ]
                 },
                 "by": {
-                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event.",
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion.",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 },
@@ -2234,6 +2312,16 @@
                     "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -2730,6 +2818,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "formula": {
                     "description": "The calculation or definition expression for a metric.",
                     "type": [
@@ -3108,6 +3206,16 @@
                     "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -3524,6 +3632,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "generated": {
                     "anyOf": [
                         {
@@ -3880,6 +3998,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "generated": {
                     "anyOf": [
                         {
@@ -4229,6 +4357,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "generated": {
                     "anyOf": [
                         {
@@ -4575,6 +4713,16 @@
                     "description": "The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -4985,6 +5133,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "generated": {
                     "anyOf": [
                         {
@@ -5379,6 +5537,16 @@
                     "description": "The base URL or invocation endpoint of a service.",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -5822,6 +5990,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "fields": {
                     "description": "The columns / properties that make up a dataset's schema.",
                     "items": {
@@ -6181,6 +6359,16 @@
                         "null"
                     ]
                 },
+                "exclusions": {
+                    "description": "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another.",
+                    "items": {
+                        "$ref": "#/$defs/Exclusion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "generated": {
                     "anyOf": [
                         {
@@ -6449,7 +6637,7 @@
                     ]
                 },
                 "by": {
-                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event.",
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion.",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 },
