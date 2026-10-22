@@ -113,6 +113,19 @@ def test_convert_schema_leaves_an_undeclared_key_under_lokf(tmp_path):
     assert f"<{_DOMAIN}taughtBy>" in result.stdout
 
 
+def test_convert_schema_projects_a_slot_named_like_a_parameter_type(tmp_path):
+    """A domain slot named `uri` projects under the domain's own IRI, not as
+    the lokf:UriParameter class in predicate position."""
+    kb = _kb(tmp_path, "---\ntype: Endpoint\ntitle: E\nuri: https://ex.org/dep\n---\n\n# E\n")
+    domain = FIXTURES / "domain-schema" / "names-a-slot-like-a-parameter-type.yaml"
+    result = runner.invoke(
+        app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
+    )
+    assert result.exit_code == 0, result.output
+    assert f'<{_DOMAIN}uri> "https://ex.org/dep"' in result.stdout
+    assert "UriParameter" not in result.stdout
+
+
 def test_convert_without_schema_reads_a_domain_class_as_concept(tmp_path):
     """Without --schema, the same concept is an undeclared type (SPEC §8)."""
     kb = _kb(tmp_path, _COURSE)
