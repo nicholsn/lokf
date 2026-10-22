@@ -83,6 +83,7 @@ IRI, and puts the vocabulary's root class under `Concept`.
      detached from a dropped: category
      demoted designators:     category
      renamed, IRIs kept:      agent -> BiolinkAgent, dataset -> BiolinkDataset, unit -> biolink_unit, name -> biolink_name, ...
+     folded into LOKF's:      none
      re-rooted on Concept:    Entity
      tree_root removed:       BiolinkKnowledgeGraph, MappingCollection
      one canonical form:      knowledge graph -> BiolinkKnowledgeGraph
@@ -167,6 +168,21 @@ lokf adapt gist_core.yaml --prefix gist --root Aspect --root Category --root Com
 Semantic Arts' [gist](https://github.com/semanticarts/gist), is the tested
 case, because it fits this pattern. A concept then writes `type: Requirement`, which
 projects as `a gist:Requirement`.
+
+### Fold a slot that LOKF already has
+
+A vocabulary slot whose `slot_uri`, or one of its `exact_mappings`, is the
+IRI of a slot on `Concept` is folded into that slot: the copy drops it, and
+its classes list LOKF's slot instead. A slot mapped to `schema:name` becomes
+`title`. Use `--fold` for a slot that means the same as LOKF's slot but
+declares no mapping:
+
+```bash
+lokf adapt slsa.yaml --root Package --root SourceRepository --fold name=title --fold description=description
+```
+
+A concept then writes its display name once, as `title`, which projects as
+`schema:name`. Without the fold, the copy would carry `slsa_name` beside it.
 
 ## Extend an adapted vocabulary
 
