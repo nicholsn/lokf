@@ -197,6 +197,7 @@ def test_adapt_is_deterministic_and_reports_every_move():
     assert report.demoted == ["category"]
     assert report.detached == ["category"]
     assert report.tree_roots == ["Edge"]
+    assert report.folded_into == {}  # name is rdfs:label, which only LOKF's relation_label carries
     assert "tree_root" not in one["classes"]["Edge"]
     assert one["classes"]["Entity"]["is_a"] == "Concept"
     assert one["name"] == "vocabulary-with-root_lokf"
@@ -220,6 +221,90 @@ def test_adapt_takes_a_renamed_root_by_its_own_name():
     assert report.problems == []
     assert report.roots == ["VocabDataset"]
     assert schema["classes"]["VocabDataset"]["is_a"] == "Concept"
+
+
+# --- folds: a slot that means what one of LOKF's means -------------------------
+
+_FOLDS = (
+    "id: https://ex.org/f\nname: f\ndefault_prefix: f\nimports: [linkml:types]\n"
+    "prefixes: {f: https://ex.org/f/, sdo: http://schema.org/, linkml: https://w3id.org/linkml/}\n"
+    "classes:\n"
+    "  thing: {slots: [uid, label, summary, title, size], slot_usage: {label: {required: true, range: integer}}}\n"
+    "  short label: {is_a: label}\n"
+    "slots:\n"
+    "  uid: {identifier: true}\n"
+    "  label: {slot_uri: sdo:name}\n"
+    "  summary: {exact_mappings: [sdo:description]}\n"
+    "  title: {slot_uri: dcterms:title}\n"
+    "  size: {}\n"
+    "  short label: {is_a: label}\n"
+)
+
+
+def _folds_vocab(tmp_path, text=_FOLDS) -> pathlib.Path:
+    vocab = tmp_path / "f.yaml"
+    vocab.write_text(text, encoding="utf-8")
+    return vocab
+
+
+def test_a_slot_with_the_iri_of_lokfs_title_folds_into_it_not_into_lokfs_name(tmp_path):
+    """schema:name is LOKF's title and its name; only title is a concept's."""
+    schema, report = A.adapt(_folds_vocab(tmp_path))
+    assert report.problems == []
+    assert report.folded_into == {"label": "title", "summary": "description"}
+    assert "label" not in schema["slots"] and "summary" not in schema["slots"]
+    # the vocabulary's own title is renamed first; the fold's title is LOKF's
+    assert report.renamed == {"title": "f_title"}
+    assert schema["classes"]["Thing"]["slots"] == ["id", "title", "description", "f_title", "size"]
+    # a slot_usage keeps what documents, as for a dropped identifier
+    assert schema["classes"]["Thing"]["slot_usage"] == {"title": {"required": True}}
+    assert schema["slots"]["short_label"]["is_a"] == "title"
+
+
+def test_an_exact_mapping_folds_as_a_slot_uri_does():
+    lokf = load_schema(LOKF)
+    schema = {"prefixes": {"schema": "http://schema.org/"}, "slots": {"summary": {"exact_mappings": ["schema:description"]}}}
+    assert A.find_folds(schema, lokf) == ({"summary": "description"}, [])
+    # a close mapping is not the same meaning
+    schema["slots"]["summary"] = {"close_mappings": ["schema:description"]}
+    assert A.find_folds(schema, lokf) == ({}, [])
+
+
+def test_two_of_concepts_slots_with_one_iri_refuse_the_fold_until_a_flag_chooses():
+    lokf = {
+        "prefixes": {"s": "https://s.example/"},
+        "classes": {"Concept": {"slots": ["title", "headline"]}},
+        "slots": {"title": {"slot_uri": "s:name"}, "headline": {"slot_uri": "s:name"}},
+    }
+    schema = {"slots": {"label": {"slot_uri": "https://s.example/name"}}}
+    folds, problems = A.find_folds(schema, lokf)
+    assert folds == {}
+    assert problems == ["slot label has the IRI of LOKF's headline and title; pass --fold label=<one of them>"]
+    assert A.find_folds(schema, lokf, {"label": "title"}) == ({"label": "title"}, [])
+
+
+def test_fold_flag_folds_a_slot_that_declares_no_mapping():
+    schema, report = A.adapt(VOCAB, folds={"name": "title", "description": "description"})
+    assert report.problems == []
+    assert report.folded_into == {"name": "title", "description": "description"}
+    assert {"name", "description"}.isdisjoint(report.renamed)  # folded, so not renamed as shared
+    assert "vocab_name" not in schema["slots"] and "description" not in schema["slots"]
+    assert schema["classes"]["Entity"]["slots"][:4] == ["id", "type", "title", "description"]
+    assert "Adapted for LOKF by `lokf adapt`." in schema["notes"][-1]
+    assert "folded into LOKF's: name -> title, description -> description" in schema["notes"][-1]
+
+
+def test_fold_flag_takes_the_vocabularys_spelling_or_the_underscored_one():
+    _, report = A.adapt(VOCAB, folds={"has_attribute": "relatedTo"})
+    assert report.folded_into == {"has attribute": "relatedTo"}
+
+
+def test_fold_flag_refuses_a_slot_either_side_lacks():
+    _, report = A.adapt(VOCAB, folds={"nonesuch": "title", "name": "nonesuch"})
+    assert report.problems == [
+        "--fold nonesuch=title: the vocabulary has no slot nonesuch",
+        "--fold name=nonesuch: lokf.yaml has no slot nonesuch",
+    ]
 
 
 # --- end to end ------------------------------------------------------------------
@@ -385,6 +470,29 @@ def test_cli_check_passes_a_fresh_copy_and_fails_a_stale_or_missing_one(tmp_path
     result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out), "--check"])
     assert result.exit_code == 1
     assert "is stale" in result.output
+
+
+def test_cli_reports_a_fold_and_check_holds_the_copy_to_it(tmp_path):
+    out = tmp_path / "copy.yaml"
+    fold = ["--fold", "name=title"]
+    result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out), *fold])
+    assert result.exit_code == 0, result.output
+    assert "folded into LOKF's:      name -> title" in result.output
+    assert runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out), "--check", *fold]).exit_code == 0
+    result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out), "--check"])
+    assert result.exit_code == 1
+    assert "is stale" in result.output
+
+
+def test_cli_refuses_a_fold_it_cannot_make(tmp_path):
+    out = tmp_path / "copy.yaml"
+    result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out), "--fold", "name=nonesuch"])
+    assert result.exit_code == 1
+    assert "lokf.yaml has no slot nonesuch" in result.output
+    assert not out.exists()
+    result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out), "--fold", "name"])
+    assert result.exit_code == 2
+    assert "VOCAB_SLOT=LOKF_SLOT" in result.output
 
 
 def test_cli_exits_one_when_root_names_no_class(tmp_path):

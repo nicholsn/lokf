@@ -4,7 +4,7 @@ A domain schema imports ``lokf.yaml`` and a vocabulary side by side (SPEC
 §6.2). LinkML merges the two into one namespace, so the vocabulary's copy must
 share no element name with ``lokf.yaml``, and its concepts must descend from
 ``Concept`` to join the bundle's concept union. :func:`adapt` makes that copy
-from the vocabulary as published, in six mechanical moves:
+from the vocabulary as published, in seven mechanical moves:
 
 1. fold the vocabulary's own imports into one file, so the copy stands alone;
 2. drop the two slots that cannot coexist with LOKF's, an identifier (LOKF's
@@ -14,8 +14,11 @@ from the vocabulary as published, in six mechanical moves:
    type designator to an ordinary slot;
 4. rename every other shared name and pin its IRI, so biolink's ``name``
    becomes ``biolink_name`` and still projects as ``rdfs:label``;
-5. re-root the vocabulary's top classes on ``Concept``;
-6. give classes CamelCase names and slots underscored ones: the forms ``type``,
+5. fold into LOKF's a slot that means what one of LOKF's slots means, found
+   by its IRI or named by ``--fold``, and drop it as step 2 drops a twin, so a
+   concept writes ``title`` once rather than beside ``slsa_name``;
+6. re-root the vocabulary's top classes on ``Concept``;
+7. give classes CamelCase names and slots underscored ones: the forms ``type``,
    frontmatter keys and the JSON-LD context use.
 
 Everything works on the plain YAML dict. SchemaView, from the runtime the
@@ -48,7 +51,7 @@ _SLOT_REFS_ON_SLOT = (
 )
 _EXPRESSIONS = ("any_of", "all_of", "exactly_one_of", "none_of")
 _CONDITIONS = ("preconditions", "postconditions", "elseconditions")
-# What a slot_usage may still say about a slot LOKF now serves (id, type).
+# What a slot_usage may still say about a slot LOKF now serves (id, type, a fold).
 _USAGE_KEEP = (
     "required", "recommended", "description", "comments", "notes", "examples",
     "values_from", "see_also", "in_subset", "aliases",
@@ -78,6 +81,7 @@ class Report:
     detached: list[str] = field(default_factory=list)
     demoted: list[str] = field(default_factory=list)
     renamed: dict[str, str] = field(default_factory=dict)
+    folded_into: dict[str, str] = field(default_factory=dict)
     roots: list[str] = field(default_factory=list)
     tree_roots: list[str] = field(default_factory=list)
     collided: dict[str, str] = field(default_factory=dict)
@@ -94,6 +98,7 @@ class Report:
             f"detached from a dropped: {', '.join(self.detached) or 'none'}",
             f"demoted designators:     {', '.join(self.demoted) or 'none'}",
             f"renamed, IRIs kept:      {pairs(self.renamed)}",
+            f"folded into LOKF's:      {pairs(self.folded_into)}",
             f"re-rooted on Concept:    {', '.join(self.roots) or 'none (pass --root)'}",
             f"tree_root removed:       {', '.join(self.tree_roots) or 'none'}",
             f"one canonical form:      {pairs(self.collided)}",
@@ -168,7 +173,7 @@ def fold_imports(vocab: pathlib.Path) -> tuple[dict, list[str]]:
     return root, folded
 
 
-# --- 2..6. the moves ----------------------------------------------------------
+# --- 2..7. the moves ----------------------------------------------------------
 
 def _norm(section: str, name: str) -> str:
     if section == "classes":
@@ -313,19 +318,23 @@ def drop_twins(schema: dict) -> tuple[dict[str, str], list[str]]:
                 del cls["attributes"][name]
                 cls["slots"] = list(cls.get("slots") or []) + ["id"]
                 dropped[name] = "id"
-    # What referenced the vocabulary's slot now references LOKF's, which the
-    # copy gets through its `lokf` import. A slot_usage on it keeps what
-    # documents, not what would reshape LOKF's slot.
+    _point_at_lokf(schema, dropped)
+    return dropped, detached
+
+
+def _point_at_lokf(schema: dict, served: dict[str, str]) -> None:
+    """What referenced a vocabulary slot in *served* now references LOKF's,
+    which the copy gets through its `lokf` import. A slot_usage on it keeps
+    what documents, not what would reshape LOKF's slot."""
     for cls in (schema.get("classes") or {}).values():
         for name, usage in list((cls.get("slot_usage") or {}).items()):
-            if name in dropped and isinstance(usage, dict):
+            if name in served and isinstance(usage, dict):
                 cls["slot_usage"][name] = {k: v for k, v in usage.items() if k in _USAGE_KEEP}
-    rewrite_refs(schema, Renames(slots=dict(dropped)))
+    rewrite_refs(schema, Renames(slots=dict(served)))
     for cls in (schema.get("classes") or {}).values():
         for key in _SLOT_REFS_ON_CLASS:
             if isinstance(cls.get(key), list):
                 cls[key] = list(dict.fromkeys(cls[key]))
-    return dropped, detached
 
 
 def demote_designators(schema: dict) -> list[str]:
@@ -395,6 +404,83 @@ def rename_shared(schema: dict, shared: dict[str, list[str]], prefix: str) -> di
                 elem["aliases"] = aliases + [old]
     rewrite_refs(schema, r)
     return {**r.elements, **r.slots, **r.subsets}
+
+
+def _expand(curie: str, prefixes: dict) -> str:
+    """*curie* as a full IRI where *prefixes* binds its prefix, else as written."""
+    if "://" in curie or ":" not in curie:
+        return curie
+    pfx, local = curie.split(":", 1)
+    base = prefixes.get(pfx)
+    if isinstance(base, dict):
+        base = base.get("prefix_reference")
+    return f"{base}{local}" if base else curie
+
+
+def find_folds(schema: dict, lokf: dict, asked: dict[str, str] | None = None) -> tuple[dict[str, str], list[str]]:
+    """Which vocabulary slots fold into which of LOKF's, and the problems
+    that refuse a fold.
+
+    *asked* comes from ``--fold``: a vocabulary slot, in its own spelling or
+    underscored, and the LOKF slot it means. A name either side lacks is
+    refused. Every other slot folds by IRI: its ``slot_uri``, or one of its
+    ``exact_mappings``, is the ``slot_uri`` of a slot ``Concept`` lists. Only
+    those count, because the slot is folded into what a concept writes: LOKF's
+    ``name`` (an agent's or a field's) and ``relation_label`` describe other
+    nodes. ``id`` and ``type`` are :func:`drop_twins`' to drop, and a
+    deprecated slot is never a target. So ``schema:name`` folds into
+    ``title``, not LOKF's ``name``. Should two of Concept's slots ever share
+    an IRI, the fold is refused until a ``--fold`` chooses one. The
+    vocabulary's CURIEs expand with LOKF's prefixes under its own, as they do
+    once the copy imports ``lokf``."""
+    slots = schema.get("slots") or {}
+    lokf_slots = lokf.get("slots") or {}
+    folds: dict[str, str] = {}
+    problems: list[str] = []
+    by_form = {underscore(n): n for n in slots}
+    for want, target in (asked or {}).items():
+        have = want if want in slots else by_form.get(underscore(want))
+        if have is None:
+            problems.append(f"--fold {want}={target}: the vocabulary has no slot {want}")
+        if target not in lokf_slots:
+            problems.append(f"--fold {want}={target}: lokf.yaml has no slot {target}")
+        if have is not None and target in lokf_slots:
+            folds[have] = target
+    lokf_prefixes = lokf.get("prefixes") or {}
+    prefixes = {**lokf_prefixes, **(schema.get("prefixes") or {})}
+    targets: dict[str, list[str]] = {}
+    for n in ((lokf.get("classes") or {}).get("Concept") or {}).get("slots") or []:
+        slot = lokf_slots.get(n) or {}
+        if n in ("id", "type") or slot.get("deprecated") or not slot.get("slot_uri"):
+            continue
+        targets.setdefault(_expand(slot["slot_uri"], lokf_prefixes), []).append(n)
+    for name, slot in slots.items():
+        if name in folds or not isinstance(slot, dict):
+            continue
+        iris = [i for i in (slot.get("slot_uri"), *(slot.get("exact_mappings") or [])) if isinstance(i, str)]
+        hits = sorted({t for i in iris for t in targets.get(_expand(i, prefixes), [])})
+        if len(hits) == 1:
+            folds[name] = hits[0]
+        elif hits:
+            problems.append(
+                f"slot {name} has the IRI of LOKF's {' and '.join(hits)}; pass --fold {name}=<one of them>"
+            )
+    return folds, problems
+
+
+def fold_twins(schema: dict, folds: dict[str, str]) -> dict[str, str]:
+    """Delete each vocabulary slot in *folds* and list LOKF's in its place, as
+    :func:`drop_twins` does for an identifier. A slot that inherited from a
+    folded one now inherits from LOKF's. Runs after :func:`rename_shared`,
+    which leaves the folded slots alone, so a vocabulary slot named like the
+    target (its own ``title``) is renamed first and a fold's ``title`` is not.
+    Returns *folds* in the vocabulary's order."""
+    slots = schema.get("slots") or {}
+    done = {n: folds[n] for n in slots if n in folds}
+    for name in done:
+        del slots[name]
+    _point_at_lokf(schema, done)
+    return done
 
 
 def find_roots(schema: dict) -> list[str]:
@@ -552,11 +638,13 @@ def adapt(
     roots: list[str] | tuple[str, ...] = (),
     prefix: str | None = None,
     name: str | None = None,
+    folds: dict[str, str] | None = None,
 ) -> tuple[dict, Report]:
     """The copy of *vocab* a domain schema imports beside ``lokf.yaml``, and a
     report of the moves. *roots* names classes to re-root on ``Concept``, in
     the vocabulary's own spelling or CamelCase, instead of the detected ones.
-    *name* is the copy's schema name (default ``<stem>_lokf``)."""
+    *name* is the copy's schema name (default ``<stem>_lokf``). *folds* maps a
+    vocabulary slot to the LOKF slot it means, beside those its IRI folds."""
     vocab = pathlib.Path(vocab)
     lokf_dict = load_schema(schema_path(lokf))
     schema, folded = fold_imports(vocab)
@@ -568,12 +656,20 @@ def adapt(
 
     prefix = prefix or schema.get("default_prefix") or vocab.stem
     report.dropped, report.detached = drop_twins(schema)
+    fold, problems = find_folds(schema, lokf_dict, folds)
+    report.problems.extend(problems)
     report.demoted = demote_designators(schema)
-    shared = shared_names(schema, lokf_dict)
+    # A folded slot is LOKF's from here on, so it is not renamed as shared.
+    shared = {
+        section: kept
+        for section, names in shared_names(schema, lokf_dict).items()
+        if (kept := [n for n in names if not (section == "slots" and n in fold)])
+    }
     try:
         report.renamed = rename_shared(schema, shared, prefix)
     except ValueError as exc:
         report.problems.append(str(exc))
+    report.folded_into = fold_twins(schema, fold)
     if roots:
         # A root may be named as the vocabulary spells it, before any rename.
         classes = schema.get("classes") or {}
@@ -605,6 +701,7 @@ def adapt(
             ("re-rooted on lokf:Concept", ", ".join(report.roots)),
             ("dropped for LOKF's", ", ".join(report.dropped)),
             ("renamed, IRIs unchanged", ", ".join(f"{a} -> {b}" for a, b in report.renamed.items())),
+            ("folded into LOKF's", ", ".join(f"{a} -> {b}" for a, b in report.folded_into.items())),
             ("renamed for one canonical form", ", ".join(f"{a} -> {b}" for a, b in report.collided.items())),
             ("designators demoted", ", ".join(report.demoted)),
         ) if v
