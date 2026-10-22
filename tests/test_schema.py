@@ -623,3 +623,34 @@ def test_by_is_required_by_the_event_classes_not_the_slot():
         assert schema["classes"][event]["slot_usage"]["by"]["required"] is True
     with pytest.raises(ValueError):
         dm.Verification(at="2026-01-01T00:00:00Z")
+
+
+# -- materials left out on purpose: exclusions ----------------------------------
+def test_exclusions_are_a_sibling_of_sources_under_lokf(vocab):
+    """`exclusions` projects under lokf:excludes, never schema:isBasedOn; each
+    entry needs a resource and a reason, and `by` is optional."""
+    schema = load_schema()
+    slots, concept = schema["slots"], schema["classes"]["Concept"]["slots"]
+    assert concept.index("exclusions") == concept.index("sources") + 1
+    assert slots["exclusions"]["slot_uri"] == "lokf:excludes"
+    assert slots["exclusions"]["range"] == "Exclusion"
+    assert "required" not in slots["exclusions"]
+    exclusion = schema["classes"]["Exclusion"]
+    assert exclusion["class_uri"] == "lokf:Exclusion"
+    assert exclusion["slots"] == ["resource", "reason", "by"]
+    assert exclusion["slot_usage"]["resource"]["required"] is True
+    assert exclusion["slot_usage"]["reason"]["required"] is True
+    assert slots["reason"]["slot_uri"] == "lokf:reason"
+    # `reason` is required where it is used, not on the slot, so a domain
+    # slot of the same name is not made required.
+    assert "required" not in slots["reason"]
+
+
+def test_the_generated_datamodel_agrees_on_what_is_required():
+    """gen-python reads `required` from the slot, not a `false` override, so
+    the generated classes are checked, not only the YAML."""
+    from lokf import datamodel as dm
+
+    dm.Exclusion(resource="tests", reason="behavioural tests")  # `by` optional
+    with pytest.raises(ValueError):
+        dm.Exclusion(resource="tests")

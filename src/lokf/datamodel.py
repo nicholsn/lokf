@@ -249,6 +249,7 @@ class Concept(YAMLRoot):
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     genre: Optional[Union[str, "DiataxisMode"]] = None
     sources: Optional[Union[Union[dict, "Source"], list[Union[dict, "Source"]]]] = empty_list()
+    exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
@@ -353,6 +354,8 @@ class Concept(YAMLRoot):
             self.genre = DiataxisMode(self.genre)
 
         self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
+
+        self._normalize_inlined_as_list(slot_name="exclusions", slot_type=Exclusion, key_name="resource", keyed=False)
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
             self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
@@ -942,6 +945,7 @@ class Person(Agent):
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     genre: Optional[Union[str, "DiataxisMode"]] = None
     sources: Optional[Union[Union[dict, "Source"], list[Union[dict, "Source"]]]] = empty_list()
+    exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
@@ -1047,6 +1051,8 @@ class Person(Agent):
 
         self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
 
+        self._normalize_inlined_as_list(slot_name="exclusions", slot_type=Exclusion, key_name="resource", keyed=False)
+
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
             self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
 
@@ -1116,6 +1122,7 @@ class Organization(Agent):
     source: Optional[Union[Union[str, ConceptId], list[Union[str, ConceptId]]]] = empty_list()
     genre: Optional[Union[str, "DiataxisMode"]] = None
     sources: Optional[Union[Union[dict, "Source"], list[Union[dict, "Source"]]]] = empty_list()
+    exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
@@ -1220,6 +1227,8 @@ class Organization(Agent):
             self.genre = DiataxisMode(self.genre)
 
         self._normalize_inlined_as_list(slot_name="sources", slot_type=Source, key_name="resource", keyed=False)
+
+        self._normalize_inlined_as_list(slot_name="exclusions", slot_type=Exclusion, key_name="resource", keyed=False)
 
         if self.usage_window is not None and not isinstance(self.usage_window, UsageWindow):
             self.usage_window = UsageWindow(**{("from_" if k == "from" else k): v for k, v in as_dict(self.usage_window).items()})
@@ -1438,6 +1447,41 @@ class Source(YAMLRoot):
 
         if self.id is not None and not isinstance(self.id, str):
             self.id = str(self.id)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Exclusion(YAMLRoot):
+    """
+    A material the concept's author looked at and left out on purpose, with the reason: a test suite, a generated
+    file, a retelling of another page. With it a checker can tell "nobody looked at this" from "someone looked and set
+    it aside", and a reviewer can see who decided.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Exclusion"]
+    class_class_curie: ClassVar[str] = "lokf:Exclusion"
+    class_name: ClassVar[str] = "Exclusion"
+    class_model_uri: ClassVar[URIRef] = LOKF.Exclusion
+
+    resource: str = None
+    reason: str = None
+    by: Optional[str] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.resource):
+            self.MissingRequiredField("resource")
+        if not isinstance(self.resource, str):
+            self.resource = str(self.resource)
+
+        if self._is_empty(self.reason):
+            self.MissingRequiredField("reason")
+        if not isinstance(self.reason, str):
+            self.reason = str(self.reason)
+
+        if self.by is not None and not isinstance(self.by, str):
+            self.by = str(self.by)
 
         super().__post_init__(**kwargs)
 
@@ -2114,6 +2158,12 @@ slots.context = Slot(uri=LOKF.context, name="context", curie=LOKF.curie('context
 slots.sources = Slot(uri=SCHEMA.isBasedOn, name="sources", curie=SCHEMA.curie('isBasedOn'),
                    model_uri=LOKF.sources, domain=None, range=Optional[Union[Union[dict, Source], list[Union[dict, Source]]]])
 
+slots.exclusions = Slot(uri=LOKF.excludes, name="exclusions", curie=LOKF.curie('excludes'),
+                   model_uri=LOKF.exclusions, domain=None, range=Optional[Union[Union[dict, Exclusion], list[Union[dict, Exclusion]]]])
+
+slots.reason = Slot(uri=LOKF.reason, name="reason", curie=LOKF.curie('reason'),
+                   model_uri=LOKF.reason, domain=None, range=Optional[str])
+
 slots.usage_window = Slot(uri=LOKF.usageWindow, name="usage_window", curie=LOKF.curie('usageWindow'),
                    model_uri=LOKF.usage_window, domain=None, range=Optional[Union[dict, UsageWindow]])
 
@@ -2202,6 +2252,16 @@ slots.Source_resource = Slot(uri=SCHEMA.url, name="Source_resource", curie=SCHEM
 slots.Source_author = Slot(uri=SCHEMA.author, name="Source_author", curie=SCHEMA.curie('author'),
                    model_uri=LOKF.Source_author, domain=Source, range=Optional[Union[str, list[str]]],
                    pattern=re.compile(r'^[^\s:/]+:\S+$|^[^\s/]+/[^\s/]+$'))
+
+slots.Exclusion_reason = Slot(uri=LOKF.reason, name="Exclusion_reason", curie=LOKF.curie('reason'),
+                   model_uri=LOKF.Exclusion_reason, domain=Exclusion, range=str)
+
+slots.Exclusion_resource = Slot(uri=SCHEMA.url, name="Exclusion_resource", curie=SCHEMA.curie('url'),
+                   model_uri=LOKF.Exclusion_resource, domain=Exclusion, range=str)
+
+slots.Exclusion_by = Slot(uri=PROV.wasAssociatedWith, name="Exclusion_by", curie=PROV.curie('wasAssociatedWith'),
+                   model_uri=LOKF.Exclusion_by, domain=Exclusion, range=Optional[str],
+                   pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
 
 slots.Generation_by = Slot(uri=PROV.wasAssociatedWith, name="Generation_by", curie=PROV.curie('wasAssociatedWith'),
                    model_uri=LOKF.Generation_by, domain=Generation, range=str,

@@ -133,6 +133,7 @@ classes:
       - source
       - genre
       - sources
+      - exclusions
       - usage_window
       - generated
       - verified
@@ -509,6 +510,33 @@ classes:
           Deliberately looser than `by`: source authorship is commonly a team
           or an org, so any `<prefix>:<id>` is admitted, where `by` stays
           confined to the §7 provenance actors the trust tiers read.
+
+  Exclusion:
+    description: >-
+      A material the concept's author looked at and left out on purpose, with
+      the reason: a test suite, a generated file, a retelling of another page.
+      With it a checker can tell "nobody looked at this" from "someone looked
+      and set it aside", and a reviewer can see who decided.
+    notes:
+      - It is not a source, so it never projects as schema:isBasedOn.
+    class_uri: lokf:Exclusion
+    slots:
+      - resource
+      - reason
+      - by
+    slot_usage:
+      reason:
+        required: true
+      resource:
+        required: true
+        range: string
+        description: >-
+          REQUIRED. What was left out, written as a Source's `resource` is:
+          an absolute URL, a bundle-relative path, or a scope descriptor.
+      by:
+        description: >-
+          The actor who decided to leave it out, as an OKF §7 actor string
+          (`human:<id>`, `process:<id>`, `<producer>/<version>`).
 
   Audience:
     description: >-
@@ -1330,6 +1358,26 @@ slots:
     in_subset:
       - okf_v02
 
+  exclusions:
+    description: >-
+      The materials this concept's author considered and left out on
+      purpose, each with its reason. A sibling of `sources`: a material
+      listed here was not derived from, and a material used by one concept
+      may be left out by another.
+    range: Exclusion
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: lokf:excludes
+    in_subset:
+      - lokf_semantic
+
+  reason:
+    description: Why the material was left out, in a sentence a reviewer can check.
+    range: string
+    slot_uri: lokf:reason
+    in_subset:
+      - lokf_semantic
+
   usage_window:
     description: >-
       The `{ from, to }` date range framing every `usage_count`. Attached
@@ -1451,7 +1499,7 @@ slots:
       (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal,
       never an IRI. Trust tiers derive from the `human:` prefix via string
       inspection (SPARQL STRSTARTS). Required on a generation or
-      verification event.
+      verification event, optional on an exclusion.
     range: string
     pattern: '^(human|process):\S+$|^[^\s/]+/[^\s/]+$'
     slot_uri: prov:wasAssociatedWith

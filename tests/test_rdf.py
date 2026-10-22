@@ -34,9 +34,9 @@ def test_graph_of_single_file_has_wau_subject_and_relations():
 
 
 def test_graph_of_bundle_dir_triple_count():
-    """The whole acme bundle projects to exactly 153 triples."""
+    """The whole acme bundle projects to exactly 157 triples."""
     g = rdf.graph_of(BUNDLE)
-    assert len(g) == 153
+    assert len(g) == 157
 
 
 def test_unknown_type_projects_as_concept_and_keeps_its_spelling(tmp_path):
@@ -198,3 +198,26 @@ def test_replacement_multiple_successors_and_reference_checks(tmp_path):
     assert set(graph.objects(URIRef("https://example.org/old"), predicate)) == {
         URIRef("https://example.org/new"), URIRef("https://example.org/split")}
     assert load_bundle(tmp_path).dangling_refs() == [("old", "isReplacedBy", "split")]
+
+
+def test_exclusions_project_apart_from_sources(tmp_path):
+    """A material left out is lokf:excludes with its reason, never schema:isBasedOn."""
+    from rdflib import Literal
+
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\n---\n# KB\n", encoding="utf-8"
+    )
+    (tmp_path / "map.md").write_text(
+        "---\ntype: Playbook\ntitle: Source map\nsources:\n  - resource: docs/a.md\n"
+        "exclusions:\n  - resource: tests\n    reason: behavioural tests\n    by: human:jsmith\n"
+        "---\n# Map\n",
+        encoding="utf-8",
+    )
+    g = rdf.graph_of(tmp_path)
+    lokf, sdo = "https://w3id.org/lokf/", "http://schema.org/"
+    concept = URIRef("https://ex.org/kb/map")
+    excluded = g.value(concept, URIRef(lokf + "excludes"))
+    assert (excluded, URIRef(lokf + "reason"), Literal("behavioural tests")) in g
+    assert (excluded, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("human:jsmith")) in g
+    based_on = {str(g.value(o, URIRef(sdo + "url"))) for o in g.objects(concept, URIRef(sdo + "isBasedOn"))}
+    assert based_on == {"docs/a.md"}

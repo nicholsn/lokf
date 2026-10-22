@@ -139,6 +139,10 @@
     "excerpt": {
       "@id": "excerpt"
     },
+    "exclusions": {
+      "@type": "@id",
+      "@id": "excludes"
+    },
     "executor": {
       "@type": "@id",
       "@id": "executor"
@@ -239,6 +243,9 @@
     "publisher": {
       "@type": "@id",
       "@id": "schema:publisher"
+    },
+    "reason": {
+      "@id": "reason"
     },
     "receipt": {
       "@id": "receipt"
@@ -379,6 +386,14 @@
     },
     "Document": {
       "@id": "Document"
+    },
+    "Exclusion": {
+      "@id": "Exclusion",
+      "@context": {
+        "resource": {
+          "@id": "schema:url"
+        }
+      }
     },
     "Executor": {
       "@id": "Executor"

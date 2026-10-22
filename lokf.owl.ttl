@@ -663,6 +663,12 @@ lokf:distribution a owl:ObjectProperty ;
     skos:definition "Accessible forms of the dataset." ;
     skos:inScheme lokf:schema .
 
+lokf:exclusions a owl:ObjectProperty ;
+    rdfs:label "exclusions" ;
+    rdfs:range lokf:Exclusion ;
+    skos:definition "The materials this concept's author considered and left out on purpose, each with its reason. A sibling of `sources`: a material listed here was not derived from, and a material used by one concept may be left out by another." ;
+    skos:inScheme lokf:schema .
+
 lokf:fields a owl:ObjectProperty ;
     rdfs:label "fields" ;
     rdfs:range lokf:Field ;
@@ -852,6 +858,43 @@ lokf:Attester a owl:Class ;
         schema1:SoftwareSourceCode ;
     skos:definition "The deterministic, non-LLM check for an Attested Computation (OKF v0.2 §10.2): `resource` names code that takes a run's receipt and returns a verdict, run consumer-side. Honestly lokf-minted." ;
     skos:exactMatch lokf:Attester ;
+    skos:inScheme lokf:schema .
+
+lokf:Exclusion a owl:Class ;
+    rdfs:label "Exclusion" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:resource ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:reason ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:by ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:reason ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:resource ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty lokf:reason ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:resource ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:string ;
+                                owl:withRestrictions ( [ xsd:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] ) ] ) ] ;
+            owl:onProperty lokf:by ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:by ] ;
+    skos:definition "A material the concept's author looked at and left out on purpose, with the reason: a test suite, a generated file, a retelling of another page. With it a checker can tell \"nobody looked at this\" from \"someone looked and set it aside\", and a reviewer can see who decided." ;
+    skos:editorialNote "It is not a source, so it never projects as schema:isBasedOn." ;
+    skos:exactMatch lokf:Exclusion ;
     skos:inScheme lokf:schema .
 
 lokf:Executor a owl:Class ;
@@ -1300,6 +1343,12 @@ lokf:publisher a owl:ObjectProperty ;
     skos:definition "The agent responsible for making the bundle available." ;
     skos:inScheme lokf:schema .
 
+lokf:reason a owl:DatatypeProperty ;
+    rdfs:label "reason" ;
+    rdfs:range xsd:string ;
+    skos:definition "Why the material was left out, in a sentence a reviewer can check." ;
+    skos:inScheme lokf:schema .
+
 lokf:relation_label a owl:DatatypeProperty ;
     rdfs:label "relation_label" ;
     skos:definition "An optional human-readable label for the relationship." ;
@@ -1649,17 +1698,6 @@ lokf:at a owl:DatatypeProperty ;
     skos:definition "ISO 8601 datetime at which the event completed." ;
     skos:inScheme lokf:schema .
 
-lokf:by a owl:DatatypeProperty ;
-    rdfs:label "by" ;
-    rdfs:range [ a rdfs:Datatype ;
-            owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
-                        owl:onDatatype xsd:string ;
-                        owl:withRestrictions ( [ xsd:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] ) ] ) ] ;
-    skos:closeMatch schema1:agent ;
-    skos:definition "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event." ;
-    skos:inScheme lokf:schema ;
-    skos:note "prov:wasAssociatedWith is an object property (range prov:Agent); carrying a literal actor designator is a documented, RDF-consistent pragmatic flattening — chosen over coined actor IRIs because a flat JSON-LD context cannot rewrite strings into IRIs, and \"reference_agent/gemini-2.5-pro\" (no colon) would resolve as an unstable document-base-relative IRI, while \"human:kliu\" would silently become an absolute IRI in an unregistered URI scheme." .
-
 lokf:license a owl:DatatypeProperty ;
     rdfs:label "license" ;
     rdfs:range xsd:anyURI ;
@@ -1753,6 +1791,17 @@ lokf:HttpMethod a owl:Class ;
         <https://w3id.org/lokf/HttpMethod#POST>,
         <https://w3id.org/lokf/HttpMethod#PUT> .
 
+lokf:by a owl:DatatypeProperty ;
+    rdfs:label "by" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:string [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:string ;
+                        owl:withRestrictions ( [ xsd:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] ) ] ) ] ;
+    skos:closeMatch schema1:agent ;
+    skos:definition "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion." ;
+    skos:inScheme lokf:schema ;
+    skos:note "prov:wasAssociatedWith is an object property (range prov:Agent); carrying a literal actor designator is a documented, RDF-consistent pragmatic flattening — chosen over coined actor IRIs because a flat JSON-LD context cannot rewrite strings into IRIs, and \"reference_agent/gemini-2.5-pro\" (no colon) would resolve as an unstable document-base-relative IRI, while \"human:kliu\" would silently become an absolute IRI in an unregistered URI scheme." .
+
 lokf:id a owl:DatatypeProperty ;
     rdfs:label "id" ;
     rdfs:range xsd:anyURI ;
@@ -1832,14 +1881,6 @@ lokf:name a owl:DatatypeProperty ;
     skos:definition "A name." ;
     skos:inScheme lokf:schema .
 
-lokf:resource a owl:DatatypeProperty ;
-    rdfs:label "resource" ;
-    rdfs:range xsd:anyURI ;
-    skos:closeMatch dcat:landingPage,
-        prov:specializationOf ;
-    skos:definition "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
-    skos:inScheme lokf:schema .
-
 lokf:title a owl:DatatypeProperty ;
     rdfs:label "title" ;
     skos:closeMatch dcterms:title,
@@ -1855,6 +1896,14 @@ lokf:description a owl:DatatypeProperty ;
     rdfs:label "description" ;
     skos:closeMatch dcterms:description ;
     skos:definition "A single-sentence summary of the concept." ;
+    skos:inScheme lokf:schema .
+
+lokf:resource a owl:DatatypeProperty ;
+    rdfs:label "resource" ;
+    rdfs:range xsd:anyURI ;
+    skos:closeMatch dcat:landingPage,
+        prov:specializationOf ;
+    skos:definition "A URI that uniquely identifies the underlying real-world asset the concept describes (a table console URL, an API base URL, etc.). Absent for purely abstract concepts." ;
     skos:inScheme lokf:schema .
 
 xsd:dateTime a owl:Class ;
@@ -1964,6 +2013,9 @@ lokf:Concept a owl:Class ;
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:body ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Exclusion ;
+            owl:onProperty lokf:exclusions ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:sources ],
@@ -2150,6 +2202,9 @@ lokf:Concept a owl:Class ;
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:typicalAgeRange ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:exclusions ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:type ],

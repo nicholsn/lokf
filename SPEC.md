@@ -228,6 +228,7 @@ distinguishable, never rejected).
 | Field          | OKF v0.2 | RDF property (`slot_uri`) | Range        | Notes |
 |----------------|:---:|---------------------------------|--------------|-------|
 | `sources`      |  ✅ | `schema:isBasedOn`              | Source*      | close: `dcterms:source`, `prov:wasDerivedFrom` (primary IRI is owned by `derivedFrom`). |
+| `exclusions`   |     | `lokf:excludes`                 | Exclusion*   | `{resource, reason, by?}`: the materials looked at and left out on purpose, never `schema:isBasedOn`. LOKF's own field. |
 | `usage_window` |  ✅ | `lokf:usageWindow`              | UsageWindow  | `{from, to}` → `dcat:startDate`/`dcat:endDate` on a `dcterms:PeriodOfTime`. Sibling of `sources`; a Source entry MAY override. |
 | `generated`    |  ✅ | `prov:wasGeneratedBy`           | Generation   | `{by, at}` → `prov:wasAssociatedWith` + `prov:endedAtTime` on a `prov:Activity`. Supersedes `timestamp`. |
 | `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`); `by` is REQUIRED, since trust tiers derive from it. A bare mapping MUST be read as a one-element list. |
@@ -264,7 +265,18 @@ again later). `excerpt` is LOKF's own field, proposed for OKF under the same nam
 ([knowledge-catalog#438](https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438));
 it moves to the OKF subset if OKF adopts it.
 
-**Actors** (`generated.by`, `verified[].by`, `sources[].author`) follow OKF §7
+**Exclusion entries** (`exclusions[]`, `lokf:excludes`): the materials the
+concept's author looked at and left out on purpose, a sibling of `sources`.
+Each takes `resource` (REQUIRED, written as a Source's is), `reason`
+(REQUIRED, `lokf:reason`) and optionally `by`, the §7 actor who decided. An
+exclusion never projects as `schema:isBasedOn`, so the graph does not claim the
+concept is based on what it set aside, and the relation is per concept: one
+concept may use a material another leaves out. With it a coverage check can
+tell "nobody looked at this" from "someone looked and set it aside".
+`lokf validate` warns when one concept lists the same material under both
+`sources` and `exclusions`. `exclusions` is LOKF's own field.
+
+**Actors** (`generated.by`, `verified[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
 (`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain
 literals — never coerced to IRIs, since `human:x` would silently mint an IRI in
 an unregistered URI scheme and `a/b` would resolve document-relative. Trust
@@ -577,15 +589,15 @@ so off-site targets are not errors.
 
 ### Local resource checks
 
-`lokf validate --check-resources` checks local `resource` and
-`sources[].resource` paths. Use `--root DIR` to choose their resolution root;
+`lokf validate --check-resources` checks local `resource`,
+`sources[].resource` and `exclusions[].resource` paths. Use `--root DIR` to choose their resolution root;
 the default is the nearest enclosing Git repository, or the bundle's parent
 outside Git. Files and directories are accepted. Missing paths and paths
 escaping the root (including through symlinks) are errors. URI/CURIE values
 are never fetched. Use portable relative paths; Windows drive paths cannot
 be checked on a non-Windows host.
 
-A Source may contain a prose scope description. Unprefixed Source values
+A Source or Exclusion may contain a prose scope description. Unprefixed values
 containing whitespace are reported as unchecked descriptions, with a warning.
 Prefix local paths containing spaces with `./` (or use an absolute path within
 the root) to make them unambiguous. Concept `resource` values are always paths
@@ -613,7 +625,7 @@ rejects a malformed value rather than passing it through to RDF:
 | Field | Constraint |
 |---|---|
 | `base_iri` | absolute `http(s)`, ending in `/` or `#` so IDs mint by plain concatenation and prefix routing respects segment boundaries |
-| `generated.by`, `verified[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
+| `generated.by`, `verified[].by`, `exclusions[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
 | `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
 | `email` | an address shape (`local@domain.tld`) |
 | `typicalAgeRange` | an age range as schema.org writes it: `8-12`, or `13-` for 13 and over |
@@ -716,7 +728,7 @@ repos:
     distribution:
       rdf:      https://acme.example/knowledge/graph.nt        # SPARQL harvest source
       concepts: https://acme.example/knowledge/concepts.jsonld # offline document access
-    void: { triples: 153, class_partition: { Metric: 1, Dataset: 1, GlossaryTerm: 1, AttestedComputation: 1 } }
+    void: { triples: 157, class_partition: { Metric: 1, Dataset: 1, GlossaryTerm: 1, AttestedComputation: 1 } }
     id_index:                                        # explicit `id:` IRIs outside base_iri → Concept ID
       https://acme.example/legacy/wau: metrics/weekly-active-users
     status: ok
