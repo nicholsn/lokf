@@ -2136,7 +2136,7 @@ slots.verified = Slot(uri=LOKF.verified, name="verified", curie=LOKF.curie('veri
                    model_uri=LOKF.verified, domain=None, range=Optional[Union[Union[dict, Verification], list[Union[dict, Verification]]]])
 
 slots.by = Slot(uri=PROV.wasAssociatedWith, name="by", curie=PROV.curie('wasAssociatedWith'),
-                   model_uri=LOKF.by, domain=None, range=str,
+                   model_uri=LOKF.by, domain=None, range=Optional[str],
                    pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
 
 slots.at = Slot(uri=PROV.endedAtTime, name="at", curie=PROV.curie('endedAtTime'),
@@ -2202,6 +2202,14 @@ slots.Source_resource = Slot(uri=SCHEMA.url, name="Source_resource", curie=SCHEM
 slots.Source_author = Slot(uri=SCHEMA.author, name="Source_author", curie=SCHEMA.curie('author'),
                    model_uri=LOKF.Source_author, domain=Source, range=Optional[Union[str, list[str]]],
                    pattern=re.compile(r'^[^\s:/]+:\S+$|^[^\s/]+/[^\s/]+$'))
+
+slots.Generation_by = Slot(uri=PROV.wasAssociatedWith, name="Generation_by", curie=PROV.curie('wasAssociatedWith'),
+                   model_uri=LOKF.Generation_by, domain=Generation, range=str,
+                   pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
+
+slots.Verification_by = Slot(uri=PROV.wasAssociatedWith, name="Verification_by", curie=PROV.curie('wasAssociatedWith'),
+                   model_uri=LOKF.Verification_by, domain=Verification, range=str,
+                   pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
 
 slots.Parameter_name = Slot(uri=SCHEMA.name, name="Parameter_name", curie=SCHEMA.curie('name'),
                    model_uri=LOKF.Parameter_name, domain=Parameter, range=str)

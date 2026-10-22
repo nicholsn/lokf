@@ -3638,19 +3638,19 @@ lokf:GenerationShape a sh:NodeShape ;
             sh:order 1 ;
             sh:path prov:endedAtTime ],
         [ sh:datatype xsd:string ;
-            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS)." ;
+            sh:description "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path lokf:revision ],
+        [ sh:datatype xsd:string ;
+            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path prov:wasAssociatedWith ;
-            sh:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ],
-        [ sh:datatype xsd:string ;
-            sh:description "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path lokf:revision ] .
+            sh:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] .
 
 lokf:RelationShape a sh:NodeShape ;
     rdfs:comment "A typed, reified relationship from the containing concept to a target, used when a predicate is not covered by one of the named relation slots. Modeled as an rdf:Statement (subject = the containing concept)." ;
@@ -3745,7 +3745,7 @@ lokf:VerificationShape a sh:NodeShape ;
             sh:order 1 ;
             sh:path prov:endedAtTime ],
         [ sh:datatype xsd:string ;
-            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS)." ;
+            sh:description "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event." ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;

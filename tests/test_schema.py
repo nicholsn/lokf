@@ -609,3 +609,17 @@ def test_packaged_validation_artifacts_match_published_files():
     from importlib.resources import files
     for name in ("lokf.schema.json", "lokf.shacl.ttl"):
         assert (files("lokf") / "data" / name).read_bytes() == (ROOT / name).read_bytes()
+
+
+# -- required where used: `by` on provenance events ------------------------------
+def test_by_is_required_by_the_event_classes_not_the_slot():
+    """`by` is required on a generation or verification event by `slot_usage`,
+    so a class that shares the slot can leave it optional."""
+    from lokf import datamodel as dm
+
+    schema = load_schema()
+    assert "required" not in schema["slots"]["by"]
+    for event in ("Generation", "Verification"):
+        assert schema["classes"][event]["slot_usage"]["by"]["required"] is True
+    with pytest.raises(ValueError):
+        dm.Verification(at="2026-01-01T00:00:00Z")

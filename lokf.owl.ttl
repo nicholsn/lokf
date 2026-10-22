@@ -1656,7 +1656,7 @@ lokf:by a owl:DatatypeProperty ;
                         owl:onDatatype xsd:string ;
                         owl:withRestrictions ( [ xsd:pattern "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$" ] ) ] ) ] ;
     skos:closeMatch schema1:agent ;
-    skos:definition "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS)." ;
+    skos:definition "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event." ;
     skos:inScheme lokf:schema ;
     skos:note "prov:wasAssociatedWith is an object property (range prov:Agent); carrying a literal actor designator is a documented, RDF-consistent pragmatic flattening — chosen over coined actor IRIs because a flat JSON-LD context cannot rewrite strings into IRIs, and \"reference_agent/gemini-2.5-pro\" (no colon) would resolve as an unstable document-base-relative IRI, while \"human:kliu\" would silently become an absolute IRI in an unregistered URI scheme." .
 
@@ -1758,6 +1758,7 @@ lokf:id a owl:DatatypeProperty ;
     rdfs:range xsd:anyURI ;
     skos:definition "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`).",
         "The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject." ;
+    skos:editorialNote "The schema requires an id, unlike OKF. A concept file may leave it out, since the toolkit fills it from the base IRI and the Concept ID." ;
     skos:inScheme lokf:schema ;
     skos:note "Declared as a class-local attribute rather than the global identifier slot so it stays optional (LinkML's falsy-merge silently drops an `identifier: false` slot_usage override and generation then fails).",
         "Under the published flat context `id` maps to @id, so the value resolves against the bundle base and mints the source node's IRI — the same id used across concepts merges into one RDF node; schema:identifier applies only on the LinkML RDF-dump path." .

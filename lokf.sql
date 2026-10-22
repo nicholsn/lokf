@@ -465,12 +465,12 @@
 --     * Slot: to Description: End (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 -- # Class: Generation Description: How and when the current content was produced (OKF v0.2 `generated`, §5.2). Modeled as the PROV activity that generated the concept, so "who wrote this, when" is a one-hop join from the concept via prov:wasGeneratedBy, with both slots keeping PROV's activity-side semantics (prov:wasAssociatedWith, prov:endedAtTime) — domain/range correct with no reasoner or subproperty entailment required.
 --     * Slot: id
---     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).
+--     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event.
 --     * Slot: at Description: ISO 8601 datetime at which the event completed.
 --     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
 -- # Class: Verification Description: One verification event (OKF v0.2 `verified`, §5.2): an actor confirmed the content against its sources or resource at a time. Independent checks accumulate as separate events; trust tiers (unverified / machine-confirmed / human-reviewed) are derived from the actors, never stored. PROV has no Verification class, so the class IRI is honestly lokf-minted; the generated ontology declares it a subclass of prov:Activity.
 --     * Slot: id
---     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS).
+--     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event.
 --     * Slot: at Description: ISO 8601 datetime at which the event completed.
 --     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
 --     * Slot: Concept_id Description: Autocreated FK slot
