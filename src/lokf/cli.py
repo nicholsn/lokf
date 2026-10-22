@@ -721,8 +721,14 @@ def adapt(
     ),
     fold: list[str] = typer.Option(
         [], "--fold", metavar="VOCAB_SLOT=LOKF_SLOT",
-        help="Fold a vocabulary slot into the LOKF slot it means, as an identifier is; "
-        "repeatable. A slot whose IRI is the IRI of a slot Concept lists folds without it.",
+        help="Fold a vocabulary slot, or a class attribute as Class.attr, into the LOKF slot "
+        "it means, as an identifier is; repeatable. A slot whose IRI is the IRI of a slot "
+        "Concept lists folds without it.",
+    ),
+    keep: list[str] = typer.Option(
+        [], "--keep", metavar="VOCAB_SLOT",
+        help="Leave a vocabulary slot, or a Class.attr attribute, out of the fold by IRI; "
+        "repeatable. It is renamed or kept as it would be without a matching IRI.",
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Report the moves; write nothing."),
     check: bool = typer.Option(
@@ -754,7 +760,7 @@ def adapt(
     try:
         lokf_path = schema_path(lokf)
         schema, report = adapter.adapt(
-            vocab, lokf=lokf, roots=root, prefix=prefix, name=out.stem, folds=folds,
+            vocab, lokf=lokf, roots=root, prefix=prefix, name=out.stem, folds=folds, keep=keep,
         )
     except (FileNotFoundError, ValueError, yaml.YAMLError) as exc:
         _err(str(exc))
