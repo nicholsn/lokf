@@ -2,7 +2,7 @@
 
 A domain schema imports ``lokf.yaml`` and a vocabulary side by side (SPEC
 §6.2). LinkML merges the two into one namespace, so the vocabulary's copy must
-share no element name with ``lokf.yaml``, and its concepts must descend from
+share no element name with ``lokf.yaml``. Its concepts must also descend from
 ``Concept`` to join the bundle's concept union. :func:`adapt` makes that copy
 from the vocabulary as published, in seven mechanical moves:
 
@@ -14,12 +14,11 @@ from the vocabulary as published, in seven mechanical moves:
    type designator to an ordinary slot;
 4. rename every other shared name and pin its IRI, so biolink's ``name``
    becomes ``biolink_name`` and still projects as ``rdfs:label``;
-5. fold into LOKF's a slot, or a class attribute, that means what one of
-   LOKF's slots means, found by its IRI or named by ``--fold`` and not held
-   back by ``--keep``, and drop it as step 2 drops a twin, so a concept
-   writes ``title`` once rather than beside ``slsa_name``; what the folded
-   definition required of its values goes into a ``slot_usage`` on each class
-   that listed it;
+5. fold a slot or class attribute into LOKF's when it means what one of
+   LOKF's slots means: its IRI matches, or ``--fold`` names it. Unless
+   ``--keep`` holds it back, drop it as step 2 does. Copy its constraints,
+   such as ``required`` or ``pattern``, into a ``slot_usage`` on every class
+   that used it, so those classes still enforce them;
 6. re-root the vocabulary's top classes on ``Concept``, and warn of an
    attribute on one of them that shadows a slot ``Concept`` lists;
 7. give classes CamelCase names and slots underscored ones: the forms ``type``,
@@ -61,9 +60,9 @@ _USAGE_KEEP = (
     "required", "recommended", "description", "comments", "notes", "examples",
     "values_from", "see_also", "in_subset", "aliases",
 )
-# What a fold carries from the folded definition into a slot_usage on each
-# class that listed it: the constraints the vocabulary validated, which now
-# refine LOKF's slot on that class alone. A slot_usage the class already had
+# What a fold copies from the folded slot into a slot_usage on every class
+# that used it: the constraints the vocabulary enforced, which now narrow
+# LOKF's slot on that class alone. A slot_usage the class already had
 # keeps these too and wins over the definition's, as it did in the vocabulary.
 # `multivalued` is not carried: it is a shape, not a refinement, and
 # find_folds refuses a fold whose shape differs from the target's.
@@ -362,7 +361,7 @@ def drop_twins(schema: dict) -> tuple[dict[str, str], list[str]]:
 def _point_at_lokf(schema: dict, served: dict[str, str], keep: tuple[str, ...] = _USAGE_KEEP) -> None:
     """What referenced a vocabulary slot in *served* now references LOKF's,
     which the copy gets through its `lokf` import. A slot_usage on it keeps
-    what documents (*keep*), not what would reshape LOKF's slot."""
+    only the keys in *keep*, never one that would reshape LOKF's slot."""
     for cls in (schema.get("classes") or {}).values():
         for name, usage in list((cls.get("slot_usage") or {}).items()):
             if name in served and isinstance(usage, dict):
@@ -511,9 +510,9 @@ def _shape_conflict(elem: dict, usages: list[tuple[str, dict]], target: str, sch
     """Why *elem* cannot fold into LOKF's *target*, or ``None``: the first
     way its shape differs from the target's, on the definition or on a
     class's ``slot_usage`` of it (*usages*), whose values win on that class
-    as they do in LinkML. A shape is ``multivalued`` and ``range``; a range
-    that refines the target's (:func:`_refines`) is no conflict, it is
-    carried."""
+    as they do in LinkML. A shape is ``multivalued`` and ``range``. A range
+    that refines the target's (:func:`_refines`) is no conflict: it is
+    copied."""
     lokf_slot = (lokf.get("slots") or {}).get(target) or {}
     t_multi = bool(lokf_slot.get("multivalued"))
     t_range = lokf_slot.get("range") or lokf.get("default_range") or "string"
@@ -541,26 +540,25 @@ def find_folds(
     the names ``--keep`` holds back, and the problems that refuse a fold. An
     attribute is keyed ``Class.attr`` throughout.
 
-    *asked* comes from ``--fold``: a vocabulary slot, or ``Class.attr``, in
-    its own spelling or the canonical one, and the LOKF slot it means. A
-    name either side lacks is refused, and so is a slot :func:`drop_twins`
-    already dropped (*dropped* says as what LOKF slot). *keep* comes from
-    ``--keep``: names left out of the IRI route, which must exist and not be
-    in *asked*. Every other slot and attribute folds by IRI: its
-    ``slot_uri``, or one of its ``exact_mappings``, is the ``slot_uri`` of a
-    slot ``Concept`` lists. Only those count, because the slot is folded into
-    what a concept writes: LOKF's ``name`` (an agent's or a field's) and
-    ``relation_label`` describe other nodes. ``id`` and ``type`` are
-    :func:`drop_twins`' to drop, and a deprecated slot is never a target. So
-    ``schema:name`` folds into ``title``, not LOKF's ``name``. Should two of
-    Concept's slots ever share an IRI, the fold is refused until a ``--fold``
-    chooses one. The vocabulary's CURIEs expand with LOKF's prefixes under
-    its own, as they do once the copy imports ``lokf``, and the forms in
-    :data:`_IRI_SYNONYMS` compare equal.
+    *asked* comes from ``--fold``: a slot or ``Class.attr``, in its own
+    spelling or the canonical one, mapped to the LOKF slot it means. A name
+    missing on either side is refused, and so is a slot :func:`drop_twins`
+    already dropped (*dropped* names the LOKF slot it was dropped for).
+    *keep* comes from ``--keep``: names left out of the IRI route, which
+    must exist and not be in *asked*.
 
-    A fold whose shape differs from the target's is refused however it was
-    found (:func:`_shape_conflict`): the conflict is a fact, and ``--fold``
-    does not override it. *lokf_name* is the file named in a refusal."""
+    Every other slot and attribute folds by IRI, when its ``slot_uri`` or an
+    ``exact_mappings`` entry is the ``slot_uri`` of a slot ``Concept`` lists,
+    other than ``id``, ``type`` or a deprecated slot. Only Concept's slots
+    count, because a fold becomes what a concept writes. LOKF's ``name`` and
+    ``relation_label`` describe other nodes, so ``schema:name`` folds into
+    ``title``. Two of Concept's slots sharing an IRI refuse the fold until
+    ``--fold`` chooses one. CURIEs expand with LOKF's prefixes under the
+    vocabulary's own, and the forms in :data:`_IRI_SYNONYMS` compare equal.
+
+    A shape that differs from the target's is refused however the fold was
+    found (:func:`_shape_conflict`); ``--fold`` does not override it.
+    *lokf_name* is the file named in a refusal."""
     slots = schema.get("slots") or {}
     classes = schema.get("classes") or {}
     lokf_slots = lokf.get("slots") or {}
@@ -668,17 +666,16 @@ def _carried(elem: dict) -> dict:
 
 
 def fold_twins(schema: dict, folds: dict[str, str], renamed: dict[str, str] | None = None) -> dict[str, str]:
-    """Delete each vocabulary slot, and each ``Class.attr`` attribute, in
-    *folds* and list LOKF's slot in its place, as :func:`drop_twins` does for
-    an identifier. What the definition said of its values
-    (:data:`_USAGE_CARRY`) goes into a ``slot_usage`` on each class that
-    listed it, under whatever that class's ``slot_usage`` already said. A
-    slot that inherited from a folded one now inherits from LOKF's. Runs
-    after :func:`rename_shared`, which leaves the folded slots alone, so a
-    vocabulary slot named like the target (its own ``title``) is renamed
-    first and a fold's ``title`` is not; *renamed* says what it called a
-    class or an attribute since. Returns *folds* in the vocabulary's order,
-    slots first."""
+    """Delete each slot and ``Class.attr`` attribute in *folds*, and list
+    LOKF's slot in its place, as :func:`drop_twins` does for an identifier.
+    The slot's constraints (:data:`_USAGE_CARRY`) are copied into a
+    ``slot_usage`` on every class that used it. Where that class already had
+    a ``slot_usage`` for the slot, the class's own values win. A slot that
+    inherited from a folded one now inherits from LOKF's. Runs after
+    :func:`rename_shared`, which skips folded slots, so a vocabulary slot
+    named like the target (its own ``title``) is renamed first. *renamed*
+    maps each class and attribute to its name since then. Returns *folds* in
+    the vocabulary's order, slots first."""
     renamed = renamed or {}
     slots = schema.get("slots") or {}
     classes = schema.get("classes") or {}

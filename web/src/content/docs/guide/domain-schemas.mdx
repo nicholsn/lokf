@@ -171,20 +171,24 @@ projects as `a gist:Requirement`.
 
 ### Fold a slot that LOKF already has
 
-A vocabulary slot whose `slot_uri`, or one of its `exact_mappings`, is the
-IRI of a slot on `Concept` is folded into that slot: the copy drops it, and
-its classes list LOKF's slot instead. A slot mapped to `schema:name` becomes
-`title`, whether the vocabulary spells schema.org with `http` or `https`. A
-class attribute folds the same way. What the slot required of its values
-(`required`, `pattern`, a narrower `range` such as `uriorcurie`,
-`minimum_value`, `maximum_value`, `values_from`) goes into a `slot_usage` on
-each class that listed it, so the copy validates what the vocabulary did. A
-slot whose shape differs from LOKF's is refused, and the report says how: it
-is multivalued where LOKF's slot is not, or the reverse, or its range is a
-class, an enum or a number where LOKF's takes a string.
+`lokf adapt` folds a vocabulary slot into a slot on `Concept` when the
+slot's `slot_uri`, or one of its `exact_mappings`, is that slot's IRI. The
+copy drops the vocabulary's slot, and the classes that used it use LOKF's
+instead. A slot
+mapped to `schema:name` becomes `title`, whether the vocabulary spells
+schema.org with `http` or `https`. A class attribute folds the same way.
+
+The fold copies the slot's constraints into a `slot_usage` on every class
+that used the slot, so those classes still enforce what the vocabulary did:
+`required`, `pattern`, `minimum_value`, `maximum_value`, `values_from`, and a
+narrower `range` such as `uriorcurie`. The fold is refused, and the report
+says why, when the slot's shape differs from LOKF's:
+
+- it is multivalued where LOKF's slot is not, or the reverse;
+- its range is a class, an enum or a number where LOKF's takes a string.
 
 Use `--fold` for a slot, or a `Class.attr` attribute, that means the same as
-LOKF's slot but declares no mapping, and `--keep` for one whose mapping
+LOKF's slot but declares no mapping. Use `--keep` for one whose mapping
 matches but which you want left as it is:
 
 ```bash
@@ -193,10 +197,11 @@ lokf adapt slsa.yaml --root Package --root SourceRepository --fold name=title --
 
 A concept then writes its display name once, as `title`, which projects as
 `schema:name`. Without the fold, the copy would carry `slsa_name` beside it.
-An attribute on a re-rooted class that has a `Concept` slot's name but not
-its IRI is reported as a warning: it shadows LOKF's slot on that class, and
-a record of the class writes the attribute. Fold it, or rename it in the
-vocabulary.
+
+`lokf adapt` warns about an attribute on a re-rooted class that has a
+`Concept` slot's name but not its IRI. The attribute shadows LOKF's slot on
+that class, and a record of the class writes the attribute. Fold it, or
+rename it in the vocabulary.
 
 ## Extend an adapted vocabulary
 

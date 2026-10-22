@@ -722,13 +722,13 @@ def adapt(
     fold: list[str] = typer.Option(
         [], "--fold", metavar="VOCAB_SLOT=LOKF_SLOT",
         help="Fold a vocabulary slot, or a class attribute as Class.attr, into the LOKF slot "
-        "it means, as an identifier is; repeatable. A slot whose IRI is the IRI of a slot "
-        "Concept lists folds without it.",
+        "it means; repeatable. A slot whose IRI matches one of Concept's slots folds "
+        "without this flag.",
     ),
     keep: list[str] = typer.Option(
         [], "--keep", metavar="VOCAB_SLOT",
         help="Leave a vocabulary slot, or a Class.attr attribute, out of the fold by IRI; "
-        "repeatable. It is renamed or kept as it would be without a matching IRI.",
+        "repeatable. It is renamed, or left as it is, as if no IRI matched.",
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Report the moves; write nothing."),
     check: bool = typer.Option(
