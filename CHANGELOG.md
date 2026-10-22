@@ -18,6 +18,9 @@ with the 0.x caveat that a minor release may tighten validation.
 - `lokf adapt` folds a vocabulary slot into LOKF's when its `slot_uri` or an
   `exact_mappings` entry is the IRI of a slot on `Concept`, or when
   `--fold VOCAB_SLOT=LOKF_SLOT` names it, so a concept writes `title` rather than `title` and `slsa_name`.
+  A class attribute folds the same way (`--fold Class.attr=LOKF_SLOT`), `--keep` holds a slot back,
+  what the folded slot required of its values is carried into a `slot_usage` on each class that listed
+  it, and a fold whose shape differs from LOKF's slot is refused.
 
 ### Fixed
 
