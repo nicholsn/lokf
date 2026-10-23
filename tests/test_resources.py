@@ -76,3 +76,14 @@ def test_a_material_both_used_and_excluded_is_a_warning(tmp_path):
     r = CliRunner().invoke(app, ['validate', str(tmp_path / 'knowledge')])
     assert r.exit_code == 0 and 'also one of its sources' in r.output
 
+def test_a_pattern_holds_when_it_matches_inside_the_root(tmp_path):
+    (tmp_path / 'docs').mkdir()
+    (tmp_path / 'docs' / 'a.svg').write_text('<svg/>')
+    b = bundle_at(tmp_path / 'knowledge', exclusions=[
+        {'resource': 'docs/*.svg', 'reason': 'figures'},
+        {'resource': 'docs/*.png', 'reason': 'none yet'},
+        {'resource': '../*', 'reason': 'outside'}])
+    findings = list(check_resources(b, tmp_path))
+    assert [s for s, _ in findings] == ['ERROR', 'ERROR']
+    assert 'exclusions[1].resource' in findings[0][1] and 'matches no file' in findings[0][1]
+    assert 'exclusions[2].resource' in findings[1][1] and 'outside' in findings[1][1]
