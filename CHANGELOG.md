@@ -13,6 +13,14 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- `lokf adapt` folds a vocabulary slot or class attribute into LOKF's when
+  its `slot_uri` or an `exact_mappings` entry is the IRI of a slot on
+  `Concept`, or when `--fold` names it; `--keep` holds one back. A fold
+  copies the slot's constraints into `slot_usage`, and is refused
+  when its shape differs from LOKF's slot.
+
 ### Fixed
 
 - SHACL artifacts now match the authoring RDF projection, preserve separate
