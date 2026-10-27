@@ -30,6 +30,7 @@ core install already has, verifies the result beside ``lokf.yaml``.
 from __future__ import annotations
 
 import pathlib
+from copy import deepcopy
 import tempfile
 from dataclasses import dataclass, field
 
@@ -66,7 +67,14 @@ _USAGE_KEEP = (
 # keeps these too and wins over the definition's, as it did in the vocabulary.
 # `multivalued` is not carried: it is a shape, not a refinement, and
 # find_folds refuses a fold whose shape differs from the target's.
-_USAGE_CARRY = ("required", "pattern", "range", "minimum_value", "maximum_value", "values_from")
+_USAGE_CARRY = (
+    "required", "pattern", "range", "minimum_value", "maximum_value", "values_from",
+    "range_expression", "enum_range", "bindings", "value_presence", "equals_string",
+    "equals_string_in", "equals_number", "equals_expression", "exact_cardinality",
+    "minimum_cardinality", "maximum_cardinality", "has_member", "all_members",
+    "none_of", "exactly_one_of", "any_of", "all_of", "array", "unit",
+    "id_prefixes", "id_prefixes_are_closed", "list_elements_unique", "list_elements_ordered",
+)
 # LinkML's built-in types whose values are strings (`repr: str` in
 # linkml:types), each a narrower lexical form of `string`.
 _STRING_TYPES = frozenset({
@@ -358,6 +366,21 @@ def drop_twins(schema: dict) -> tuple[dict[str, str], list[str]]:
     return dropped, detached
 
 
+def _conjoin(left: dict, right: dict) -> dict:
+    """Keep both restrictions when distinct source fields become one slot."""
+    if not left:
+        return deepcopy(right)
+    if not right or left == right:
+        return deepcopy(left)
+    conflicts = {k for k in left.keys() & right.keys() if left[k] != right[k]}
+    if not conflicts:
+        return {**deepcopy(left), **deepcopy(right)}
+    metadata = {k: deepcopy(v) for k, v in {**left, **right}.items() if k not in _USAGE_CARRY}
+    constraints = [{k: deepcopy(v) for k, v in side.items() if k in _USAGE_CARRY}
+                   for side in (left, right)]
+    return {**metadata, "all_of": [c for c in constraints if c]}
+
+
 def _point_at_lokf(schema: dict, served: dict[str, str], keep: tuple[str, ...] = _USAGE_KEEP) -> None:
     """What referenced a vocabulary slot in *served* now references LOKF's,
     which the copy gets through its `lokf` import. A slot_usage on it keeps
@@ -366,7 +389,19 @@ def _point_at_lokf(schema: dict, served: dict[str, str], keep: tuple[str, ...] =
         for name, usage in list((cls.get("slot_usage") or {}).items()):
             if name in served and isinstance(usage, dict):
                 cls["slot_usage"][name] = {k: v for k, v in usage.items() if k in keep}
+    combined = []
+    for cls in (schema.get("classes") or {}).values():
+        grouped = {}
+        for name, usage in (cls.get("slot_usage") or {}).items():
+            target = served.get(name, name)
+            grouped[target] = _conjoin(grouped.get(target, {}), usage or {})
+        combined.append((cls, grouped))
     rewrite_refs(schema, Renames(slots=dict(served)))
+    for cls, grouped in combined:
+        if grouped:
+            for usage in grouped.values():
+                _rewrite_slot_expr(usage, Renames(slots=dict(served)))
+            cls["slot_usage"] = grouped
     for cls in (schema.get("classes") or {}).values():
         for key in _SLOT_REFS_ON_CLASS:
             if isinstance(cls.get(key), list):
@@ -506,6 +541,39 @@ def _refines(v: str, t: str, schema: dict, lokf: dict) -> bool:
     return False
 
 
+def _fold_view(schema: dict):
+    """Build one isolated view per folding pass."""
+    from linkml_runtime.linkml_model import SchemaDefinition
+    from linkml_runtime.utils.schemaview import SchemaView
+
+    data = deepcopy(schema)
+    data.setdefault("id", "urn:lokf:adapt:probe")
+    data.setdefault("name", "adapt_probe")
+    data["imports"] = ["linkml:types"]
+    return SchemaView(SchemaDefinition(**data))
+
+
+def _effective_slot(schema: dict, name: str, cname: str | None = None, view=None) -> dict:
+    """Materialize inheritance with LinkML's own rules, retaining authored fields."""
+    from linkml_runtime.dumpers import yaml_dumper
+    view = view or _fold_view(schema)
+    fields = set()
+    if name in (schema.get("slots") or {}):
+        for parent in view.slot_ancestors(name):
+            fields.update((schema.get("slots") or {}).get(parent) or {})
+    if cname:
+        for parent in view.class_ancestors(cname):
+            cls = (schema.get("classes") or {}).get(parent) or {}
+            fields.update((cls.get("attributes") or {}).get(name) or {})
+            fields.update((cls.get("slot_usage") or {}).get(name) or {})
+    if schema.get("default_range"):
+        fields.add("range")
+    if "structured_pattern" in fields:
+        fields.add("pattern")
+    induced = yaml.safe_load(yaml_dumper.dumps(view.induced_slot(name, cname)))
+    return {k: v for k, v in induced.items() if k in fields}
+
+
 def _shape_conflict(elem: dict, usages: list[tuple[str, dict]], target: str, schema: dict, lokf: dict) -> str | None:
     """Why *elem* cannot fold into LOKF's *target*, or ``None``: the first
     way its shape differs from the target's, on the definition or on a
@@ -565,6 +633,7 @@ def find_folds(
     folds: dict[str, str] = {}
     problems: list[str] = []
     by_form = {underscore(n): n for n in slots}
+    view = _fold_view(schema)
 
     def resolve(want: str) -> tuple[str | None, str | None]:
         """The vocabulary's own spelling of *want*, or why there is none."""
@@ -590,12 +659,12 @@ def find_folds(
         """The slot or attribute *key* names, and the slot_usages on a slot."""
         if "." in key:
             cname, aname = key.split(".", 1)
-            return (classes[cname].get("attributes") or {}).get(aname) or {}, []
+            return _effective_slot(schema, aname, cname, view), []
         usages = [
-            (c, cls["slot_usage"][key]) for c, cls in classes.items()
+            (c, _effective_slot(schema, key, c, view)) for c, cls in classes.items()
             if isinstance(cls, dict) and isinstance((cls.get("slot_usage") or {}).get(key), dict)
         ]
-        return slots.get(key) or {}, usages
+        return _effective_slot(schema, key, view=view), usages
 
     wanted: dict[str, str] = {}
     for want, target in (asked or {}).items():
@@ -680,8 +749,10 @@ def fold_twins(schema: dict, folds: dict[str, str], renamed: dict[str, str] | No
     slots = schema.get("slots") or {}
     classes = schema.get("classes") or {}
     done = {n: folds[n] for n in slots if n in folds}
+    view = _fold_view(schema)
+    effective = {name: _effective_slot(schema, name, view=view) for name in done}
     for name in done:
-        carried = _carried(slots[name])
+        carried = _carried(effective[name])
         for cls in classes.values():
             if not isinstance(cls, dict):
                 continue
@@ -708,7 +779,7 @@ def fold_twins(schema: dict, folds: dict[str, str], renamed: dict[str, str] | No
             if not attrs:
                 del cls["attributes"]
             cls["slots"] = list(dict.fromkeys([*(cls.get("slots") or []), target]))
-            merged = {**_carried(attr), **((cls.get("slot_usage") or {}).get(target) or {})}
+            merged = _conjoin(_carried(attr), (cls.get("slot_usage") or {}).get(target) or {})
             if merged:
                 cls.setdefault("slot_usage", {})[target] = merged
             done[key] = target

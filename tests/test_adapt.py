@@ -764,3 +764,52 @@ def test_biolink_round_trip(tmp_path):
     result = runner.invoke(app, ["convert", str(BIOLINK / "knowledge"), "-f", "nt", "--schema", str(copy)])
     assert result.exit_code == 0, result.output
     assert "<https://w3id.org/biolink/vocab/Gene>" in result.stdout
+
+
+def test_fold_checks_inherited_range():
+    schema = {"slots": {"base": {"range": "integer"},
+                        "label": {"is_a": "base", "slot_uri": "http://schema.org/name"}}}
+    folds, _, problems = A.find_folds(schema, load_schema(LOKF))
+    assert "label" not in folds
+    assert any("range integer" in problem for problem in problems)
+
+
+def test_fold_carries_inherited_value_constraints():
+    schema = {"slots": {"base": {"equals_string": "fixed", "pattern": "^f"},
+                        "label": {"is_a": "base", "slot_uri": "http://schema.org/name"}},
+              "classes": {"Thing": {"slots": ["label"]}}}
+    folds, _, problems = A.find_folds(schema, load_schema(LOKF))
+    assert problems == []
+    A.fold_twins(schema, folds)
+    usage = schema["classes"]["Thing"]["slot_usage"]["title"]
+    assert usage["equals_string"] == "fixed" and usage["pattern"] == "^f"
+
+
+
+def test_two_folds_to_one_target_keep_both_patterns():
+    schema = {"slots": {"first": {"pattern": "^a"}, "second": {"pattern": "z$"}},
+              "classes": {"Thing": {"slots": ["first", "second"]}}}
+    A.fold_twins(schema, {"first": "title", "second": "title"})
+    usage = schema["classes"]["Thing"]["slot_usage"]["title"]
+    assert usage == {"all_of": [{"pattern": "^a"}, {"pattern": "z$"}]}
+    assert schema["classes"]["Thing"]["slots"] == ["title"]
+
+
+def test_folded_constraints_validate_actual_instances(tmp_path):
+    import json
+    import jsonschema
+    from linkml.generators.jsonschemagen import JsonSchemaGenerator
+
+    schema = {"id": "https://example.org/fold", "name": "fold",
+              "imports": ["linkml:types", str(LOKF.with_suffix(''))],
+              "prefixes": {"ex": "https://example.org/fold/"}, "default_prefix": "ex",
+              "slots": {"first": {"pattern": "^a"}, "second": {"pattern": "z$"}},
+              "classes": {"Thing": {"is_a": "Concept", "slots": ["first", "second"]}}}
+    A.fold_twins(schema, {"first": "title", "second": "title"})
+    path = tmp_path / "fold.yaml"
+    path.write_text(A.dump(schema))
+    generated = json.loads(JsonSchemaGenerator(str(path), top_class='Thing').serialize())
+    validator = jsonschema.validators.validator_for(generated)(generated)
+    assert not list(validator.iter_errors({"id": "https://example.org/thing", "type": "Thing", "title": "az"}))
+    assert list(validator.iter_errors({"id": "https://example.org/thing", "type": "Thing", "title": "ax"}))
+    assert list(validator.iter_errors({"id": "https://example.org/thing", "type": "Thing", "title": "bz"}))
