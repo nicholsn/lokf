@@ -39,7 +39,7 @@ record them for anyone who opens the file.
 
 | Option | Meaning |
 |---|---|
-| `-o, --output PATH` | Where to write the copy (default `<stem>_lokf.yaml` beside the input). |
+| `-o, --output PATH` | Where to write the copy: a file, or a directory that gets `<stem>_lokf.yaml`, with a trailing slash for a new one (default: beside the input). |
 | `--root CLASS` | A class to re-root on `Concept`, as the vocabulary names it; repeatable, replaces detection. A vocabulary with no identifier slot (gist's shape) has no root to detect; name each top class. |
 | `--lokf PATH` | The `lokf.yaml` to share no name with (default: a local checkout, else the copy packaged with lokf). |
 | `--prefix P` | Prefix for renamed elements (default: the vocabulary's `default_prefix`). |

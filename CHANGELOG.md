@@ -186,6 +186,11 @@ OKF v0.2 writes.
 - SPEC §8 names `lokf validate` as the strict producer-side check and
   `convert`/`query`/`serve` as the permissive OKF consumers; §9.1 states
   that the 0.8.0 patterns narrow nothing OKF defines.
+- `lokf adapt -o <directory>` writes `<stem>_lokf.yaml` into that directory,
+  or into a new one when the name ends in a slash, and `--check` reads it
+  from there; it ended in a traceback before. The copy gets the mode a plain
+  write gives, or keeps the mode of the file it replaces, where it was
+  readable by its owner only.
 
 ### Internal
 
