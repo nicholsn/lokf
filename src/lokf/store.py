@@ -37,12 +37,17 @@ _QUERY_FORM = re.compile(
 # Strings, IRIs and comments: where the word "service" is not the keyword.
 # Matched in one pass, so a '#' inside an IRI or a string is not a comment.
 _SPARQL_NOT_CODE = re.compile(
-    r'"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'|"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\''
+    r'"""(?:\\[\s\S]|(?!""")[^\\])*"""'
+    r"|'''(?:\\[\s\S]|(?!''')[^\\])*'''"
+    r'|"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\''
     r'|<[^<>"{}|^`\\\x00-\x20]*>|#[^\n]*'
 )
 # The keyword, as opposed to a variable (?service), a prefixed name
 # (ex:service, service:x) or part of a longer name.
-_SERVICE_KEYWORD = re.compile(r"(?<![\w?$:.\-])service(?![\w:.\-])", re.IGNORECASE)
+# A dot can terminate the preceding triple without whitespace. Treat it as a
+# boundary here; on a parser failure a false positive in a dotted local name is
+# safer than allowing an unparsed federation request.
+_SERVICE_KEYWORD = re.compile(r"(?<![\w?$:\-])service(?![\w:.\-])", re.IGNORECASE)
 
 
 def query_form(sparql: str) -> str:
@@ -274,17 +279,15 @@ class GraphStore:
         return bool(self.query(sparql, **kw))
 
     def construct(self, sparql: str, fmt: str = "ttl", **kw) -> str:
-        """Run a CONSTRUCT/DESCRIBE and serialize the resulting graph."""
-        from lokf.rdf import _rdflib_format
+        """Run a CONSTRUCT/DESCRIBE and serialize the resulting graph, the
+        same bytes for the same answer (:func:`lokf.rdf.serialize_graph`)."""
+        from lokf.rdf import serialize_graph
         from rdflib import Graph
 
         triples = self.query(sparql, **kw)
         g = Graph()
         g.parse(data=triples.serialize(format=ox.RdfFormat.N_TRIPLES), format="nt")
-        for prefix, ns in self.prefixes.items():
-            g.bind(prefix, ns)
-        data = g.serialize(format=_rdflib_format(fmt))
-        return data if isinstance(data, str) else data.decode("utf-8")
+        return serialize_graph(g, fmt, self.prefixes)
 
     def serialize_results(self, sparql: str, fmt: str = "json", **kw) -> bytes:
         """Run a SELECT/ASK and serialize results in the SPARQL results format."""
