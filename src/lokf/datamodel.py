@@ -268,6 +268,7 @@ class Concept(YAMLRoot):
     exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
+    revised: Optional[Union[dict, "Revision"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
@@ -378,6 +379,9 @@ class Concept(YAMLRoot):
 
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
+
+        if self.revised is not None and not isinstance(self.revised, Revision):
+            self.revised = Revision(**as_dict(self.revised))
 
         self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
 
@@ -964,6 +968,7 @@ class Person(Agent):
     exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
+    revised: Optional[Union[dict, "Revision"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
@@ -1075,6 +1080,9 @@ class Person(Agent):
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
 
+        if self.revised is not None and not isinstance(self.revised, Revision):
+            self.revised = Revision(**as_dict(self.revised))
+
         self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
 
         if self.status is not None and not isinstance(self.status, ConceptStatus):
@@ -1141,6 +1149,7 @@ class Organization(Agent):
     exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
+    revised: Optional[Union[dict, "Revision"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
@@ -1251,6 +1260,9 @@ class Organization(Agent):
 
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
+
+        if self.revised is not None and not isinstance(self.revised, Revision):
+            self.revised = Revision(**as_dict(self.revised))
 
         self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
 
@@ -1611,6 +1623,39 @@ class Generation(YAMLRoot):
     class_class_curie: ClassVar[str] = "prov:Activity"
     class_name: ClassVar[str] = "Generation"
     class_model_uri: ClassVar[URIRef] = LOKF.Generation
+
+    by: str = None
+    at: Optional[Union[str, XSDDateTime]] = None
+    revision: Optional[str] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.by):
+            self.MissingRequiredField("by")
+        if not isinstance(self.by, str):
+            self.by = str(self.by)
+
+        if self.at is not None and not isinstance(self.at, XSDDateTime):
+            self.at = XSDDateTime(self.at)
+
+        if self.revision is not None and not isinstance(self.revision, str):
+            self.revision = str(self.revision)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Revision(YAMLRoot):
+    """
+    The latest in-place edit of the content, for a producer that keeps `generated` as the production event: who
+    changed it last, and when. One mapping, never a list; a later edit overwrites it. PROV has no class for it, so the
+    class IRI is lokf-minted and the generated ontology declares it a subclass of prov:Activity.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Revision"]
+    class_class_curie: ClassVar[str] = "lokf:Revision"
+    class_name: ClassVar[str] = "Revision"
+    class_model_uri: ClassVar[URIRef] = LOKF.Revision
 
     by: str = None
     at: Optional[Union[str, XSDDateTime]] = None
@@ -2308,6 +2353,9 @@ slots.last_modified = Slot(uri=SCHEMA.dateModified, name="last_modified", curie=
 slots.generated = Slot(uri=PROV.wasGeneratedBy, name="generated", curie=PROV.curie('wasGeneratedBy'),
                    model_uri=LOKF.generated, domain=None, range=Optional[Union[dict, Generation]])
 
+slots.revised = Slot(uri=LOKF.revised, name="revised", curie=LOKF.curie('revised'),
+                   model_uri=LOKF.revised, domain=None, range=Optional[Union[dict, Revision]])
+
 slots.verified = Slot(uri=LOKF.verified, name="verified", curie=LOKF.curie('verified'),
                    model_uri=LOKF.verified, domain=None, range=Optional[Union[Union[dict, Verification], list[Union[dict, Verification]]]])
 
@@ -2398,6 +2446,10 @@ slots.Exclusion_by = Slot(uri=PROV.wasAssociatedWith, name="Exclusion_by", curie
 
 slots.Generation_by = Slot(uri=PROV.wasAssociatedWith, name="Generation_by", curie=PROV.curie('wasAssociatedWith'),
                    model_uri=LOKF.Generation_by, domain=Generation, range=str,
+                   pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
+
+slots.Revision_by = Slot(uri=PROV.wasAssociatedWith, name="Revision_by", curie=PROV.curie('wasAssociatedWith'),
+                   model_uri=LOKF.Revision_by, domain=Revision, range=str,
                    pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
 
 slots.Verification_by = Slot(uri=PROV.wasAssociatedWith, name="Verification_by", curie=PROV.curie('wasAssociatedWith'),

@@ -311,6 +311,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "runtime": {
                     "description": "REQUIRED on an Attested Computation. How to run the computation (bigquery | postgres | dbt | python | Looker | ...); defines what `parameters` mean and how the executor and attester interpret the contract.",
                     "type": "string"
@@ -942,6 +953,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -1330,6 +1352,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
                 },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
@@ -1756,6 +1789,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -2168,6 +2212,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -2376,7 +2431,7 @@
                     ]
                 },
                 "by": {
-                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion.",
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation, revision or verification event, optional on an exclusion.",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 },
@@ -2641,6 +2696,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
                 },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
@@ -3162,6 +3228,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -3542,6 +3619,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
                 },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
@@ -3966,6 +4054,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -4324,6 +4423,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
                 },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
@@ -4684,6 +4794,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -5043,6 +5164,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -5218,6 +5350,37 @@
             ],
             "title": "RelationType",
             "type": "string"
+        },
+        "Revision": {
+            "additionalProperties": false,
+            "description": "The latest in-place edit of the content, for a producer that keeps `generated` as the production event: who changed it last, and when. One mapping, never a list; a later edit overwrites it. PROV has no class for it, so the class IRI is lokf-minted and the generated ontology declares it a subclass of prov:Activity.",
+            "properties": {
+                "at": {
+                    "description": "ISO 8601 datetime at which the event completed.",
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "by": {
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation, revision or verification event, optional on an exclusion.",
+                    "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
+                    "type": "string"
+                },
+                "revision": {
+                    "description": "The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "by"
+            ],
+            "title": "Revision",
+            "type": "object"
         },
         "Role": {
             "additionalProperties": false,
@@ -5479,6 +5642,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
                 },
                 "roleName": {
                     "description": "The name/title of the role held (e.g. a job title).",
@@ -5877,6 +6051,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
                 },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
@@ -6327,6 +6512,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -6686,6 +6882,17 @@
                         "null"
                     ]
                 },
+                "revised": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Revision"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before."
+                },
                 "sameAs": {
                     "description": "An IRI asserting this concept is the same entity as another.",
                     "items": {
@@ -6848,7 +7055,7 @@
                     ]
                 },
                 "by": {
-                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion.",
+                    "description": "The actor that performed the event, as a plain OKF \u00a77 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) \u2014 a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation, revision or verification event, optional on an exclusion.",
                     "pattern": "^(human|process):\\S+$|^[^\\s/]+/[^\\s/]+$",
                     "type": "string"
                 },
