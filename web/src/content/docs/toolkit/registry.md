@@ -60,8 +60,14 @@ repos:
   void:
     triples: 157
     class_partition:
-      Metric: 1
+      AttestedComputation: 1
       Dataset: 1
+      GlossaryTerm: 1
+      Metric: 1
+      Playbook: 1
+      Reference: 1
+      Service: 1
+      Table: 1
 ```
 
 Two `base_iri`s may not nest, so at most one member owns any IRI. A zip is
@@ -77,6 +83,7 @@ URL:
 
 ```bash
 lokf registry resolve https://acme.example/knowledge/metrics/weekly-active-users
+# https://acme.example/knowledge/metrics/weekly-active-users
 #   owner:      https://acme.example/knowledge/ (Acme Knowledge Bundle)
 #   concept_id: metrics/weekly-active-users
 #   source_url: https://github.com/nicholsn/lokf/tree/main/examples/acme-knowledge/metrics/weekly-active-users.md
@@ -96,6 +103,7 @@ loaded or a target does not resolve.
 ```bash
 lokf registry build --out-dir out
 # -> wrote out/federation.nq (157 quads, 1 of 1 members)
+# -> unowned: https://wiki.acme.example/rfc/metric-defs (asserted in https://acme.example/knowledge/ via http://www.w3.org/2000/01/rdf-schema#isDefinedBy)
 ```
 
 `query` runs SPARQL over all members at once, the default graph being their

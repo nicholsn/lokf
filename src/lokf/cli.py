@@ -711,7 +711,7 @@ def adapt(
     # A string, not a Path: Path drops the trailing slash that marks a new
     # directory.
     output: Optional[str] = typer.Option(
-        None, "--output", "-o",
+        None, "--output", "-o", metavar="PATH",
         help="Where to write the copy: a file, or a directory that gets <stem>_lokf.yaml, "
         "with a trailing slash for a new one (default: beside the input).",
     ),

@@ -645,7 +645,7 @@ def test_cli_reads_a_trailing_slash_as_a_new_directory(tmp_path):
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX file modes")
-def test_cli_gives_the_copy_a_plain_file_mode_and_keeps_a_replaced_ones(tmp_path):
+def test_cli_gives_the_copy_a_plain_file_mode_and_keeps_the_mode_of_a_replaced_one(tmp_path):
     out = tmp_path / "copy.yaml"
     umask = os.umask(0)
     os.umask(umask)
