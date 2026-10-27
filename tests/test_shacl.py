@@ -116,3 +116,16 @@ def test_known_concept_cannot_silently_lose_its_type(tmp_path, shapes):
     graph = b.graph()
     graph.remove((URIRef(BASE + 'service'), RDF.type, None))
     assert not validate_graph(graph, shapes, BASE, b.by_iri())[0]
+
+
+def test_distribution_checksum_projection_validates_and_rejects_bad_fields(tmp_path, shapes):
+    spdx = 'http://spdx.org/rdf/terms#'
+    bundle = make_bundle(tmp_path, release={
+        'type': 'Dataset', 'title': 'Release', 'distribution': [{
+            'access_url': 'https://example.org/release.zip', 'byte_size': 42,
+            'checksum': {'algorithm': 'sha256', 'checksum_value': 'e' * 64}}]})
+    graph = bundle.graph()
+    assert validate_graph(graph, shapes, BASE, bundle.by_iri())[0]
+    checksum = next(graph.subjects(RDF.type, URIRef(spdx + 'Checksum')))
+    graph.remove((checksum, URIRef(spdx + 'algorithm'), None))
+    assert not validate_graph(graph, shapes, BASE, bundle.by_iri())[0]

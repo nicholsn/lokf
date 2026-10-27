@@ -184,7 +184,10 @@ def authoring_context(context: dict) -> dict:
     # A checksum's `algorithm` names the SPDX individual DCAT 3 expects, not a
     # string. Its terms are scoped to that key, so the bare names stay plain
     # words everywhere else in a concept.
-    if isinstance(ctx.get("algorithm"), dict):
+    from rdflib.plugins.shared.jsonld.context import Context
+
+    if (isinstance(ctx.get("algorithm"), dict)
+            and Context(ctx).expand("algorithm", use_vocab=True) == "http://spdx.org/rdf/terms#algorithm"):
         scoped = dict(ctx["algorithm"].get("@context") or {})
         scoped.update({v: f"http://spdx.org/rdf/terms#checksumAlgorithm_{v}"
                        for v in _CHECKSUM_ALGORITHMS})

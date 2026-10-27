@@ -733,3 +733,30 @@ def test_a_digest_must_be_as_long_as_its_algorithm_makes_it(tmp_path):
 
     assert release("sha256", 64) == 0 and release("md5", 32) == 0 and release("sha512", 128) == 0
     assert release("sha256", 32) == 1 and release("md5", 64) == 1
+
+
+@pytest.mark.parametrize("namespace", ["https://example.org/domain/", "http://spdx.org/rdf/terms#"])
+def test_algorithm_coercion_respects_the_property_iri(namespace):
+    from lokf.schema import authoring_context
+    from rdflib import Graph, URIRef, Literal
+    import json
+
+    original = {"custom": namespace, "algorithm": {"@id": "custom:algorithm"}}
+    context = authoring_context(original)
+    graph = Graph().parse(data=json.dumps({"@context": context, "@id": "urn:example",
+                                          "algorithm": "sha256"}), format="json-ld")
+    expected = (URIRef("http://spdx.org/rdf/terms#checksumAlgorithm_sha256")
+                if namespace == "http://spdx.org/rdf/terms#" else Literal("sha256"))
+    assert (URIRef("urn:example"), URIRef(namespace + "algorithm"), expected) in graph
+    assert original["algorithm"] == {"@id": "custom:algorithm"}
+
+
+def test_distribution_byte_size_is_an_integer_in_generated_sql():
+    import sqlite3
+    from pathlib import Path
+
+    connection = sqlite3.connect(":memory:")
+    connection.executescript((Path(__file__).resolve().parents[1] / "lokf.sql").read_text())
+    columns = {row[1]: row[2] for row in connection.execute('PRAGMA table_info("Distribution")')}
+    assert columns["byte_size"] == "INTEGER"
+    connection.close()

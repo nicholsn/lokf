@@ -1774,7 +1774,7 @@ CREATE TABLE "Distribution" (
 	description TEXT,
 	access_url TEXT,
 	media_type TEXT,
-	byte_size TEXT,
+	byte_size INTEGER,
 	"Dataset_id" TEXT,
 	"Table_id" TEXT,
 	checksum_id INTEGER,

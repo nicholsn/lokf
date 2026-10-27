@@ -75,11 +75,13 @@ types:
   HexBinary:
     description: Binary data written as hexadecimal digits; maps to xsd:hexBinary.
     typeof: string
+    base: str
     uri: xsd:hexBinary
 
   NonNegativeInteger:
     description: A whole number, 0 or more; maps to xsd:nonNegativeInteger.
     typeof: integer
+    base: int
     uri: xsd:nonNegativeInteger
     minimum_value: 0
 
