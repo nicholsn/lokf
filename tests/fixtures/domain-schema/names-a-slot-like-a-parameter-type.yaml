@@ -1,0 +1,25 @@
+# A domain schema that declares slots named like ParameterType values: an
+# Endpoint with its own `uri` and `date`. The relative import reaches
+# the repo-root lokf.yaml, as in imports-only.yaml.
+id: https://ex.org/schema/domain-parameter-type-slots
+name: domain_parameter_type_slots
+imports:
+  - linkml:types
+  - ../../../lokf
+default_prefix: domain
+prefixes:
+  domain: https://ex.org/schema/domain/
+  linkml: https://w3id.org/linkml/
+classes:
+  Endpoint:
+    is_a: Concept
+    slots:
+      - uri
+      - date
+slots:
+  uri:
+    range: string
+    slot_uri: domain:uri
+  date:
+    range: string
+    slot_uri: domain:date

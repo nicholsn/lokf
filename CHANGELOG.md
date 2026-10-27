@@ -27,6 +27,10 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - Nested validation errors name the field path and unexpected provenance keys.
 
+- A domain schema's slot named like a ParameterType value, such as `uri`
+  or `date`, keeps its own IRI under `--schema` instead of projecting as a
+  Parameter-kind class. LOKF's published context is unchanged.
+
 ### Changed
 
 - Require LinkML and linkml-runtime 1.12.0 or newer, and regenerate the
