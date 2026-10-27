@@ -90,10 +90,45 @@ def test_trust_summary_shape():
         "status": "stable",
         "stale": True,
         "generated_at": AGENT["at"],
+        "revised_at": None,
+        "last_changed_at": AGENT["at"],
         "verified_count": 1,
         "human_reviewed_at": HUMAN["at"],
         "edited_since_human_review": False,
     }
+
+
+# -- revised: the last edit apart from an immutable generated ---------------
+def test_last_change_is_the_later_of_revised_and_generated():
+    edited = {"generated": AGENT, "revised": {"by": "human:x", "at": "2026-07-01T00:00:00Z"}}
+    assert trust.revised_at(edited) == "2026-07-01T00:00:00Z"
+    assert trust.last_changed_at(edited) == "2026-07-01T00:00:00Z"
+    # A producer that restamps generated.at instead writes no revised.
+    assert trust.revised_at({"generated": AGENT}) is None
+    assert trust.last_changed_at({"generated": AGENT}) == AGENT["at"]
+    # generated_at itself is untouched: it is the production event.
+    assert trust.generated_at(edited) == AGENT["at"]
+    # The legacy timestamp is a last change too, when generated is absent.
+    assert trust.last_changed_at({"timestamp": "2020-01-01T00:00:00Z"}) == "2020-01-01T00:00:00Z"
+    assert trust.last_changed_at({}) is None
+
+
+def test_last_change_tolerates_a_malformed_or_undated_event():
+    assert trust.last_changed_at({"generated": AGENT, "revised": {"by": "human:x"}}) == AGENT["at"]
+    assert trust.last_changed_at({"generated": AGENT, "revised": {"by": "human:x", "at": "bad"}}) == AGENT["at"]
+    assert trust.last_changed_at({"generated": {"by": "human:x", "at": "bad"},
+                                  "revised": {"by": "human:x", "at": "2026-07-01"}}) == "2026-07-01"
+    assert trust.last_changed_at({"generated": {"by": "human:x", "at": "bad"}}) == "bad"
+    assert trust.last_changed_at({"revised": "junk", "generated": AGENT}) == AGENT["at"]
+
+
+def test_edited_since_review_reads_revised():
+    reviewed = {"generated": AGENT, "verified": [HUMAN]}
+    assert not trust.edited_since_human_review(reviewed)
+    reviewed["revised"] = {"by": "process:librarian", "at": "2026-06-26T00:00:00Z"}
+    assert trust.edited_since_human_review(reviewed)
+    assert trust.trust_summary(reviewed)["last_changed_at"] == "2026-06-26T00:00:00Z"
+    assert trust.trust_summary(reviewed)["trust_tier"] == "human-reviewed"
 
 
 # -- OKF spaced-type alias (v0.2 §10 writes 'Attested Computation') ----------

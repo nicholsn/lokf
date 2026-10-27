@@ -231,6 +231,7 @@ distinguishable, never rejected).
 | `exclusions`   |     | `lokf:excludes`                 | Exclusion*   | `{resource, reason, by?}`: the materials looked at and left out on purpose, never `schema:isBasedOn`. LOKF's own field. |
 | `usage_window` |  ✅ | `lokf:usageWindow`              | UsageWindow  | `{from, to}` → `dcat:startDate`/`dcat:endDate` on a `dcterms:PeriodOfTime`. Sibling of `sources`; a Source entry MAY override. |
 | `generated`    |  ✅ | `prov:wasGeneratedBy`           | Generation   | `{by, at}` → `prov:wasAssociatedWith` + `prov:endedAtTime` on a `prov:Activity`. Supersedes `timestamp`. |
+| `revised`      |     | `lokf:revised`                  | Revision     | `{by, at}`: the latest in-place edit, kept apart from `generated`, which then stays the production event. A single mapping, never a list. LOKF's own field. |
 | `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`); `by` is REQUIRED, since trust tiers derive from it. A bare mapping MUST be read as a one-element list. |
 | `status`       |  ✅ | `schema:creativeWorkStatus`     | enum         | `draft \| stable \| deprecated`; absent ⇒ stable. Enum meanings: ADMS status IRIs. |
 | `stale_after`  |  ✅ | `schema:expires`                | dateTime     | The instant from which the concept is stale (OKF §5.5). A bare `YYYY-MM-DD` means that day at `00:00:00Z`. |
@@ -242,7 +243,7 @@ of them means that day at midnight UTC. `lokf` applies it before validating, so
 a bundle written with dates and one written with datetimes validate and project
 the same way.
 
-A `generated` or `verified[]` event may carry **`revision`** (`lokf:revision`):
+A `generated`, `revised` or `verified[]` event may carry **`revision`** (`lokf:revision`):
 the state of the resource the event refers to, as a commit id, an ETag or
 version label, or a content digest of the resource as retrieved
 (`sha256:<hex>`). Absent means unrecorded, never unchanged. Quote it in YAML:
@@ -252,6 +253,20 @@ consumer can say "human-reviewed, against revision X", and a refresh can tell
 own field, proposed for OKF under the same name
 ([knowledge-catalog#437](https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437));
 it moves to the OKF subset if OKF adopts it.
+
+**`revised`** (`lokf:revised`) records the latest in-place edit apart from
+`generated`. A producer that writes it keeps `generated` as the production
+event and never rewrites it, and overwrites `revised` on each later edit: a
+single `{by, at}` mapping, never a list, a `lokf:Revision` (⊑ `prov:Activity`)
+that may carry `revision` as the other events do. A producer that does not
+write it may keep restamping `generated.at`, as 0.8.0 bundles do. Consumers
+read the last meaningful change as the later of `generated.at` and
+`revised.at`, so both styles read the same way; `lokf validate` rejects a
+`revised.at` earlier than `generated.at`. `revised` is LOKF's own field,
+proposed for OKF in
+[open-knowledge-format#28](https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/28),
+which settles `generated` as the immutable production event; it moves to the
+OKF subset if OKF adopts it.
 
 **Source entries** (`sources[]`): `resource` (REQUIRED → `schema:url`; a URL,
 bundle-relative path, or scope descriptor), `id` (footnote join key; resolves
@@ -276,7 +291,7 @@ tell "nobody looked at this" from "someone looked and set it aside".
 `lokf validate` warns when one concept lists the same material under both
 `sources` and `exclusions`. `exclusions` is LOKF's own field.
 
-**Actors** (`generated.by`, `verified[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
+**Actors** (`generated.by`, `revised.by`, `verified[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
 (`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain
 literals — never coerced to IRIs, since `human:x` would silently mint an IRI in
 an unregistered URI scheme and `a/b` would resolve document-relative. Trust
@@ -302,12 +317,15 @@ false `xsd:integer` typing of a non-literal node.
 ### 5.5 Consumer review freshness
 
 Trust summaries retain the three existing trust tiers and additionally expose
-`human_reviewed_at` (the latest valid human review, in UTC) and
-`edited_since_human_review`. The latter is true only when the last meaningful
-edit is later than that review. Comparisons preserve time-of-day and normalize
-offsets; bare dates and naive timestamps use UTC. Missing or malformed times
-produce false, meaning unknown rather than proof that content is unchanged.
-A verification's revision identifier does not change this derivation.
+`human_reviewed_at` (the latest valid human review, in UTC),
+`edited_since_human_review`, `revised_at` and `last_changed_at`. The last
+meaningful edit is the later of `generated.at` and `revised.at` (§5.4), so a
+producer that writes `revised` and one that restamps `generated.at` are read
+alike; `edited_since_human_review` is true only when that edit is later than
+the review. Comparisons preserve time-of-day and normalize offsets; bare dates
+and naive timestamps use UTC. Missing or malformed times produce false, meaning
+unknown rather than proof that content is unchanged. A verification's revision
+identifier does not change this derivation.
 
 
 ## 6. The type vocabulary
@@ -631,7 +649,7 @@ rejects a malformed value rather than passing it through to RDF:
 | Field | Constraint |
 |---|---|
 | `base_iri` | absolute `http(s)`, ending in `/` or `#` so IDs mint by plain concatenation and prefix routing respects segment boundaries |
-| `generated.by`, `verified[].by`, `exclusions[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
+| `generated.by`, `revised.by`, `verified[].by`, `exclusions[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
 | `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
 | `email` | an address shape (`local@domain.tld`) |
 | `typicalAgeRange` | an age range as schema.org writes it: `8-12`, or `13-` for 13 and over |

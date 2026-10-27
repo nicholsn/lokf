@@ -281,6 +281,33 @@ def test_validate_accepts_revision_on_generated_and_verified(tmp_path):
     assert result.exit_code == 0, result.output
 
 
+def test_validate_accepts_revised_after_generated_and_rejects_it_before(tmp_path):
+    """`revised` is the latest edit beside an immutable `generated`; `by` is
+    required on it, and an edit dated before production is a contradiction
+    the schema cannot see, so validate reports it as an error."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    term = tmp_path / "term.md"
+    term.write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "generated: { by: process:lokf-librarian, at: 2026-09-16T09:00:00Z }\n"
+        "revised: { by: human:ada, at: 2026-10-01, revision: 3f9c2a1 }\n"
+        "---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    term.write_text(term.read_text(encoding="utf-8").replace("at: 2026-10-01,", "at: 2026-09-01,"), encoding="utf-8")
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "`revised.at` (2026-09-01T00:00:00Z) precedes `generated.at`" in result.output
+    term.write_text(term.read_text(encoding="utf-8").replace("by: human:ada, ", ""), encoding="utf-8")
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "by" in result.output
+
+
 def test_validate_accepts_who_a_concept_is_written_for(tmp_path):
     """`audience`, `typicalAgeRange` and `educationalLevel` validate, and an
     age range in any form but schema.org's fails, naming the field."""
@@ -997,6 +1024,7 @@ def test_validate_names_nested_unknown_fields(tmp_path):
     import yaml
     for field, value, path in [
         ("generated", {"by": "process:x", "mispelled": "x"}, "/generated"),
+        ("revised", {"by": "human:x", "mispelled": "x"}, "/revised"),
         ("verified", [{"by": "human:x", "mispelled": "x"}], "/verified/0"),
         ("sources", [{"resource": "https://example.org", "mispelled": "x"}], "/sources/0"),
     ]:

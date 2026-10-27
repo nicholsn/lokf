@@ -127,6 +127,13 @@ OKF v0.2 writes.
 - `revision` on `generated` and `verified[]` events (`lokf:revision`): the
   commit id, ETag or content digest of the resource the event checked,
   proposed for OKF in [knowledge-catalog#437]. Absent means unrecorded.
+- `revised` on a concept (`lokf:revised`): the latest in-place edit as
+  `{by, at}`, kept apart from `generated`, which then stays the production
+  event, as [open-knowledge-format#28] settles it. The last meaningful change
+  is the later of the two, so a bundle that restamps `generated.at` reads as
+  before; trust summaries report it as `last_changed_at`, beside
+  `revised_at`. `lokf validate` rejects a `revised.at` earlier than
+  `generated.at`.
 
 ### Fixed
 
@@ -274,6 +281,7 @@ via `lokf validate --schema`.
 
 [knowledge-catalog#437]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437
 [knowledge-catalog#438]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
+[open-knowledge-format#28]: https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/28
 [#61]: https://github.com/nicholsn/lokf/issues/61
 [#62]: https://github.com/nicholsn/lokf/pull/62
 [#63]: https://github.com/nicholsn/lokf/pull/63

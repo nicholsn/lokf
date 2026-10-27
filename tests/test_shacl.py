@@ -40,6 +40,7 @@ def test_people_organizations_external_targets_and_helpers(tmp_path, shapes):
         service={'type': 'Service', 'title': 'Service', 'dependsOn': ['person', 'org'],
                  'source': ['https://external.example/source'], 'status': 'stable', 'genre': 'reference',
                  'generated': {'by': 'process:x', 'at': '2026-01-01T00:00:00Z'},
+                 'revised': {'by': 'human:x', 'at': '2026-02-01T00:00:00Z', 'revision': 'abc1234'},
                  'verified': [{'by': 'human:x'}],
                  'sources': [{'resource': 'all queries in X', 'author': 'team:x'}],
                  'citations': [{'title': 'A citation', 'url': 'https://external.example/citation'}],

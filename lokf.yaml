@@ -151,6 +151,7 @@ classes:
       - exclusions
       - usage_window
       - generated
+      - revised
       - verified
       - status
       - stale_after
@@ -659,6 +660,25 @@ classes:
     class_uri: prov:Activity
     close_mappings:
       - schema:CreateAction
+    slots:
+      - by
+      - at
+      - revision
+    slot_usage:
+      by:
+        required: true
+
+  Revision:
+    description: >-
+      The latest in-place edit of the content, for a producer that keeps
+      `generated` as the production event: who changed it last, and when.
+      One mapping, never a list; a later edit overwrites it. PROV has no
+      class for it, so the class IRI is lokf-minted and the generated
+      ontology declares it a subclass of prov:Activity.
+    class_uri: lokf:Revision
+    close_mappings:
+      - prov:Activity
+      - schema:UpdateAction
     slots:
       - by
       - at
@@ -1595,6 +1615,38 @@ slots:
     in_subset:
       - okf_v02
 
+  revised:
+    description: >-
+      The latest in-place edit of the content, as `{by, at}`, kept apart
+      from `generated`, which then stays the production event and is never
+      rewritten. A single mapping; a later edit overwrites it. The last
+      meaningful change a consumer reads is the later of `revised.at` and
+      `generated.at`, so a bundle that restamps `generated.at` on each edit
+      instead, as 0.8.0 bundles do, reads as before.
+    range: Revision
+    inlined: true
+    slot_uri: lokf:revised
+    close_mappings:
+      - prov:wasInfluencedBy
+    notes:
+      - >-
+        Proposed for OKF §5.2 as GoogleCloudPlatform/open-knowledge-format#28,
+        which settles `generated` as the immutable production event, under
+        this name. Kept in lokf_semantic until OKF adopts it, then moved to
+        okf_v02.
+    comments:
+      - >-
+        Minted in lokf: PROV relates a revised entity to the one it revises
+        (prov:wasRevisionOf), not an entity to the activity that revised it
+        in place.
+      - >-
+        `lokf validate` rejects a `revised.at` earlier than `generated.at`:
+        an edit cannot come before production.
+    see_also:
+      - https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/28
+    in_subset:
+      - lokf_semantic
+
   verified:
     description: >-
       Verification events confirming the content against its sources or
@@ -1623,7 +1675,7 @@ slots:
       The actor that performed the event, as a plain OKF §7 actor string
       (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal,
       never an IRI. Trust tiers derive from the `human:` prefix via string
-      inspection (SPARQL STRSTARTS). Required on a generation or
+      inspection (SPARQL STRSTARTS). Required on a generation, revision or
       verification event, optional on an exclusion.
     range: string
     pattern: '^(human|process):\S+$|^[^\s/]+/[^\s/]+$'

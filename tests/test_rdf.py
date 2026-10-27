@@ -89,6 +89,30 @@ def test_revision_projects_as_a_literal_on_the_event(tmp_path):
     assert (event, URIRef("https://w3id.org/lokf/revision"), Literal("3f9c2a1")) in g
 
 
+def test_revised_projects_as_an_activity_beside_generated(tmp_path):
+    """`revised` hangs off the concept under lokf:revised as its own activity
+    node, with the actor and time as `generated` carries them, and
+    `generated` keeps its own node."""
+    from rdflib import Literal
+
+    p = tmp_path / "thing.md"
+    p.write_text(
+        "---\ntype: Metric\nid: https://x.example/thing\n"
+        "generated: { by: process:librarian, at: 2026-09-01T09:00:00Z }\n"
+        "revised: { by: human:ada, at: 2026-10-01T09:00:00Z, revision: 3f9c2a1 }\n"
+        "---\n# T\n",
+        encoding="utf-8",
+    )
+    g = rdf.graph_of(p)
+    thing = URIRef("https://x.example/thing")
+    (edit,) = g.objects(thing, URIRef("https://w3id.org/lokf/revised"))
+    (production,) = g.objects(thing, URIRef("http://www.w3.org/ns/prov#wasGeneratedBy"))
+    assert edit != production
+    assert (edit, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("human:ada")) in g
+    assert (edit, URIRef("https://w3id.org/lokf/revision"), Literal("3f9c2a1")) in g
+    assert (production, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("process:librarian")) in g
+
+
 def test_bare_date_under_a_datetime_slot_projects_as_midnight_utc(tmp_path):
     """`stale_after: 2026-12-31` is read as that day at 00:00:00Z and typed
     xsd:dateTime, the same as OKF's own `2026-12-31T00:00:00Z` spelling."""
