@@ -170,65 +170,22 @@ def graph_of(
 
 
 def relabel_bnodes(g):
-    """Return a copy of *g* whose blank-node labels are derived from content.
+    """Copy a graph with canonical blank-node labels, preserving its triples.
 
-    rdflib mints blank-node ids from uuid4, so identical input yields different
-    labels every run. Each node is hashed from its own incoming and outgoing
-    edges, iterated so nested blank nodes converge; structurally
-    indistinguishable nodes then get a stable index. This only renames blank
-    nodes - no triple is added, dropped or rewritten.
-
-    (rdflib's own ``to_canonical_graph`` is not usable here: on these
-    almost-entirely-blank-node SHACL graphs it returns different labels for the
-    same content, the same weakness that makes ``to_isomorphic`` report a false
-    negative on lokf.shacl.ttl.)
+    Refinement alone cannot distinguish all nodes (long paths and symmetric
+    cycles are common counterexamples). RDFLib's canonicalizer resolves such
+    ties structurally instead of breaking them with random source node IDs.
     """
-    import hashlib
-    from rdflib import BNode, Graph
+    from rdflib import Graph
+    from rdflib.compare import to_canonical_graph
     from rdflib.graph import DATASET_DEFAULT_GRAPH_ID
 
-    def hashed(term) -> dict:
-        labels = {n: "0" for n in g.all_nodes() if isinstance(n, BNode)}
-        for _ in range(12):
-            nxt = {}
-            for b in labels:
-                out = sorted((str(p), labels.get(o, term(o))) for _, p, o in g.triples((b, None, None)))
-                inc = sorted((labels.get(s, term(s)), str(p)) for s, p, _ in g.triples((None, None, b)))
-                nxt[b] = hashlib.sha256(repr((out, inc)).encode()).hexdigest()[:24]
-            if nxt == labels:
-                break
-            labels = nxt
-        return labels
-
-    def n3_signature(b, labels) -> tuple:
-        out = sorted((str(p), labels.get(o, o.n3())) for _, p, o in g.triples((b, None, None)))
-        inc = sorted((labels.get(s, s.n3()), str(p)) for s, p, _ in g.triples((None, None, b)))
-        return tuple(out), tuple(inc)
-
-    # str() cannot tell a plain "1" from a typed 1 or the IRI <1>. Nodes it
-    # merges that way share a label and would take their index from rdflib's
-    # random ids, so such a graph is hashed again with terms in N3 form. Only
-    # then: a graph without those twins keeps the labels it always had.
-    labels = hashed(str)
-    groups: dict = {}
-    for b, h in labels.items():
-        groups.setdefault(h, []).append(b)
-    if any(
-        len({n3_signature(b, labels) for b in bs}) > 1 for bs in groups.values() if len(bs) > 1
-    ):
-        labels = hashed(lambda t: t.n3())
-
-    buckets: dict = {}
-    for b, h in sorted(labels.items(), key=lambda kv: (kv[1], str(kv[0]))):
-        buckets.setdefault(h, []).append(b)
-    mapping = {b: BNode(f"x{h}{i}") for h, bs in buckets.items() for i, b in enumerate(bs)}
-
-    out_g = Graph(identifier=DATASET_DEFAULT_GRAPH_ID)  # not a random graph name in TriG
+    out = Graph(identifier=DATASET_DEFAULT_GRAPH_ID)
     for prefix, ns in g.namespaces():
-        out_g.bind(prefix, ns)
-    for s, p, o in g:
-        out_g.add((mapping.get(s, s), p, mapping.get(o, o)))
-    return out_g
+        out.bind(prefix, ns)
+    for triple in to_canonical_graph(g):
+        out.add(triple)
+    return out
 
 
 def _sorted_jsonld(text: str) -> str:

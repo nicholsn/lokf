@@ -280,3 +280,28 @@ def test_nt_keeps_a_literal_with_unicode_line_breaks_whole(tmp_path):
         encoding="utf-8",
     )
     assert len(Graph().parse(data=rdf.serialize(tmp_path, "nt"), format="nt")) > 0
+
+
+def test_canonical_labels_for_long_paths_and_symmetric_cycles():
+    from rdflib import BNode, Graph, Literal, URIRef
+    from rdflib.compare import isomorphic
+
+    for cycle in (False, True):
+        outputs = set()
+        for run in range(3):
+            graph = Graph()
+            nodes = [BNode() for _ in range(40 if not cycle else 8)]
+            edges = list(zip(nodes, nodes[1:]))
+            if cycle:
+                edges.append((nodes[-1], nodes[0]))
+            if run % 2:
+                edges.reverse()
+            for source, target in edges:
+                graph.add((source, URIRef("urn:next"), target))
+            if not cycle:
+                graph.add((nodes[0], URIRef("urn:value"), Literal("unchanged")))
+            canonical = rdf.relabel_bnodes(graph)
+            assert len(canonical) == len(graph)
+            assert isomorphic(graph, canonical)
+            outputs.add(rdf.serialize_graph(graph, "nt"))
+        assert len(outputs) == 1
