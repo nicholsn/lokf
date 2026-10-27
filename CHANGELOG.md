@@ -23,12 +23,21 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - Sorting N-Triples splits on newlines only, so a literal holding U+2028 no
   longer breaks `graph.nt`.
+- A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no
+  longer slips a `SERVICE` past the refusal in `lokf serve` and `query`.
+
+- `query_form` reads a query whose `PREFIX` or `BASE` shares its line, so a
+  one-line ASK or CONSTRUCT is no longer run as a SELECT.
 
 - SHACL artifacts now match the authoring RDF projection, preserve separate
   Source/Citation shapes, and avoid false failures from inherited properties
   and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
 
 - Nested validation errors name the field path and unexpected provenance keys.
+
+- A domain schema's slot named like a ParameterType value, such as `uri`
+  or `date`, keeps its own IRI under `--schema` instead of projecting as a
+  Parameter-kind class. LOKF's published context is unchanged.
 
 ### Changed
 
@@ -50,6 +59,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - `lokf validate` warns when a concept lists one material as both a source and
   an exclusion.
+
+- `--check-resources` accepts a pattern such as `docs/*.svg` in a source or an
+  exclusion when it matches a file inside the root.
 
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,
