@@ -169,8 +169,11 @@ def authoring_context(context: dict) -> dict:
     # the alias above), so each authoring value must expand to its designed
     # lokf Parameter-kind class — gen-jsonld-context does not emit enum-meaning
     # terms. Same mechanism by which class names like "Metric" expand as @type.
+    # A domain schema may declare a slot by one of these names (a `uri`);
+    # its own term wins, since a Parameter kind in its place would put a class
+    # IRI in predicate position. LOKF declares none, so its context is unchanged.
     for value, cls in _PARAMETER_KINDS.items():
-        ctx[value] = {"@id": f"https://w3id.org/lokf/{cls}"}
+        ctx.setdefault(value, {"@id": f"https://w3id.org/lokf/{cls}"})
     # `author` must NOT be @id-coerced: OKF §7 actor strings ("team:ga4-docs",
     # "human:kliu") are literals, and coercion would silently mint IRIs in
     # unregistered URI schemes. Inlined Agent objects are unaffected.

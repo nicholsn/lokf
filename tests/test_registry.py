@@ -150,6 +150,20 @@ def test_entry_for_bundle_refuses_foreign_id_by_default(tmp_path):
         entry_for_bundle(root)
 
 
+def test_registration_refuses_duplicate_concept_iris(tmp_path):
+    root = tmp_path / "kb"
+    _write_bundle(root, "https://ex.org/kb/", "original", None)
+    _write_bundle(root, "https://ex.org/kb/", "alias", "https://ex.org/kb/original")
+    with pytest.raises(ValueError, match="duplicate concept IRI"):
+        entry_for_bundle(root)
+    archive = tmp_path / "kb.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        for path in root.iterdir():
+            zf.write(path, "knowledge/" + path.name)
+    with pytest.raises(ValueError, match="duplicate concept IRI"):
+        entry_for_archive(archive)
+
+
 def test_entry_for_bundle_records_the_absolute_path(tmp_path):
     """A directory stays loadable with or without --source-base."""
     assert entry_for_bundle(BUNDLE, source_base="https://x/").path == str(BUNDLE)

@@ -76,3 +76,35 @@ def test_a_material_both_used_and_excluded_is_a_warning(tmp_path):
     r = CliRunner().invoke(app, ['validate', str(tmp_path / 'knowledge')])
     assert r.exit_code == 0 and 'also one of its sources' in r.output
 
+def test_a_pattern_holds_when_it_matches_inside_the_root(tmp_path):
+    (tmp_path / 'docs').mkdir()
+    (tmp_path / 'docs' / 'a.svg').write_text('<svg/>')
+    b = bundle_at(tmp_path / 'knowledge', exclusions=[
+        {'resource': 'docs/*.svg', 'reason': 'figures'},
+        {'resource': 'docs/*.png', 'reason': 'none yet'},
+        {'resource': '../*', 'reason': 'outside'}])
+    findings = list(check_resources(b, tmp_path))
+    assert [s for s, _ in findings] == ['ERROR', 'ERROR']
+    assert 'exclusions[1].resource' in findings[0][1] and 'matches no file' in findings[0][1]
+    assert 'exclusions[2].resource' in findings[1][1] and 'outside' in findings[1][1]
+
+
+def test_patterns_check_every_match_and_broken_links(tmp_path):
+    root = tmp_path / 'repo'
+    root.mkdir()
+    (root / 'good.svg').write_text('inside')
+    (tmp_path / 'secret.svg').write_text('outside')
+    (root / 'escape.svg').symlink_to(tmp_path / 'secret.svg')
+    (root / 'missing.svg').symlink_to(root / 'absent')
+    b = bundle_at(root / 'kb', sources=[{'resource': '*.svg'}])
+    findings = list(check_resources(b, root))
+    assert len(findings) == 2
+    assert any('outside resource root' in msg for _, msg in findings)
+    assert any('names no file or directory' in msg for _, msg in findings)
+
+
+def test_patterns_report_symlink_loops(tmp_path):
+    (tmp_path / 'loop.svg').symlink_to(tmp_path / 'loop.svg')
+    b = bundle_at(tmp_path / 'kb', exclusions=[{'resource': '*.svg', 'reason': 'figures'}])
+    findings = list(check_resources(b, tmp_path))
+    assert findings and all(severity == 'ERROR' for severity, _ in findings)

@@ -11,11 +11,11 @@
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://schema.org/text> "# Computation\n\n    SELECT COUNT(DISTINCT user_id) AS wau\n    FROM `acme.events.user_events`\n    WHERE event_name IN UNNEST(@qualifying_events)\n      AND DATE(event_ts) BETWEEN DATE_SUB(@week_end, INTERVAL 6 DAY) AND @week_end\n\nThe computation binds only the declared parameters; qualifying events are\nfixed by the metric definitions RFC.[^metric-defs-rfc] Backs the\n[Weekly Active Users](/metrics/weekly-active-users.md) metric.\n\n[^metric-defs-rfc]: Metric definitions RFC" .
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/AttestedComputation> .
 <https://acme.example/knowledge/computations/weekly-active-users-count> <http://www.w3.org/ns/prov#wasDerivedFrom> <https://acme.example/knowledge/tables/user-events> .
-<https://acme.example/knowledge/computations/weekly-active-users-count> <http://www.w3.org/ns/prov#wasGeneratedBy> _:xe5600e578d7d62090cb382870 .
-<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/attester> _:x968f56b3babb6c1a7ed6b7150 .
-<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/executor> _:xfc0b91e3308f5539a8118a400 .
-<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/parameter> _:x7d7916ec690f236d56cabba10 .
-<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/verified> _:x74c7d82e44b4ec9cd3ff52060 .
+<https://acme.example/knowledge/computations/weekly-active-users-count> <http://www.w3.org/ns/prov#wasGeneratedBy> _:cb155f31c4bea58900e672b04b710e2bb8a7b9f7de1b2595a1ffe257ac019eafa60 .
+<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/attester> _:cb106549fb5d82e4a9bd488cf8a5dbef23a966fe21719853c45cf73287feac4ffc0 .
+<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/executor> _:cb2a16e654aec0138e330fbb2a6eb103e4834afeb42e13d059b8f57ec55056e483c .
+<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/parameter> _:cb1aab7cf373138c6291e553f1e214764be1e6e6f9cfe0202e61ef3893732ed4b18 .
+<https://acme.example/knowledge/computations/weekly-active-users-count> <https://w3id.org/lokf/verified> _:cb296e1e55425b2e0a0646b38fdfc43264c5254fad88a03d806b842c510dd7bad1b .
 <https://acme.example/knowledge/datasets/events> <http://schema.org/dateModified> "2026-06-28T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/datasets/events> <http://schema.org/description> "All product analytics events across web and mobile." .
 <https://acme.example/knowledge/datasets/events> <http://schema.org/hasPart> <https://acme.example/knowledge/tables/user-events> .
@@ -32,8 +32,8 @@
 <https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/DefinedTerm> .
 <https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://wiki.acme.example/rfc/metric-defs> .
 <https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/2004/02/skos/core#definition> "A user who has performed at least one qualifying event in the period of interest." .
-<https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/ns/prov#wasGeneratedBy> _:xc7861f23939439e4ef9e25950 .
-<https://acme.example/knowledge/glossary/active-user> <https://w3id.org/lokf/verified> _:x91fae5aa61a306c6ca7743180 .
+<https://acme.example/knowledge/glossary/active-user> <http://www.w3.org/ns/prov#wasGeneratedBy> _:cb209d1bd4d47ef840ac621a26d2078101c3925a1307720d05861eb1f38658e1408 .
+<https://acme.example/knowledge/glossary/active-user> <https://w3id.org/lokf/verified> _:cb1379573f4945b2d5a47a6ce8550ba8f5f2ac8051d9933e96a4b2d1377705f89a3 .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/author> "team:analytics" .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/name> "Metric definitions RFC" .
@@ -57,13 +57,13 @@
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/version> "2.1" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/Metric> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasDerivedFrom> <https://acme.example/knowledge/tables/user-events> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasGeneratedBy> _:xf4ec3eb6a639fc201b4617f90 .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/excludes> _:xddced066ea4edd91bd8c62400 .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://www.w3.org/ns/prov#wasGeneratedBy> _:cb110d002c1c0aedd4c6ae496769818f4bda7289d0e5386a3440119e398cc33d05b .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/excludes> _:cb1f4957533ed2c757e2eb98bfefb2f6fd60d33d1fae4f497cdc76dbd5275888b60 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/formula> "COUNT(DISTINCT user_id) over trailing 7 days WHERE event_name IN qualifying_events" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/measures> <https://acme.example/knowledge/glossary/active-user> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:xc6f95a87c7b82b370ff41c710 .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:x76097d2a698ef698760d6e200 .
-<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:xc92919c27c676076f3e5820d0 .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:cb14e694c73e1a5e4c223946456a51bcc72df93af0a8b0fee9a7c884dc17dba6d7d .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:cb10bf92d3572478190ee810ae2b80ee39f697ddea85582ac78ba012d85afa9f797 .
+<https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:cb78266a832f36bf5481c7167008c6513c6de7161bc65cdf715b6fd938043bd469 .
 <https://acme.example/knowledge/playbooks/data-freshness-incident> <http://purl.org/dc/terms/references> <https://acme.example/knowledge/metrics/weekly-active-users> .
 <https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/about> <https://acme.example/knowledge/tables/user-events> .
 <https://acme.example/knowledge/playbooks/data-freshness-incident> <http://schema.org/dateModified> "2026-05-10T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
@@ -92,7 +92,7 @@
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/text> "# Overview\n\nThe Analytics API returns aggregated values for metrics such as\n[Weekly Active Users](/metrics/weekly-active-users.md)." .
 <https://acme.example/knowledge/services/analytics-api> <http://schema.org/url> "https://api.acme.example/v2/analytics"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
 <https://acme.example/knowledge/services/analytics-api> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/WebAPI> .
-<https://acme.example/knowledge/services/analytics-api> <https://w3id.org/lokf/verified> _:xfe1e339353971e503b5864c60 .
+<https://acme.example/knowledge/services/analytics-api> <https://w3id.org/lokf/verified> _:cbda7f6603b024c8ecd55142026da1aa00da11b3082f83d12a6d03533c979c224e .
 <https://acme.example/knowledge/tables/user-events> <http://purl.org/dc/terms/isPartOf> <https://acme.example/knowledge/datasets/events> .
 <https://acme.example/knowledge/tables/user-events> <http://schema.org/dateModified> "2026-06-28T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/tables/user-events> <http://schema.org/description> "One row per product event emitted by a user." .
@@ -102,10 +102,10 @@
 <https://acme.example/knowledge/tables/user-events> <http://schema.org/text> "# Schema\n\n| Column        | Type      | Description                          |\n|---------------|-----------|--------------------------------------|\n| `event_id`    | STRING    | Globally unique event identifier.    |\n| `user_id`     | STRING    | The user who produced the event.     |\n| `event_name`  | STRING    | The type of event.                   |\n| `occurred_at` | TIMESTAMP | When the event occurred.             |\n\nPart of the [Events dataset](/datasets/events.md)." .
 <https://acme.example/knowledge/tables/user-events> <http://schema.org/url> "https://console.cloud.google.com/bigquery?p=acme&d=events&t=user_events"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
 <https://acme.example/knowledge/tables/user-events> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/Table> .
-<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:x6881fd55d1698e8714ca876f0 .
-<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:xa1ef16071926abcedd8f9f8c0 .
-<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:xe101d169d38ba24a84dc699b0 .
-<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:xf34c33ce925baea48ba06eef0 .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:cb19e54e1bda234ab6a976143b94bde3b7b0546c70bdcc7f9ec0a339758676eacd4 .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:cb1dcef029fe435f45340d9f17e8b9fde26457405de37613e7462e22f42952aef1a .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:cb1e6a1f069f9b14366eafa4f3d7235e4d13f7f226f030a7178826bdb0fec5cf766 .
+<https://acme.example/knowledge/tables/user-events> <https://w3id.org/lokf/field> _:cb1eac6742375e79a399ceababbd41c411b739ff9aa268104496a3f464605016884 .
 <https://acme.example/knowledge/wau-look> <http://schema.org/author> "team:analytics" .
 <https://acme.example/knowledge/wau-look> <http://schema.org/name> "WAU Look (production dashboard)" .
 <https://acme.example/knowledge/wau-look> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
@@ -113,45 +113,45 @@
 <https://acme.example/people/jsmith> <http://schema.org/email> "jsmith@acme.example" .
 <https://acme.example/people/jsmith> <http://schema.org/name> "Jordan Smith" .
 <https://acme.example/people/jsmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
-_:x6881fd55d1698e8714ca876f0 <http://schema.org/description> "The user who produced the event." .
-_:x6881fd55d1698e8714ca876f0 <http://schema.org/name> "user_id" .
-_:x6881fd55d1698e8714ca876f0 <https://w3id.org/lokf/datatype> "string" .
-_:x74c7d82e44b4ec9cd3ff52060 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-01T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:x74c7d82e44b4ec9cd3ff52060 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
-_:x76097d2a698ef698760d6e200 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-01T16:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:x76097d2a698ef698760d6e200 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:kliu@acme" .
-_:x7d7916ec690f236d56cabba10 <http://schema.org/name> "week_end" .
-_:x7d7916ec690f236d56cabba10 <http://schema.org/valueRequired> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-_:x7d7916ec690f236d56cabba10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/DateParameter> .
-_:x91fae5aa61a306c6ca7743180 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:x91fae5aa61a306c6ca7743180 <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
-_:x968f56b3babb6c1a7ed6b7150 <http://schema.org/url> "references/attesters/sql_equality.py"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-_:xa1ef16071926abcedd8f9f8c0 <http://schema.org/description> "Globally unique event identifier." .
-_:xa1ef16071926abcedd8f9f8c0 <http://schema.org/name> "event_id" .
-_:xa1ef16071926abcedd8f9f8c0 <https://w3id.org/lokf/datatype> "string" .
-_:xa1ef16071926abcedd8f9f8c0 <https://w3id.org/lokf/isKey> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-_:xc6f95a87c7b82b370ff41c710 <http://www.w3.org/ns/dcat#endDate> "2026-06-30T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:xc6f95a87c7b82b370ff41c710 <http://www.w3.org/ns/dcat#startDate> "2026-06-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:xc7861f23939439e4ef9e25950 <http://www.w3.org/ns/prov#endedAtTime> "2026-03-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:xc7861f23939439e4ef9e25950 <http://www.w3.org/ns/prov#wasAssociatedWith> "reference_agent/gemini-2.5-pro" .
-_:xc92919c27c676076f3e5820d0 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:xc92919c27c676076f3e5820d0 <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
-_:xddced066ea4edd91bd8c62400 <http://schema.org/url> "https://looker.acme.example/looks/wau-staging"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-_:xddced066ea4edd91bd8c62400 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
-_:xddced066ea4edd91bd8c62400 <https://w3id.org/lokf/reason> "a staging copy of the WAU Look, rebuilt nightly from sampled data" .
-_:xe101d169d38ba24a84dc699b0 <http://schema.org/description> "The type of event (e.g. page_view, purchase)." .
-_:xe101d169d38ba24a84dc699b0 <http://schema.org/name> "event_name" .
-_:xe101d169d38ba24a84dc699b0 <https://w3id.org/lokf/datatype> "string" .
-_:xe5600e578d7d62090cb382870 <http://www.w3.org/ns/prov#endedAtTime> "2026-06-28T14:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:xe5600e578d7d62090cb382870 <http://www.w3.org/ns/prov#wasAssociatedWith> "reference_agent/gemini-2.5-pro" .
-_:xf34c33ce925baea48ba06eef0 <http://schema.org/description> "When the event occurred." .
-_:xf34c33ce925baea48ba06eef0 <http://schema.org/name> "occurred_at" .
-_:xf34c33ce925baea48ba06eef0 <https://w3id.org/lokf/datatype> "datetime" .
-_:xf4ec3eb6a639fc201b4617f90 <http://www.w3.org/ns/prov#endedAtTime> "2026-06-30T12:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:xf4ec3eb6a639fc201b4617f90 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
-_:xfc0b91e3308f5539a8118a400 <http://schema.org/url> "references/skills/run-on-bq.md"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-_:xfc0b91e3308f5539a8118a400 <https://w3id.org/lokf/receipt> "executed_sql" .
-_:xfc0b91e3308f5539a8118a400 <https://w3id.org/lokf/receipt> "job_id" .
-_:xfc0b91e3308f5539a8118a400 <https://w3id.org/lokf/receipt> "result" .
-_:xfe1e339353971e503b5864c60 <http://www.w3.org/ns/prov#endedAtTime> "2026-06-02T04:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:xfe1e339353971e503b5864c60 <http://www.w3.org/ns/prov#wasAssociatedWith> "process:api-contract-tests" .
+_:cb106549fb5d82e4a9bd488cf8a5dbef23a966fe21719853c45cf73287feac4ffc0 <http://schema.org/url> "references/attesters/sql_equality.py"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+_:cb10bf92d3572478190ee810ae2b80ee39f697ddea85582ac78ba012d85afa9f797 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb10bf92d3572478190ee810ae2b80ee39f697ddea85582ac78ba012d85afa9f797 <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
+_:cb110d002c1c0aedd4c6ae496769818f4bda7289d0e5386a3440119e398cc33d05b <http://www.w3.org/ns/prov#endedAtTime> "2026-06-30T12:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb110d002c1c0aedd4c6ae496769818f4bda7289d0e5386a3440119e398cc33d05b <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
+_:cb1379573f4945b2d5a47a6ce8550ba8f5f2ac8051d9933e96a4b2d1377705f89a3 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-02T02:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb1379573f4945b2d5a47a6ce8550ba8f5f2ac8051d9933e96a4b2d1377705f89a3 <http://www.w3.org/ns/prov#wasAssociatedWith> "process:metrics-nightly" .
+_:cb14e694c73e1a5e4c223946456a51bcc72df93af0a8b0fee9a7c884dc17dba6d7d <http://www.w3.org/ns/dcat#endDate> "2026-06-30T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb14e694c73e1a5e4c223946456a51bcc72df93af0a8b0fee9a7c884dc17dba6d7d <http://www.w3.org/ns/dcat#startDate> "2026-06-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb155f31c4bea58900e672b04b710e2bb8a7b9f7de1b2595a1ffe257ac019eafa60 <http://www.w3.org/ns/prov#endedAtTime> "2026-06-28T14:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb155f31c4bea58900e672b04b710e2bb8a7b9f7de1b2595a1ffe257ac019eafa60 <http://www.w3.org/ns/prov#wasAssociatedWith> "reference_agent/gemini-2.5-pro" .
+_:cb19e54e1bda234ab6a976143b94bde3b7b0546c70bdcc7f9ec0a339758676eacd4 <http://schema.org/description> "The user who produced the event." .
+_:cb19e54e1bda234ab6a976143b94bde3b7b0546c70bdcc7f9ec0a339758676eacd4 <http://schema.org/name> "user_id" .
+_:cb19e54e1bda234ab6a976143b94bde3b7b0546c70bdcc7f9ec0a339758676eacd4 <https://w3id.org/lokf/datatype> "string" .
+_:cb1aab7cf373138c6291e553f1e214764be1e6e6f9cfe0202e61ef3893732ed4b18 <http://schema.org/name> "week_end" .
+_:cb1aab7cf373138c6291e553f1e214764be1e6e6f9cfe0202e61ef3893732ed4b18 <http://schema.org/valueRequired> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+_:cb1aab7cf373138c6291e553f1e214764be1e6e6f9cfe0202e61ef3893732ed4b18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/lokf/DateParameter> .
+_:cb1dcef029fe435f45340d9f17e8b9fde26457405de37613e7462e22f42952aef1a <http://schema.org/description> "When the event occurred." .
+_:cb1dcef029fe435f45340d9f17e8b9fde26457405de37613e7462e22f42952aef1a <http://schema.org/name> "occurred_at" .
+_:cb1dcef029fe435f45340d9f17e8b9fde26457405de37613e7462e22f42952aef1a <https://w3id.org/lokf/datatype> "datetime" .
+_:cb1e6a1f069f9b14366eafa4f3d7235e4d13f7f226f030a7178826bdb0fec5cf766 <http://schema.org/description> "Globally unique event identifier." .
+_:cb1e6a1f069f9b14366eafa4f3d7235e4d13f7f226f030a7178826bdb0fec5cf766 <http://schema.org/name> "event_id" .
+_:cb1e6a1f069f9b14366eafa4f3d7235e4d13f7f226f030a7178826bdb0fec5cf766 <https://w3id.org/lokf/datatype> "string" .
+_:cb1e6a1f069f9b14366eafa4f3d7235e4d13f7f226f030a7178826bdb0fec5cf766 <https://w3id.org/lokf/isKey> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+_:cb1eac6742375e79a399ceababbd41c411b739ff9aa268104496a3f464605016884 <http://schema.org/description> "The type of event (e.g. page_view, purchase)." .
+_:cb1eac6742375e79a399ceababbd41c411b739ff9aa268104496a3f464605016884 <http://schema.org/name> "event_name" .
+_:cb1eac6742375e79a399ceababbd41c411b739ff9aa268104496a3f464605016884 <https://w3id.org/lokf/datatype> "string" .
+_:cb1f4957533ed2c757e2eb98bfefb2f6fd60d33d1fae4f497cdc76dbd5275888b60 <http://schema.org/url> "https://looker.acme.example/looks/wau-staging"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+_:cb1f4957533ed2c757e2eb98bfefb2f6fd60d33d1fae4f497cdc76dbd5275888b60 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
+_:cb1f4957533ed2c757e2eb98bfefb2f6fd60d33d1fae4f497cdc76dbd5275888b60 <https://w3id.org/lokf/reason> "a staging copy of the WAU Look, rebuilt nightly from sampled data" .
+_:cb209d1bd4d47ef840ac621a26d2078101c3925a1307720d05861eb1f38658e1408 <http://www.w3.org/ns/prov#endedAtTime> "2026-03-01T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb209d1bd4d47ef840ac621a26d2078101c3925a1307720d05861eb1f38658e1408 <http://www.w3.org/ns/prov#wasAssociatedWith> "reference_agent/gemini-2.5-pro" .
+_:cb296e1e55425b2e0a0646b38fdfc43264c5254fad88a03d806b842c510dd7bad1b <http://www.w3.org/ns/prov#endedAtTime> "2026-07-01T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb296e1e55425b2e0a0646b38fdfc43264c5254fad88a03d806b842c510dd7bad1b <http://www.w3.org/ns/prov#wasAssociatedWith> "human:jsmith@acme" .
+_:cb2a16e654aec0138e330fbb2a6eb103e4834afeb42e13d059b8f57ec55056e483c <http://schema.org/url> "references/skills/run-on-bq.md"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+_:cb2a16e654aec0138e330fbb2a6eb103e4834afeb42e13d059b8f57ec55056e483c <https://w3id.org/lokf/receipt> "executed_sql" .
+_:cb2a16e654aec0138e330fbb2a6eb103e4834afeb42e13d059b8f57ec55056e483c <https://w3id.org/lokf/receipt> "job_id" .
+_:cb2a16e654aec0138e330fbb2a6eb103e4834afeb42e13d059b8f57ec55056e483c <https://w3id.org/lokf/receipt> "result" .
+_:cb78266a832f36bf5481c7167008c6513c6de7161bc65cdf715b6fd938043bd469 <http://www.w3.org/ns/prov#endedAtTime> "2026-07-01T16:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cb78266a832f36bf5481c7167008c6513c6de7161bc65cdf715b6fd938043bd469 <http://www.w3.org/ns/prov#wasAssociatedWith> "human:kliu@acme" .
+_:cbda7f6603b024c8ecd55142026da1aa00da11b3082f83d12a6d03533c979c224e <http://www.w3.org/ns/prov#endedAtTime> "2026-06-02T04:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:cbda7f6603b024c8ecd55142026da1aa00da11b3082f83d12a6d03533c979c224e <http://www.w3.org/ns/prov#wasAssociatedWith> "process:api-contract-tests" .
