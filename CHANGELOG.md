@@ -13,6 +13,11 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- `lokf registry build`, `query` and `serve`: one named graph per member, keyed
+  by its `base_iri`, queried as a union (SPEC §11.4).
+
 ### Fixed
 
 - `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label

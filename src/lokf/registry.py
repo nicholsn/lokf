@@ -7,10 +7,12 @@ exact inverse of :meth:`lokf.model.Bundle.iri` minting — so following an IRI
 from one bundle into another is pure string math: no network, no shared
 database. See SPEC §11.
 
-This module is the offline core (Phase 1): loading/saving the manifest,
+This module holds the offline core (Phase 1): loading/saving the manifest,
 building an entry from a local bundle or a released bundle archive, and
-resolving an IRI to its owning bundle + Concept ID + source URL. Harvesting
-remote artifacts and traversing a federated store land in later phases.
+resolving an IRI to its owning bundle + Concept ID + source URL. It also
+fetches each member's graph for the federated store (Phase 2, see
+:meth:`lokf.store.GraphStore.from_registry`) and reports the relation
+targets no member holds.
 """
 from __future__ import annotations
 
@@ -234,6 +236,13 @@ class Registry:
         d["repos"] = [_entry_dict(e) for e in self.repos]
         return d
 
+    def located(self) -> "Registry":
+        """A copy whose local locations are absolute, read against the
+        manifest's directory: a relative ``path`` or ``distribution`` value
+        names a file beside the manifest, wherever the process runs."""
+        base = self.path.parent.resolve() if self.path else None
+        return dataclasses.replace(self, repos=[_located(e, base) for e in self.repos])
+
     def save(self) -> None:
         """Write the manifest back to :attr:`path` (block-style YAML)."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -242,6 +251,25 @@ class Registry:
             encoding="utf-8",
         )
 
+
+
+def _located(entry: RepoEntry, base: pathlib.Path | None) -> RepoEntry:
+    """*entry* with its relative local locations made absolute against *base*."""
+    located = dataclasses.replace(entry, distribution=dict(entry.distribution))
+    if base is None:
+        return located
+
+    def local(value: str) -> str:
+        if is_url(value) or value.startswith("file://") or pathlib.Path(value).is_absolute():
+            return value
+        return str((base / value).resolve())
+
+    if located.path:
+        located.path = local(located.path)
+    for key, value in located.distribution.items():
+        if isinstance(value, str) and value:
+            located.distribution[key] = local(value)
+    return located
 
 #: The fields that say which release an entry describes, when no checksum does.
 _RELEASE_FIELDS = ("repo", "source_base", "distribution", "id_index", "path", "void")
@@ -289,6 +317,7 @@ def fill_locations(held: RepoEntry, new: RepoEntry) -> bool:
                 held.distribution[key] = value
                 changed = True
     return changed
+
 
 
 _FIELDS = dataclasses.fields(RepoEntry)
@@ -498,6 +527,17 @@ def _download(url: str, dest: pathlib.Path, max_bytes: int = MAX_ARCHIVE_BYTES) 
         raise
 
 
+def _fetch(source: str, dest: pathlib.Path, max_bytes: int = MAX_ARCHIVE_BYTES) -> pathlib.Path:
+    """*source* as a local file: downloaded into *dest* when it is a URL,
+    else the path itself (a ``file://`` URI is accepted too)."""
+    if is_url(source):
+        _download(source, dest, max_bytes=max_bytes)
+        return dest
+    if source.startswith("file://"):
+        return pathlib.Path(urllib.request.url2pathname(source[len("file://"):]))
+    return pathlib.Path(source)
+
+
 def _unpack(archive: pathlib.Path, dest: pathlib.Path, label: str | None = None) -> pathlib.Path:
     """Unpack a bundle zip into *dest* and return the bundle's root directory.
 
@@ -570,11 +610,7 @@ def entry_for_archive(
 
     tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-"))
     try:
-        if is_url(str(source)):
-            archive = tmp / "bundle.zip"
-            _download(str(source), archive)
-        else:
-            archive = pathlib.Path(source)
+        archive = _fetch(str(source), tmp / "bundle.zip")
         digest = _sha256(archive)
         if expected and digest != expected:
             raise ValueError(f"checksum mismatch: expected {expected}, got {digest}")
@@ -587,6 +623,93 @@ def entry_for_archive(
     entry.path = None
     entry.source_base = source_base or ""
     entry.checksum = digest
-    where = str(source) if is_url(str(source)) else str(pathlib.Path(source).resolve())
+    where = str(source) if is_url(str(source)) else str(archive.resolve())
     entry.distribution = {"archive": archive_url or where}
     return entry
+
+
+def member_ntriples(entry: RepoEntry) -> str:
+    """A member's graph as N-Triples, offline first (SPEC §11.4).
+
+    Tries the local checkout in ``path``, projected under the domain schema
+    its project declares; then ``distribution.rdf`` (a ``graph.nt`` from
+    ``lokf export``); then ``distribution.archive``, checked against
+    ``checksum`` and projected under core LOKF. Only the archive is checked:
+    a ``distribution.rdf`` is trusted as the manifest lists it. Relative
+    locations are read as :meth:`Registry.located` leaves them. Raises
+    ``ValueError`` when the entry names none of them, or ``OSError`` when the
+    one it names is unreachable.
+    """
+    from lokf import rdf
+    from lokf.schema import domain_schema
+
+    if entry.path and pathlib.Path(entry.path).is_dir():
+        return rdf.serialize(entry.path, "nt", schema=domain_schema(None, entry.path))
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-"))
+    try:
+        if entry.distribution.get("rdf"):
+            nt = _fetch(str(entry.distribution["rdf"]), tmp / "graph.nt")
+            return nt.read_text(encoding="utf-8")
+        if entry.distribution.get("archive"):
+            archive = _fetch(str(entry.distribution["archive"]), tmp / "bundle.zip")
+            if entry.checksum and _sha256(archive) != entry.checksum:
+                raise ValueError(f"archive does not match checksum {entry.checksum}")
+            root = _unpack(archive, tmp / "unpacked", label=str(entry.distribution["archive"]))
+            return rdf.serialize(root, "nt")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    raise ValueError("no local path, distribution.rdf or distribution.archive to load")
+
+
+@dataclass
+class Unresolved:
+    """A typed-relation target, asserted in *graph*, that the registry cannot
+    follow: no member owns it (``unowned``), or its owner holds no such
+    concept (``missing``)."""
+
+    graph: str
+    predicate: str
+    target: str
+    kind: str
+
+
+def unresolved_targets(registry: Registry, store) -> list[Unresolved]:
+    """Typed-relation targets outside the asserting member that do not resolve.
+
+    *store* is a :class:`lokf.store.GraphStore` built with
+    :meth:`~lokf.store.GraphStore.from_registry`. This is ``--check-refs``
+    across bundles: a target under the asserting member's own ``base_iri`` is
+    that bundle's own check, and is skipped here. So is a term of the LOKF
+    vocabulary no member owns, which is not a concept, and a target whose
+    owner failed to load, which cannot be checked (the load error says so).
+    """
+    import pyoxigraph as ox
+
+    from lokf.schema import vocabulary
+
+    vocab = vocabulary()
+    predicates = {r.uri for r in vocab.relation_slots.values()}
+    predicates |= {r.uri for r in vocab.relation_types.values()}
+    predicates.add("http://www.w3.org/1999/02/22-rdf-syntax-ns#object")  # reified target
+
+    out: set[tuple[str, str, str, str]] = set()
+    for pred in sorted(predicates):
+        for q in store.store.quads_for_pattern(None, ox.NamedNode(pred), None, None):
+            if not isinstance(q.object, ox.NamedNode) or not isinstance(q.graph_name, ox.NamedNode):
+                continue
+            graph, target = q.graph_name.value, q.object.value
+            if target.startswith(graph):
+                continue
+            owner = registry.owner(target)
+            if owner is None:
+                if not target.startswith(VOCAB_NS):
+                    out.add((graph, pred, target, "unowned"))
+            elif owner.base_iri in store.load_errors:
+                continue
+            elif not any(
+                store.store.quads_for_pattern(
+                    q.object, None, None, ox.NamedNode(owner.base_iri)
+                )
+            ):
+                out.add((graph, pred, target, "missing"))
+    return [Unresolved(*row) for row in sorted(out)]

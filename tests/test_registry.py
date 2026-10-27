@@ -256,7 +256,7 @@ def test_entry_for_archive_refuses_unsafe_member(tmp_path):
 
 def test_entry_for_archive_from_url_records_distribution(tmp_path, monkeypatch):
     archive = _zip_bundle(tmp_path)
-    monkeypatch.setattr("lokf.registry._download", lambda url, dest: shutil.copy(archive, dest))
+    monkeypatch.setattr("lokf.registry._download", lambda url, dest, **kw: shutil.copy(archive, dest))
     url = "https://example.org/releases/knowledge-v1.zip"
     entry = entry_for_archive(url)
     assert entry.distribution == {"archive": url}
@@ -557,6 +557,216 @@ def test_an_id_in_the_entrys_own_namespace_under_the_vocabulary_is_allowed():
         reg.add(RepoEntry(base_iri="https://b.example/", id_index={VOCAB_NS + "Metric": "m"}))
 
 
+
+# -- federated store (SPEC §11.4) -------------------------------------------
+def _kb(root: pathlib.Path, base_iri: str, concepts: dict[str, str]) -> pathlib.Path:
+    """A bundle at *root* whose concepts are given as frontmatter bodies."""
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "index.md").write_text(f"---\nbase_iri: {base_iri}\ntitle: T\n---\n", encoding="utf-8")
+    for name, fm in concepts.items():
+        (root / f"{name}.md").write_text(f"---\ntype: Concept\ntitle: {name}\n{fm}---\n", encoding="utf-8")
+    return root
+
+
+SOURCE = "sources:\n  - title: S\n    url: https://s.example/doc\n"
+
+
+def _federation(tmp_path) -> Registry:
+    a = _kb(tmp_path / "a", "https://a.example/kb/", {
+        "x": SOURCE + "references:\n"
+        "  - https://b.example/kb/y\n"
+        "  - https://b.example/kb/nope\n"
+        "  - https://c.example/z\n",
+    })
+    b = _kb(tmp_path / "b", "https://b.example/kb/", {"y": SOURCE})
+    reg = Registry(path=tmp_path / "lokf-registry.yaml")
+    reg.add(entry_for_bundle(a))
+    reg.add(entry_for_bundle(b))
+    return reg
+
+
+def test_from_registry_loads_one_named_graph_per_member(tmp_path):
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    store = GraphStore.from_registry(reg)
+    rows = store.select("SELECT ?g (COUNT(*) AS ?n) WHERE { GRAPH ?g { ?s ?p ?o } } GROUP BY ?g")
+    graphs = {r["g"]: int(r["n"]) for r in rows}
+    assert set(graphs) == {"https://a.example/kb/", "https://b.example/kb/"}
+    # The union default graph holds both, and the members' blank nodes stay apart.
+    union = store.select("SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }")[0]["n"]
+    assert int(union) == sum(graphs.values())
+    assert len(store.rdflib_graph()) == int(union)
+
+
+def test_from_registry_skips_an_unloadable_member(tmp_path):
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    reg.repos.append(RepoEntry(base_iri="https://gone.example/"))
+    store = GraphStore.from_registry(reg)
+    assert set(store.load_errors) == {"https://gone.example/"}
+    assert len(store) > 0
+
+
+def test_unresolved_targets_names_unowned_and_missing(tmp_path):
+    from lokf.registry import unresolved_targets
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    found = {(u.target, u.kind) for u in unresolved_targets(reg, GraphStore.from_registry(reg))}
+    assert found == {
+        ("https://b.example/kb/nope", "missing"),
+        ("https://c.example/z", "unowned"),
+    }
+
+
+def test_cli_registry_build_and_query(tmp_path):
+    reg = _federation(tmp_path)
+    reg.save()
+    manifest, out = str(reg.path), tmp_path / "fed"
+    built = runner.invoke(app, ["registry", "build", "-r", manifest, "-d", str(out)])
+    assert built.exit_code == 0, built.output
+    assert "2 of 2 members" in built.output
+    assert "unowned: https://c.example/z" in built.output
+    assert "missing: https://b.example/kb/nope" in built.output
+    strict = runner.invoke(app, ["registry", "build", "-r", manifest, "-d", str(out), "--strict"])
+    assert strict.exit_code == 1
+
+    q = runner.invoke(app, [
+        "registry", "query", "--quads", str(out / "federation.nq"),
+        "SELECT ?g WHERE { GRAPH ?g { <https://b.example/kb/y> ?p ?o } } LIMIT 1",
+    ])
+    assert q.exit_code == 0 and "https://b.example/kb/" in q.output
+
+
+def test_from_registry_skips_a_member_whose_content_fails(tmp_path):
+    """Broken frontmatter in one member, or a malformed graph.nt, is that
+    member's failure alone; nothing of it reaches the store."""
+    from lokf.store import GraphStore
+
+    reg = _federation(tmp_path)
+    (tmp_path / "b" / "z.md").write_text("---\ntype: Concept\ntitle: [unclosed\n---\n", encoding="utf-8")
+    bad_nt = tmp_path / "graph.nt"
+    bad_nt.write_text("<https://c.example/kb/x> <http://p> .\n", encoding="utf-8")
+    reg.repos.append(RepoEntry(base_iri="https://c.example/kb/", distribution={"rdf": str(bad_nt)}))
+    store = GraphStore.from_registry(reg)
+    assert set(store.load_errors) == {"https://b.example/kb/", "https://c.example/kb/"}
+    graphs = {r["g"] for r in store.select("SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }")}
+    assert graphs == {"https://a.example/kb/"}
+
+
+def test_unresolved_targets_skip_vocabulary_terms_and_unloaded_owners(tmp_path):
+    from lokf.registry import unresolved_targets
+    from lokf.store import GraphStore
+
+    a = _kb(tmp_path / "a", "https://a.example/kb/", {
+        "x": "references:\n  - https://w3id.org/lokf/Metric\n  - https://b.example/kb/y\n",
+    })
+    reg = Registry(path=tmp_path / "r.yaml")
+    reg.add(entry_for_bundle(a))
+    reg.add(RepoEntry(base_iri="https://b.example/kb/"))  # nothing to load it from
+    store = GraphStore.from_registry(reg)
+    assert "https://b.example/kb/" in store.load_errors
+    assert unresolved_targets(reg, store) == []
+
+
+def test_from_and_from_named_are_not_overridden_by_the_union(tmp_path):
+    from lokf.store import GraphStore
+
+    store = GraphStore.from_registry(_federation(tmp_path))
+    one = "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }"
+    union = int(store.select(one)[0]["n"])
+    only_a = int(store.select(one.replace("WHERE", "FROM <https://a.example/kb/> WHERE"))[0]["n"])
+    assert 0 < only_a < union
+    named = "SELECT (COUNT(*) AS ?n) FROM NAMED <https://a.example/kb/> WHERE { ?s ?p ?o }"
+    assert int(store.select(named)[0]["n"]) == 0  # FROM NAMED alone: an empty default graph
+
+
+def test_relative_locations_are_read_against_the_manifest(tmp_path, monkeypatch):
+    from lokf.store import GraphStore
+
+    root = tmp_path / "fed"
+    _kb(root / "a", "https://a.example/kb/", {"x": ""})
+    manifest = root / "lokf-registry.yaml"
+    manifest.write_text("repos:\n- base_iri: https://a.example/kb/\n  path: a\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)  # anywhere but beside the manifest
+    store = GraphStore.from_registry(manifest)
+    assert store.load_errors == {} and len(store) > 0
+
+
+def test_registry_build_is_byte_stable_across_processes(tmp_path):
+    import subprocess
+    import sys
+
+    reg = _federation(tmp_path)
+    reg.save()
+    outs = []
+    for name in ("one", "two"):
+        subprocess.run([sys.executable, "-m", "lokf.cli", "registry", "build", "-r", str(reg.path),
+                        "-d", str(tmp_path / name)], check=True, capture_output=True)
+        outs.append((tmp_path / name / "federation.nq").read_bytes())
+    assert b"_:m" in outs[0] and outs[0] == outs[1]
+
+
+def test_registry_build_fails_when_nothing_loads(tmp_path):
+    manifest = tmp_path / "r.yaml"
+    manifest.write_text("repos:\n- base_iri: https://gone.example/\n", encoding="utf-8")
+    r = runner.invoke(app, ["registry", "build", "-r", str(manifest), "-d", str(tmp_path / "out")])
+    assert r.exit_code == 1 and "no member" in r.output
+    bad = tmp_path / "bad.nq"
+    bad.write_text("not n-quads\n", encoding="utf-8")
+    q = runner.invoke(app, ["registry", "query", "--quads", str(bad), "ASK { ?s ?p ?o }"])
+    assert q.exit_code == 1 and "cannot read" in q.output
+
+
+def test_sensitive_members_require_explicit_clearance_before_reading(tmp_path, monkeypatch):
+    from lokf.store import GraphStore
+    import lokf.registry as registry_module
+
+    reg = _federation(tmp_path)
+    private = reg.repos[1]
+    private.sensitivity = 'confidential'
+    reads = []
+    original = registry_module.member_ntriples
+    def observed(entry):
+        reads.append(entry.base_iri)
+        return original(entry)
+    monkeypatch.setattr(registry_module, 'member_ntriples', observed)
+    store = GraphStore.from_registry(reg)
+    assert private.base_iri not in reads
+    assert 'clearance' in store.load_errors[private.base_iri]
+    assert not store.ask('ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }')
+    cleared = GraphStore.from_registry(reg, cleared_members=[private.base_iri])
+    assert private.base_iri in reads
+    assert cleared.load_errors == {}
+    assert cleared.ask('ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }')
+    assert private.sensitivity == 'confidential'
+
+
+def test_cli_member_clearance_is_per_run(tmp_path):
+    reg = _federation(tmp_path)
+    reg.repos[1].sensitivity = 'private'
+    reg.save()
+    before = reg.path.read_bytes()
+    query = 'ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }'
+    args = ['registry', 'query', '-r', str(reg.path), query]
+    denied = runner.invoke(app, args)
+    assert denied.exit_code == 0 and 'false' in denied.output and 'clearance' in denied.output
+    allowed = runner.invoke(app, args + ['--clear-member', reg.repos[1].base_iri])
+    assert allowed.exit_code == 0 and 'true' in allowed.output
+    assert reg.path.read_bytes() == before
+
+
+def test_federated_graph_preserves_cross_bundle_edges(tmp_path):
+    from lokf.store import GraphStore
+    from lokf.export import graph_to_cytoscape
+
+    graph = GraphStore.from_registry(_federation(tmp_path)).rdflib_graph()
+    elements = graph_to_cytoscape(graph)
+    pairs = {(e['data']['source'], e['data']['target']) for e in elements['edges']}
+    assert ('https://a.example/kb/x', 'https://b.example/kb/y') in pairs
+
 def test_release_difference_checks_unpinned_metadata_and_names_a_lone_checksum():
     from lokf.registry import release_difference
 
@@ -601,3 +811,31 @@ def test_distinct_unpinned_local_bundles_are_not_the_same_release():
     with pytest.raises(ValueError, match="path differs"):
         reg.add(RepoEntry(base_iri="https://ex.org/", path="two"))
     assert len(reg.repos) == 1
+
+
+
+def test_federation_http_graph_and_query(tmp_path):
+    import json
+    import threading
+    from urllib.parse import urlencode
+    from urllib.request import urlopen
+    from lokf.server import build_server
+    from lokf.store import GraphStore
+
+    server = build_server(GraphStore.from_registry(_federation(tmp_path)), '127.0.0.1', 0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = f'http://127.0.0.1:{server.server_address[1]}'
+    try:
+        with urlopen(base + '/graph.json', timeout=5) as response:
+            elements = json.load(response)
+        assert any(e['data']['source'] == 'https://a.example/kb/x' and
+                   e['data']['target'] == 'https://b.example/kb/y' for e in elements['edges'])
+        query = 'SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }'
+        with urlopen(base + '/sparql?' + urlencode({'query': query}), timeout=5) as response:
+            rows = json.load(response)['results']['bindings']
+        assert {r['g']['value'] for r in rows} == {'https://a.example/kb/', 'https://b.example/kb/'}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
