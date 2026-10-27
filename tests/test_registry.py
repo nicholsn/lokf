@@ -83,11 +83,27 @@ def test_add_rejects_vocab_namespace():
         reg.add(RepoEntry(base_iri=VOCAB_NS))
 
 
-def test_add_rejects_duplicate_and_nesting():
+def test_add_accepts_the_same_release_and_rejects_another():
+    reg = Registry(path=pathlib.Path("x"))
+    assert reg.add(RepoEntry(base_iri="https://ex.org/a/", source_base="https://s/"))
+    # The same release again, as the union of two registries names it: a no-op.
+    assert not reg.add(RepoEntry(base_iri="https://ex.org/a/", source_base="https://s/", title="other"))
+    assert len(reg.repos) == 1
+    with pytest.raises(ValueError, match="another release.*source_base differs"):
+        reg.add(RepoEntry(base_iri="https://ex.org/a/", source_base="https://t/"))
+
+
+def test_add_decides_by_checksum_when_both_have_one():
+    reg = Registry(path=pathlib.Path("x"))
+    reg.add(RepoEntry(base_iri="https://ex.org/a/", checksum="sha256:1", source_base="https://s/"))
+    assert not reg.add(RepoEntry(base_iri="https://ex.org/a/", checksum="sha256:1", source_base="https://mirror/"))
+    with pytest.raises(ValueError, match="checksum differs"):
+        reg.add(RepoEntry(base_iri="https://ex.org/a/", checksum="sha256:2"))
+
+
+def test_add_rejects_nesting():
     reg = Registry(path=pathlib.Path("x"))
     reg.add(RepoEntry(base_iri="https://ex.org/a/"))
-    with pytest.raises(ValueError, match="already registered"):
-        reg.add(RepoEntry(base_iri="https://ex.org/a/"))
     with pytest.raises(ValueError, match="nest"):
         reg.add(RepoEntry(base_iri="https://ex.org/a/sub/"))
     with pytest.raises(ValueError, match="nest"):
@@ -132,6 +148,20 @@ def test_entry_for_bundle_refuses_foreign_id_by_default(tmp_path):
     _write_bundle(root, "https://a.example/knowledge/", "x", "https://elsewhere.example/x")
     with pytest.raises(ValueError, match="outside base_iri"):
         entry_for_bundle(root)
+
+
+def test_registration_refuses_duplicate_concept_iris(tmp_path):
+    root = tmp_path / "kb"
+    _write_bundle(root, "https://ex.org/kb/", "original", None)
+    _write_bundle(root, "https://ex.org/kb/", "alias", "https://ex.org/kb/original")
+    with pytest.raises(ValueError, match="duplicate concept IRI"):
+        entry_for_bundle(root)
+    archive = tmp_path / "kb.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        for path in root.iterdir():
+            zf.write(path, "knowledge/" + path.name)
+    with pytest.raises(ValueError, match="duplicate concept IRI"):
+        entry_for_archive(archive)
 
 
 def test_entry_for_bundle_records_the_absolute_path(tmp_path):
@@ -263,13 +293,18 @@ def test_cli_init_add_list_resolve(tmp_path):
     assert external.exit_code == 1 and "external" in external.output
 
 
-def test_cli_add_rejects_second_copy_of_same_bundle(tmp_path):
-    """Registering the same base_iri twice is a clean error, not a traceback."""
+def test_cli_add_same_bundle_twice_is_a_no_op(tmp_path):
+    """The same release twice is accepted once; another release is a clean error."""
     manifest = tmp_path / "lokf-registry.yaml"
     runner.invoke(app, ["registry", "init", "-r", str(manifest)])
     runner.invoke(app, ["registry", "add", str(BUNDLE), "-r", str(manifest)])
     again = runner.invoke(app, ["registry", "add", str(BUNDLE), "-r", str(manifest)])
-    assert again.exit_code == 1 and "already registered" in again.output
+    assert again.exit_code == 0 and "already registered at this release" in again.output
+    assert len(load_registry(manifest).repos) == 1
+    moved = runner.invoke(
+        app, ["registry", "add", str(BUNDLE), "-r", str(manifest), "--source-base", "https://x/"]
+    )
+    assert moved.exit_code == 1 and "another release" in moved.output
 
 
 def test_cli_add_registers_a_zip(tmp_path):
@@ -522,6 +557,7 @@ def test_an_id_in_the_entrys_own_namespace_under_the_vocabulary_is_allowed():
         reg.add(RepoEntry(base_iri="https://b.example/", id_index={VOCAB_NS + "Metric": "m"}))
 
 
+
 # -- federated store (SPEC §11.4) -------------------------------------------
 def _kb(root: pathlib.Path, base_iri: str, concepts: dict[str, str]) -> pathlib.Path:
     """A bundle at *root* whose concepts are given as frontmatter bodies."""
@@ -682,3 +718,124 @@ def test_registry_build_fails_when_nothing_loads(tmp_path):
     bad.write_text("not n-quads\n", encoding="utf-8")
     q = runner.invoke(app, ["registry", "query", "--quads", str(bad), "ASK { ?s ?p ?o }"])
     assert q.exit_code == 1 and "cannot read" in q.output
+
+
+def test_sensitive_members_require_explicit_clearance_before_reading(tmp_path, monkeypatch):
+    from lokf.store import GraphStore
+    import lokf.registry as registry_module
+
+    reg = _federation(tmp_path)
+    private = reg.repos[1]
+    private.sensitivity = 'confidential'
+    reads = []
+    original = registry_module.member_ntriples
+    def observed(entry):
+        reads.append(entry.base_iri)
+        return original(entry)
+    monkeypatch.setattr(registry_module, 'member_ntriples', observed)
+    store = GraphStore.from_registry(reg)
+    assert private.base_iri not in reads
+    assert 'clearance' in store.load_errors[private.base_iri]
+    assert not store.ask('ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }')
+    cleared = GraphStore.from_registry(reg, cleared_members=[private.base_iri])
+    assert private.base_iri in reads
+    assert cleared.load_errors == {}
+    assert cleared.ask('ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }')
+    assert private.sensitivity == 'confidential'
+
+
+def test_cli_member_clearance_is_per_run(tmp_path):
+    reg = _federation(tmp_path)
+    reg.repos[1].sensitivity = 'private'
+    reg.save()
+    before = reg.path.read_bytes()
+    query = 'ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }'
+    args = ['registry', 'query', '-r', str(reg.path), query]
+    denied = runner.invoke(app, args)
+    assert denied.exit_code == 0 and 'false' in denied.output and 'clearance' in denied.output
+    allowed = runner.invoke(app, args + ['--clear-member', reg.repos[1].base_iri])
+    assert allowed.exit_code == 0 and 'true' in allowed.output
+    assert reg.path.read_bytes() == before
+
+
+def test_federated_graph_preserves_cross_bundle_edges(tmp_path):
+    from lokf.store import GraphStore
+    from lokf.export import graph_to_cytoscape
+
+    graph = GraphStore.from_registry(_federation(tmp_path)).rdflib_graph()
+    elements = graph_to_cytoscape(graph)
+    pairs = {(e['data']['source'], e['data']['target']) for e in elements['edges']}
+    assert ('https://a.example/kb/x', 'https://b.example/kb/y') in pairs
+
+def test_release_difference_checks_unpinned_metadata_and_names_a_lone_checksum():
+    from lokf.registry import release_difference
+
+    a = RepoEntry(base_iri="https://a/", source_base="https://s/", void={"triples": 6})
+    assert release_difference(a, RepoEntry(base_iri="https://a/", source_base="https://s/",
+                                           void={"triples": 7})) == "void"
+    lone = release_difference(a, RepoEntry(base_iri="https://a/", checksum="sha256:" + "0" * 64))
+    assert lone.startswith("checksum (one entry has one")
+
+
+def test_cli_add_records_a_later_location_of_the_same_release(tmp_path, http_files):
+    base, www = http_files
+    archive = _zip_bundle(tmp_path)
+    shutil.copy(archive, www / "k.zip")
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    url = f"{base}/k.zip"
+    first = runner.invoke(app, ["registry", "add", str(archive), "--archive-url", url, "-r", str(manifest)])
+    assert first.exit_code == 0, first.output
+    again = runner.invoke(app, ["registry", "add", url, "--source-base", "https://src/", "-r", str(manifest)])
+    assert again.exit_code == 0 and "recorded the locations it lacked" in again.output
+    raw = yaml.safe_load(manifest.read_text())["repos"]
+    assert len(raw) == 1 and raw[0]["source_base"] == "https://src/"
+
+
+def test_cli_add_replaces_a_local_zip_path_with_its_url(tmp_path, http_files):
+    base, www = http_files
+    archive = _zip_bundle(tmp_path)
+    shutil.copy(archive, www / "k.zip")
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    runner.invoke(app, ["registry", "add", str(archive), "-r", str(manifest)])
+    assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": archive.name}
+    again = runner.invoke(app, ["registry", "add", f"{base}/k.zip", "-r", str(manifest)])
+    assert "recorded the locations it lacked" in again.output
+    assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": f"{base}/k.zip"}
+
+
+def test_distinct_unpinned_local_bundles_are_not_the_same_release():
+    reg = Registry(path=pathlib.Path("r.yaml"))
+    assert reg.add(RepoEntry(base_iri="https://ex.org/", path="one"))
+    with pytest.raises(ValueError, match="path differs"):
+        reg.add(RepoEntry(base_iri="https://ex.org/", path="two"))
+    assert len(reg.repos) == 1
+
+
+
+def test_federation_http_graph_and_query(tmp_path):
+    import json
+    import threading
+    from urllib.parse import urlencode
+    from urllib.request import urlopen
+    from lokf.server import build_server
+    from lokf.store import GraphStore
+
+    server = build_server(GraphStore.from_registry(_federation(tmp_path)), '127.0.0.1', 0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = f'http://127.0.0.1:{server.server_address[1]}'
+    try:
+        with urlopen(base + '/graph.json', timeout=5) as response:
+            elements = json.load(response)
+        assert any(e['data']['source'] == 'https://a.example/kb/x' and
+                   e['data']['target'] == 'https://b.example/kb/y' for e in elements['edges'])
+        query = 'SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }'
+        with urlopen(base + '/sparql?' + urlencode({'query': query}), timeout=5) as response:
+            rows = json.load(response)['results']['bindings']
+        assert {r['g']['value'] for r in rows} == {'https://a.example/kb/', 'https://b.example/kb/'}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)

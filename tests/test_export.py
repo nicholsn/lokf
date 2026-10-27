@@ -176,3 +176,19 @@ def test_dataset_search_jsonld():
         assert doc["name"]
         assert doc["description"]
         assert doc["@id"]
+
+
+def test_export_graph_nt_is_byte_stable(tmp_path):
+    """Two exports of one bundle give the same graph.nt despite its blank nodes."""
+    from typer.testing import CliRunner
+
+    from lokf.cli import app
+
+    runner = CliRunner()
+    outs = []
+    for name in ("one", "two"):
+        r = runner.invoke(app, ["export", str(BUNDLE), "-d", str(tmp_path / name)])
+        assert r.exit_code == 0, r.output
+        outs.append((tmp_path / name / "graph.nt").read_text(encoding="utf-8"))
+    assert "_:" in outs[0], "precondition: the example projects blank nodes"
+    assert outs[0] == outs[1]
