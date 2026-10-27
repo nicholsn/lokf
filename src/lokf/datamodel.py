@@ -59,7 +59,7 @@ from linkml_runtime.linkml_model.types import Boolean, Datetime, Integer, String
 from linkml_runtime.utils.metamodelcore import Bool, URI, URIorCURIE, XSDDateTime
 
 metamodel_version = "1.12.0"
-version = "0.8.0"
+version = "0.9.0"
 
 # Namespaces
 ADMS = CurieNamespace('adms', 'http://www.w3.org/ns/adms#')
@@ -268,7 +268,9 @@ class Concept(YAMLRoot):
     exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
+    revised: Optional[Union[dict, "Revision"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
+    refuted: Optional[Union[Union[dict, "Refutation"], list[Union[dict, "Refutation"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
     additionalType: Optional[str] = None
@@ -379,7 +381,12 @@ class Concept(YAMLRoot):
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
 
+        if self.revised is not None and not isinstance(self.revised, Revision):
+            self.revised = Revision(**as_dict(self.revised))
+
         self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
+
+        self._normalize_inlined_as_list(slot_name="refuted", slot_type=Refutation, key_name="by", keyed=False)
 
         if self.status is not None and not isinstance(self.status, ConceptStatus):
             self.status = ConceptStatus(self.status)
@@ -964,7 +971,9 @@ class Person(Agent):
     exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
+    revised: Optional[Union[dict, "Revision"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
+    refuted: Optional[Union[Union[dict, "Refutation"], list[Union[dict, "Refutation"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
     additionalType: Optional[str] = None
@@ -1075,7 +1084,12 @@ class Person(Agent):
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
 
+        if self.revised is not None and not isinstance(self.revised, Revision):
+            self.revised = Revision(**as_dict(self.revised))
+
         self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
+
+        self._normalize_inlined_as_list(slot_name="refuted", slot_type=Refutation, key_name="by", keyed=False)
 
         if self.status is not None and not isinstance(self.status, ConceptStatus):
             self.status = ConceptStatus(self.status)
@@ -1141,7 +1155,9 @@ class Organization(Agent):
     exclusions: Optional[Union[Union[dict, "Exclusion"], list[Union[dict, "Exclusion"]]]] = empty_list()
     usage_window: Optional[Union[dict, "UsageWindow"]] = None
     generated: Optional[Union[dict, "Generation"]] = None
+    revised: Optional[Union[dict, "Revision"]] = None
     verified: Optional[Union[Union[dict, "Verification"], list[Union[dict, "Verification"]]]] = empty_list()
+    refuted: Optional[Union[Union[dict, "Refutation"], list[Union[dict, "Refutation"]]]] = empty_list()
     status: Optional[Union[str, "ConceptStatus"]] = None
     stale_after: Optional[Union[str, XSDDateTime]] = None
     additionalType: Optional[str] = None
@@ -1252,7 +1268,12 @@ class Organization(Agent):
         if self.generated is not None and not isinstance(self.generated, Generation):
             self.generated = Generation(**as_dict(self.generated))
 
+        if self.revised is not None and not isinstance(self.revised, Revision):
+            self.revised = Revision(**as_dict(self.revised))
+
         self._normalize_inlined_as_list(slot_name="verified", slot_type=Verification, key_name="by", keyed=False)
+
+        self._normalize_inlined_as_list(slot_name="refuted", slot_type=Refutation, key_name="by", keyed=False)
 
         if self.status is not None and not isinstance(self.status, ConceptStatus):
             self.status = ConceptStatus(self.status)
@@ -1632,6 +1653,39 @@ class Generation(YAMLRoot):
 
 
 @dataclass(repr=False)
+class Revision(YAMLRoot):
+    """
+    The latest in-place edit of the content, for a producer that keeps `generated` as the production event: who
+    changed it last, and when. One mapping, never a list; a later edit overwrites it. PROV has no class for it, so the
+    class IRI is lokf-minted and the generated ontology declares it a subclass of prov:Activity.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Revision"]
+    class_class_curie: ClassVar[str] = "lokf:Revision"
+    class_name: ClassVar[str] = "Revision"
+    class_model_uri: ClassVar[URIRef] = LOKF.Revision
+
+    by: str = None
+    at: Optional[Union[str, XSDDateTime]] = None
+    revision: Optional[str] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.by):
+            self.MissingRequiredField("by")
+        if not isinstance(self.by, str):
+            self.by = str(self.by)
+
+        if self.at is not None and not isinstance(self.at, XSDDateTime):
+            self.at = XSDDateTime(self.at)
+
+        if self.revision is not None and not isinstance(self.revision, str):
+            self.revision = str(self.revision)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
 class Verification(YAMLRoot):
     """
     One verification event (OKF v0.2 `verified`, §5.2): an actor confirmed the content against its sources or resource
@@ -1655,6 +1709,47 @@ class Verification(YAMLRoot):
             self.MissingRequiredField("by")
         if not isinstance(self.by, str):
             self.by = str(self.by)
+
+        if self.at is not None and not isinstance(self.at, XSDDateTime):
+            self.at = XSDDateTime(self.at)
+
+        if self.revision is not None and not isinstance(self.revision, str):
+            self.revision = str(self.revision)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Refutation(YAMLRoot):
+    """
+    One refutation event: an actor found the content wrong against its sources or resource, at a time, for a reason.
+    The negative counterpart of a Verification, so a person's no is recorded where their yes is. It is active while it
+    is not older than the last meaningful change (`generated.at` or `revised.at`); an edit after it leaves it on
+    record as history. It never changes the trust tier, which OKF derives from `verified` alone. PROV has no class for
+    it, so the class IRI is lokf-minted and the generated ontology declares it a subclass of prov:Activity.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = LOKF["Refutation"]
+    class_class_curie: ClassVar[str] = "lokf:Refutation"
+    class_name: ClassVar[str] = "Refutation"
+    class_model_uri: ClassVar[URIRef] = LOKF.Refutation
+
+    by: str = None
+    reason: str = None
+    at: Optional[Union[str, XSDDateTime]] = None
+    revision: Optional[str] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.by):
+            self.MissingRequiredField("by")
+        if not isinstance(self.by, str):
+            self.by = str(self.by)
+
+        if self._is_empty(self.reason):
+            self.MissingRequiredField("reason")
+        if not isinstance(self.reason, str):
+            self.reason = str(self.reason)
 
         if self.at is not None and not isinstance(self.at, XSDDateTime):
             self.at = XSDDateTime(self.at)
@@ -2308,8 +2403,14 @@ slots.last_modified = Slot(uri=SCHEMA.dateModified, name="last_modified", curie=
 slots.generated = Slot(uri=PROV.wasGeneratedBy, name="generated", curie=PROV.curie('wasGeneratedBy'),
                    model_uri=LOKF.generated, domain=None, range=Optional[Union[dict, Generation]])
 
+slots.revised = Slot(uri=LOKF.revised, name="revised", curie=LOKF.curie('revised'),
+                   model_uri=LOKF.revised, domain=None, range=Optional[Union[dict, Revision]])
+
 slots.verified = Slot(uri=LOKF.verified, name="verified", curie=LOKF.curie('verified'),
                    model_uri=LOKF.verified, domain=None, range=Optional[Union[Union[dict, Verification], list[Union[dict, Verification]]]])
+
+slots.refuted = Slot(uri=LOKF.refuted, name="refuted", curie=LOKF.curie('refuted'),
+                   model_uri=LOKF.refuted, domain=None, range=Optional[Union[Union[dict, Refutation], list[Union[dict, Refutation]]]])
 
 slots.by = Slot(uri=PROV.wasAssociatedWith, name="by", curie=PROV.curie('wasAssociatedWith'),
                    model_uri=LOKF.by, domain=None, range=Optional[str],
@@ -2400,9 +2501,20 @@ slots.Generation_by = Slot(uri=PROV.wasAssociatedWith, name="Generation_by", cur
                    model_uri=LOKF.Generation_by, domain=Generation, range=str,
                    pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
 
+slots.Revision_by = Slot(uri=PROV.wasAssociatedWith, name="Revision_by", curie=PROV.curie('wasAssociatedWith'),
+                   model_uri=LOKF.Revision_by, domain=Revision, range=str,
+                   pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
+
 slots.Verification_by = Slot(uri=PROV.wasAssociatedWith, name="Verification_by", curie=PROV.curie('wasAssociatedWith'),
                    model_uri=LOKF.Verification_by, domain=Verification, range=str,
                    pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
+
+slots.Refutation_by = Slot(uri=PROV.wasAssociatedWith, name="Refutation_by", curie=PROV.curie('wasAssociatedWith'),
+                   model_uri=LOKF.Refutation_by, domain=Refutation, range=str,
+                   pattern=re.compile(r'^(human|process):\S+$|^[^\s/]+/[^\s/]+$'))
+
+slots.Refutation_reason = Slot(uri=LOKF.reason, name="Refutation_reason", curie=LOKF.curie('reason'),
+                   model_uri=LOKF.Refutation_reason, domain=Refutation, range=str)
 
 slots.Parameter_name = Slot(uri=SCHEMA.name, name="Parameter_name", curie=SCHEMA.curie('name'),
                    model_uri=LOKF.Parameter_name, domain=Parameter, range=str)

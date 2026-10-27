@@ -1,0 +1,127 @@
+# The excerpt grammar of SPEC §9 ("Excerpt checks") as cases. Each pairs an
+# excerpt with the text of a resource and says whether the excerpt is found in
+# it. `markdown` is true unless the case says otherwise: a line beginning `#`
+# or `##` outside a fenced code block then starts a heading section. Any
+# checker of `sources[].excerpt` can run this file; lokf runs it in
+# tests/test_excerpts.py through `lokf.excerpts.find`.
+cases:
+  - id: verbatim
+    text: "The quick brown fox jumps over the lazy dog."
+    excerpt: "quick brown fox"
+    found: true
+
+  - id: whitespace-collapses
+    text: "The quick\n    brown\tfox jumps."
+    excerpt: "the quick brown fox"
+    found: true
+
+  - id: case-folds
+    text: "The Quick Brown Fox."
+    excerpt: "the quick brown fox"
+    found: true
+
+  - id: punctuation-kept-a-dropped-not
+    text: "It is not safe to run this twice."
+    excerpt: "It is safe to run this twice."
+    found: false
+
+  - id: punctuation-kept-a-changed-mark
+    text: "Run it twice, then stop."
+    excerpt: "Run it twice. Then stop."
+    found: false
+
+  - id: markdown-is-matched-as-written
+    text: "The service keeps **no** copy of the request."
+    excerpt: "keeps no copy of the request"
+    found: false
+
+  - id: a-dropped-word
+    text: "The quick brown fox."
+    excerpt: "quick fox"
+    found: false
+
+  - id: gap-joins-two-spans-in-order
+    text: "A first point. Some filler in between. A second point."
+    excerpt: "A first point ... A second point."
+    found: true
+
+  - id: gap-with-the-spans-reversed
+    text: "A first point. Some filler in between. A second point."
+    excerpt: "A second point ... A first point."
+    found: false
+
+  - id: gap-as-the-unicode-ellipsis
+    text: "A first point. Some filler in between. A second point."
+    excerpt: "A first point … A second point."
+    found: true
+
+  - id: gap-in-brackets
+    text: "A first point. Some filler in between. A second point."
+    excerpt: "A first point [...] A second point."
+    found: true
+
+  - id: three-spans-are-too-many
+    text: "one. two. three."
+    excerpt: "one ... two ... three"
+    found: false
+
+  - id: leading-gap-is-one-span
+    text: "The quick brown fox."
+    excerpt: "... brown fox."
+    found: true
+
+  - id: only-a-gap-is-empty
+    text: "The quick brown fox."
+    excerpt: "..."
+    found: false
+
+  - id: editorial-note-skipped
+    text: "the fox jumps"
+    excerpt: "the fox [sic] jumps"
+    found: true
+
+  - id: editorial-note-over-forty-characters-is-matched-as-written
+    text: "the fox jumps"
+    excerpt: "the fox [a note that runs on for longer than forty characters allows] jumps"
+    found: false
+
+  - id: second-span-missing
+    text: "A first point. Some filler."
+    excerpt: "A first point ... A third point."
+    found: false
+
+  - id: gap-stays-inside-one-level-two-section
+    text: "## A\nfirst point\n\n## B\nsecond point\n"
+    excerpt: "first point ... second point"
+    found: false
+
+  - id: gap-crosses-headings-in-a-file-that-is-not-markdown
+    markdown: false
+    text: "## A\nfirst point\n\n## B\nsecond point\n"
+    excerpt: "first point ... second point"
+    found: true
+
+  - id: gap-crosses-a-level-three-heading-inside-the-section
+    text: "## A\nfirst point\n\n### A.1\nsecond point\n"
+    excerpt: "first point ... second point"
+    found: true
+
+  - id: level-one-heading-starts-a-section-too
+    text: "# A\nfirst point\n\n# B\nsecond point\n"
+    excerpt: "first point ... second point"
+    found: false
+
+  - id: heading-inside-a-fenced-block-does-not-end-the-section
+    text: "## A\nfirst point\n\n```sh\n# not a heading\n```\nsecond point\n"
+    excerpt: "first point ... second point"
+    found: true
+
+  - id: section-rule-settles-a-passage-that-occurs-twice
+    text: "## A\nalpha\nomega\n\n## B\nalpha\nbeta\n"
+    excerpt: "alpha ... beta"
+    found: true
+
+  - id: single-span-ignores-sections
+    text: "## A\nfirst point\n\n## B\nsecond point\n"
+    excerpt: "second point"
+    found: true

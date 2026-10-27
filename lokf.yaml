@@ -14,7 +14,7 @@ description: >-
   which the JSON-LD context, JSON Schema, SHACL shapes, and an OWL ontology
   are generated.
 license: https://creativecommons.org/licenses/by/4.0/
-version: 0.8.0
+version: 0.9.0
 
 # ---------------------------------------------------------------------------
 # Namespaces
@@ -151,7 +151,9 @@ classes:
       - exclusions
       - usage_window
       - generated
+      - revised
       - verified
+      - refuted
       - status
       - stale_after
       - additionalType
@@ -667,6 +669,25 @@ classes:
       by:
         required: true
 
+  Revision:
+    description: >-
+      The latest in-place edit of the content, for a producer that keeps
+      `generated` as the production event: who changed it last, and when.
+      One mapping, never a list; a later edit overwrites it. PROV has no
+      class for it, so the class IRI is lokf-minted and the generated
+      ontology declares it a subclass of prov:Activity.
+    class_uri: lokf:Revision
+    close_mappings:
+      - prov:Activity
+      - schema:UpdateAction
+    slots:
+      - by
+      - at
+      - revision
+    slot_usage:
+      by:
+        required: true
+
   Verification:
     description: >-
       One verification event (OKF v0.2 `verified`, §5.2): an actor confirmed
@@ -691,6 +712,34 @@ classes:
           - >-
             Required by LOKF, though OKF does not mark it so: trust tiers are
             derived from it.
+
+  Refutation:
+    description: >-
+      One refutation event: an actor found the content wrong against its
+      sources or resource, at a time, for a reason. The negative counterpart
+      of a Verification, so a person's no is recorded where their yes is.
+      It is active while it is not older than the last meaningful change
+      (`generated.at` or `revised.at`); an edit after it leaves it on record
+      as history. It never changes the trust tier, which OKF derives from
+      `verified` alone. PROV has no class for it, so the class IRI is
+      lokf-minted and the generated ontology declares it a subclass of
+      prov:Activity.
+    class_uri: lokf:Refutation
+    close_mappings:
+      - prov:Activity
+      - schema:DisagreeAction
+    slots:
+      - by
+      - at
+      - reason
+      - revision
+    slot_usage:
+      by:
+        required: true
+      reason:
+        required: true
+        description: >-
+          REQUIRED. What was found wrong, in a sentence a reviewer can check.
 
   Parameter:
     description: >-
@@ -1328,6 +1377,10 @@ slots:
       - >-
         `implements: linkml:excerpt` marks the slot as text a reference
         validator can look for in `resource`; it does not make it required.
+      - >-
+        `lokf validate --check-excerpts` finds it in a local `resource`,
+        whitespace collapsed and case folded, `...` joining at most two
+        spans in source order inside one heading section (SPEC §9).
     see_also:
       - https://github.com/linkml/linkml-reference-validator
       - https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
@@ -1491,7 +1544,9 @@ slots:
       - lokf_semantic
 
   reason:
-    description: Why the material was left out, in a sentence a reviewer can check.
+    description: >-
+      The grounds for a decision, in a sentence a reviewer can check: why a
+      material was left out, or what a refutation found wrong.
     range: string
     slot_uri: lokf:reason
     in_subset:
@@ -1595,6 +1650,38 @@ slots:
     in_subset:
       - okf_v02
 
+  revised:
+    description: >-
+      The latest in-place edit of the content, as `{by, at}`, kept apart
+      from `generated`, which then stays the production event and is never
+      rewritten. A single mapping; a later edit overwrites it. The last
+      meaningful change a consumer reads is the later of `revised.at` and
+      `generated.at`, so a bundle that restamps `generated.at` on each edit
+      instead, as 0.8.0 bundles do, reads as before.
+    range: Revision
+    inlined: true
+    slot_uri: lokf:revised
+    close_mappings:
+      - prov:wasInfluencedBy
+    notes:
+      - >-
+        Proposed for OKF §5.2 as GoogleCloudPlatform/open-knowledge-format#28,
+        which settles `generated` as the immutable production event, under
+        this name. Kept in lokf_semantic until OKF adopts it, then moved to
+        okf_v02.
+    comments:
+      - >-
+        Minted in lokf: PROV relates a revised entity to the one it revises
+        (prov:wasRevisionOf), not an entity to the activity that revised it
+        in place.
+      - >-
+        `lokf validate` rejects a `revised.at` earlier than `generated.at`:
+        an edit cannot come before production.
+    see_also:
+      - https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/28
+    in_subset:
+      - lokf_semantic
+
   verified:
     description: >-
       Verification events confirming the content against its sources or
@@ -1618,13 +1705,42 @@ slots:
     in_subset:
       - okf_v02
 
+  refuted:
+    description: >-
+      Refutation events: an actor found the content wrong against its
+      sources or resource, with the reason. The negative counterpart of
+      `verified`, accumulated the same way. A refutation is active while it
+      is not older than the last meaningful change (`generated.at` or
+      `revised.at`); it never changes the trust tier, which OKF derives from
+      `verified` alone, and a consumer surfaces it beside the tier.
+    range: Refutation
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: lokf:refuted
+    close_mappings:
+      - prov:wasInfluencedBy
+    notes:
+      - >-
+        Proposed for OKF §5.2 as GoogleCloudPlatform/open-knowledge-format#13,
+        under this name. Kept in lokf_semantic until OKF adopts it, then
+        moved to okf_v02.
+    comments:
+      - >-
+        A bare `{ by, at, reason }` mapping is read as a one-element list, as
+        `verified` is; the LOKF loader normalizes it before validation.
+      - Minted in lokf, as `verified` is.
+    see_also:
+      - https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/13
+    in_subset:
+      - lokf_semantic
+
   by:
     description: >-
       The actor that performed the event, as a plain OKF §7 actor string
       (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal,
       never an IRI. Trust tiers derive from the `human:` prefix via string
-      inspection (SPARQL STRSTARTS). Required on a generation or
-      verification event, optional on an exclusion.
+      inspection (SPARQL STRSTARTS). Required on a generation, revision,
+      verification or refutation event, optional on an exclusion.
     range: string
     pattern: '^(human|process):\S+$|^[^\s/]+/[^\s/]+$'
     slot_uri: prov:wasAssociatedWith

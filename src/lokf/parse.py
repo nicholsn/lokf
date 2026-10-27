@@ -81,4 +81,7 @@ def parse_concept_text(raw: str, where: str = "<text>") -> dict:
     # trust derivation all see the canonical list form.
     if isinstance(d.get("verified"), dict):
         d["verified"] = [d["verified"]]
+    # LOKF's `refuted` is `verified`'s negative counterpart and reads the same way.
+    if isinstance(d.get("refuted"), dict):
+        d["refuted"] = [d["refuted"]]
     return isoify(d)

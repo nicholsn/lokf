@@ -13,6 +13,13 @@ defines, on plain concept-frontmatter dicts (:attr:`Concept.data`):
 - :func:`is_stale` — plain date comparison against ``stale_after`` (§5.5).
 - :func:`generated_at` — ``generated.at`` with the sanctioned fallback to
   the superseded v0.1 ``timestamp`` field (§13.1).
+- :func:`revised_at` / :func:`last_changed_at` — the latest in-place edit a
+  producer records apart from ``generated`` (LOKF ``revised``), and the
+  last meaningful change read as the later of the two.
+- :func:`refutations` / :func:`active_refutations` / :func:`refuted_at` —
+  the ``refuted`` events (LOKF's negative counterpart of ``verified``), the
+  ones not older than the last meaningful change, and the latest of those.
+  A refutation never changes the tier, which OKF derives from ``verified``.
 
 All functions are total: malformed or missing families degrade to the
 "absent" reading, never an exception — OKF consumers MUST NOT reject a
@@ -49,6 +56,17 @@ def verifications(data: dict) -> list[dict]:
         return [v]
     if isinstance(v, list):
         return [e for e in v if isinstance(e, dict)]
+    return []
+
+
+def refutations(data: dict) -> list[dict]:
+    """The concept's ``refuted`` events as a list of ``{by, at, reason}``
+    dicts, normalized as :func:`verifications` normalizes ``verified``."""
+    r = data.get("refuted")
+    if isinstance(r, dict):
+        return [r]
+    if isinstance(r, list):
+        return [e for e in r if isinstance(e, dict)]
     return []
 
 
@@ -107,6 +125,34 @@ def generated_at(data: dict) -> str | None:
     return str(ts) if ts else None
 
 
+def revised_at(data: dict) -> str | None:
+    """``revised.at``: the latest in-place edit, when the producer keeps
+    ``generated`` as the production event and records edits apart from it
+    (LOKF ``revised``, open-knowledge-format#28). None when absent, or when
+    the event carries no ``at``."""
+    rev = data.get("revised")
+    at = rev.get("at") if isinstance(rev, dict) else None
+    return str(at) if at else None
+
+
+def last_changed_at(data: dict) -> str | None:
+    """When the content last meaningfully changed: the later of
+    :func:`revised_at` and :func:`generated_at`, as the ISO string the
+    frontmatter carries.
+
+    A producer that restamps ``generated.at`` on each edit writes no
+    ``revised``; one that keeps ``generated`` as the production event
+    writes ``revised`` on each edit. Both read the same way here. A time
+    that does not parse yields to the other; when neither parses, the
+    first present is returned as it is, as :func:`generated_at` does.
+    """
+    present = [(t, _as_datetime(t)) for t in (revised_at(data), generated_at(data)) if t]
+    dated = [(t, d) for t, d in present if d is not None]
+    if dated:
+        return max(dated, key=lambda td: td[1])[0]
+    return present[0][0] if present else None
+
+
 def _as_datetime(value) -> dt.datetime | None:
     """Read an ISO timestamp in UTC; dates and naive times use UTC."""
     try:
@@ -136,12 +182,36 @@ def human_reviewed_at(data: dict) -> str | None:
 def edited_since_human_review(data: dict) -> bool:
     """Whether a meaningful edit follows the latest dated human review.
 
-    Missing or malformed timestamps mean unknown (False), not unchanged.
-    Review revision identifiers do not alter this timestamp comparison.
+    The edit is :func:`last_changed_at`, so a producer that writes ``revised``
+    and one that restamps ``generated.at`` are read alike. Missing or
+    malformed timestamps mean unknown (False), not unchanged. Review revision
+    identifiers do not alter this timestamp comparison.
     """
-    generated = _as_datetime(generated_at(data))
+    changed = _as_datetime(last_changed_at(data))
     reviewed = _as_datetime(human_reviewed_at(data))
-    return generated > reviewed if generated is not None and reviewed is not None else False
+    return changed > reviewed if changed is not None and reviewed is not None else False
+
+
+def active_refutations(data: dict) -> list[dict]:
+    """The refutations that still stand: each not older than the last
+    meaningful change (:func:`last_changed_at`). An edit dated after a
+    refutation leaves it on record as history. An undated refutation, or one
+    on content whose last change is undated, stands until it is removed:
+    unknown is never read as resolved."""
+    changed = _as_datetime(last_changed_at(data))
+    return [
+        event for event in refutations(data)
+        if changed is None or (at := _as_datetime(event.get("at"))) is None or at >= changed
+    ]
+
+
+def refuted_at(data: dict) -> str | None:
+    """Latest dated active refutation, normalized to UTC."""
+    times = [
+        at for event in active_refutations(data)
+        if (at := _as_datetime(event.get("at"))) is not None
+    ]
+    return max(times).isoformat().replace("+00:00", "Z") if times else None
 
 
 def trust_summary(data: dict, today: dt.date | None = None) -> dict:
@@ -151,7 +221,11 @@ def trust_summary(data: dict, today: dt.date | None = None) -> dict:
         "status": effective_status(data),
         "stale": is_stale(data, today),
         "generated_at": generated_at(data),
+        "revised_at": revised_at(data),
+        "last_changed_at": last_changed_at(data),
         "verified_count": len(verifications(data)),
         "human_reviewed_at": human_reviewed_at(data),
         "edited_since_human_review": edited_since_human_review(data),
+        "refuted": bool(active_refutations(data)),
+        "refuted_at": refuted_at(data),
     }

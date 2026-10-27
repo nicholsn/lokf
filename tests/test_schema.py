@@ -166,8 +166,50 @@ def test_revision_is_lokfs_own_event_field_until_okf_adopts_it():
     assert slot["slot_uri"] == "lokf:revision"
     assert slot["in_subset"] == ["lokf_semantic"]
     assert "required" not in slot
-    for cls in ("Generation", "Verification"):
+    for cls in ("Generation", "Revision", "Verification", "Refutation"):
         assert "revision" in schema["classes"][cls]["slots"], cls
+
+
+def test_refuted_is_verifieds_negative_counterpart(vocab):
+    """`refuted` accumulates as `verified` does, each event with a required
+    `by` and `reason`, under LOKF's own predicate until OKF adopts
+    open-knowledge-format#13."""
+    schema = load_schema()
+    slot, concept = schema["slots"]["refuted"], schema["classes"]["Concept"]["slots"]
+    assert concept.index("refuted") == concept.index("verified") + 1
+    assert slot["range"] == "Refutation"
+    assert slot["multivalued"] is True and slot["inlined_as_list"] is True
+    assert slot["slot_uri"] == "lokf:refuted"
+    assert slot["in_subset"] == ["lokf_semantic"]
+    assert "required" not in slot
+    refutation = schema["classes"]["Refutation"]
+    assert refutation["class_uri"] == "lokf:Refutation"
+    assert refutation["slots"] == ["by", "at", "reason", "revision"]
+    assert refutation["slot_usage"]["by"]["required"] is True
+    assert refutation["slot_usage"]["reason"]["required"] is True
+    assert "prov:Activity" in refutation["close_mappings"]
+    assert vocab.expand("lokf:refuted") == "https://w3id.org/lokf/refuted"
+
+
+def test_revised_is_a_single_edit_event_beside_generated(vocab):
+    """`revised` is the latest in-place edit, one `{by, at}` mapping shaped as
+    `generated` is, under LOKF's own predicate until OKF adopts
+    open-knowledge-format#28; `generated` is untouched by it."""
+    schema = load_schema()
+    slot, concept = schema["slots"]["revised"], schema["classes"]["Concept"]["slots"]
+    assert concept.index("revised") == concept.index("generated") + 1
+    assert slot["range"] == "Revision"
+    assert slot["inlined"] is True and "multivalued" not in slot
+    assert slot["slot_uri"] == "lokf:revised"
+    assert slot["in_subset"] == ["lokf_semantic"]
+    assert "required" not in slot
+    revision = schema["classes"]["Revision"]
+    assert revision["class_uri"] == "lokf:Revision"
+    assert revision["slots"] == schema["classes"]["Generation"]["slots"] == ["by", "at", "revision"]
+    assert revision["slot_usage"]["by"]["required"] is True
+    assert "prov:Activity" in revision["close_mappings"]
+    assert schema["slots"]["generated"]["slot_uri"] == "prov:wasGeneratedBy"
+    assert vocab.expand("lokf:revised") == "https://w3id.org/lokf/revised"
 
 
 # -- OKF §5 timestamps -------------------------------------------------------
@@ -631,10 +673,14 @@ def test_by_is_required_by_the_event_classes_not_the_slot():
 
     schema = load_schema()
     assert "required" not in schema["slots"]["by"]
-    for event in ("Generation", "Verification"):
+    for event in ("Generation", "Revision", "Verification", "Refutation"):
         assert schema["classes"][event]["slot_usage"]["by"]["required"] is True
     with pytest.raises(ValueError):
         dm.Verification(at="2026-01-01T00:00:00Z")
+    with pytest.raises(ValueError):
+        dm.Revision(at="2026-01-01T00:00:00Z")
+    with pytest.raises(ValueError):
+        dm.Refutation(by="human:x", at="2026-01-01T00:00:00Z")  # no reason
 
 
 # -- materials left out on purpose: exclusions ----------------------------------

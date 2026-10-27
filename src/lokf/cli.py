@@ -266,9 +266,14 @@ def validate(
         False, "--check-resources",
         help="Check local resource paths; never fetch remote identifiers.",
     ),
+    check_excerpts: bool = typer.Option(
+        False, "--check-excerpts",
+        help="Check that each sources[].excerpt occurs in its local resource; never fetch a URL.",
+    ),
     root: Optional[Path] = typer.Option(
         None, "--root", exists=True, file_okay=False,
-        help="Resource root (default: nearest enclosing Git root, else bundle parent).",
+        help="Resource root for --check-resources and --check-excerpts (default: nearest "
+        "enclosing Git root, else bundle parent).",
     ),
     check_ids: bool = typer.Option(
         False, "--check-ids",
@@ -299,6 +304,12 @@ def validate(
     ``--check-ids`` adds the other pass the schema cannot make, across files:
     every concept IRI declared by exactly one file. Both are opt-in so that
     the default stays the schema, as OKF's permissive stance intends.
+
+    ``--check-resources`` resolves each local ``resource`` inside the
+    resource root, and ``--check-excerpts`` finds each ``sources[].excerpt``
+    in its local resource under the grammar of SPEC §9: whitespace collapsed,
+    case folded, punctuation kept, ``...`` joining at most two spans in order
+    inside one heading section. Neither fetches a URL.
 
     Reserved ``log.md`` files are also checked: malformed date headings are
     errors; duplicate dates and out-of-order groups are warnings.
@@ -340,8 +351,8 @@ def validate(
         _err(str(exc))
         raise typer.Exit(1)
 
-    if root is not None and not check_resources:
-        _err("--root requires --check-resources")
+    if root is not None and not (check_resources or check_excerpts):
+        _err("--root requires --check-resources or --check-excerpts")
         raise typer.Exit(2)
     bundle = load_bundle(bundle_dir)
     doc = dict(bundle.meta)
@@ -378,6 +389,12 @@ def validate(
     for severity, message in exclusion_conflicts(bundle):
         _err(f"[{severity}] {message}")
 
+    from lokf.events import event_findings
+
+    for severity, message in event_findings(bundle):
+        _err(f"[{severity}] {message}")
+        failed = failed or severity == "ERROR"
+
     if check_ids:
         # Two files declaring one `id` each validate on their own and then
         # merge into one subject in the graph; the schema sees concepts one at
@@ -403,6 +420,15 @@ def validate(
         from lokf.resources import check_resources as resource_findings, resource_root
 
         for severity, message in resource_findings(bundle, root or resource_root(bundle_dir)):
+            _err(f"[{severity}] {message}")
+            failed = failed or severity == "ERROR"
+
+    excerpts: dict = {}
+    if check_excerpts:
+        from lokf.excerpts import check_excerpts as excerpt_findings
+        from lokf.resources import resource_root
+
+        for severity, message in excerpt_findings(bundle, root or resource_root(bundle_dir), excerpts):
             _err(f"[{severity}] {message}")
             failed = failed or severity == "ERROR"
 
@@ -435,6 +461,12 @@ def validate(
         ok += " Every IRI is declared by one file."
     if check_resources:
         ok += " Local resource checks completed."
+    if check_excerpts:
+        if excerpts["unchecked"]:
+            ok += f" {excerpts['local']} local excerpts checked; {excerpts['unchecked']} local excerpts left unchecked"
+        else:
+            ok += " Every local excerpt is in its resource" if excerpts["local"] else " No local excerpt to check"
+        ok += f"; {excerpts['remote']} on remote resources not fetched." if excerpts["remote"] else "."
     if shacl:
         ok += " RDF conforms to SHACL shapes."
     typer.echo(ok)

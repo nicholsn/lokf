@@ -1052,7 +1052,7 @@ wheels = [
 
 [[package]]
 name = "lokf"
-version = "0.8.0"
+version = "0.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "curies", version = "0.14.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },

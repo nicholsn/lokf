@@ -28,6 +28,7 @@
 --     * Slot: KnowledgeBundle_id Description: Autocreated FK slot
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Dataset Description: A collection of data, published or curated for access and reuse.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -48,6 +49,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Table Description: A structured, tabular dataset (e.g. a warehouse table or view) whose columns are described by Field objects under `fields`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -68,6 +70,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Metric Description: A precisely defined, measurable quantity — the canonical definition of a business or operational metric.
 --     * Slot: unit Description: The unit of measurement (e.g. USD, seconds, count).
@@ -90,6 +93,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Service Description: A callable service or API endpoint.
 --     * Slot: endpoint Description: The base URL or invocation endpoint of a service.
@@ -113,6 +117,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Playbook Description: A procedure or runbook — an ordered set of steps to accomplish a task or respond to an event. Serves the Diátaxis how-to (goal-oriented) mode.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -133,6 +138,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Tutorial Description: A learning-oriented lesson: a guided, end-to-end practical activity through which a reader acquires a skill by doing. The Diátaxis tutorial mode as a first-class concept type; typically links to the reference and explanation it draws on with `references`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -153,6 +159,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Explanation Description: An understanding-oriented, discursive treatment of a topic that permits reflection. The Diátaxis explanation mode as a first-class concept type; typically links to its subject matter with `about`.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -173,6 +180,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Policy Description: A governance, compliance, or operational policy document.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -193,6 +201,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: GlossaryTerm Description: A defined term in a controlled vocabulary or glossary. Maps to schema:DefinedTerm and skos:Concept.
 --     * Slot: definition Description: The formal definition of a term.
@@ -215,6 +224,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Reference Description: A concept that mirrors an external source (a page, paper, or document) as a first-class citizen of the bundle so it can be cited and linked.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -235,6 +245,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Document Description: A general knowledge document that does not fit a more specific type.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -255,6 +266,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Role Description: A role an agent holds within an organization over a period of time — a job, appointment, or position. Reifies the agent–organization link so it can carry a title (roleName) and a start/end interval, following the schema.org Role and W3C ORG Membership patterns.
 --     * Slot: roleName Description: The name/title of the role held (e.g. a job title).
@@ -278,6 +290,7 @@
 --     * Slot: educationalLevel Description: The level of education the concept is written for, in words or as the IRI of a level in a published framework, such as a level of ISCED 2011.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: AttestedComputation Description: A sanctioned, immutable recipe for computing a value (OKF v0.2 §10), carried as its own concept type. The frontmatter is the contract: the agent may only bind the declared `parameters`, the `executor` runs the bound computation and returns a receipt, and the `attester` deterministically compares what actually ran against this recipe. The computation text lives in the body's `# Computation` fenced block or in the file named by `computation`. Semantically a prov:Plan with an attestation contract layered on.
 --     * Slot: runtime Description: REQUIRED on an Attested Computation. How to run the computation (bigquery | postgres | dbt | python | Looker | ...); defines what `parameters` mean and how the executor and attester interpret the contract.
@@ -302,6 +315,7 @@
 --     * Slot: attester_id Description: The deterministic, non-LLM verdict check over a receipt.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Abstract Class: Agent Description: A person or organization responsible for a concept.
 --     * Slot: type Description: The concept's type - OKF's single required field. SHOULD name a LOKF class (e.g. Metric, Dataset, Table, Playbook, GlossaryTerm).
@@ -345,6 +359,7 @@
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Organization Description: An organization, team, or group. Usable both as an inline Agent value (publisher) and as a standalone Concept document with a body and typed relations.
 --     * Slot: id Description: The concept's stable IRI. By convention it is the bundle base IRI joined with the Concept ID (the file path within the bundle, minus the `.md` suffix). Becomes the JSON-LD @id / RDF subject.
@@ -367,6 +382,7 @@
 --     * Slot: email Description: Contact email address.
 --     * Slot: usage_window_id Description: The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override).
 --     * Slot: generated_id Description: How and when the current content was produced: `by` (REQUIRED actor) and `at` (ISO 8601 datetime). Supersedes the v0.1 `timestamp` field; consumers MAY fall back to `timestamp` when `generated` is absent.
+--     * Slot: revised_id Description: The latest in-place edit of the content, as `{by, at}`, kept apart from `generated`, which then stays the production event and is never rewritten. A single mapping; a later edit overwrites it. The last meaningful change a consumer reads is the later of `revised.at` and `generated.at`, so a bundle that restamps `generated.at` on each edit instead, as 0.8.0 bundles do, reads as before.
 --     * Slot: audience_id Description: The readers this concept is written for, such as readers aged 13 to 18, as an inlined Audience. Absent means the bundle's own readers.
 -- # Class: Field Description: A single column / property within a Table or Dataset schema. Maps to schema:PropertyValue.
 --     * Slot: id
@@ -463,7 +479,7 @@
 -- # Class: Exclusion Description: A material the concept's author looked at and left out on purpose, with the reason: a test suite, a generated file, a retelling of another page. With it a checker can tell "nobody looked at this" from "someone looked and set it aside", and a reviewer can see who decided.
 --     * Slot: id
 --     * Slot: resource Description: REQUIRED. What was left out, written as a Source's `resource` is: an absolute URL, a bundle-relative path, or a scope descriptor.
---     * Slot: reason Description: Why the material was left out, in a sentence a reviewer can check.
+--     * Slot: reason Description: The grounds for a decision, in a sentence a reviewer can check: why a material was left out, or what a refutation found wrong.
 --     * Slot: by Description: The actor who decided to leave it out, as an OKF §7 actor string (`human:<id>`, `process:<id>`, `<producer>/<version>`).
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: Dataset_id Description: Autocreated FK slot
@@ -492,13 +508,40 @@
 --     * Slot: to Description: End (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z.
 -- # Class: Generation Description: How and when the current content was produced (OKF v0.2 `generated`, §5.2). Modeled as the PROV activity that generated the concept, so "who wrote this, when" is a one-hop join from the concept via prov:wasGeneratedBy, with both slots keeping PROV's activity-side semantics (prov:wasAssociatedWith, prov:endedAtTime) — domain/range correct with no reasoner or subproperty entailment required.
 --     * Slot: id
---     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion.
+--     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation, revision, verification or refutation event, optional on an exclusion.
+--     * Slot: at Description: ISO 8601 datetime at which the event completed.
+--     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
+-- # Class: Revision Description: The latest in-place edit of the content, for a producer that keeps `generated` as the production event: who changed it last, and when. One mapping, never a list; a later edit overwrites it. PROV has no class for it, so the class IRI is lokf-minted and the generated ontology declares it a subclass of prov:Activity.
+--     * Slot: id
+--     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation, revision, verification or refutation event, optional on an exclusion.
 --     * Slot: at Description: ISO 8601 datetime at which the event completed.
 --     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
 -- # Class: Verification Description: One verification event (OKF v0.2 `verified`, §5.2): an actor confirmed the content against its sources or resource at a time. Independent checks accumulate as separate events; trust tiers (unverified / machine-confirmed / human-reviewed) are derived from the actors, never stored. PROV has no Verification class, so the class IRI is honestly lokf-minted; the generated ontology declares it a subclass of prov:Activity.
 --     * Slot: id
---     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion.
+--     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation, revision, verification or refutation event, optional on an exclusion.
 --     * Slot: at Description: ISO 8601 datetime at which the event completed.
+--     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
+--     * Slot: Concept_id Description: Autocreated FK slot
+--     * Slot: Dataset_id Description: Autocreated FK slot
+--     * Slot: Table_id Description: Autocreated FK slot
+--     * Slot: Metric_id Description: Autocreated FK slot
+--     * Slot: Service_id Description: Autocreated FK slot
+--     * Slot: Playbook_id Description: Autocreated FK slot
+--     * Slot: Tutorial_id Description: Autocreated FK slot
+--     * Slot: Explanation_id Description: Autocreated FK slot
+--     * Slot: Policy_id Description: Autocreated FK slot
+--     * Slot: GlossaryTerm_id Description: Autocreated FK slot
+--     * Slot: Reference_id Description: Autocreated FK slot
+--     * Slot: Document_id Description: Autocreated FK slot
+--     * Slot: Role_id Description: Autocreated FK slot
+--     * Slot: AttestedComputation_id Description: Autocreated FK slot
+--     * Slot: Person_id Description: Autocreated FK slot
+--     * Slot: Organization_id Description: Autocreated FK slot
+-- # Class: Refutation Description: One refutation event: an actor found the content wrong against its sources or resource, at a time, for a reason. The negative counterpart of a Verification, so a person's no is recorded where their yes is. It is active while it is not older than the last meaningful change (`generated.at` or `revised.at`); an edit after it leaves it on record as history. It never changes the trust tier, which OKF derives from `verified` alone. PROV has no class for it, so the class IRI is lokf-minted and the generated ontology declares it a subclass of prov:Activity.
+--     * Slot: id
+--     * Slot: by Description: The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation, revision, verification or refutation event, optional on an exclusion.
+--     * Slot: at Description: ISO 8601 datetime at which the event completed.
+--     * Slot: reason Description: REQUIRED. What was found wrong, in a sentence a reviewer can check.
 --     * Slot: revision Description: The state of the resource this event refers to: a commit id, an ETag or version label, or a content digest of the resource as retrieved (`<algorithm>:<hex>`). Absent means unrecorded, never unchanged.
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: Dataset_id Description: Autocreated FK slot
@@ -1151,11 +1194,13 @@ CREATE TABLE "Concept" (
 	"KnowledgeBundle_id" INTEGER,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY("KnowledgeBundle_id") REFERENCES "KnowledgeBundle" (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1229,6 +1274,14 @@ CREATE TABLE "Generation" (
 	PRIMARY KEY (id)
 );
 
+CREATE TABLE "Revision" (
+	id INTEGER NOT NULL,
+	"by" TEXT NOT NULL,
+	at DATETIME,
+	revision TEXT,
+	PRIMARY KEY (id)
+);
+
 CREATE TABLE "Executor" (
 	id INTEGER NOT NULL,
 	resource TEXT NOT NULL,
@@ -1260,10 +1313,12 @@ CREATE TABLE "Dataset" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1286,10 +1341,12 @@ CREATE TABLE "Table" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1314,10 +1371,12 @@ CREATE TABLE "Metric" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1343,10 +1402,12 @@ CREATE TABLE "Service" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1369,10 +1430,12 @@ CREATE TABLE "Playbook" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1395,10 +1458,12 @@ CREATE TABLE "Tutorial" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1421,10 +1486,12 @@ CREATE TABLE "Explanation" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1447,10 +1514,12 @@ CREATE TABLE "Policy" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1475,10 +1544,12 @@ CREATE TABLE "GlossaryTerm" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1501,10 +1572,12 @@ CREATE TABLE "Reference" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1527,10 +1600,12 @@ CREATE TABLE "Document" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1556,10 +1631,12 @@ CREATE TABLE "Role" (
 	"educationalLevel" TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1586,12 +1663,14 @@ CREATE TABLE "AttestedComputation" (
 	attester_id INTEGER,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(executor_id) REFERENCES "Executor" (id),
 	FOREIGN KEY(attester_id) REFERENCES "Attester" (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1616,10 +1695,12 @@ CREATE TABLE "Person" (
 	email TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1644,10 +1725,12 @@ CREATE TABLE "Organization" (
 	email TEXT,
 	usage_window_id INTEGER,
 	generated_id INTEGER,
+	revised_id INTEGER,
 	audience_id INTEGER,
 	PRIMARY KEY (id),
 	FOREIGN KEY(usage_window_id) REFERENCES "UsageWindow" (id),
 	FOREIGN KEY(generated_id) REFERENCES "Generation" (id),
+	FOREIGN KEY(revised_id) REFERENCES "Revision" (id),
 	FOREIGN KEY(audience_id) REFERENCES "Audience" (id)
 );
 
@@ -1955,6 +2038,47 @@ CREATE TABLE "Verification" (
 	id INTEGER NOT NULL,
 	"by" TEXT NOT NULL,
 	at DATETIME,
+	revision TEXT,
+	"Concept_id" TEXT,
+	"Dataset_id" TEXT,
+	"Table_id" TEXT,
+	"Metric_id" TEXT,
+	"Service_id" TEXT,
+	"Playbook_id" TEXT,
+	"Tutorial_id" TEXT,
+	"Explanation_id" TEXT,
+	"Policy_id" TEXT,
+	"GlossaryTerm_id" TEXT,
+	"Reference_id" TEXT,
+	"Document_id" TEXT,
+	"Role_id" TEXT,
+	"AttestedComputation_id" TEXT,
+	"Person_id" TEXT,
+	"Organization_id" TEXT,
+	PRIMARY KEY (id),
+	FOREIGN KEY("Concept_id") REFERENCES "Concept" (id),
+	FOREIGN KEY("Dataset_id") REFERENCES "Dataset" (id),
+	FOREIGN KEY("Table_id") REFERENCES "Table" (id),
+	FOREIGN KEY("Metric_id") REFERENCES "Metric" (id),
+	FOREIGN KEY("Service_id") REFERENCES "Service" (id),
+	FOREIGN KEY("Playbook_id") REFERENCES "Playbook" (id),
+	FOREIGN KEY("Tutorial_id") REFERENCES "Tutorial" (id),
+	FOREIGN KEY("Explanation_id") REFERENCES "Explanation" (id),
+	FOREIGN KEY("Policy_id") REFERENCES "Policy" (id),
+	FOREIGN KEY("GlossaryTerm_id") REFERENCES "GlossaryTerm" (id),
+	FOREIGN KEY("Reference_id") REFERENCES "Reference" (id),
+	FOREIGN KEY("Document_id") REFERENCES "Document" (id),
+	FOREIGN KEY("Role_id") REFERENCES "Role" (id),
+	FOREIGN KEY("AttestedComputation_id") REFERENCES "AttestedComputation" (id),
+	FOREIGN KEY("Person_id") REFERENCES "Person" (id),
+	FOREIGN KEY("Organization_id") REFERENCES "Organization" (id)
+);
+
+CREATE TABLE "Refutation" (
+	id INTEGER NOT NULL,
+	"by" TEXT NOT NULL,
+	at DATETIME,
+	reason TEXT NOT NULL,
 	revision TEXT,
 	"Concept_id" TEXT,
 	"Dataset_id" TEXT,
@@ -3765,7 +3889,9 @@ CREATE INDEX "ix_Reference_source_Reference_id" ON "Reference_source" ("Referenc
 CREATE INDEX "ix_Reference_source_source_id" ON "Reference_source" (source_id);
 CREATE INDEX "ix_Reference_tags_Reference_id" ON "Reference_tags" ("Reference_id");
 CREATE INDEX "ix_Reference_tags_tags" ON "Reference_tags" (tags);
+CREATE INDEX "ix_Refutation_id" ON "Refutation" (id);
 CREATE INDEX "ix_Relation_id" ON "Relation" (id);
+CREATE INDEX "ix_Revision_id" ON "Revision" (id);
 CREATE INDEX "ix_Role_about_Role_id" ON "Role_about" ("Role_id");
 CREATE INDEX "ix_Role_about_about_id" ON "Role_about" (about_id);
 CREATE INDEX "ix_Role_definedBy_Role_id" ON "Role_definedBy" ("Role_id");

@@ -3,7 +3,7 @@
 **Version 0.2 — Draft**
 **Status:** Proposal · Profile of Google Open Knowledge Format (OKF) v0.2
 **Model:** Defined entirely in LinkML (`lokf.yaml`); all other artifacts are generated from it.
-**Realized by:** `lokf.yaml` / the `lokf` package at 0.8.0 — the format version and the
+**Realized by:** `lokf.yaml` / the `lokf` package at 0.9.0 — the format version and the
 artifact version are separate tracks (§12).
 
 LOKF is a semantic, ontology-grounded **profile of the Google Open Knowledge
@@ -231,7 +231,9 @@ distinguishable, never rejected).
 | `exclusions`   |     | `lokf:excludes`                 | Exclusion*   | `{resource, reason, by?}`: the materials looked at and left out on purpose, never `schema:isBasedOn`. LOKF's own field. |
 | `usage_window` |  ✅ | `lokf:usageWindow`              | UsageWindow  | `{from, to}` → `dcat:startDate`/`dcat:endDate` on a `dcterms:PeriodOfTime`. Sibling of `sources`; a Source entry MAY override. |
 | `generated`    |  ✅ | `prov:wasGeneratedBy`           | Generation   | `{by, at}` → `prov:wasAssociatedWith` + `prov:endedAtTime` on a `prov:Activity`. Supersedes `timestamp`. |
+| `revised`      |     | `lokf:revised`                  | Revision     | `{by, at}`: the latest in-place edit, kept apart from `generated`, which then stays the production event. A single mapping, never a list. LOKF's own field. |
 | `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`); `by` is REQUIRED, since trust tiers derive from it. A bare mapping MUST be read as a one-element list. |
+| `refuted`      |     | `lokf:refuted`                  | Refutation*  | Each `{by, at, reason}` a `lokf:Refutation` (⊑ `prov:Activity`): the negative counterpart of `verified`; `by` and `reason` REQUIRED. A bare mapping MUST be read as a one-element list. LOKF's own field. |
 | `status`       |  ✅ | `schema:creativeWorkStatus`     | enum         | `draft \| stable \| deprecated`; absent ⇒ stable. Enum meanings: ADMS status IRIs. |
 | `stale_after`  |  ✅ | `schema:expires`                | dateTime     | The instant from which the concept is stale (OKF §5.5). A bare `YYYY-MM-DD` means that day at `00:00:00Z`. |
 <!-- --8<-- [end:trust-fields-table] -->
@@ -242,7 +244,7 @@ of them means that day at midnight UTC. `lokf` applies it before validating, so
 a bundle written with dates and one written with datetimes validate and project
 the same way.
 
-A `generated` or `verified[]` event may carry **`revision`** (`lokf:revision`):
+A `generated`, `revised`, `verified[]` or `refuted[]` event may carry **`revision`** (`lokf:revision`):
 the state of the resource the event refers to, as a commit id, an ETag or
 version label, or a content digest of the resource as retrieved
 (`sha256:<hex>`). Absent means unrecorded, never unchanged. Quote it in YAML:
@@ -253,6 +255,32 @@ own field, proposed for OKF under the same name
 ([knowledge-catalog#437](https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437));
 it moves to the OKF subset if OKF adopts it.
 
+**`revised`** (`lokf:revised`) records the latest in-place edit apart from
+`generated`. A producer that writes it keeps `generated` as the production
+event and never rewrites it, and overwrites `revised` on each later edit: a
+single `{by, at}` mapping, never a list, a `lokf:Revision` (⊑ `prov:Activity`)
+that may carry `revision` as the other events do. A producer that does not
+write it may keep restamping `generated.at`, as 0.8.0 bundles do. Consumers
+read the last meaningful change as the later of `generated.at` and
+`revised.at`, so both styles read the same way; `lokf validate` rejects a
+`revised.at` earlier than `generated.at`. `revised` is LOKF's own field,
+proposed for OKF in
+[open-knowledge-format#28](https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/28),
+which settles `generated` as the immutable production event; it moves to the
+OKF subset if OKF adopts it.
+
+**`refuted`** (`lokf:refuted`) is the negative counterpart of `verified`: each
+`{by, at, reason}` is a `lokf:Refutation` (⊑ `prov:Activity`), an actor's
+finding that the content is wrong against its sources or resource, with the
+grounds. `by` and `reason` are REQUIRED; a bare mapping MUST be read as a
+one-element list. A refutation is *active* while it is not older than the last
+meaningful change, and an edit after it leaves it on record as history. It
+never changes the trust tier, which OKF derives from `verified` alone; a
+consumer surfaces it beside the tier, so a person's no is as visible as their
+yes. `refuted` is LOKF's own field, proposed for OKF in
+[open-knowledge-format#13](https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/13);
+it moves to the OKF subset if OKF adopts it.
+
 **Source entries** (`sources[]`): `resource` (REQUIRED → `schema:url`; a URL,
 bundle-relative path, or scope descriptor), `id` (footnote join key; resolves
 against `base_iri` to mint the source node's IRI, so the same id shared across
@@ -261,7 +289,8 @@ concepts merges into one node), `title` (`schema:name`), `author`
 `last_modified` (`schema:dateModified` — the *source's* recency, distinct from
 `generated.at`), and `excerpt` (`lokf:excerpt` — the exact passage from
 `resource` that the concept relies on, so the claim can be checked against it
-again later). `excerpt` is LOKF's own field, proposed for OKF under the same name
+again later; `lokf validate --check-excerpts` makes that check for a local
+`resource`, §9). `excerpt` is LOKF's own field, proposed for OKF under the same name
 ([knowledge-catalog#438](https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438));
 it moves to the OKF subset if OKF adopts it.
 
@@ -276,7 +305,7 @@ tell "nobody looked at this" from "someone looked and set it aside".
 `lokf validate` warns when one concept lists the same material under both
 `sources` and `exclusions`. `exclusions` is LOKF's own field.
 
-**Actors** (`generated.by`, `verified[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
+**Actors** (`generated.by`, `revised.by`, `verified[].by`, `refuted[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
 (`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain
 literals — never coerced to IRIs, since `human:x` would silently mint an IRI in
 an unregistered URI scheme and `a/b` would resolve document-relative. Trust
@@ -302,12 +331,16 @@ false `xsd:integer` typing of a non-literal node.
 ### 5.5 Consumer review freshness
 
 Trust summaries retain the three existing trust tiers and additionally expose
-`human_reviewed_at` (the latest valid human review, in UTC) and
-`edited_since_human_review`. The latter is true only when the last meaningful
-edit is later than that review. Comparisons preserve time-of-day and normalize
-offsets; bare dates and naive timestamps use UTC. Missing or malformed times
-produce false, meaning unknown rather than proof that content is unchanged.
-A verification's revision identifier does not change this derivation.
+`human_reviewed_at` (the latest valid human review, in UTC),
+`edited_since_human_review`, `revised_at`, `last_changed_at`, `refuted` (an
+active refutation exists, §5.4) and `refuted_at` (the latest one). The last
+meaningful edit is the later of `generated.at` and `revised.at` (§5.4), so a
+producer that writes `revised` and one that restamps `generated.at` are read
+alike; `edited_since_human_review` is true only when that edit is later than
+the review. Comparisons preserve time-of-day and normalize offsets; bare dates
+and naive timestamps use UTC. Missing or malformed times produce false, meaning
+unknown rather than proof that content is unchanged. A verification's revision
+identifier does not change this derivation.
 
 
 ## 6. The type vocabulary
@@ -609,6 +642,29 @@ Prefix local paths containing spaces with `./` (or use an absolute path within
 the root) to make them unambiguous. Concept `resource` values are always paths
 or identifiers, not scope descriptions. No resource checks run by default.
 
+### Excerpt checks
+
+`lokf validate --check-excerpts` finds each `sources[].excerpt` in its
+`resource`, resolved as the resource checks resolve a path: inside the same
+root, `--root` included, with nothing fetched. The comparison collapses each
+run of whitespace to one space and folds case, and keeps punctuation: a bundle
+quotes prose, and a dropped "not" matters where a dropped comma rarely does.
+`...` (also `…`, `[...]` and `[…]`) marks a gap: an excerpt is at most two
+spans, found in source order inside one heading section. A line beginning `#`
+or `##` outside a fenced code block starts a section of a Markdown resource;
+any other file is one section. The section rule also settles a passage that
+occurs twice. A bracketed editorial note of at most forty characters, such as
+`[sic]`, is skipped; a longer one is matched as written, as is a Markdown
+resource's own syntax: `**no**` is the passage, not `no`.
+
+A `resource` that is a URL is not fetched, and the verdict line counts the
+excerpts left unchecked. Local files over 16 MiB are also left unchecked,
+with a warning and a separate count in the verdict. A scope description, a directory or a pattern holds
+no text, so an excerpt on one is an error, as is a file that is not text. The
+cases of the grammar are a corpus, `tests/fixtures/excerpt-corpus.yaml`, so a
+bundle's own gate or an editor can run the same check and agree with `lokf`
+by test rather than by prose. No excerpt checks run by default.
+
 ### Change-log checks
 
 Validation reads every `log.md` within the bundle. Level-two date headings
@@ -631,7 +687,7 @@ rejects a malformed value rather than passing it through to RDF:
 | Field | Constraint |
 |---|---|
 | `base_iri` | absolute `http(s)`, ending in `/` or `#` so IDs mint by plain concatenation and prefix routing respects segment boundaries |
-| `generated.by`, `verified[].by`, `exclusions[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
+| `generated.by`, `revised.by`, `verified[].by`, `refuted[].by`, `exclusions[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
 | `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
 | `email` | an address shape (`local@domain.tld`) |
 | `typicalAgeRange` | an age range as schema.org writes it: `8-12`, or `13-` for 13 and over |
@@ -868,8 +924,8 @@ may rename required fields or change reserved filenames. Bundles declare their
 target with `lokf_version` in the root `index.md`.
 
 The LinkML schema and the `lokf` package carry their own, independent
-`<major>.<minor>.<patch>` version (currently 0.8.0), so the toolkit can ship fixes
-without implying a format change: LOKF v0.2 is realized by schema 0.8.0. Because the
+`<major>.<minor>.<patch>` version (currently 0.9.0), so the toolkit can ship fixes
+without implying a format change: LOKF v0.2 is realized by schema 0.9.0. Because the
 format is defined in LinkML, a format version is pinned by a tagged `lokf.yaml`, and
 the context/schema/shapes/OWL for it are reproducible by regeneration.
 

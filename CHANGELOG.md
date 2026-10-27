@@ -61,6 +61,14 @@ OKF v0.2 writes.
   an exclusion.
 - `--check-resources` accepts a pattern such as `docs/*.svg` in a source or an
   exclusion when it matches a file inside the root.
+- `lokf validate --check-excerpts` finds each `sources[].excerpt` in its local
+  `resource`: whitespace collapsed, case folded, punctuation kept; `...` joins
+  at most two spans in source order inside one heading section, and a
+  bracketed note of up to forty characters is skipped. A URL is not fetched
+  and is counted in the verdict; a scope description, a directory or a
+  pattern holds no text, so an excerpt on one is an error. The grammar's
+  cases are a corpus, `tests/fixtures/excerpt-corpus.yaml`, for any other
+  checker to run.
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,
   and domain schemas. External reference classes remain unverified.
@@ -127,6 +135,18 @@ OKF v0.2 writes.
 - `revision` on `generated` and `verified[]` events (`lokf:revision`): the
   commit id, ETag or content digest of the resource the event checked,
   proposed for OKF in [knowledge-catalog#437]. Absent means unrecorded.
+- `revised` on a concept (`lokf:revised`): the latest in-place edit as
+  `{by, at}`, kept apart from `generated`, which then stays the production
+  event, as [open-knowledge-format#28] settles it. The last meaningful change
+  is the later of the two, so a bundle that restamps `generated.at` reads as
+  before; trust summaries report it as `last_changed_at`, beside
+  `revised_at`. `lokf validate` rejects a `revised.at` earlier than
+  `generated.at`.
+- `refuted` on a concept (`lokf:refuted`): the negative counterpart of
+  `verified`, each `{by, at, reason}` a `lokf:Refutation`, as
+  [open-knowledge-format#13] proposes it. A refutation is active while it is
+  not older than the last meaningful change, and never changes the trust
+  tier; trust summaries report `refuted` and `refuted_at`.
 
 ### Fixed
 
@@ -194,9 +214,9 @@ OKF v0.2 writes.
 
 ### Internal
 
-- The site's validation guide names `--check-resources`, `--root` and
-  `--shacl`, and a toolkit page covers `lokf registry` and the files
-  `lokf export` writes for it.
+- The site's validation guide names `--check-resources`, `--check-excerpts`,
+  `--root` and `--shacl`, and a toolkit page covers `lokf registry` and the
+  files `lokf export` writes for it.
 - Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
 - A *Domain schemas* how-to guide on the site, with biolink-model and gist
   as the adapted vocabularies, and a toolkit page for `lokf adapt`; the validation guide now names `--schema`, `--check-refs`
@@ -274,6 +294,8 @@ via `lokf validate --schema`.
 
 [knowledge-catalog#437]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437
 [knowledge-catalog#438]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
+[open-knowledge-format#13]: https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/13
+[open-knowledge-format#28]: https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/28
 [#61]: https://github.com/nicholsn/lokf/issues/61
 [#62]: https://github.com/nicholsn/lokf/pull/62
 [#63]: https://github.com/nicholsn/lokf/pull/63

@@ -288,6 +288,10 @@
       "@type": "@id",
       "@id": "dcterms:references"
     },
+    "refuted": {
+      "@type": "@id",
+      "@id": "refuted"
+    },
     "relatedTo": {
       "@type": "@id",
       "@id": "dcterms:relation"
@@ -306,6 +310,10 @@
     "resource": {
       "@type": "xsd:anyURI",
       "@id": "schema:url"
+    },
+    "revised": {
+      "@type": "@id",
+      "@id": "revised"
     },
     "revision": {
       "@id": "revision"
@@ -471,8 +479,14 @@
     "Reference": {
       "@id": "Reference"
     },
+    "Refutation": {
+      "@id": "Refutation"
+    },
     "Relation": {
       "@id": "rdf:Statement"
+    },
+    "Revision": {
+      "@id": "Revision"
     },
     "Role": {
       "@id": "schema:OrganizationRole"
