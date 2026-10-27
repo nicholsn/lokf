@@ -83,11 +83,27 @@ def test_add_rejects_vocab_namespace():
         reg.add(RepoEntry(base_iri=VOCAB_NS))
 
 
-def test_add_rejects_duplicate_and_nesting():
+def test_add_accepts_the_same_release_and_rejects_another():
+    reg = Registry(path=pathlib.Path("x"))
+    assert reg.add(RepoEntry(base_iri="https://ex.org/a/", source_base="https://s/"))
+    # The same release again, as the union of two registries names it: a no-op.
+    assert not reg.add(RepoEntry(base_iri="https://ex.org/a/", source_base="https://s/", title="other"))
+    assert len(reg.repos) == 1
+    with pytest.raises(ValueError, match="another release.*source_base differs"):
+        reg.add(RepoEntry(base_iri="https://ex.org/a/", source_base="https://t/"))
+
+
+def test_add_decides_by_checksum_when_both_have_one():
+    reg = Registry(path=pathlib.Path("x"))
+    reg.add(RepoEntry(base_iri="https://ex.org/a/", checksum="sha256:1", source_base="https://s/"))
+    assert not reg.add(RepoEntry(base_iri="https://ex.org/a/", checksum="sha256:1", source_base="https://mirror/"))
+    with pytest.raises(ValueError, match="checksum differs"):
+        reg.add(RepoEntry(base_iri="https://ex.org/a/", checksum="sha256:2"))
+
+
+def test_add_rejects_nesting():
     reg = Registry(path=pathlib.Path("x"))
     reg.add(RepoEntry(base_iri="https://ex.org/a/"))
-    with pytest.raises(ValueError, match="already registered"):
-        reg.add(RepoEntry(base_iri="https://ex.org/a/"))
     with pytest.raises(ValueError, match="nest"):
         reg.add(RepoEntry(base_iri="https://ex.org/a/sub/"))
     with pytest.raises(ValueError, match="nest"):
@@ -277,13 +293,18 @@ def test_cli_init_add_list_resolve(tmp_path):
     assert external.exit_code == 1 and "external" in external.output
 
 
-def test_cli_add_rejects_second_copy_of_same_bundle(tmp_path):
-    """Registering the same base_iri twice is a clean error, not a traceback."""
+def test_cli_add_same_bundle_twice_is_a_no_op(tmp_path):
+    """The same release twice is accepted once; another release is a clean error."""
     manifest = tmp_path / "lokf-registry.yaml"
     runner.invoke(app, ["registry", "init", "-r", str(manifest)])
     runner.invoke(app, ["registry", "add", str(BUNDLE), "-r", str(manifest)])
     again = runner.invoke(app, ["registry", "add", str(BUNDLE), "-r", str(manifest)])
-    assert again.exit_code == 1 and "already registered" in again.output
+    assert again.exit_code == 0 and "already registered at this release" in again.output
+    assert len(load_registry(manifest).repos) == 1
+    moved = runner.invoke(
+        app, ["registry", "add", str(BUNDLE), "-r", str(manifest), "--source-base", "https://x/"]
+    )
+    assert moved.exit_code == 1 and "another release" in moved.output
 
 
 def test_cli_add_registers_a_zip(tmp_path):
@@ -534,3 +555,49 @@ def test_an_id_in_the_entrys_own_namespace_under_the_vocabulary_is_allowed():
     assert len(reg.repos) == 1
     with pytest.raises(ValueError, match="vocabulary namespace"):
         reg.add(RepoEntry(base_iri="https://b.example/", id_index={VOCAB_NS + "Metric": "m"}))
+
+
+def test_release_difference_checks_unpinned_metadata_and_names_a_lone_checksum():
+    from lokf.registry import release_difference
+
+    a = RepoEntry(base_iri="https://a/", source_base="https://s/", void={"triples": 6})
+    assert release_difference(a, RepoEntry(base_iri="https://a/", source_base="https://s/",
+                                           void={"triples": 7})) == "void"
+    lone = release_difference(a, RepoEntry(base_iri="https://a/", checksum="sha256:" + "0" * 64))
+    assert lone.startswith("checksum (one entry has one")
+
+
+def test_cli_add_records_a_later_location_of_the_same_release(tmp_path, http_files):
+    base, www = http_files
+    archive = _zip_bundle(tmp_path)
+    shutil.copy(archive, www / "k.zip")
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    url = f"{base}/k.zip"
+    first = runner.invoke(app, ["registry", "add", str(archive), "--archive-url", url, "-r", str(manifest)])
+    assert first.exit_code == 0, first.output
+    again = runner.invoke(app, ["registry", "add", url, "--source-base", "https://src/", "-r", str(manifest)])
+    assert again.exit_code == 0 and "recorded the locations it lacked" in again.output
+    raw = yaml.safe_load(manifest.read_text())["repos"]
+    assert len(raw) == 1 and raw[0]["source_base"] == "https://src/"
+
+
+def test_cli_add_replaces_a_local_zip_path_with_its_url(tmp_path, http_files):
+    base, www = http_files
+    archive = _zip_bundle(tmp_path)
+    shutil.copy(archive, www / "k.zip")
+    manifest = tmp_path / "lokf-registry.yaml"
+    runner.invoke(app, ["registry", "init", "-r", str(manifest)])
+    runner.invoke(app, ["registry", "add", str(archive), "-r", str(manifest)])
+    assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": archive.name}
+    again = runner.invoke(app, ["registry", "add", f"{base}/k.zip", "-r", str(manifest)])
+    assert "recorded the locations it lacked" in again.output
+    assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": f"{base}/k.zip"}
+
+
+def test_distinct_unpinned_local_bundles_are_not_the_same_release():
+    reg = Registry(path=pathlib.Path("r.yaml"))
+    assert reg.add(RepoEntry(base_iri="https://ex.org/", path="one"))
+    with pytest.raises(ValueError, match="path differs"):
+        reg.add(RepoEntry(base_iri="https://ex.org/", path="two"))
+    assert len(reg.repos) == 1
