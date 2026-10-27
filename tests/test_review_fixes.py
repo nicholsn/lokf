@@ -22,6 +22,9 @@ BUNDLE = "examples/acme-knowledge"
         ("PREFIX x: <urn:x>\n# c\nSELECT ?s WHERE { ?s ?p ?o }", "select"),
         ("DESCRIBE <urn:x>", "describe"),
         ("  \n  SELECT ?s {}", "select"),
+        ("PREFIX ex: <urn:x> ASK { ?s ?p ?o }", "ask"),
+        ("BASE <urn:b> PREFIX : <urn:x> CONSTRUCT WHERE { ?s ?p ?o }", "construct"),
+        ("PREFIX ex: <urn:x> # c\nDESCRIBE ex:a", "describe"),
     ],
 )
 def test_query_form_skips_comments_and_prefixes(sparql, expected):
