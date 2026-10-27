@@ -54,6 +54,8 @@ _PREAMBLE = (
 
 def registry_index(registry, store) -> str:
     """A Markdown index of the registry's members and whether each loaded."""
+    from lokf.registry import has_bundle
+
     lines = [f"# {registry.title or 'LOKF registry'}", ""]
     if registry.id:
         lines += [registry.id, ""]
@@ -63,6 +65,8 @@ def registry_index(registry, store) -> str:
         graph = ox.NamedNode(e.base_iri)
         if e.base_iri in store.load_errors:
             state = f"not loaded: {store.load_errors[e.base_iri]}"
+        elif not has_bundle(e):
+            state = "a registry of the members below it"
         elif not store.store.contains_named_graph(graph):
             state = "not loaded"
         else:

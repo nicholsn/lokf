@@ -176,9 +176,9 @@ class GraphStore:
         """Build a store holding each registry member in a named graph whose
         IRI is its ``base_iri`` (SPEC §11.4).
 
-        *registry* is a :class:`lokf.registry.Registry` or a manifest path. A
-        member whose sensitivity is neither unset nor public requires its
-        base_iri in cleared_members before any content is read. A
+        *registry* is a :class:`lokf.registry.Registry` or a manifest path,
+        read with every registry below it (:func:`lokf.registry.load_tree`).
+        Sensitive members require explicit per-run clearance before reading. A
         member that cannot be loaded is skipped and its reason kept in
         :attr:`load_errors`, so one unreachable member does not stop the rest.
         Each member's blank nodes are canonicalised (RDFC-1.0) and then
@@ -189,15 +189,17 @@ class GraphStore:
         """
         import hashlib
 
-        from lokf.registry import load_registry, member_ntriples
+        from lokf.registry import has_bundle, load_tree, member_ntriples
 
-        if not hasattr(registry, "repos"):
-            registry = load_registry(registry)
-        registry = registry.located()
         cleared_members = set(cleared_members)
+        if not getattr(registry, "_tree_loaded", False):
+            registry = load_tree(registry, cleared_members=cleared_members)
+        registry = registry.located()
         store = ox.Store()
         errors: dict[str, str] = {}
         for entry in registry.repos:
+            if not has_bundle(entry):
+                continue  # a registry's namespace, with no bundle of its own to load
             if (entry.sensitivity or "").strip().lower() not in ("", "public") and entry.base_iri not in cleared_members:
                 errors[entry.base_iri] = "sensitive member requires explicit clearance"
                 continue

@@ -16,6 +16,7 @@ targets no member holds.
 """
 from __future__ import annotations
 
+import collections
 import dataclasses
 import hashlib
 import http.client
@@ -41,6 +42,14 @@ import yaml
 VOCAB_NS = "https://w3id.org/lokf/"
 REGISTRY_VERSION = "0.1"
 DEFAULT_REGISTRY = "lokf-registry.yaml"
+#: An entry of this type is a registry in turn (SPEC §11.2): its ``registry``
+#: field locates that registry's manifest, which a walk of the tree follows.
+CATALOG = "dcat:Catalog"
+_CATALOG_TYPES = (CATALOG, "http://www.w3.org/ns/dcat#Catalog")
+#: The most a sub-registry's manifest may be: it is a list of entries, not an archive.
+MAX_MANIFEST_BYTES = 4 << 20
+#: How many tiers below the top registry a walk follows, unless it sets ``max_depth``.
+DEFAULT_MAX_DEPTH = 3
 #: Ceiling on a bundle archive's size, downloaded and unpacked, so a hostile
 #: zip or an endless response cannot fill the disk.
 MAX_ARCHIVE_BYTES = 1 << 30
@@ -67,6 +76,8 @@ class RepoEntry:
     id_index: dict = field(default_factory=dict)  # explicit-id IRI -> Concept ID
     sensitivity: str | None = None
     status: str = "ok"
+    type: str | None = None  # CATALOG for a registry that is a member of this one
+    registry: str | None = None  # a CATALOG entry's manifest, a URL or a path beside this one
 
 
 @dataclass
@@ -117,6 +128,13 @@ class Registry:
     publisher: dict = field(default_factory=dict)
     version: str = REGISTRY_VERSION
     repos: list[RepoEntry] = field(default_factory=list)
+    max_depth: int | None = None  # tiers a walk of the tree follows, for a top registry
+    #: What a walk of the tree left out by design, such as a registry deeper
+    #: than ``max_depth`` (see :func:`load_tree`); not saved.
+    notes: list[str] = field(default_factory=list)
+    #: Sub-registries a walk could not read, each with its reason; not saved.
+    skipped: list[str] = field(default_factory=list)
+    _tree_loaded: bool = field(default=False, repr=False)  # runtime-only traversal result
 
     # -- resolution ---------------------------------------------------------
     def _match(self, iri: str) -> tuple[RepoEntry | None, str | None, str | None]:
@@ -233,6 +251,8 @@ class Registry:
             d["title"] = self.title
         if self.publisher:
             d["publisher"] = self.publisher
+        if self.max_depth is not None:
+            d["max_depth"] = self.max_depth
         d["repos"] = [_entry_dict(e) for e in self.repos]
         return d
 
@@ -385,7 +405,172 @@ def load_registry(path: str | pathlib.Path) -> Registry:
         publisher=data.get("publisher") or {},
         version=str(data.get("lokf_registry_version") or REGISTRY_VERSION),
         repos=repos,
+        max_depth=_max_depth(data.get("max_depth"), p),
     )
+
+
+def _max_depth(value, where) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{where}: max_depth must be a whole number of tiers, 0 or more")
+    return value
+
+
+def is_catalog(entry: RepoEntry) -> bool:
+    """True for an entry that is a registry in turn: one that names its
+    manifest in ``registry``, or is typed ``dcat:Catalog`` (CURIE or IRI)."""
+    return bool(entry.registry) or entry.type in _CATALOG_TYPES
+
+
+def has_bundle(entry: RepoEntry) -> bool:
+    """True unless *entry* is a catalog with no bundle of its own: one that
+    only reserves a namespace for the registry it names."""
+    return not is_catalog(entry) or bool(entry.path or entry.distribution)
+
+
+def _local_ref(value: str) -> pathlib.Path | None:
+    """*value* as a local path when it names one (a ``file://`` URI or an
+    absolute path), else None (a URL, or a path relative to its manifest)."""
+    if value.lower().startswith("file://"):
+        return pathlib.Path(urllib.request.url2pathname(urllib.parse.urlsplit(value).path))
+    path = pathlib.Path(value)
+    return path if path.is_absolute() else None
+
+
+def _locate(ref: str, parent: str) -> str | None:
+    """*ref*, a sub-registry's manifest, resolved against its parent's location.
+
+    A manifest read from a URL may only point at URLs: a local path in it
+    would have this machine's files read on someone else's word, so None.
+    """
+    if is_url(ref):
+        return ref
+    local = _local_ref(ref)
+    if is_url(parent):
+        return None if local is not None else urllib.parse.urljoin(parent, ref)
+    if local is not None:
+        return str(local.resolve())
+    return str((pathlib.Path(parent).parent / ref).resolve())
+
+
+def _as_listed(entry: RepoEntry, where: str) -> RepoEntry:
+    """*entry*'s locations as the manifest at *where* gives them.
+
+    Relative ones are read beside that manifest. From a manifest read at a
+    URL, a relative location is a URL beside it, and a local path or
+    ``file://`` location is dropped, as :func:`_locate` refuses one.
+    """
+    if not is_url(where):
+        return _located(entry, pathlib.Path(where).parent)
+    listed = dataclasses.replace(entry, path=None, distribution={})
+    for key, value in entry.distribution.items():
+        if isinstance(value, str) and value and _local_ref(value) is None:
+            listed.distribution[key] = value if is_url(value) else urllib.parse.urljoin(where, value)
+    return listed
+
+
+def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None, *, cleared_members=()) -> Registry:
+    """A registry and every registry below it, as one flat registry.
+
+    *top* is a manifest path or an already loaded :class:`Registry`. A catalog
+    entry (:func:`is_catalog`) is followed to the manifest its ``registry``
+    field names, resolved against the manifest that lists it, to *max_depth*
+    tiers below the top (else the top's ``max_depth``, else
+    :data:`DEFAULT_MAX_DEPTH`); a deeper one is left out with a note. Every
+    entry's relative locations are read beside the manifest that lists it.
+
+    The walk goes tier by tier, so where registries name one bundle the entry
+    nearest the top is the one kept; a registry two others name is read
+    once. A catalog entry joins too, so its namespace stays reserved and a
+    bundle of its own (``path`` or a ``distribution``) loads. A bundle named
+    at two releases raises ``ValueError``, since a named graph holds one
+    release, and so does a registry that names itself or one above it. A
+    sub-registry that cannot be read is left out and listed in ``skipped``.
+    """
+    if isinstance(top, Registry):
+        root, top_path = top, (top.path.resolve() if top.path else pathlib.Path.cwd() / DEFAULT_REGISTRY)
+    else:
+        top_path = pathlib.Path(top).resolve()
+        root = load_registry(top_path)
+    limit = DEFAULT_MAX_DEPTH
+    for value in (max_depth, root.max_depth):
+        if value is not None:
+            limit = _max_depth(value, top_path)
+            break
+    flat = Registry(path=root.path, id=root.id, title=root.title, publisher=root.publisher,
+                    version=root.version, max_depth=root.max_depth, _tree_loaded=True)
+    origin: dict[str, str] = {}
+    cleared_members = set(cleared_members)
+    edges: dict[str, set[str]] = {}
+
+    def connect(parent: str, child: str) -> None:
+        # A shared child may already have been queued through another branch.
+        # Ancestors of its first path alone cannot detect a cross-branch cycle.
+        pending, seen = [child], set()
+        while pending:
+            node = pending.pop()
+            if node == parent:
+                raise ValueError(f"{parent}: registry cycle through {child}")
+            if node not in seen:
+                seen.add(node)
+                pending.extend(edges.get(node, ()))
+        edges.setdefault(parent, set()).add(child)
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-tree-"))
+
+    def add(entry: RepoEntry, where: str) -> None:
+        try:
+            if flat.add(entry):
+                origin[entry.base_iri] = where
+        except ValueError as exc:
+            first = origin.get(entry.base_iri)
+            also = f"; first named in {first}" if first and first != where else ""
+            raise ValueError(f"{where}: {exc}{also}") from None
+
+    start = str(top_path)
+    queue = collections.deque([(root, start, 0, frozenset({start} | ({root.id} if root.id else set())))])
+    read = {start}
+    try:
+        while queue:
+            reg, where, depth, above = queue.popleft()
+            for e in reg.repos:
+                e = _as_listed(e, where)
+                add(e, where)
+                if not is_catalog(e):
+                    continue
+                if (e.sensitivity or "").strip().lower() not in ("", "public") and e.base_iri not in cleared_members:
+                    flat.skipped.append(f"{e.base_iri}: sensitive registry requires explicit clearance")
+                    continue
+                if not e.registry:
+                    raise ValueError(f"{where}: catalog entry {e.base_iri} names no registry")
+                loc = _locate(e.registry, where)
+                if loc is None:
+                    flat.skipped.append(f"{e.registry}: a local path in {where}, a manifest read from a URL")
+                    continue
+                if loc in above:
+                    raise ValueError(f"{where}: {e.base_iri} names a registry above it, {loc}")
+                connect(where, loc)
+                if loc in read:
+                    continue
+                if depth + 1 > limit:
+                    flat.notes.append(f"not followed: {loc}, deeper than max_depth {limit}")
+                    continue
+                read.add(loc)
+                try:
+                    dest = tmp / f"{len(read)}.yaml"
+                    sub = load_registry(_fetch(loc, dest, max_bytes=MAX_MANIFEST_BYTES))
+                except (ValueError, OSError) as exc:
+                    flat.skipped.append(f"{loc}: {exc}")
+                    continue
+                if sub.id and sub.id in above:
+                    raise ValueError(
+                        f"{loc} has the id {sub.id} of a registry above it: a cycle, or a "
+                        "manifest copied from its parent that needs an id of its own"
+                    )
+                queue.append((sub, loc, depth + 1, above | {loc} | ({sub.id} if sub.id else set())))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    return flat
 
 
 def entry_for_bundle(
