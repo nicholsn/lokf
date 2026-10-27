@@ -36,6 +36,10 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - Nested validation errors name the field path and unexpected provenance keys.
 
+- A domain schema's slot named like a ParameterType value, such as `uri`
+  or `date`, keeps its own IRI under `--schema` instead of projecting as a
+  Parameter-kind class. LOKF's published context is unchanged.
+
 ### Changed
 
 - Require LinkML and linkml-runtime 1.12.0 or newer, and regenerate the
@@ -56,6 +60,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - `lokf validate` warns when a concept lists one material as both a source and
   an exclusion.
+
+- `--check-resources` accepts a pattern such as `docs/*.svg` in a source or an
+  exclusion when it matches a file inside the root.
 
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,
