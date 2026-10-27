@@ -15,6 +15,14 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
+- `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label
+  blank nodes from content and fix their order, so one bundle gives the same
+  bytes in N-Triples, Turtle, N3, TriG and JSON-LD.
+
+- Turtle output writes schema.org terms as `schema:`, not rdflib's `schema1:`.
+
+- Sorting N-Triples splits on newlines only, so a literal holding U+2028 no
+  longer breaks `graph.nt`.
 - A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no
   longer slips a `SERVICE` past the refusal in `lokf serve` and `query`.
 
