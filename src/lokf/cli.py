@@ -726,6 +726,17 @@ def adapt(
         None, "--prefix",
         help="Prefix for renamed elements (default: the vocabulary's default_prefix).",
     ),
+    fold: list[str] = typer.Option(
+        [], "--fold", metavar="VOCAB_SLOT=LOKF_SLOT",
+        help="Fold a vocabulary slot, or a class attribute as Class.attr, into the LOKF slot "
+        "it means; repeatable. A slot whose IRI matches one of Concept's slots folds "
+        "without this flag.",
+    ),
+    keep: list[str] = typer.Option(
+        [], "--keep", metavar="VOCAB_SLOT",
+        help="Leave a vocabulary slot, or a Class.attr attribute, out of the fold by IRI; "
+        "repeatable. It is renamed, or left as it is, as if no IRI matched.",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Report the moves; write nothing."),
     check: bool = typer.Option(
         False, "--check",
@@ -742,13 +753,22 @@ def adapt(
 
     import yaml
 
+    folds: dict[str, str] = {}
+    for pair in fold:
+        want, _, target = (part.strip() for part in pair.partition("="))
+        if not (want and target):
+            raise typer.BadParameter(f"{pair!r} is not VOCAB_SLOT=LOKF_SLOT", param_hint="--fold")
+        if folds.setdefault(want, target) != target:
+            raise typer.BadParameter(f"{want} is folded into two slots", param_hint="--fold")
     out = output or vocab.with_name(f"{vocab.stem}_lokf.yaml")
     if out.resolve() == vocab.resolve():
         _err(f"{out} is the input; pass --output to write the copy elsewhere.")
         raise typer.Exit(2)
     try:
         lokf_path = schema_path(lokf)
-        schema, report = adapter.adapt(vocab, lokf=lokf, roots=root, prefix=prefix, name=out.stem)
+        schema, report = adapter.adapt(
+            vocab, lokf=lokf, roots=root, prefix=prefix, name=out.stem, folds=folds, keep=keep,
+        )
     except (FileNotFoundError, ValueError, yaml.YAMLError) as exc:
         _err(str(exc))
         raise typer.Exit(1)

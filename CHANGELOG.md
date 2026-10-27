@@ -15,6 +15,11 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- `lokf adapt` folds a vocabulary slot or class attribute into LOKF's when
+  its `slot_uri` or an `exact_mappings` entry is the IRI of a slot on
+  `Concept`, or when `--fold` names it; `--keep` holds one back. A fold
+  copies the slot's constraints into `slot_usage`, and is refused
+  when its shape differs from LOKF's slot.
 - `Distribution` takes an optional `checksum` (`spdx:Checksum`, as DCAT 3
   models it: the SPDX algorithm individual and an `xsd:hexBinary` digest as
   long as that algorithm's) and `byte_size` (`dcat:byteSize`).
