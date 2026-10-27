@@ -30,7 +30,7 @@ dependencies = [
     "pyyaml>=6.0",
     "ruamel-yaml>=0.18",
     "typer>=0.15",
-    "pyoxigraph>=0.4",
+    "pyoxigraph>=0.5.4",
     # 2.0 removed `mcp.server.fastmcp`; MCPServer is its successor.
     "mcp>=2.0",
     # Runtime for the generated dataclass bindings (src/lokf/datamodel.py).

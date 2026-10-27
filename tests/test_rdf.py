@@ -221,3 +221,122 @@ def test_exclusions_project_apart_from_sources(tmp_path):
     assert (excluded, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("human:jsmith")) in g
     based_on = {str(g.value(o, URIRef(sdo + "url"))) for o in g.objects(concept, URIRef(sdo + "isBasedOn"))}
     assert based_on == {"docs/a.md"}
+
+
+def test_distribution_checksum_projects_as_dcat_3(tmp_path):
+    """A distribution's checksum is an spdx:Checksum node and its size dcat:byteSize."""
+    from rdflib import Literal
+    from rdflib.namespace import RDF, XSD
+
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\n---\n# KB\n", encoding="utf-8"
+    )
+    digest = "e6a8030d" * 8
+    (tmp_path / "release.md").write_text(
+        "---\ntype: Dataset\ntitle: Release\ndistribution:\n"
+        "  - access_url: https://ex.org/r/v1.zip\n    byte_size: 12345\n"
+        f"    checksum:\n      algorithm: sha256\n      checksum_value: {digest}\n"
+        "---\n# Release\n",
+        encoding="utf-8",
+    )
+    g = rdf.graph_of(tmp_path)
+    dcat, spdx = "http://www.w3.org/ns/dcat#", "http://spdx.org/rdf/terms#"
+    dist = g.value(URIRef("https://ex.org/kb/release"), URIRef(dcat + "distribution"))
+    assert (dist, URIRef(dcat + "byteSize"), Literal("12345", datatype=XSD.nonNegativeInteger)) in g
+    checksum = g.value(dist, URIRef(spdx + "checksum"))
+    assert (checksum, RDF.type, URIRef(spdx + "Checksum")) in g
+    assert (checksum, URIRef(spdx + "algorithm"), URIRef(spdx + "checksumAlgorithm_sha256")) in g
+    assert (checksum, URIRef(spdx + "checksumValue"), Literal(digest, datatype=XSD.hexBinary)) in g
+
+
+def test_algorithm_names_are_iris_only_under_algorithm(tmp_path):
+    """The SPDX names are scoped to `algorithm`: elsewhere `sha256` is a word."""
+    from rdflib import Literal
+
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\n---\n", encoding="utf-8")
+    (tmp_path / "w.md").write_text("---\ntype: GlossaryTerm\ntitle: sha256\n---\n", encoding="utf-8")
+    g = rdf.graph_of(tmp_path)
+    assert (URIRef("https://ex.org/kb/w"), URIRef("http://schema.org/name"), Literal("sha256")) in g
+
+def test_serialize_is_byte_stable_with_blank_nodes():
+    """Blank nodes are labelled from content, so the same input gives the same bytes."""
+    bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
+    for fmt in ("nt", "ttl", "n3", "trig", "jsonld"):
+        assert rdf.serialize(bundle, fmt) == rdf.serialize(bundle, fmt), fmt
+
+
+def test_construct_answers_are_byte_stable():
+    from lokf.store import GraphStore
+
+    bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
+    q = "CONSTRUCT WHERE { ?s ?p ?o }"
+    assert GraphStore.from_bundle(bundle).construct(q, "nt") == GraphStore.from_bundle(bundle).construct(q, "nt")
+
+
+def test_relabel_keeps_nodes_apart_that_differ_only_in_term_kind():
+    """A plain "1", a typed 1 and the IRI <1> hash apart, so each blank node
+    keeps one label whatever ids rdflib minted for it."""
+    import json as _json
+
+    from rdflib import Graph
+
+    doc = {
+        "@context": {"ex": "http://ex/", "xsd": "http://www.w3.org/2001/XMLSchema#"},
+        "@id": "http://ex/s",
+        "ex:q": [{"ex:p": "1"}, {"ex:p": {"@value": "1", "@type": "xsd:integer"}},
+                 {"ex:p": {"@id": "http://ex/1"}},
+                 # parents that differ only through such children
+                 {"ex:r": {"ex:p": "2"}}, {"ex:r": {"ex:p": {"@value": "2", "@type": "xsd:integer"}}}],
+    }
+    outs = {
+        "\n".join(sorted(rdf.relabel_bnodes(Graph().parse(data=_json.dumps(doc), format="json-ld"))
+                         .serialize(format="nt").splitlines()))
+        for _ in range(12)
+    }
+    assert len(outs) == 1
+
+
+def test_turtle_uses_the_schemas_prefixes():
+    """schema.org terms print as `schema:`, not rdflib's fallback `schema1:`."""
+    bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
+    ttl = rdf.serialize(bundle, "ttl")
+    assert "@prefix schema: <http://schema.org/> ." in ttl
+    assert "schema1:" not in ttl
+
+
+def test_nt_keeps_a_literal_with_unicode_line_breaks_whole(tmp_path):
+    """U+2028, U+0085 and form feed sit raw inside an N-Triples literal; sorting
+    the lines must not split the statement there."""
+    from rdflib import Graph
+
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\n---\n", encoding="utf-8")
+    (tmp_path / "odd.md").write_text(
+        '---\ntype: Concept\ntitle: Odd\ndescription: "one\\u2028two\\u0085three\\ffour"\n---\nbody\n',
+        encoding="utf-8",
+    )
+    assert len(Graph().parse(data=rdf.serialize(tmp_path, "nt"), format="nt")) > 0
+
+
+def test_canonical_labels_for_long_paths_and_symmetric_cycles():
+    from rdflib import BNode, Graph, Literal, URIRef
+    from rdflib.compare import isomorphic
+
+    for cycle in (False, True):
+        outputs = set()
+        for run in range(3):
+            graph = Graph()
+            nodes = [BNode() for _ in range(40 if not cycle else 8)]
+            edges = list(zip(nodes, nodes[1:]))
+            if cycle:
+                edges.append((nodes[-1], nodes[0]))
+            if run % 2:
+                edges.reverse()
+            for source, target in edges:
+                graph.add((source, URIRef("urn:next"), target))
+            if not cycle:
+                graph.add((nodes[0], URIRef("urn:value"), Literal("unchanged")))
+            canonical = rdf.relabel_bnodes(graph)
+            assert len(canonical) == len(graph)
+            assert isomorphic(graph, canonical)
+            outputs.add(rdf.serialize_graph(graph, "nt"))
+        assert len(outputs) == 1

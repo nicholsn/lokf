@@ -509,10 +509,17 @@ def query(
     ),
 ) -> None:
     """Run SPARQL over a knowledge base loaded into an in-memory store."""
-    from lokf.store import GraphStore, query_form
+    from lokf.store import GraphStore
 
     schema = _schema_or_exit(schema, source)
-    store = GraphStore.from_bundle(source, schema=schema)
+    _run_query(GraphStore.from_bundle(source, schema=schema), sparql, format)
+
+
+def _run_query(store, sparql: str, format: str) -> None:
+    """Run *sparql* on *store* and print it in *format* (shared by
+    ``query`` and ``registry query``)."""
+    from lokf.store import query_form
+
     form = query_form(sparql)
     try:
         if form in ("construct", "describe"):
@@ -939,10 +946,32 @@ def registry_init(
     typer.echo(f"wrote {registry}")
 
 
+def _beside(registry: Path, location: str) -> str:
+    """*location*, a local path, relative to the manifest's directory."""
+    import os
+
+    return Path(os.path.relpath(Path(location).resolve(), registry.resolve().parent)).as_posix()
+
+
+def _manifest(registry: Path):
+    """Load *registry*, or exit cleanly when it is missing or malformed."""
+    from lokf.registry import load_registry
+
+    if not registry.exists():
+        _err(f"{registry} not found — run `lokf registry init` first")
+        raise typer.Exit(1)
+    try:
+        return load_registry(registry)
+    except (ValueError, OSError) as exc:
+        _err(f"cannot read the registry: {exc}")
+        raise typer.Exit(1)
+
+
 @registry_app.command("add")
 def registry_add(
-    bundle_dir: Path = typer.Argument(
-        ..., exists=True, file_okay=False, help="A local LOKF bundle directory."
+    source: str = typer.Argument(
+        ...,
+        help="A local LOKF bundle directory, a bundle zip, or the URL of one.",
     ),
     registry: Path = typer.Option(
         Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to append to."
@@ -950,26 +979,77 @@ def registry_add(
     source_base: Optional[str] = typer.Option(
         None,
         "--source-base",
-        help="URL prefix for source .md files (defaults to the bundle's file:// path).",
+        help="URL prefix for source .md files. Without it a directory's files are "
+        "found through its path, and a zip's have no URL.",
+    ),
+    checksum: Optional[str] = typer.Option(
+        None,
+        "--checksum",
+        help="Expected sha256 of a zip (sha256:<hex> or bare hex); a mismatch is refused.",
+    ),
+    archive_url: Optional[str] = typer.Option(
+        None,
+        "--archive-url",
+        help="Where a local zip is published, recorded in place of its local path.",
+    ),
+    allow_foreign_ids: bool = typer.Option(
+        False,
+        "--allow-foreign-ids",
+        help="Index explicit ids that lie outside the bundle's base_iri instead of refusing.",
     ),
 ) -> None:
-    """Register a local bundle: derive its base_iri, VoID index, and id_index."""
-    from lokf.registry import entry_for_bundle, load_registry
+    """Register a bundle: derive its base_iri, VoID index, and id_index."""
+    from lokf.registry import entry_for_archive, entry_for_bundle, is_url
 
-    if not registry.exists():
-        _err(f"{registry} not found — run `lokf registry init` first")
+    reg = _manifest(registry)
+    local = Path(source)
+    if not is_url(source) and not local.exists():
+        _err(f"{source} not found")
         raise typer.Exit(1)
-    reg = load_registry(registry)
+    if (checksum or archive_url) and local.is_dir():
+        _err("--checksum and --archive-url apply to a zip, not a directory")
+        raise typer.Exit(1)
     try:
-        entry = entry_for_bundle(bundle_dir, source_base=source_base)
-        reg.add(entry)
-    except ValueError as exc:
-        _err(f"cannot register {bundle_dir}: {exc}")
+        if local.is_dir():
+            entry = entry_for_bundle(
+                local, source_base=source_base, allow_foreign_ids=allow_foreign_ids
+            )
+        else:
+            entry = entry_for_archive(
+                source,
+                source_base=source_base,
+                checksum=checksum,
+                allow_foreign_ids=allow_foreign_ids,
+                archive_url=archive_url,
+            )
+        # Local locations are written relative to the manifest, so a manifest
+        # built on a CI runner reads the same in a checkout anywhere else.
+        if entry.path:
+            entry.path = _beside(registry, entry.path)
+        archive = entry.distribution.get("archive")
+        if archive and not is_url(archive):
+            entry.distribution["archive"] = _beside(registry, archive)
+        added = reg.add(entry)
+    except (ValueError, OSError) as exc:
+        _err(f"cannot register {source}: {exc}")
         raise typer.Exit(1)
+    if not added:
+        from lokf.registry import fill_locations
+
+        held = next(e for e in reg.repos if e.base_iri == entry.base_iri)
+        if fill_locations(held, entry):
+            reg.save()
+            typer.echo(f"{entry.base_iri} is already registered at this release in "
+                       f"{registry}; recorded the locations it lacked")
+        else:
+            typer.echo(f"{entry.base_iri} is already registered at this release in {registry}")
+        return
     reg.save()
+    foreign = sum(1 for iri in entry.id_index if not iri.startswith(entry.base_iri))
     typer.echo(
         f"registered {entry.base_iri} "
         f"({entry.void.get('triples', 0)} triples) in {registry}"
+        + (f"; indexed {foreign} explicit id(s) outside base_iri" if foreign else "")
     )
 
 
@@ -980,12 +1060,7 @@ def registry_list(
     ),
 ) -> None:
     """Print the routing table: base_iri, title, triples, status."""
-    from lokf.registry import load_registry
-
-    if not registry.exists():
-        _err(f"{registry} not found — run `lokf registry init` first")
-        raise typer.Exit(1)
-    reg = load_registry(registry)
+    reg = _manifest(registry)
     if not reg.repos:
         typer.echo("(no members registered)")
         return
@@ -1006,12 +1081,7 @@ def registry_resolve(
     Exits non-zero for an IRI no member owns — a tolerated dangling cross-link,
     not owned here.
     """
-    from lokf.registry import load_registry
-
-    if not registry.exists():
-        _err(f"{registry} not found — run `lokf registry init` first")
-        raise typer.Exit(1)
-    res = load_registry(registry).resolve(iri)
+    res = _manifest(registry).resolve(iri)
     if res.external:
         typer.echo(f"{iri}\n  external: not owned by any registered bundle")
         raise typer.Exit(1)
@@ -1024,6 +1094,150 @@ def registry_resolve(
         typer.echo("  concept_id: (namespace root — not a concept)")
     typer.echo(f"  via:        {res.via}")
 
+
+
+def _registry_store(registry: Path, quads: Optional[Path], reg=None, cleared_members=()):
+    """A union store over *registry*'s members, or over a built *quads* file.
+
+    Members that cannot be loaded are named on stderr and skipped; a
+    manifest or quads file that cannot be read is a clean error.
+    """
+    from lokf.store import GraphStore
+
+    if quads is not None:
+        try:
+            return GraphStore.from_quads(quads.read_bytes())
+        except (SyntaxError, ValueError, OSError) as exc:
+            _err(f"cannot read {quads}: {exc}")
+            raise typer.Exit(1)
+    store = GraphStore.from_registry(reg if reg is not None else _manifest(registry), cleared_members=cleared_members)
+    for base_iri, why in store.load_errors.items():
+        _err(f"skipped {base_iri}: {why}")
+    return store
+
+
+_QUADS_HELP = "Load this federation.nq from `lokf registry build` instead of fetching members."
+
+
+@registry_app.command("build")
+def registry_build(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    out_dir: Path = typer.Option(
+        ..., "--out-dir", "-d", help="Directory to write federation.nq to."
+    ),
+    strict: bool = typer.Option(
+        False, "--strict", help="Exit 1 when a member fails to load or a target does not resolve."
+    ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
+) -> None:
+    """Load each member into a named graph (its base_iri) and write them as N-Quads.
+
+    Also reports every typed-relation target, outside the asserting member,
+    that no member owns or that its owner does not hold.
+    """
+    import pyoxigraph as ox
+
+    from lokf.registry import unresolved_targets
+
+    reg = _manifest(registry)
+    store = _registry_store(registry, None, reg, clear_member)
+    loaded = len(reg.repos) - len(store.load_errors)
+    if reg.repos and not loaded:
+        _err(f"no member of {registry} could be loaded")
+        raise typer.Exit(1)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    text = store.dump(ox.RdfFormat.N_QUADS).decode("utf-8")
+    # One statement per line: split on newlines only, as N-Quads escapes
+    # them, and not on the other line breaks a literal may hold (U+2028).
+    lines = sorted(line for line in text.split("\n") if line.strip())
+    (out_dir / "federation.nq").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    typer.echo(f"wrote {out_dir}/federation.nq ({len(lines)} quads, {loaded} of {len(reg.repos)} members)")
+    unresolved = unresolved_targets(reg, store)
+    for u in unresolved:
+        typer.echo(f"{u.kind}: {u.target} (asserted in {u.graph} via {u.predicate})")
+    if strict and (unresolved or store.load_errors):
+        raise typer.Exit(1)
+
+
+@registry_app.command("query")
+def registry_query(
+    sparql: str = typer.Argument(..., help="A SPARQL query; GRAPH ?g binds a member's base_iri."),
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    quads: Optional[Path] = typer.Option(
+        None, "--quads", exists=True, dir_okay=False, help=_QUADS_HELP
+    ),
+    format: str = typer.Option(
+        "table", "--format", "-f", help="table | json | csv | tsv | ttl (CONSTRUCT)."
+    ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
+) -> None:
+    """Run SPARQL over every member at once, the default graph being their union."""
+    _run_query(_registry_store(registry, quads, cleared_members=clear_member), sparql, format)
+
+
+@registry_app.command("serve")
+def registry_serve(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    quads: Optional[Path] = typer.Option(
+        None, "--quads", exists=True, dir_okay=False, help=_QUADS_HELP
+    ),
+    host: str = typer.Option("127.0.0.1", help="Bind host."),
+    port: int = typer.Option(8000, help="Bind port."),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
+) -> None:
+    """Publish the federation locally: SPARQL endpoint + live graph viz."""
+    from lokf.server import serve_store
+
+    store = _registry_store(registry, quads, cleared_members=clear_member)
+    serve_store(store, str(quads or registry), host=host, port=port)
+
+
+@registry_app.command("mcp")
+def registry_mcp(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    quads: Optional[Path] = typer.Option(
+        None, "--quads", exists=True, dir_okay=False, help=_QUADS_HELP
+    ),
+    index: Optional[Path] = typer.Option(
+        None, "--index", exists=True, dir_okay=False,
+        help="Markdown to serve as the index instead of the one built from the manifest.",
+    ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
+) -> None:
+    """Run the lokf-registry MCP server (stdio) over the federation (SPEC §11.4)."""
+    import signal
+
+    from lokf.registry_mcp import RegistryTools, build_server
+
+    reg = _manifest(registry)
+    store = _registry_store(registry, quads, cleared_members=clear_member)
+    text = index.read_text(encoding="utf-8") if index else None
+    tools = RegistryTools(reg, store, index=text, cleared_members=clear_member)
+    # A client stops a stdio server with SIGTERM as often as by closing its
+    # input; exiting through SystemExit lets the finally below remove the
+    # downloaded archives.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    _err(f"lokf-registry: {len(store)} quads from {quads or registry}; five tools; stdio")
+    try:
+        build_server(tools).run(transport="stdio")
+    finally:
+        tools.close()
 
 def main(argv: list[str] | None = None) -> int:
     """Programmatic entry point (tests use ``typer.testing.CliRunner``).
