@@ -1377,6 +1377,10 @@ slots:
       - >-
         `implements: linkml:excerpt` marks the slot as text a reference
         validator can look for in `resource`; it does not make it required.
+      - >-
+        `lokf validate --check-excerpts` finds it in a local `resource`,
+        whitespace collapsed and case folded, `...` joining at most two
+        spans in source order inside one heading section (SPEC §9).
     see_also:
       - https://github.com/linkml/linkml-reference-validator
       - https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
