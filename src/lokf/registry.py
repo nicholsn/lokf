@@ -326,6 +326,11 @@ def entry_for_bundle(
     if not base_iri:
         raise ValueError(f"{bundle_dir}: bundle index.md has no base_iri; cannot federate")
 
+    duplicates = bundle.duplicate_iris()
+    if duplicates:
+        iri, concepts = duplicates[0]
+        raise ValueError(f"duplicate concept IRI {iri}: {', '.join(concepts)}; cannot federate")
+
     id_index: dict[str, str] = {}
     for c in bundle.concepts:
         actual = bundle.iri(c)
