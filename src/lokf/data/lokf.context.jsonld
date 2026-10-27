@@ -288,6 +288,10 @@
       "@type": "@id",
       "@id": "dcterms:references"
     },
+    "refuted": {
+      "@type": "@id",
+      "@id": "refuted"
+    },
     "relatedTo": {
       "@type": "@id",
       "@id": "dcterms:relation"
@@ -474,6 +478,9 @@
     },
     "Reference": {
       "@id": "Reference"
+    },
+    "Refutation": {
+      "@id": "Refutation"
     },
     "Relation": {
       "@id": "rdf:Statement"
