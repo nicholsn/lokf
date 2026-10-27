@@ -29,6 +29,7 @@ import subprocess
 import sys
 
 from lokf.model import load_bundle
+from lokf.rdf import relabel_bnodes as _relabel_bnodes
 from lokf.schema import authoring_context
 
 
@@ -90,47 +91,6 @@ def _sort_set_valued_lists(g) -> None:
                     coll.append(m)
 
 
-def _relabel_bnodes(g):
-    """Return a copy of *g* whose blank-node labels are derived from content.
-
-    rdflib mints blank-node ids from uuid4, so identical input yields different
-    labels every run. Each node is hashed from its own incoming and outgoing
-    edges, iterated to a fixpoint so nested blank nodes converge; structurally
-    indistinguishable nodes then get a stable index. This only renames blank
-    nodes - no triple is added, dropped or rewritten.
-
-    (rdflib's own ``to_canonical_graph`` is not usable here: on these
-    almost-entirely-blank-node SHACL graphs it returns different labels for the
-    same content, the same weakness that makes ``to_isomorphic`` report a false
-    negative on lokf.shacl.ttl.)
-    """
-    import hashlib
-    from rdflib import BNode, Graph
-
-    labels = {n: "0" for n in g.all_nodes() if isinstance(n, BNode)}
-    for _ in range(12):
-        nxt = {}
-        for b in labels:
-            out = sorted((str(p), labels.get(o, str(o))) for _, p, o in g.triples((b, None, None)))
-            inc = sorted((labels.get(s, str(s)), str(p)) for s, p, _ in g.triples((None, None, b)))
-            nxt[b] = hashlib.sha256(repr((out, inc)).encode()).hexdigest()[:24]
-        if nxt == labels:
-            break
-        labels = nxt
-
-    buckets: dict = {}
-    for b, h in sorted(labels.items(), key=lambda kv: (kv[1], str(kv[0]))):
-        buckets.setdefault(h, []).append(b)
-    mapping = {b: BNode(f"x{h}{i}") for h, bs in buckets.items() for i, b in enumerate(bs)}
-
-    out_g = Graph()
-    for prefix, ns in g.namespaces():
-        out_g.bind(prefix, ns)
-    for s, p, o in g:
-        out_g.add((mapping.get(s, s), p, mapping.get(o, o)))
-    return out_g
-
-
 def _canonicalize_rdf(path: pathlib.Path, fmt: str, header: str = "") -> None:
     """Rewrite *path* so the same graph always serializes to the same bytes.
 
@@ -146,7 +106,8 @@ def _canonicalize_rdf(path: pathlib.Path, fmt: str, header: str = "") -> None:
     text = _relabel_bnodes(g).serialize(format=fmt)
     if fmt == "nt":
         # N-Triples has no grouping, so line order is the only variable left.
-        text = "\n".join(sorted(t for t in text.splitlines() if t.strip())) + "\n"
+        # Newlines only: a literal's U+2028 is written raw, not as a line break.
+        text = "\n".join(sorted(t for t in text.split("\n") if t.strip())) + "\n"
     path.write_text(header + text, encoding="utf-8")
     after = len(Graph().parse(str(path), format=fmt))
     if after != before:

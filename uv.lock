@@ -1096,7 +1096,7 @@ requires-dist = [
     { name = "mcp", specifier = ">=2.0" },
     { name = "pandas", marker = "extra == 'tables'", specifier = ">=2.0" },
     { name = "pyarrow", marker = "extra == 'tables'", specifier = ">=15" },
-    { name = "pyoxigraph", specifier = ">=0.4" },
+    { name = "pyoxigraph", specifier = ">=0.5.4" },
     { name = "pyshacl", marker = "extra == 'shacl'", specifier = ">=0.30,<1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rdflib", specifier = ">=7.0" },

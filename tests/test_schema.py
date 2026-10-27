@@ -599,6 +599,18 @@ def test_schema_context_of_a_domain_falls_back_to_lokf():
         assert not _vocab_relative(iri), key
 
 
+def test_schema_context_keeps_a_domain_slot_named_like_a_parameter_type():
+    """A domain slot named `uri` or `date` keeps its own IRI, and a
+    ParameterType value the domain does not declare still expands to its
+    Parameter-kind class."""
+    pytest.importorskip("linkml")
+    ctx = schema_context(FIXTURES / "domain-schema" / "names-a-slot-like-a-parameter-type.yaml")
+    assert ctx["uri"] == {"@id": "https://ex.org/schema/domain/uri"}
+    assert ctx["date"] == {"@id": "https://ex.org/schema/domain/date"}
+    assert ctx["string"] == {"@id": "https://w3id.org/lokf/StringParameter"}
+    assert ctx["time"] == {"@id": "https://w3id.org/lokf/TimeParameter"}
+
+
 def test_replacement_slot_and_enum(vocab):
     assert vocab.relation_slots["isReplacedBy"].uri == "http://purl.org/dc/terms/isReplacedBy"
     assert vocab.relation_types["isReplacedBy"].is_slot

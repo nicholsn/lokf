@@ -176,8 +176,11 @@ def authoring_context(context: dict) -> dict:
     # the alias above), so each authoring value must expand to its designed
     # lokf Parameter-kind class — gen-jsonld-context does not emit enum-meaning
     # terms. Same mechanism by which class names like "Metric" expand as @type.
+    # A domain schema may declare a slot by one of these names (a `uri`);
+    # its own term wins, since a Parameter kind in its place would put a class
+    # IRI in predicate position. LOKF declares none, so its context is unchanged.
     for value, cls in _PARAMETER_KINDS.items():
-        ctx[value] = {"@id": f"https://w3id.org/lokf/{cls}"}
+        ctx.setdefault(value, {"@id": f"https://w3id.org/lokf/{cls}"})
     # A checksum's `algorithm` names the SPDX individual DCAT 3 expects, not a
     # string. Its terms are scoped to that key, so the bare names stay plain
     # words everywhere else in a concept.

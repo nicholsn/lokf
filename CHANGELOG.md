@@ -19,13 +19,46 @@ with the 0.x caveat that a minor release may tighten validation.
   models it: the SPDX algorithm individual and an `xsd:hexBinary` digest as
   long as that algorithm's) and `byte_size` (`dcat:byteSize`).
 
+- `lokf registry build`, `query` and `serve`: one named graph per member, keyed
+  by its `base_iri`, queried as a union (SPEC §11.4).
+
 ### Fixed
+
+- `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label
+  blank nodes from content and fix their order, so one bundle gives the same
+  bytes in N-Triples, Turtle, N3, TriG and JSON-LD.
+
+- Turtle output writes schema.org terms as `schema:`, not rdflib's `schema1:`.
+
+- Sorting N-Triples splits on newlines only, so a literal holding U+2028 no
+  longer breaks `graph.nt`.
+- A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no
+  longer slips a `SERVICE` past the refusal in `lokf serve` and `query`.
+
+- `query_form` reads a query whose `PREFIX` or `BASE` shares its line, so a
+  one-line ASK or CONSTRUCT is no longer run as a SELECT.
+
+- `Registry.add` accepts an entry for a registered `base_iri` when it names the
+  same release, so two registries that share a bundle can be merged.
+
+- `lokf registry add` takes a bundle zip or its URL and records the archive and
+  its `checksum`; local locations are written relative to the manifest.
+
+- Registration now refuses explicit ids outside `base_iri` unless
+  `--allow-foreign-ids` is given, and ids inside another member's namespace.
+
+- An explicit `id` under a member's `base_iri` that differs from its file path
+  now resolves to the concept that declares it.
 
 - SHACL artifacts now match the authoring RDF projection, preserve separate
   Source/Citation shapes, and avoid false failures from inherited properties
   and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
 
 - Nested validation errors name the field path and unexpected provenance keys.
+
+- A domain schema's slot named like a ParameterType value, such as `uri`
+  or `date`, keeps its own IRI under `--schema` instead of projecting as a
+  Parameter-kind class. LOKF's published context is unchanged.
 
 ### Changed
 
@@ -47,6 +80,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - `lokf validate` warns when a concept lists one material as both a source and
   an exclusion.
+
+- `--check-resources` accepts a pattern such as `docs/*.svg` in a source or an
+  exclusion when it matches a file inside the root.
 
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,

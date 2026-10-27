@@ -26,11 +26,28 @@ _RESULT_FORMATS = {
     "tsv": ox.QueryResultsFormat.TSV,
 }
 
-# The query form, skipping any leading comments and PREFIX/BASE declarations.
+# The query form, skipping any leading comments and PREFIX/BASE declarations,
+# whether each sits on a line of its own or they share one with the query.
 _QUERY_FORM = re.compile(
-    r"^(?:\s*(?:#[^\n]*|(?:prefix|base)\b[^\n]*)\n)*\s*(select|ask|construct|describe)\b",
+    r"^(?:\s+|#[^\n]*|prefix\s+[^\s:]*:\s*<[^>]*>|base\s*<[^>]*>)*"
+    r"(select|ask|construct|describe)\b",
     re.IGNORECASE,
 )
+
+# Strings, IRIs and comments: where the word "service" is not the keyword.
+# Matched in one pass, so a '#' inside an IRI or a string is not a comment.
+_SPARQL_NOT_CODE = re.compile(
+    r'"""(?:\\[\s\S]|(?!""")[^\\])*"""'
+    r"|'''(?:\\[\s\S]|(?!''')[^\\])*'''"
+    r'|"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\''
+    r'|<[^<>"{}|^`\\\x00-\x20]*>|#[^\n]*'
+)
+# The keyword, as opposed to a variable (?service), a prefixed name
+# (ex:service, service:x) or part of a longer name.
+# A dot can terminate the preceding triple without whitespace. Treat it as a
+# boundary here; on a parser failure a false positive in a dotted local name is
+# safer than allowing an unparsed federation request.
+_SERVICE_KEYWORD = re.compile(r"(?<![\w?$:\-])service(?![\w:.\-])", re.IGNORECASE)
 
 
 def query_form(sparql: str) -> str:
@@ -44,6 +61,22 @@ def query_form(sparql: str) -> str:
     return m.group(1).lower() if m else "select"
 
 
+_FROM_KEYWORD = re.compile(r"(?<![\w?$:.\-])from(?![\w:.\-])", re.IGNORECASE)
+
+
+def _has_dataset_clause(sparql: str) -> bool:
+    """True if the query names its own dataset with FROM or FROM NAMED, which
+    a registry store's union default graph must not override."""
+    if "from" not in sparql.lower():
+        return False
+    from rdflib.plugins.sparql import prepareQuery
+
+    try:
+        return prepareQuery(sparql).algebra.get("datasetClause") is not None
+    except Exception:  # noqa: BLE001 — rdflib's limits are not the engine's
+        return bool(_FROM_KEYWORD.search(_SPARQL_NOT_CODE.sub(" ", sparql)))
+
+
 def _prefix_header(prefixes: dict[str, str]) -> str:
     return "".join(f"PREFIX {p}: <{ns}>\n" for p, ns in prefixes.items())
 
@@ -52,8 +85,12 @@ def _uses_service(sparql: str) -> bool:
     """True if the query contains a SPARQL ``SERVICE`` (federation) clause.
 
     Parsed via rdflib's algebra so a ``SERVICE`` inside a string literal does
-    not trip it. If rdflib cannot parse the query, returns False and lets the
-    engine reject it — this only gates the federation vector, not validity.
+    not trip it. Oxigraph accepts syntax rdflib does not (RDF 1.2 triple
+    terms, for one), so a query rdflib cannot parse is not trusted to be
+    free of ``SERVICE``: a scan of its text outside strings, IRIs and comments
+    decides, and finds the keyword wherever it could be one. Failing closed
+    is the point; a query with no such word still reaches the engine, which
+    judges its validity.
     """
     # SERVICE is the only spelling of the federation keyword, so a query with
     # no "service" substring cannot contain one — skip the ~1ms parse. (A
@@ -67,8 +104,8 @@ def _uses_service(sparql: str) -> bool:
 
     try:
         algebra = prepareQuery(sparql).algebra
-    except Exception:  # noqa: BLE001 — parse failures fall through to the engine
-        return False
+    except Exception:  # noqa: BLE001 — rdflib's limits are not the engine's
+        return bool(_SERVICE_KEYWORD.search(_SPARQL_NOT_CODE.sub(" ", sparql)))
 
     def walk(node) -> bool:
         if isinstance(node, CompValue):  # note: CompValue is itself a dict
@@ -88,11 +125,25 @@ class GraphStore:
     ``prefixes`` (the schema's namespace table) are prepended to every query
     and update, so ``lokf:``/``schema:``/``prov:`` and friends work without a
     per-query ``PREFIX`` block.
+
+    A store built from a registry holds one named graph per member and sets
+    ``union``: a query with no FROM or FROM NAMED of its own then reads the
+    default graph as the union of all of them, and ``GRAPH ?g`` still names
+    the member that asserted a triple. The union counts a triple once for
+    each member that asserts it, so a count across members wants DISTINCT.
     """
 
-    def __init__(self, store: ox.Store, prefixes: dict[str, str] | None = None):
+    def __init__(
+        self,
+        store: ox.Store,
+        prefixes: dict[str, str] | None = None,
+        union: bool = False,
+    ):
         self.store = store
         self.prefixes = prefixes if prefixes is not None else vocabulary().prefixes
+        self.union = union
+        #: base_iri -> why that member could not be loaded (registry stores only).
+        self.load_errors: dict[str, str] = {}
 
     # -- construction -------------------------------------------------------
     @classmethod
@@ -120,6 +171,65 @@ class GraphStore:
             kw.setdefault("prefixes", vocabulary(schema).prefixes)
         return cls.from_graph(rdf.graph_of(path, schema=schema), **kw)
 
+    @classmethod
+    def from_registry(cls, registry, *, cleared_members=(), **kw) -> "GraphStore":
+        """Build a store holding each registry member in a named graph whose
+        IRI is its ``base_iri`` (SPEC §11.4).
+
+        *registry* is a :class:`lokf.registry.Registry` or a manifest path. A
+        member whose sensitivity is neither unset nor public requires its
+        base_iri in cleared_members before any content is read. A
+        member that cannot be loaded is skipped and its reason kept in
+        :attr:`load_errors`, so one unreachable member does not stop the rest.
+        Each member's blank nodes are canonicalised (RDFC-1.0) and then
+        prefixed with a hash of its ``base_iri``, so two members' nodes never
+        merge and the same inputs always give the same labels, however the
+        producer labelled them. Relative locations are read against the
+        manifest (:meth:`lokf.registry.Registry.located`).
+        """
+        import hashlib
+
+        from lokf.registry import load_registry, member_ntriples
+
+        if not hasattr(registry, "repos"):
+            registry = load_registry(registry)
+        registry = registry.located()
+        cleared_members = set(cleared_members)
+        store = ox.Store()
+        errors: dict[str, str] = {}
+        for entry in registry.repos:
+            if (entry.sensitivity or "").strip().lower() not in ("", "public") and entry.base_iri not in cleared_members:
+                errors[entry.base_iri] = "sensitive member requires explicit clearance"
+                continue
+            graph = ox.NamedNode(entry.base_iri)
+            tag = "m" + hashlib.sha256(entry.base_iri.encode()).hexdigest()[:12] + "_"
+
+            def local(term, tag=tag):
+                return ox.BlankNode(tag + term.value) if isinstance(term, ox.BlankNode) else term
+
+            # A member's own content can fail in many ways (bad frontmatter, a
+            # schema LinkML rejects, a malformed graph.nt). Each failure is that
+            # member's alone, and it is parsed whole before any of it is added,
+            # so a member either loads completely or not at all.
+            try:
+                member = ox.Dataset(ox.parse(member_ntriples(entry), format=ox.RdfFormat.N_TRIPLES))
+                member.canonicalize(ox.CanonicalizationAlgorithm.RDFC_1_0)
+                quads = [ox.Quad(local(q.subject), q.predicate, local(q.object), graph) for q in member]
+            except Exception as exc:  # noqa: BLE001
+                errors[entry.base_iri] = f"{type(exc).__name__}: {exc}".splitlines()[0]
+                continue
+            store.extend(quads)
+        out = cls(store, union=True, **kw)
+        out.load_errors = errors
+        return out
+
+    @classmethod
+    def from_quads(cls, data: str | bytes, **kw) -> "GraphStore":
+        """Build a union store from N-Quads, such as ``lokf registry build`` writes."""
+        store = ox.Store()
+        store.load(data, format=ox.RdfFormat.N_QUADS)
+        return cls(store, union=True, **kw)
+
     def __len__(self) -> int:
         return len(self.store)
 
@@ -141,6 +251,8 @@ class GraphStore:
                 "SPARQL SERVICE (federated query) is disabled: it would let a "
                 "query drive outbound network requests"
             )
+        if self.union and not _has_dataset_clause(full):
+            kw.setdefault("use_default_graph_as_union", True)
         return self.store.query(full, **kw)
 
     def select(self, sparql: str, **kw) -> list[dict]:
@@ -167,17 +279,15 @@ class GraphStore:
         return bool(self.query(sparql, **kw))
 
     def construct(self, sparql: str, fmt: str = "ttl", **kw) -> str:
-        """Run a CONSTRUCT/DESCRIBE and serialize the resulting graph."""
-        from lokf.rdf import _rdflib_format
+        """Run a CONSTRUCT/DESCRIBE and serialize the resulting graph, the
+        same bytes for the same answer (:func:`lokf.rdf.serialize_graph`)."""
+        from lokf.rdf import serialize_graph
         from rdflib import Graph
 
         triples = self.query(sparql, **kw)
         g = Graph()
         g.parse(data=triples.serialize(format=ox.RdfFormat.N_TRIPLES), format="nt")
-        for prefix, ns in self.prefixes.items():
-            g.bind(prefix, ns)
-        data = g.serialize(format=_rdflib_format(fmt))
-        return data if isinstance(data, str) else data.decode("utf-8")
+        return serialize_graph(g, fmt, self.prefixes)
 
     def serialize_results(self, sparql: str, fmt: str = "json", **kw) -> bytes:
         """Run a SELECT/ASK and serialize results in the SPARQL results format."""
@@ -191,12 +301,17 @@ class GraphStore:
     def rdflib_graph(self, sparql: str | None = None):
         """The store (or a CONSTRUCT/DESCRIBE result) as an :class:`rdflib.Graph`.
 
-        With no query, the whole store is returned. This backs the live graph
-        visualization, which projects the graph to cytoscape elements.
+        With no query, the whole store is returned (the union of its named
+        graphs for a registry store). This backs the live graph visualization,
+        which projects the graph to cytoscape elements.
         """
         from rdflib import Graph
 
-        if sparql is None:
+        if sparql is None and self.union:
+            nt = self.query("CONSTRUCT WHERE { ?s ?p ?o }").serialize(
+                format=ox.RdfFormat.N_TRIPLES
+            )
+        elif sparql is None:
             nt = self.store.dump(
                 format=ox.RdfFormat.N_TRIPLES, from_graph=ox.DefaultGraph()
             )
@@ -209,5 +324,11 @@ class GraphStore:
         return g
 
     def dump(self, fmt=ox.RdfFormat.TURTLE) -> bytes:
-        """Serialize the whole store (default graph) as RDF text."""
-        return self.store.dump(format=fmt, from_graph=ox.DefaultGraph())
+        """Serialize the whole store as RDF text: the default graph, or for a
+        registry store every named graph (a dataset format such as N-Quads)
+        or their union (a triple format)."""
+        if not self.union:
+            return self.store.dump(format=fmt, from_graph=ox.DefaultGraph())
+        if fmt.supports_datasets:
+            return self.store.dump(format=fmt)
+        return self.query("CONSTRUCT WHERE { ?s ?p ?o }").serialize(format=fmt)
