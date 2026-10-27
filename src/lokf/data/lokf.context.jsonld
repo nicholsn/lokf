@@ -22,6 +22,7 @@
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "schema": "http://schema.org/",
     "skos": "http://www.w3.org/2004/02/skos/core#",
+    "spdx": "http://spdx.org/rdf/terms#",
     "vivo": "http://vivoweb.org/ontology/core#",
     "@vocab": "https://w3id.org/lokf/",
     "abbreviation": {
@@ -37,6 +38,27 @@
     },
     "additionalType": {
       "@id": "schema:additionalType"
+    },
+    "algorithm": {
+      "@context": {
+        "text": "skos:notation",
+        "description": "skos:prefLabel",
+        "meaning": "@id",
+        "sha1": "http://spdx.org/rdf/terms#checksumAlgorithm_sha1",
+        "sha224": "http://spdx.org/rdf/terms#checksumAlgorithm_sha224",
+        "sha256": "http://spdx.org/rdf/terms#checksumAlgorithm_sha256",
+        "sha384": "http://spdx.org/rdf/terms#checksumAlgorithm_sha384",
+        "sha512": "http://spdx.org/rdf/terms#checksumAlgorithm_sha512",
+        "sha3_256": "http://spdx.org/rdf/terms#checksumAlgorithm_sha3_256",
+        "sha3_384": "http://spdx.org/rdf/terms#checksumAlgorithm_sha3_384",
+        "sha3_512": "http://spdx.org/rdf/terms#checksumAlgorithm_sha3_512",
+        "blake2b256": "http://spdx.org/rdf/terms#checksumAlgorithm_blake2b256",
+        "blake2b384": "http://spdx.org/rdf/terms#checksumAlgorithm_blake2b384",
+        "blake2b512": "http://spdx.org/rdf/terms#checksumAlgorithm_blake2b512",
+        "md5": "http://spdx.org/rdf/terms#checksumAlgorithm_md5"
+      },
+      "@id": "spdx:algorithm",
+      "@type": "@vocab"
     },
     "at": {
       "@type": "xsd:dateTime",
@@ -65,6 +87,18 @@
     },
     "by": {
       "@id": "prov:wasAssociatedWith"
+    },
+    "byte_size": {
+      "@type": "xsd:nonNegativeInteger",
+      "@id": "dcat:byteSize"
+    },
+    "checksum": {
+      "@type": "@id",
+      "@id": "spdx:checksum"
+    },
+    "checksum_value": {
+      "@type": "xsd:hexBinary",
+      "@id": "spdx:checksumValue"
     },
     "citations": {
       "@type": "@id",
@@ -371,6 +405,9 @@
     },
     "Audience": {
       "@id": "schema:PeopleAudience"
+    },
+    "Checksum": {
+      "@id": "spdx:Checksum"
     },
     "Citation": {
       "@id": "schema:CreativeWork"
