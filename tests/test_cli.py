@@ -308,6 +308,28 @@ def test_validate_accepts_revised_after_generated_and_rejects_it_before(tmp_path
     assert "by" in result.output
 
 
+def test_validate_accepts_refuted_as_a_list_or_a_bare_mapping_and_needs_its_reason(tmp_path):
+    """`refuted` reads as `verified` does: a list, or one bare mapping the
+    loader lifts into a list. `by` and `reason` are required on each."""
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
+    )
+    term = tmp_path / "term.md"
+    term.write_text(
+        "---\ntype: GlossaryTerm\ntitle: T\n"
+        "verified: { by: human:bob, at: 2026-09-01T09:00:00Z }\n"
+        "refuted: { by: human:ada, at: 2026-10-01, reason: the figure is from the old report }\n"
+        "---\n\n# T\n",
+        encoding="utf-8",
+    )
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    term.write_text(term.read_text(encoding="utf-8").replace(", reason: the figure is from the old report", ""), encoding="utf-8")
+    result = runner.invoke(app, ["validate", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "reason" in result.output
+
+
 def test_validate_accepts_who_a_concept_is_written_for(tmp_path):
     """`audience`, `typicalAgeRange` and `educationalLevel` validate, and an
     age range in any form but schema.org's fails, naming the field."""
@@ -1026,6 +1048,7 @@ def test_validate_names_nested_unknown_fields(tmp_path):
         ("generated", {"by": "process:x", "mispelled": "x"}, "/generated"),
         ("revised", {"by": "human:x", "mispelled": "x"}, "/revised"),
         ("verified", [{"by": "human:x", "mispelled": "x"}], "/verified/0"),
+        ("refuted", [{"by": "human:x", "reason": "r", "mispelled": "x"}], "/refuted/0"),
         ("sources", [{"resource": "https://example.org", "mispelled": "x"}], "/sources/0"),
     ]:
         (tmp_path / "index.md").write_text("---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n")

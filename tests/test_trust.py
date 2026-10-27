@@ -95,7 +95,38 @@ def test_trust_summary_shape():
         "verified_count": 1,
         "human_reviewed_at": HUMAN["at"],
         "edited_since_human_review": False,
+        "refuted": False,
+        "refuted_at": None,
     }
+
+
+# -- refuted: a no beside the yes ---------------------------------------------
+NO = {"by": "human:ada", "at": "2026-07-01T00:00:00Z", "reason": "the figure is from the old report"}
+
+
+def test_refuted_normalizes_as_verified_does():
+    assert trust.refutations({"refuted": NO}) == [NO]
+    assert trust.refutations({"refuted": [NO, "junk"]}) == [NO]
+    assert trust.refutations({}) == [] and trust.refutations({"refuted": "no"}) == []
+
+
+def test_a_refutation_is_active_until_a_later_edit():
+    data = {"generated": AGENT, "verified": [HUMAN], "refuted": [NO]}
+    assert trust.active_refutations(data) == [NO]
+    assert trust.refuted_at(data) == NO["at"]
+    s = trust.trust_summary(data)
+    assert s["refuted"] is True and s["refuted_at"] == NO["at"]
+    # The tier is OKF's, from verified alone; the no sits beside it.
+    assert s["trust_tier"] == "human-reviewed"
+    # An edit after the refutation leaves it as history, through either event.
+    assert not trust.active_refutations({**data, "revised": {"by": "process:x", "at": "2026-07-02"}})
+    assert not trust.active_refutations({**data, "generated": {"by": "process:x", "at": "2026-07-02"}})
+    # An edit at the same instant does not resolve it; neither does an undated one.
+    assert trust.active_refutations({**data, "revised": {"by": "process:x", "at": NO["at"]}}) == [NO]
+    assert trust.active_refutations({**data, "generated": {"by": "process:x"}}) == [NO]
+    undated = {"by": "human:ada", "reason": "wrong"}
+    assert trust.active_refutations({"generated": AGENT, "refuted": undated}) == [undated]
+    assert trust.refuted_at({"generated": AGENT, "refuted": undated}) is None
 
 
 # -- revised: the last edit apart from an immutable generated ---------------

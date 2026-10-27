@@ -134,6 +134,11 @@ OKF v0.2 writes.
   before; trust summaries report it as `last_changed_at`, beside
   `revised_at`. `lokf validate` rejects a `revised.at` earlier than
   `generated.at`.
+- `refuted` on a concept (`lokf:refuted`): the negative counterpart of
+  `verified`, each `{by, at, reason}` a `lokf:Refutation`, as
+  [open-knowledge-format#13] proposes it. A refutation is active while it is
+  not older than the last meaningful change, and never changes the trust
+  tier; trust summaries report `refuted` and `refuted_at`.
 
 ### Fixed
 
@@ -281,6 +286,7 @@ via `lokf validate --schema`.
 
 [knowledge-catalog#437]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/437
 [knowledge-catalog#438]: https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438
+[open-knowledge-format#13]: https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/13
 [open-knowledge-format#28]: https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/28
 [#61]: https://github.com/nicholsn/lokf/issues/61
 [#62]: https://github.com/nicholsn/lokf/pull/62

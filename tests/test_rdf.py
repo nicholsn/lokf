@@ -113,6 +113,29 @@ def test_revised_projects_as_an_activity_beside_generated(tmp_path):
     assert (production, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("process:librarian")) in g
 
 
+def test_refuted_projects_as_activities_with_their_reason(tmp_path):
+    """`refuted[]` lands under lokf:refuted, one node per event, each with
+    its actor, time and `lokf:reason`, and never under lokf:verified."""
+    from rdflib import Literal
+
+    p = tmp_path / "thing.md"
+    p.write_text(
+        "---\ntype: Metric\nid: https://x.example/thing\n"
+        "verified: { by: human:bob, at: 2026-09-01T09:00:00Z }\n"
+        "refuted:\n  - { by: human:ada, at: 2026-10-01T09:00:00Z, reason: counts the wrong table }\n"
+        "---\n# T\n",
+        encoding="utf-8",
+    )
+    g = rdf.graph_of(p)
+    thing = URIRef("https://x.example/thing")
+    (no,) = g.objects(thing, URIRef("https://w3id.org/lokf/refuted"))
+    (yes,) = g.objects(thing, URIRef("https://w3id.org/lokf/verified"))
+    assert no != yes
+    assert (no, URIRef("http://www.w3.org/ns/prov#wasAssociatedWith"), Literal("human:ada")) in g
+    assert (no, URIRef("https://w3id.org/lokf/reason"), Literal("counts the wrong table")) in g
+    assert (yes, URIRef("https://w3id.org/lokf/reason"), None) not in g
+
+
 def test_bare_date_under_a_datetime_slot_projects_as_midnight_utc(tmp_path):
     """`stale_after: 2026-12-31` is read as that day at 00:00:00Z and typed
     xsd:dateTime, the same as OKF's own `2026-12-31T00:00:00Z` spelling."""

@@ -153,6 +153,7 @@ classes:
       - generated
       - revised
       - verified
+      - refuted
       - status
       - stale_after
       - additionalType
@@ -711,6 +712,34 @@ classes:
           - >-
             Required by LOKF, though OKF does not mark it so: trust tiers are
             derived from it.
+
+  Refutation:
+    description: >-
+      One refutation event: an actor found the content wrong against its
+      sources or resource, at a time, for a reason. The negative counterpart
+      of a Verification, so a person's no is recorded where their yes is.
+      It is active while it is not older than the last meaningful change
+      (`generated.at` or `revised.at`); an edit after it leaves it on record
+      as history. It never changes the trust tier, which OKF derives from
+      `verified` alone. PROV has no class for it, so the class IRI is
+      lokf-minted and the generated ontology declares it a subclass of
+      prov:Activity.
+    class_uri: lokf:Refutation
+    close_mappings:
+      - prov:Activity
+      - schema:DisagreeAction
+    slots:
+      - by
+      - at
+      - reason
+      - revision
+    slot_usage:
+      by:
+        required: true
+      reason:
+        required: true
+        description: >-
+          REQUIRED. What was found wrong, in a sentence a reviewer can check.
 
   Parameter:
     description: >-
@@ -1511,7 +1540,9 @@ slots:
       - lokf_semantic
 
   reason:
-    description: Why the material was left out, in a sentence a reviewer can check.
+    description: >-
+      The grounds for a decision, in a sentence a reviewer can check: why a
+      material was left out, or what a refutation found wrong.
     range: string
     slot_uri: lokf:reason
     in_subset:
@@ -1670,13 +1701,42 @@ slots:
     in_subset:
       - okf_v02
 
+  refuted:
+    description: >-
+      Refutation events: an actor found the content wrong against its
+      sources or resource, with the reason. The negative counterpart of
+      `verified`, accumulated the same way. A refutation is active while it
+      is not older than the last meaningful change (`generated.at` or
+      `revised.at`); it never changes the trust tier, which OKF derives from
+      `verified` alone, and a consumer surfaces it beside the tier.
+    range: Refutation
+    multivalued: true
+    inlined_as_list: true
+    slot_uri: lokf:refuted
+    close_mappings:
+      - prov:wasInfluencedBy
+    notes:
+      - >-
+        Proposed for OKF §5.2 as GoogleCloudPlatform/open-knowledge-format#13,
+        under this name. Kept in lokf_semantic until OKF adopts it, then
+        moved to okf_v02.
+    comments:
+      - >-
+        A bare `{ by, at, reason }` mapping is read as a one-element list, as
+        `verified` is; the LOKF loader normalizes it before validation.
+      - Minted in lokf, as `verified` is.
+    see_also:
+      - https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/13
+    in_subset:
+      - lokf_semantic
+
   by:
     description: >-
       The actor that performed the event, as a plain OKF §7 actor string
       (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal,
       never an IRI. Trust tiers derive from the `human:` prefix via string
-      inspection (SPARQL STRSTARTS). Required on a generation, revision or
-      verification event, optional on an exclusion.
+      inspection (SPARQL STRSTARTS). Required on a generation, revision,
+      verification or refutation event, optional on an exclusion.
     range: string
     pattern: '^(human|process):\S+$|^[^\s/]+/[^\s/]+$'
     slot_uri: prov:wasAssociatedWith

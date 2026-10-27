@@ -233,6 +233,7 @@ distinguishable, never rejected).
 | `generated`    |  ✅ | `prov:wasGeneratedBy`           | Generation   | `{by, at}` → `prov:wasAssociatedWith` + `prov:endedAtTime` on a `prov:Activity`. Supersedes `timestamp`. |
 | `revised`      |     | `lokf:revised`                  | Revision     | `{by, at}`: the latest in-place edit, kept apart from `generated`, which then stays the production event. A single mapping, never a list. LOKF's own field. |
 | `verified`     |  ✅ | `lokf:verified`                 | Verification*| Each `{by, at}` a `lokf:Verification` (⊑ `prov:Activity`); `by` is REQUIRED, since trust tiers derive from it. A bare mapping MUST be read as a one-element list. |
+| `refuted`      |     | `lokf:refuted`                  | Refutation*  | Each `{by, at, reason}` a `lokf:Refutation` (⊑ `prov:Activity`): the negative counterpart of `verified`; `by` and `reason` REQUIRED. A bare mapping MUST be read as a one-element list. LOKF's own field. |
 | `status`       |  ✅ | `schema:creativeWorkStatus`     | enum         | `draft \| stable \| deprecated`; absent ⇒ stable. Enum meanings: ADMS status IRIs. |
 | `stale_after`  |  ✅ | `schema:expires`                | dateTime     | The instant from which the concept is stale (OKF §5.5). A bare `YYYY-MM-DD` means that day at `00:00:00Z`. |
 <!-- --8<-- [end:trust-fields-table] -->
@@ -243,7 +244,7 @@ of them means that day at midnight UTC. `lokf` applies it before validating, so
 a bundle written with dates and one written with datetimes validate and project
 the same way.
 
-A `generated`, `revised` or `verified[]` event may carry **`revision`** (`lokf:revision`):
+A `generated`, `revised`, `verified[]` or `refuted[]` event may carry **`revision`** (`lokf:revision`):
 the state of the resource the event refers to, as a commit id, an ETag or
 version label, or a content digest of the resource as retrieved
 (`sha256:<hex>`). Absent means unrecorded, never unchanged. Quote it in YAML:
@@ -268,6 +269,18 @@ proposed for OKF in
 which settles `generated` as the immutable production event; it moves to the
 OKF subset if OKF adopts it.
 
+**`refuted`** (`lokf:refuted`) is the negative counterpart of `verified`: each
+`{by, at, reason}` is a `lokf:Refutation` (⊑ `prov:Activity`), an actor's
+finding that the content is wrong against its sources or resource, with the
+grounds. `by` and `reason` are REQUIRED; a bare mapping MUST be read as a
+one-element list. A refutation is *active* while it is not older than the last
+meaningful change, and an edit after it leaves it on record as history. It
+never changes the trust tier, which OKF derives from `verified` alone; a
+consumer surfaces it beside the tier, so a person's no is as visible as their
+yes. `refuted` is LOKF's own field, proposed for OKF in
+[open-knowledge-format#13](https://github.com/GoogleCloudPlatform/open-knowledge-format/issues/13);
+it moves to the OKF subset if OKF adopts it.
+
 **Source entries** (`sources[]`): `resource` (REQUIRED → `schema:url`; a URL,
 bundle-relative path, or scope descriptor), `id` (footnote join key; resolves
 against `base_iri` to mint the source node's IRI, so the same id shared across
@@ -291,7 +304,7 @@ tell "nobody looked at this" from "someone looked and set it aside".
 `lokf validate` warns when one concept lists the same material under both
 `sources` and `exclusions`. `exclusions` is LOKF's own field.
 
-**Actors** (`generated.by`, `revised.by`, `verified[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
+**Actors** (`generated.by`, `revised.by`, `verified[].by`, `refuted[].by`, `exclusions[].by`, `sources[].author`) follow OKF §7
 (`<producer>/<version>`, `human:<id>`, `process:<id>`) and are carried as plain
 literals — never coerced to IRIs, since `human:x` would silently mint an IRI in
 an unregistered URI scheme and `a/b` would resolve document-relative. Trust
@@ -318,7 +331,8 @@ false `xsd:integer` typing of a non-literal node.
 
 Trust summaries retain the three existing trust tiers and additionally expose
 `human_reviewed_at` (the latest valid human review, in UTC),
-`edited_since_human_review`, `revised_at` and `last_changed_at`. The last
+`edited_since_human_review`, `revised_at`, `last_changed_at`, `refuted` (an
+active refutation exists, §5.4) and `refuted_at` (the latest one). The last
 meaningful edit is the later of `generated.at` and `revised.at` (§5.4), so a
 producer that writes `revised` and one that restamps `generated.at` are read
 alike; `edited_since_human_review` is true only when that edit is later than
@@ -649,7 +663,7 @@ rejects a malformed value rather than passing it through to RDF:
 | Field | Constraint |
 |---|---|
 | `base_iri` | absolute `http(s)`, ending in `/` or `#` so IDs mint by plain concatenation and prefix routing respects segment boundaries |
-| `generated.by`, `revised.by`, `verified[].by`, `exclusions[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
+| `generated.by`, `revised.by`, `verified[].by`, `refuted[].by`, `exclusions[].by` | `human:<id>`, `process:<id>`, or `<producer>/<version>` — the §7 actors the trust tiers read |
 | `sources[].author` | any `<prefix>:<id>` or `<producer>/<version>`; deliberately looser than `by`, since source authorship is commonly a team or an org |
 | `email` | an address shape (`local@domain.tld`) |
 | `typicalAgeRange` | an age range as schema.org writes it: `8-12`, or `13-` for 13 and over |
