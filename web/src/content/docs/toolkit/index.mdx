@@ -11,9 +11,12 @@ The `lokf` Python package is the toolkit around the format: everything you
 need to **load** a bundle, **inspect** the vocabulary, **project** markdown to
 RDF, **query** it with SPARQL, **serve** it locally, **propose** typed
 relations from prose links, and **export** the result as a graph or as
-schema.org JSON-LD. It comes with a CLI (`lokf convert` / `query` / `serve` /
-`propose` / `vocab` / `skills` / `mcp`) and an [MCP server](/toolkit/mcp/) so agents
-can drive all of it. The format itself stays where it belongs — in `lokf.yaml`
+schema.org JSON-LD. It also **federates** bundles through a [registry](/toolkit/registry/).
+It comes with a CLI and an [MCP server](/toolkit/mcp/) so agents can drive
+all of it. The CLI's commands are `lokf new`, `validate`, `convert`, `query`,
+`serve`, `propose`, `vocab`, `adapt`, `tables`, `export`, `registry`, `skills`
+and `mcp`.
+The format itself stays where it belongs — in `lokf.yaml`
 and the [specification](/specification/); the toolkit never hardcodes a
 type or predicate it can read from the schema.
 
@@ -27,7 +30,8 @@ type or predicate it can read from the schema.
 | `lokf.adapt` | `adapt()` — a published LinkML vocabulary as a [domain-schema](/guide/domain-schemas/) import ([`lokf adapt`](/toolkit/adapt/)) |
 | `lokf.parse` | frontmatter parsing helpers (`parse_concept`, `isoify`) |
 | `lokf.propose` | heuristic [relation proposer](/toolkit/proposer/) + the `lokf propose` CLI |
-| `lokf.export` | Cytoscape.js graph elements and schema.org `Dataset` JSON-LD |
+| `lokf.export` | Cytoscape.js graph elements and schema.org `Dataset` JSON-LD; `lokf export` writes the four files a [registry](/toolkit/registry/) harvests |
+| `lokf.registry` | `Registry`: a manifest of bundles, each in its own named graph ([`lokf registry`](/toolkit/registry/)) |
 | `lokf.mcp_server` | the `lokf mcp` / `lokf-mcp` [MCP server](/toolkit/mcp/) that exposes the toolkit to agents |
 | `lokf.build` | the `lokf-build` console script that regenerates every artifact |
 

@@ -71,7 +71,7 @@ uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.b
 uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 
-## Closed-world, and two more passes
+## Closed-world, and three more passes
 
 Both validators are closed-world: a concept naming a `type` or a frontmatter
 key the schema does not declare fails. A project's own types and keys go in
@@ -83,18 +83,34 @@ files declaring one `id` each validate and then merge into one subject in
 the graph; `--check-ids` fails that. A relation target is just a string, so a
 stale or invented IRI passes; `--check-refs` resolves every typed-relation
 target in the bundle's own namespace, a relative ref or an IRI under
-`base_iri`, and leaves external resources alone. Both are opt-in, so the
+`base_iri`, and leaves external resources alone. A local `resource`, on a
+concept, a source or an exclusion, is also just a string. `--check-resources`
+checks that each one names a file or directory inside the resource root, and
+accepts a pattern such as `docs/*.svg` when it matches there. The root is the nearest
+enclosing Git root, else the bundle's parent, or `--root`; a path that escapes
+it is refused, and a URL is never fetched. All three are opt-in, so the
 default verdict stays the schema's.
 
 ```bash
-lokf validate knowledge --schema domain.yaml --check-ids --check-refs
+lokf validate knowledge --schema domain.yaml --check-ids --check-refs --check-resources
 ```
 
 ## SHACL — after projection
 
 [`lokf.shacl.ttl`](https://github.com/nicholsn/lokf/blob/main/lokf.shacl.ttl)
 validates the RDF graph *after* projection, catching cardinality, datatype,
-and range violations at the triple level.
+and range violations at the triple level. `--shacl` runs it in the same
+command once every other pass has succeeded. It needs the `shacl` extra,
+which brings the `build` extra with it:
+
+```bash
+uv pip install 'lokf[shacl]'
+lokf validate knowledge --shacl
+# -> OK — 2 concepts in knowledge validate against KnowledgeBundle. RDF conforms to SHACL shapes.
+```
+
+With a domain schema, from `--schema` or `[tool.lokf]`, the shapes are built
+from it as well, so a domain class's own ranges are checked too.
 
 ## Conformance in brief
 

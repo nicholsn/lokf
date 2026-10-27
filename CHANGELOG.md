@@ -194,6 +194,9 @@ OKF v0.2 writes.
 
 ### Internal
 
+- The site's validation guide names `--check-resources`, `--root` and
+  `--shacl`, and a toolkit page covers `lokf registry` and the files
+  `lokf export` writes for it.
 - Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
 - A *Domain schemas* how-to guide on the site, with biolink-model and gist
   as the adapted vocabularies, and a toolkit page for `lokf adapt`; the validation guide now names `--schema`, `--check-refs`
