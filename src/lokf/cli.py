@@ -1094,7 +1094,7 @@ def registry_resolve(
 
 
 
-def _registry_tree(registry: Path):
+def _registry_tree(registry: Path, cleared_members=()):
     """*registry* with every registry below it, as one flat registry.
 
     A broken tree (two releases of one bundle, a cycle) is a clean error, and
@@ -1106,7 +1106,7 @@ def _registry_tree(registry: Path):
         _err(f"{registry} not found — run `lokf registry init` first")
         raise typer.Exit(1)
     try:
-        tree = load_tree(registry)
+        tree = load_tree(registry, cleared_members=cleared_members)
     except (ValueError, OSError) as exc:
         _err(f"cannot read the registry tree: {exc}")
         raise typer.Exit(1)
@@ -1117,7 +1117,7 @@ def _registry_tree(registry: Path):
     return tree
 
 
-def _registry_store(registry: Path, quads: Optional[Path], tree=None):
+def _registry_store(registry: Path, quads: Optional[Path], tree=None, cleared_members=()):
     """A union store over the tree's members, or over a built *quads* file.
 
     Members that cannot be loaded are named on stderr and skipped; a
@@ -1131,7 +1131,7 @@ def _registry_store(registry: Path, quads: Optional[Path], tree=None):
         except (SyntaxError, ValueError, OSError) as exc:
             _err(f"cannot read {quads}: {exc}")
             raise typer.Exit(1)
-    store = GraphStore.from_registry(tree if tree is not None else _registry_tree(registry))
+    store = GraphStore.from_registry(tree if tree is not None else _registry_tree(registry, cleared_members), cleared_members=cleared_members)
     for base_iri, why in store.load_errors.items():
         _err(f"skipped {base_iri}: {why}")
     return store
@@ -1151,6 +1151,9 @@ def registry_build(
     strict: bool = typer.Option(
         False, "--strict", help="Exit 1 when a member fails to load or a target does not resolve."
     ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Load each member into a named graph (its base_iri) and write them as N-Quads.
 
@@ -1161,8 +1164,8 @@ def registry_build(
 
     from lokf.registry import has_bundle, unresolved_targets
 
-    reg = _registry_tree(registry)
-    store = _registry_store(registry, None, reg)
+    reg = _registry_tree(registry, clear_member)
+    store = _registry_store(registry, None, reg, clear_member)
     members = [e for e in reg.repos if has_bundle(e)]
     loaded = len(members) - len(store.load_errors)
     if members and not loaded:
@@ -1194,9 +1197,12 @@ def registry_query(
     format: str = typer.Option(
         "table", "--format", "-f", help="table | json | csv | tsv | ttl (CONSTRUCT)."
     ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Run SPARQL over every member at once, the default graph being their union."""
-    _run_query(_registry_store(registry, quads), sparql, format)
+    _run_query(_registry_store(registry, quads, cleared_members=clear_member), sparql, format)
 
 
 @registry_app.command("serve")
@@ -1209,11 +1215,14 @@ def registry_serve(
     ),
     host: str = typer.Option("127.0.0.1", help="Bind host."),
     port: int = typer.Option(8000, help="Bind port."),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Publish the federation locally: SPARQL endpoint + live graph viz."""
     from lokf.server import serve_store
 
-    store = _registry_store(registry, quads)
+    store = _registry_store(registry, quads, cleared_members=clear_member)
     serve_store(store, str(quads or registry), host=host, port=port)
 
 
@@ -1229,16 +1238,19 @@ def registry_mcp(
         None, "--index", exists=True, dir_okay=False,
         help="Markdown to serve as the index instead of the one built from the manifest.",
     ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Run the lokf-registry MCP server (stdio) over the federation (SPEC §11.4)."""
     import signal
 
     from lokf.registry_mcp import RegistryTools, build_server
 
-    tree = _registry_tree(registry)
-    store = _registry_store(registry, quads, tree)
+    tree = _registry_tree(registry, clear_member)
+    store = _registry_store(registry, quads, tree, clear_member)
     text = index.read_text(encoding="utf-8") if index else None
-    tools = RegistryTools(tree, store, index=text)
+    tools = RegistryTools(tree, store, index=text, cleared_members=clear_member)
     # A client stops a stdio server with SIGTERM as often as by closing its
     # input; exiting through SystemExit lets the finally below remove the
     # downloaded archives.

@@ -119,9 +119,10 @@ def _as_markdown(doc: dict) -> str:
 class RegistryTools:
     """The five tools over one registry and the store built from it."""
 
-    def __init__(self, registry, store, index: str | None = None):
+    def __init__(self, registry, store, index: str | None = None, *, cleared_members=()):
         self.registry = registry.located()  # relative locations read beside the manifest
         self.store = store
+        self.cleared_members = set(cleared_members)
         self.index = index if index is not None else registry_index(self.registry, store)
         self._tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-mcp-"))
         # The SDK runs tools in worker threads, so two first calls can race to
@@ -207,9 +208,15 @@ class RegistryTools:
             self._concepts[entry.base_iri] = (docs, failed)
             return docs
 
+    def _can_read(self, entry) -> bool:
+        return ((entry.sensitivity or "").strip().lower() in ("", "public")
+                or entry.base_iri in self.cleared_members)
+
     def _markdown(self, entry, name: str, iri: str, live: bool) -> tuple[str, str] | None:
         """A document's text and where it was read: the local checkout, the
         release zip, concepts.jsonld, else (when *live*) the source URL."""
+        if not self._can_read(entry):
+            return None
         if entry.path:
             try:  # resolve() itself refuses a NUL a reader typed into the IRI
                 root = pathlib.Path(entry.path).resolve()
@@ -217,7 +224,7 @@ class RegistryTools:
                 if (f.is_relative_to(root) and f.is_file()
                         and f.stat().st_size <= DOCUMENT_MAX_BYTES):
                     return f.read_text(encoding="utf-8"), "checkout"
-            except (OSError, ValueError, UnicodeDecodeError):
+            except (OSError, RuntimeError, ValueError, UnicodeDecodeError):
                 pass
         held = self._archive(entry)
         if held is not None:
@@ -229,7 +236,9 @@ class RegistryTools:
             except (KeyError, OSError, UnicodeDecodeError, zipfile.BadZipFile, zlib.error):
                 pass
         if name != "index.md" and (doc := self._concepts_doc(entry).get(iri)) is not None:
-            return _as_markdown(doc), "concepts.jsonld"
+            text = _as_markdown(doc)
+            if len(text.encode("utf-8")) <= DOCUMENT_MAX_BYTES:
+                return text, "concepts.jsonld"
         base = entry.source_base.rstrip("/")
         if live and base.startswith(("https://", "http://")):
             from lokf.registry import open_url  # refuses redirects into the local network
@@ -410,6 +419,8 @@ class RegistryTools:
         res = self.registry.resolve(iri)
         if res.entry is None:
             return {"error": f"no member of this registry owns {iri}"}
+        if not self._can_read(res.entry):
+            return {"error": "sensitive member requires explicit clearance"}
         name = _safe_name(res.concept_id or "")
         if name is None:
             return {"error": f"{iri} does not name a document inside its bundle"}

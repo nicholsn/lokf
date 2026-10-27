@@ -271,6 +271,7 @@ class Registry:
         )
 
 
+
 def _located(entry: RepoEntry, base: pathlib.Path | None) -> RepoEntry:
     """*entry* with its relative local locations made absolute against *base*."""
     located = dataclasses.replace(entry, distribution=dict(entry.distribution))
@@ -289,9 +290,8 @@ def _located(entry: RepoEntry, base: pathlib.Path | None) -> RepoEntry:
             located.distribution[key] = local(value)
     return located
 
-
 #: The fields that say which release an entry describes, when no checksum does.
-_RELEASE_FIELDS = ("repo", "source_base", "distribution", "id_index")
+_RELEASE_FIELDS = ("repo", "source_base", "distribution", "id_index", "path", "void")
 
 
 def release_difference(a: RepoEntry, b: RepoEntry) -> str | None:
@@ -300,9 +300,9 @@ def release_difference(a: RepoEntry, b: RepoEntry) -> str | None:
     Two checksums decide it alone: the same digest is the same bytes, whatever
     either entry says about where they are. One checksum without the other
     cannot be compared, so it counts as a difference. Otherwise every release
-    field must match. ``title``, ``path`` and ``status`` are a registry's own
-    notes, and ``void`` is counted by whichever lokf registered the entry;
-    none of them is the release, and none is compared.
+    field must match, including the local path and planning index. Without
+    a digest, different local checkouts or changed counts cannot be assumed
+    to describe the same release. ``title`` and ``status`` remain local notes.
     """
     if a.checksum and b.checksum:
         return None if a.checksum == b.checksum else "checksum"
@@ -336,6 +336,7 @@ def fill_locations(held: RepoEntry, new: RepoEntry) -> bool:
                 held.distribution[key] = value
                 changed = True
     return changed
+
 
 
 _FIELDS = dataclasses.fields(RepoEntry)
@@ -468,7 +469,7 @@ def _as_listed(entry: RepoEntry, where: str) -> RepoEntry:
     return listed
 
 
-def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None) -> Registry:
+def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None, *, cleared_members=()) -> Registry:
     """A registry and every registry below it, as one flat registry.
 
     *top* is a manifest path or an already loaded :class:`Registry`. A catalog
@@ -499,6 +500,21 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None) 
     flat = Registry(path=root.path, id=root.id, title=root.title, publisher=root.publisher,
                     version=root.version, max_depth=root.max_depth)
     origin: dict[str, str] = {}
+    cleared_members = set(cleared_members)
+    edges: dict[str, set[str]] = {}
+
+    def connect(parent: str, child: str) -> None:
+        # A shared child may already have been queued through another branch.
+        # Ancestors of its first path alone cannot detect a cross-branch cycle.
+        pending, seen = [child], set()
+        while pending:
+            node = pending.pop()
+            if node == parent:
+                raise ValueError(f"{parent}: registry cycle through {child}")
+            if node not in seen:
+                seen.add(node)
+                pending.extend(edges.get(node, ()))
+        edges.setdefault(parent, set()).add(child)
     tmp = pathlib.Path(tempfile.mkdtemp(prefix="lokf-registry-tree-"))
 
     def add(entry: RepoEntry, where: str) -> None:
@@ -521,6 +537,9 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None) 
                 add(e, where)
                 if not is_catalog(e):
                     continue
+                if (e.sensitivity or "").strip().lower() not in ("", "public") and e.base_iri not in cleared_members:
+                    flat.skipped.append(f"{e.base_iri}: sensitive registry requires explicit clearance")
+                    continue
                 if not e.registry:
                     raise ValueError(f"{where}: catalog entry {e.base_iri} names no registry")
                 loc = _locate(e.registry, where)
@@ -529,6 +548,7 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None) 
                     continue
                 if loc in above:
                     raise ValueError(f"{where}: {e.base_iri} names a registry above it, {loc}")
+                connect(where, loc)
                 if loc in read:
                     continue
                 if depth + 1 > limit:
@@ -576,6 +596,11 @@ def entry_for_bundle(
     base_iri = bundle.base_iri
     if not base_iri:
         raise ValueError(f"{bundle_dir}: bundle index.md has no base_iri; cannot federate")
+
+    duplicates = bundle.duplicate_iris()
+    if duplicates:
+        iri, concepts = duplicates[0]
+        raise ValueError(f"duplicate concept IRI {iri}: {', '.join(concepts)}; cannot federate")
 
     id_index: dict[str, str] = {}
     for c in bundle.concepts:
