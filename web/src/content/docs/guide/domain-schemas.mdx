@@ -180,12 +180,16 @@ schema.org with `http` or `https`. A class attribute folds the same way.
 
 The fold copies the slot's constraints into a `slot_usage` on every class
 that used the slot, so those classes still enforce what the vocabulary did:
-`required`, `pattern`, `minimum_value`, `maximum_value`, `values_from`, and a
-narrower `range` such as `uriorcurie`. The fold is refused, and the report
+including inherited restrictions, class refinements, fixed values, cardinalities,
+patterns, and a narrower `range` such as `uriorcurie`. When two fields fold
+into one, both restrictions are retained using `all_of` where necessary.
+Retained child slots keep the restrictions of a removed parent.
+The fold is refused, and the report
 says why, when the slot's shape differs from LOKF's:
 
 - it is multivalued where LOKF's slot is not, or the reverse;
-- its range is a class, an enum or a number where LOKF's takes a string.
+- its range is a class, an enum or a number where LOKF's takes a string;
+- it represents a reference where LOKF expects an inlined object, or the reverse.
 
 Use `--fold` for a slot, or a `Class.attr` attribute, that means the same as
 LOKF's slot but declares no mapping. Use `--keep` for one whose mapping
