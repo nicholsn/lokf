@@ -1183,6 +1183,42 @@ def registry_serve(
     store = _registry_store(registry, quads, cleared_members=clear_member)
     serve_store(store, str(quads or registry), host=host, port=port)
 
+
+@registry_app.command("mcp")
+def registry_mcp(
+    registry: Path = typer.Option(
+        Path("lokf-registry.yaml"), "--registry", "-r", help="Manifest to read."
+    ),
+    quads: Optional[Path] = typer.Option(
+        None, "--quads", exists=True, dir_okay=False, help=_QUADS_HELP
+    ),
+    index: Optional[Path] = typer.Option(
+        None, "--index", exists=True, dir_okay=False,
+        help="Markdown to serve as the index instead of the one built from the manifest.",
+    ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
+) -> None:
+    """Run the lokf-registry MCP server (stdio) over the federation (SPEC §11.4)."""
+    import signal
+
+    from lokf.registry_mcp import RegistryTools, build_server
+
+    reg = _manifest(registry)
+    store = _registry_store(registry, quads, cleared_members=clear_member)
+    text = index.read_text(encoding="utf-8") if index else None
+    tools = RegistryTools(reg, store, index=text, cleared_members=clear_member)
+    # A client stops a stdio server with SIGTERM as often as by closing its
+    # input; exiting through SystemExit lets the finally below remove the
+    # downloaded archives.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    _err(f"lokf-registry: {len(store)} quads from {quads or registry}; five tools; stdio")
+    try:
+        build_server(tools).run(transport="stdio")
+    finally:
+        tools.close()
+
 def main(argv: list[str] | None = None) -> int:
     """Programmatic entry point (tests use ``typer.testing.CliRunner``).
 
