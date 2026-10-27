@@ -487,6 +487,198 @@
             "title": "Audience",
             "type": "object"
         },
+        "Checksum": {
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "md5"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{32}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha1"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{40}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha224"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{56}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha256",
+                                    "sha3_256",
+                                    "blake2b256"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{64}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha384",
+                                    "sha3_384",
+                                    "blake2b384"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{96}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "algorithm": {
+                                "enum": [
+                                    "sha512",
+                                    "sha3_512",
+                                    "blake2b512"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "algorithm"
+                        ]
+                    },
+                    "then": {
+                        "properties": {
+                            "checksum_value": {
+                                "pattern": "^[0-9a-f]{128}$"
+                            }
+                        },
+                        "required": [
+                            "checksum_value"
+                        ]
+                    }
+                }
+            ],
+            "description": "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it.",
+            "properties": {
+                "algorithm": {
+                    "$ref": "#/$defs/ChecksumAlgorithm",
+                    "description": "The algorithm that computed a checksum."
+                },
+                "checksum_value": {
+                    "description": "The checksum as lowercase hexadecimal digits, as many as the algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the 256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones).",
+                    "pattern": "^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "algorithm",
+                "checksum_value"
+            ],
+            "title": "Checksum",
+            "type": "object"
+        },
+        "ChecksumAlgorithm": {
+            "description": "Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer resist tampering.",
+            "enum": [
+                "sha1",
+                "sha224",
+                "sha256",
+                "sha384",
+                "sha512",
+                "sha3_256",
+                "sha3_384",
+                "sha3_512",
+                "blake2b256",
+                "blake2b384",
+                "blake2b512",
+                "md5"
+            ],
+            "title": "ChecksumAlgorithm",
+            "type": "string"
+        },
         "Citation": {
             "additionalProperties": false,
             "description": "A reference to an external source supporting a claim in a concept's body. Attached via the schema:citation predicate.",
@@ -1285,6 +1477,25 @@
                         "string",
                         "null"
                     ]
+                },
+                "byte_size": {
+                    "description": "The size of the distribution in bytes.",
+                    "minimum": 0,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "checksum": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Checksum"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "A digest of the distribution's bytes, for checking a download."
                 },
                 "description": {
                     "description": "A single-sentence summary of the concept.",

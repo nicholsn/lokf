@@ -38,6 +38,7 @@ prefixes:
   adms: http://www.w3.org/ns/adms#
   adms_status: http://purl.org/adms/status/
   lrmi: http://purl.org/dcx/lrmi-terms/
+  spdx: http://spdx.org/rdf/terms#
 
 default_prefix: lokf
 default_range: string
@@ -70,6 +71,20 @@ subsets:
 # ---------------------------------------------------------------------------
 # Classes
 # ---------------------------------------------------------------------------
+types:
+  HexBinary:
+    description: Binary data written as hexadecimal digits; maps to xsd:hexBinary.
+    typeof: string
+    base: str
+    uri: xsd:hexBinary
+
+  NonNegativeInteger:
+    description: A whole number, 0 or more; maps to xsd:nonNegativeInteger.
+    typeof: integer
+    base: int
+    uri: xsd:nonNegativeInteger
+    minimum_value: 0
+
 classes:
   KnowledgeBundle:
     description: >-
@@ -421,6 +436,77 @@ classes:
       - description
       - access_url
       - media_type
+      - checksum
+      - byte_size
+
+  Checksum:
+    description: >-
+      A digest of a distribution's bytes, which a consumer recomputes before
+      trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it.
+    class_uri: spdx:Checksum
+    slots:
+      - algorithm
+      - checksum_value
+    slot_usage:
+      algorithm:
+        required: true
+      checksum_value:
+        required: true
+    rules:
+      - description: A md5 digest has 32 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [md5]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{32}$'
+      - description: A sha1 digest has 40 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha1]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{40}$'
+      - description: A sha224 digest has 56 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha224]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{56}$'
+      - description: A sha256, sha3_256, blake2b256 digest has 64 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha256, sha3_256, blake2b256]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{64}$'
+      - description: A sha384, sha3_384, blake2b384 digest has 96 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha384, sha3_384, blake2b384]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{96}$'
+      - description: A sha512, sha3_512, blake2b512 digest has 128 hex digits.
+        preconditions:
+          slot_conditions:
+            algorithm:
+              equals_string_in: [sha512, sha3_512, blake2b512]
+        postconditions:
+          slot_conditions:
+            checksum_value:
+              pattern: '^[0-9a-f]{128}$'
 
   Relation:
     description: >-
@@ -1089,6 +1175,39 @@ slots:
     in_subset:
       - lokf_semantic
 
+  checksum:
+    description: A digest of the distribution's bytes, for checking a download.
+    range: Checksum
+    inlined: true
+    slot_uri: spdx:checksum
+    in_subset:
+      - lokf_semantic
+
+  byte_size:
+    description: The size of the distribution in bytes.
+    range: NonNegativeInteger
+    slot_uri: dcat:byteSize
+    in_subset:
+      - lokf_semantic
+
+  algorithm:
+    description: The algorithm that computed a checksum.
+    range: ChecksumAlgorithm
+    slot_uri: spdx:algorithm
+    in_subset:
+      - lokf_semantic
+
+  checksum_value:
+    description: >-
+      The checksum as lowercase hexadecimal digits, as many as the
+      algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the
+      256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones).
+    range: HexBinary
+    pattern: '^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$'
+    slot_uri: spdx:checksumValue
+    in_subset:
+      - lokf_semantic
+
   # --- Metric fields --------------------------------------------------------
   formula:
     description: The calculation or definition expression for a metric.
@@ -1411,8 +1530,14 @@ slots:
         dcat:startDate is defined by DCAT 2 precisely for
         dcterms:PeriodOfTime — exactly this shape. `from` is a Python
         reserved word: the authored YAML key and JSON-LD term stay `from`,
-        but generated Python needs the induced attribute aliased (see
-        build tooling).
+        but generated Python needs the induced attribute aliased. LinkML
+        currently generates `from_` without mapping the authored `from` key
+        when loading dataclasses (https://github.com/linkml/linkml/pull/4083).
+        LOKF's build patches its own generated module; domain schemas importing
+        LOKF and generating their own dataclasses do not receive that patch.
+        Keep the authored key `from`; after an upstream release fixes loading,
+        update the LinkML minimum and remove the local workaround and expected
+        failure in tests/test_keyword_dataclasses.py.
     in_subset:
       - okf_v02
 
@@ -1940,3 +2065,46 @@ enums:
         description: Like GET, but returns headers only, no body.
       OPTIONS:
         description: Describe the communication options for the resource.
+
+  ChecksumAlgorithm:
+    description: >-
+      Digest algorithms for a Checksum, each mapped to its SPDX individual.
+      Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer
+      resist tampering.
+    permissible_values:
+      sha1:
+        description: SHA-1 (FIPS 180-4); identifies bytes but no longer resists tampering.
+        meaning: spdx:checksumAlgorithm_sha1
+      sha224:
+        description: SHA-224 (FIPS 180-4).
+        meaning: spdx:checksumAlgorithm_sha224
+      sha256:
+        description: SHA-256 (FIPS 180-4).
+        meaning: spdx:checksumAlgorithm_sha256
+      sha384:
+        description: SHA-384 (FIPS 180-4).
+        meaning: spdx:checksumAlgorithm_sha384
+      sha512:
+        description: SHA-512 (FIPS 180-4).
+        meaning: spdx:checksumAlgorithm_sha512
+      sha3_256:
+        description: SHA3-256 (FIPS 202).
+        meaning: spdx:checksumAlgorithm_sha3_256
+      sha3_384:
+        description: SHA3-384 (FIPS 202).
+        meaning: spdx:checksumAlgorithm_sha3_384
+      sha3_512:
+        description: SHA3-512 (FIPS 202).
+        meaning: spdx:checksumAlgorithm_sha3_512
+      blake2b256:
+        description: BLAKE2b with a 256-bit digest (RFC 7693).
+        meaning: spdx:checksumAlgorithm_blake2b256
+      blake2b384:
+        description: BLAKE2b with a 384-bit digest (RFC 7693).
+        meaning: spdx:checksumAlgorithm_blake2b384
+      blake2b512:
+        description: BLAKE2b with a 512-bit digest (RFC 7693).
+        meaning: spdx:checksumAlgorithm_blake2b512
+      md5:
+        description: MD5 (RFC 1321); identifies bytes but no longer resists tampering.
+        meaning: spdx:checksumAlgorithm_md5

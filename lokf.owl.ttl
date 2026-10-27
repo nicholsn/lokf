@@ -20,6 +20,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix schema1: <http://schema.org/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
 @prefix vivo: <http://vivoweb.org/ontology/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
@@ -187,10 +188,79 @@ schema1:memberOf a owl:Class ;
     rdfs:subClassOf lokf:RelationType ;
     skos:definition "The concept (a role) is held within the target organization." .
 
+spdx:checksumAlgorithm_blake2b256 a owl:Class ;
+    rdfs:label "blake2b256" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "BLAKE2b with a 256-bit digest (RFC 7693)." .
+
+spdx:checksumAlgorithm_blake2b384 a owl:Class ;
+    rdfs:label "blake2b384" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "BLAKE2b with a 384-bit digest (RFC 7693)." .
+
+spdx:checksumAlgorithm_blake2b512 a owl:Class ;
+    rdfs:label "blake2b512" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "BLAKE2b with a 512-bit digest (RFC 7693)." .
+
+spdx:checksumAlgorithm_md5 a owl:Class ;
+    rdfs:label "md5" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "MD5 (RFC 1321); identifies bytes but no longer resists tampering." .
+
+spdx:checksumAlgorithm_sha1 a owl:Class ;
+    rdfs:label "sha1" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA-1 (FIPS 180-4); identifies bytes but no longer resists tampering." .
+
+spdx:checksumAlgorithm_sha224 a owl:Class ;
+    rdfs:label "sha224" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA-224 (FIPS 180-4)." .
+
+spdx:checksumAlgorithm_sha256 a owl:Class ;
+    rdfs:label "sha256" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA-256 (FIPS 180-4)." .
+
+spdx:checksumAlgorithm_sha384 a owl:Class ;
+    rdfs:label "sha384" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA-384 (FIPS 180-4)." .
+
+spdx:checksumAlgorithm_sha3_256 a owl:Class ;
+    rdfs:label "sha3_256" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA3-256 (FIPS 202)." .
+
+spdx:checksumAlgorithm_sha3_384 a owl:Class ;
+    rdfs:label "sha3_384" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA3-384 (FIPS 202)." .
+
+spdx:checksumAlgorithm_sha3_512 a owl:Class ;
+    rdfs:label "sha3_512" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA3-512 (FIPS 202)." .
+
+spdx:checksumAlgorithm_sha512 a owl:Class ;
+    rdfs:label "sha512" ;
+    rdfs:subClassOf lokf:ChecksumAlgorithm ;
+    skos:definition "SHA-512 (FIPS 180-4)." .
+
 rdfs:isDefinedBy a owl:Class ;
     rdfs:label "definedBy" ;
     rdfs:subClassOf lokf:RelationType ;
     skos:definition "The concept is formally defined by the target." .
+
+xsd:hexBinary a rdfs:Datatype ;
+    owl:equivalentClass xsd:string .
+
+xsd:nonNegativeInteger a rdfs:Datatype ;
+    owl:equivalentClass [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:integer [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:integer ;
+                        owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ) ] .
 
 org:member a owl:Class ;
     rdfs:label "holder" ;
@@ -307,6 +377,12 @@ lokf:Distribution a owl:Class ;
             owl:onProperty lokf:access_url ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
+            owl:onProperty lokf:byte_size ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty lokf:checksum ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
             owl:onProperty lokf:description ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
@@ -318,8 +394,14 @@ lokf:Distribution a owl:Class ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:access_url ],
         [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:byte_size ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:description ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:checksum ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty lokf:description ],
@@ -330,11 +412,17 @@ lokf:Distribution a owl:Class ;
             owl:minCardinality 0 ;
             owl:onProperty lokf:media_type ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty lokf:byte_size ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty lokf:media_type ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty lokf:media_type ] ;
+            owl:onProperty lokf:media_type ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:Checksum ;
+            owl:onProperty lokf:checksum ] ;
     skos:definition "A specific accessible form of a Dataset (a file, feed, or endpoint). Maps to dcat:Distribution." ;
     skos:exactMatch dcat:Distribution ;
     skos:inScheme lokf:schema .
@@ -1170,6 +1258,18 @@ lokf:base_iri a owl:DatatypeProperty ;
     skos:inScheme lokf:schema ;
     skos:note "It need not resolve to a live page (a 404 is valid) — only a well-formed absolute IRI with an authority is required. A resolvable \"Cool URI\" is the ideal, not a requirement." .
 
+lokf:byte_size a owl:DatatypeProperty ;
+    rdfs:label "byte_size" ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The size of the distribution in bytes." ;
+    skos:inScheme lokf:schema .
+
+lokf:checksum a owl:ObjectProperty ;
+    rdfs:label "checksum" ;
+    rdfs:range lokf:Checksum ;
+    skos:definition "A digest of the distribution's bytes, for checking a download." ;
+    skos:inScheme lokf:schema .
+
 lokf:computation a owl:DatatypeProperty ;
     rdfs:label "computation" ;
     rdfs:range xsd:anyURI ;
@@ -1277,7 +1377,7 @@ lokf:from a owl:DatatypeProperty ;
     skos:closeMatch schema1:startDate ;
     skos:definition "Start (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
     skos:inScheme lokf:schema ;
-    skos:note "dcat:startDate is defined by DCAT 2 precisely for dcterms:PeriodOfTime — exactly this shape. `from` is a Python reserved word: the authored YAML key and JSON-LD term stay `from`, but generated Python needs the induced attribute aliased (see build tooling)." .
+    skos:note "dcat:startDate is defined by DCAT 2 precisely for dcterms:PeriodOfTime — exactly this shape. `from` is a Python reserved word: the authored YAML key and JSON-LD term stay `from`, but generated Python needs the induced attribute aliased. LinkML currently generates `from_` without mapping the authored `from` key when loading dataclasses (https://github.com/linkml/linkml/pull/4083). LOKF's build patches its own generated module; domain schemas importing LOKF and generating their own dataclasses do not receive that patch. Keep the authored key `from`; after an upstream release fixes loading, update the LinkML minimum and remove the local workaround and expected failure in tests/test_keyword_dataclasses.py." .
 
 lokf:generated a owl:ObjectProperty ;
     rdfs:label "generated" ;
@@ -1778,6 +1878,33 @@ lokf:Agent a owl:Class ;
     skos:exactMatch prov:Agent ;
     skos:inScheme lokf:schema .
 
+lokf:Checksum a owl:Class ;
+    rdfs:label "Checksum" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:checksum_value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:checksum_value ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom lokf:ChecksumAlgorithm ;
+            owl:onProperty lokf:algorithm ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty lokf:algorithm ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty lokf:algorithm ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom [ a rdfs:Datatype ;
+                    owl:intersectionOf ( xsd:hexBinary [ a rdfs:Datatype ;
+                                owl:onDatatype xsd:string ;
+                                owl:withRestrictions ( [ xsd:pattern "^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$" ] ) ] ) ] ;
+            owl:onProperty lokf:checksum_value ] ;
+    skos:definition "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it." ;
+    skos:exactMatch spdx:Checksum ;
+    skos:inScheme lokf:schema .
+
 lokf:HttpMethod a owl:Class ;
     rdfs:label "HttpMethod" ;
     owl:unionOf ( <https://w3id.org/lokf/HttpMethod#GET> <https://w3id.org/lokf/HttpMethod#POST> <https://w3id.org/lokf/HttpMethod#PUT> <https://w3id.org/lokf/HttpMethod#PATCH> <https://w3id.org/lokf/HttpMethod#DELETE> <https://w3id.org/lokf/HttpMethod#HEAD> <https://w3id.org/lokf/HttpMethod#OPTIONS> ) ;
@@ -1791,6 +1918,12 @@ lokf:HttpMethod a owl:Class ;
         <https://w3id.org/lokf/HttpMethod#POST>,
         <https://w3id.org/lokf/HttpMethod#PUT> .
 
+lokf:algorithm a owl:ObjectProperty ;
+    rdfs:label "algorithm" ;
+    rdfs:range lokf:ChecksumAlgorithm ;
+    skos:definition "The algorithm that computed a checksum." ;
+    skos:inScheme lokf:schema .
+
 lokf:by a owl:DatatypeProperty ;
     rdfs:label "by" ;
     rdfs:range [ a rdfs:Datatype ;
@@ -1801,6 +1934,15 @@ lokf:by a owl:DatatypeProperty ;
     skos:definition "The actor that performed the event, as a plain OKF §7 actor string (`<producer>/<version>`, `human:<id>`, `process:<id>`) — a literal, never an IRI. Trust tiers derive from the `human:` prefix via string inspection (SPARQL STRSTARTS). Required on a generation or verification event, optional on an exclusion." ;
     skos:inScheme lokf:schema ;
     skos:note "prov:wasAssociatedWith is an object property (range prov:Agent); carrying a literal actor designator is a documented, RDF-consistent pragmatic flattening — chosen over coined actor IRIs because a flat JSON-LD context cannot rewrite strings into IRIs, and \"reference_agent/gemini-2.5-pro\" (no colon) would resolve as an unstable document-base-relative IRI, while \"human:kliu\" would silently become an absolute IRI in an unregistered URI scheme." .
+
+lokf:checksum_value a owl:DatatypeProperty ;
+    rdfs:label "checksum_value" ;
+    rdfs:range [ a rdfs:Datatype ;
+            owl:intersectionOf ( xsd:hexBinary [ a rdfs:Datatype ;
+                        owl:onDatatype xsd:string ;
+                        owl:withRestrictions ( [ xsd:pattern "^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$" ] ) ] ) ] ;
+    skos:definition "The checksum as lowercase hexadecimal digits, as many as the algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the 256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones)." ;
+    skos:inScheme lokf:schema .
 
 lokf:id a owl:DatatypeProperty ;
     rdfs:label "id" ;
@@ -1887,6 +2029,24 @@ lokf:title a owl:DatatypeProperty ;
         rdfs:label ;
     skos:definition "Human-readable display name." ;
     skos:inScheme lokf:schema .
+
+lokf:ChecksumAlgorithm a owl:Class ;
+    rdfs:label "ChecksumAlgorithm" ;
+    owl:unionOf ( spdx:checksumAlgorithm_sha1 spdx:checksumAlgorithm_sha224 spdx:checksumAlgorithm_sha256 spdx:checksumAlgorithm_sha384 spdx:checksumAlgorithm_sha512 spdx:checksumAlgorithm_sha3_256 spdx:checksumAlgorithm_sha3_384 spdx:checksumAlgorithm_sha3_512 spdx:checksumAlgorithm_blake2b256 spdx:checksumAlgorithm_blake2b384 spdx:checksumAlgorithm_blake2b512 spdx:checksumAlgorithm_md5 ) ;
+    skos:definition "Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer resist tampering." ;
+    skos:inScheme lokf:schema ;
+    linkml:permissible_values spdx:checksumAlgorithm_blake2b256,
+        spdx:checksumAlgorithm_blake2b384,
+        spdx:checksumAlgorithm_blake2b512,
+        spdx:checksumAlgorithm_md5,
+        spdx:checksumAlgorithm_sha1,
+        spdx:checksumAlgorithm_sha224,
+        spdx:checksumAlgorithm_sha256,
+        spdx:checksumAlgorithm_sha384,
+        spdx:checksumAlgorithm_sha3_256,
+        spdx:checksumAlgorithm_sha3_384,
+        spdx:checksumAlgorithm_sha3_512,
+        spdx:checksumAlgorithm_sha512 .
 
 xsd:integer a owl:Class ;
     rdfs:label "integer" ;
@@ -2243,6 +2403,46 @@ xsd:string a owl:Class ;
     rdfs:label "string" ;
     rdfs:subClassOf lokf:FieldType .
 
+[] rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty lokf:checksum_value ;
+            owl:someValuesFrom [ a rdfs:Datatype ;
+                    owl:onDatatype xsd:string ;
+                    owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]{64}$" ] ) ] ] ;
+    owl:intersectionOf ( [ a owl:Restriction ;
+                owl:onProperty lokf:algorithm ;
+                owl:someValuesFrom [ a rdfs:Datatype ;
+                        owl:oneOf ( "sha256" "sha3_256" "blake2b256" ) ] ] lokf:Checksum ) .
+
+[] rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty lokf:checksum_value ;
+            owl:someValuesFrom [ a rdfs:Datatype ;
+                    owl:onDatatype xsd:string ;
+                    owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]{40}$" ] ) ] ] ;
+    owl:intersectionOf ( [ a owl:Restriction ;
+                owl:onProperty lokf:algorithm ;
+                owl:someValuesFrom [ a rdfs:Datatype ;
+                        owl:oneOf ( "sha1" ) ] ] lokf:Checksum ) .
+
+[] rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty lokf:checksum_value ;
+            owl:someValuesFrom [ a rdfs:Datatype ;
+                    owl:onDatatype xsd:string ;
+                    owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]{128}$" ] ) ] ] ;
+    owl:intersectionOf ( [ a owl:Restriction ;
+                owl:onProperty lokf:algorithm ;
+                owl:someValuesFrom [ a rdfs:Datatype ;
+                        owl:oneOf ( "sha512" "sha3_512" "blake2b512" ) ] ] lokf:Checksum ) .
+
+[] rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty lokf:checksum_value ;
+            owl:someValuesFrom [ a rdfs:Datatype ;
+                    owl:onDatatype xsd:string ;
+                    owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]{32}$" ] ) ] ] ;
+    owl:intersectionOf ( [ a owl:Restriction ;
+                owl:onProperty lokf:algorithm ;
+                owl:someValuesFrom [ a rdfs:Datatype ;
+                        owl:oneOf ( "md5" ) ] ] lokf:Checksum ) .
+
 [] a owl:Restriction ;
     rdfs:subClassOf lokf:Table ;
     owl:onProperty lokf:type ;
@@ -2267,6 +2467,16 @@ xsd:string a owl:Class ;
     rdfs:subClassOf lokf:Document ;
     owl:onProperty lokf:type ;
     owl:someValuesFrom lokf:Document .
+
+[] rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty lokf:checksum_value ;
+            owl:someValuesFrom [ a rdfs:Datatype ;
+                    owl:onDatatype xsd:string ;
+                    owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]{56}$" ] ) ] ] ;
+    owl:intersectionOf ( [ a owl:Restriction ;
+                owl:onProperty lokf:algorithm ;
+                owl:someValuesFrom [ a rdfs:Datatype ;
+                        owl:oneOf ( "sha224" ) ] ] lokf:Checksum ) .
 
 [] a owl:Restriction ;
     rdfs:subClassOf lokf:Concept ;
@@ -2327,4 +2537,14 @@ xsd:string a owl:Class ;
     rdfs:subClassOf lokf:Organization ;
     owl:onProperty lokf:type ;
     owl:someValuesFrom lokf:Organization .
+
+[] rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty lokf:checksum_value ;
+            owl:someValuesFrom [ a rdfs:Datatype ;
+                    owl:onDatatype xsd:string ;
+                    owl:withRestrictions ( [ xsd:pattern "^[0-9a-f]{96}$" ] ) ] ] ;
+    owl:intersectionOf ( [ a owl:Restriction ;
+                owl:onProperty lokf:algorithm ;
+                owl:someValuesFrom [ a rdfs:Datatype ;
+                        owl:oneOf ( "sha384" "sha3_384" "blake2b384" ) ] ] lokf:Checksum ) .
 

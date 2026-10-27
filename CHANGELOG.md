@@ -15,8 +15,24 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- `lokf adapt` folds a vocabulary slot or class attribute into LOKF's when
+  its `slot_uri` or an `exact_mappings` entry is the IRI of a slot on
+  `Concept`, or when `--fold` names it; `--keep` holds one back. A fold
+  copies the slot's constraints into `slot_usage`, and is refused
+  when its shape differs from LOKF's slot.
+- `Distribution` takes an optional `checksum` (`spdx:Checksum`, as DCAT 3
+  models it: the SPDX algorithm individual and an `xsd:hexBinary` digest as
+  long as that algorithm's) and `byte_size` (`dcat:byteSize`).
+
 - `lokf registry build`, `query` and `serve`: one named graph per member, keyed
   by its `base_iri`, queried as a union (SPEC §11.4).
+- `lokf registry mcp`: the `lokf-registry` MCP server, with `resolve_iri`,
+  `neighbors`, `subgraph`, `federated_sparql` and `read_document`, each bounded.
+- Registries of registries: an entry of `type: dcat:Catalog` names another
+  registry, which `build`, `query`, `serve`, `mcp` and `resolve` follow to the
+  top registry's `max_depth` (SPEC §11.2-11.4).
+  The walk goes tier by tier, skips a registry it cannot read, and takes from
+  a manifest at a URL only URLs.
 
 ### Fixed
 
