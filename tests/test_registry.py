@@ -812,3 +812,30 @@ def test_distinct_unpinned_local_bundles_are_not_the_same_release():
         reg.add(RepoEntry(base_iri="https://ex.org/", path="two"))
     assert len(reg.repos) == 1
 
+
+
+def test_federation_http_graph_and_query(tmp_path):
+    import json
+    import threading
+    from urllib.parse import urlencode
+    from urllib.request import urlopen
+    from lokf.server import build_server
+    from lokf.store import GraphStore
+
+    server = build_server(GraphStore.from_registry(_federation(tmp_path)), '127.0.0.1', 0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = f'http://127.0.0.1:{server.server_address[1]}'
+    try:
+        with urlopen(base + '/graph.json', timeout=5) as response:
+            elements = json.load(response)
+        assert any(e['data']['source'] == 'https://a.example/kb/x' and
+                   e['data']['target'] == 'https://b.example/kb/y' for e in elements['edges'])
+        query = 'SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }'
+        with urlopen(base + '/sparql?' + urlencode({'query': query}), timeout=5) as response:
+            rows = json.load(response)['results']['bindings']
+        assert {r['g']['value'] for r in rows} == {'https://a.example/kb/', 'https://b.example/kb/'}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
