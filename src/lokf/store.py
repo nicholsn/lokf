@@ -26,11 +26,28 @@ _RESULT_FORMATS = {
     "tsv": ox.QueryResultsFormat.TSV,
 }
 
-# The query form, skipping any leading comments and PREFIX/BASE declarations.
+# The query form, skipping any leading comments and PREFIX/BASE declarations,
+# whether each sits on a line of its own or they share one with the query.
 _QUERY_FORM = re.compile(
-    r"^(?:\s*(?:#[^\n]*|(?:prefix|base)\b[^\n]*)\n)*\s*(select|ask|construct|describe)\b",
+    r"^(?:\s+|#[^\n]*|prefix\s+[^\s:]*:\s*<[^>]*>|base\s*<[^>]*>)*"
+    r"(select|ask|construct|describe)\b",
     re.IGNORECASE,
 )
+
+# Strings, IRIs and comments: where the word "service" is not the keyword.
+# Matched in one pass, so a '#' inside an IRI or a string is not a comment.
+_SPARQL_NOT_CODE = re.compile(
+    r'"""(?:\\[\s\S]|(?!""")[^\\])*"""'
+    r"|'''(?:\\[\s\S]|(?!''')[^\\])*'''"
+    r'|"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\''
+    r'|<[^<>"{}|^`\\\x00-\x20]*>|#[^\n]*'
+)
+# The keyword, as opposed to a variable (?service), a prefixed name
+# (ex:service, service:x) or part of a longer name.
+# A dot can terminate the preceding triple without whitespace. Treat it as a
+# boundary here; on a parser failure a false positive in a dotted local name is
+# safer than allowing an unparsed federation request.
+_SERVICE_KEYWORD = re.compile(r"(?<![\w?$:\-])service(?![\w:.\-])", re.IGNORECASE)
 
 
 def query_form(sparql: str) -> str:
@@ -52,8 +69,12 @@ def _uses_service(sparql: str) -> bool:
     """True if the query contains a SPARQL ``SERVICE`` (federation) clause.
 
     Parsed via rdflib's algebra so a ``SERVICE`` inside a string literal does
-    not trip it. If rdflib cannot parse the query, returns False and lets the
-    engine reject it — this only gates the federation vector, not validity.
+    not trip it. Oxigraph accepts syntax rdflib does not (RDF 1.2 triple
+    terms, for one), so a query rdflib cannot parse is not trusted to be
+    free of ``SERVICE``: a scan of its text outside strings, IRIs and comments
+    decides, and finds the keyword wherever it could be one. Failing closed
+    is the point; a query with no such word still reaches the engine, which
+    judges its validity.
     """
     # SERVICE is the only spelling of the federation keyword, so a query with
     # no "service" substring cannot contain one — skip the ~1ms parse. (A
@@ -67,8 +88,8 @@ def _uses_service(sparql: str) -> bool:
 
     try:
         algebra = prepareQuery(sparql).algebra
-    except Exception:  # noqa: BLE001 — parse failures fall through to the engine
-        return False
+    except Exception:  # noqa: BLE001 — rdflib's limits are not the engine's
+        return bool(_SERVICE_KEYWORD.search(_SPARQL_NOT_CODE.sub(" ", sparql)))
 
     def walk(node) -> bool:
         if isinstance(node, CompValue):  # note: CompValue is itself a dict

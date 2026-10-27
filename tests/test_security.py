@@ -21,6 +21,41 @@ def test_uses_service_detection():
     assert not _uses_service("SELECT ?x WHERE { ?x ?p ?o }")
 
 
+TRIPLE_TERM = "BIND(<<( <http://ex/a> <http://ex/p> <http://ex/b> )>> AS ?t)"
+
+
+def test_service_is_refused_in_syntax_rdflib_cannot_parse():
+    """Oxigraph accepts RDF 1.2 triple terms that rdflib rejects; a query
+    rdflib cannot parse is scanned for the keyword instead of trusted."""
+    assert _uses_service(f"SELECT ?s WHERE {{ SERVICE <http://e/> {{ ?s ?p ?o }} {TRIPLE_TERM} }}")
+    assert _uses_service(f"SELECT ?s WHERE {{ }}SERVICE SILENT<http://e/>{{ ?s ?p ?o }} {TRIPLE_TERM}")
+    assert _uses_service(f"SELECT * WHERE {{ ?s ?p ?o.SERVICE <http://e/> {{ ?a ?b ?c }} {TRIPLE_TERM} }}")
+    # The word where it is not the keyword is no reason to refuse.
+    for text in ('?service', 'ex:service', '"service"', '<http://e/service>', '# service\n'):
+        assert not _uses_service(f"PREFIX ex: <http://ex/> SELECT * WHERE {{ {text} {TRIPLE_TERM} }}"), text
+    store = GraphStore.from_bundle(BUNDLE)
+    with pytest.raises(ValueError, match="SERVICE"):
+        store.query(f"SELECT ?s WHERE {{ SERVICE <http://127.0.0.1:9/x> {{ ?s ?p ?o }} {TRIPLE_TERM} }}")
+    assert len(list(store.query(f"SELECT ?t WHERE {{ {TRIPLE_TERM} }}"))) == 1
+
+
+@pytest.mark.parametrize("quote", ['"', "'"])
+def test_service_after_escaped_long_literal(quote):
+    # An escaped quote must not close a long literal early and make its real
+    # closing delimiter swallow the subsequent SERVICE clause.
+    delimiter = quote * 3
+    literal = delimiter + "before " + chr(92) + delimiter + " after" + delimiter
+    prefix = f"BIND({literal} AS ?s)"
+    suffix = f"BIND({delimiter}tail{delimiter} AS ?z) {TRIPLE_TERM}"
+    safe = f"SELECT * WHERE {{ {prefix} {suffix} }}"
+    store = GraphStore.from_bundle(BUNDLE)
+    assert len(list(store.query(safe))) == 1  # valid Oxigraph syntax
+    query = f"SELECT * WHERE {{ {prefix} SERVICE <http://127.0.0.1:9/> {{ ?a ?p ?o }} {suffix} }}"
+    assert _uses_service(query)
+    with pytest.raises(ValueError, match="SERVICE"):
+        store.query(query)
+
+
 def test_service_query_rejected_at_store():
     store = GraphStore.from_bundle(BUNDLE)
     with pytest.raises(ValueError, match="SERVICE"):
