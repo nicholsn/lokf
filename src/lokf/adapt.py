@@ -541,16 +541,31 @@ def _refines(v: str, t: str, schema: dict, lokf: dict) -> bool:
     return False
 
 
-def _fold_view(schema: dict):
+def _fold_view(schema: dict, lokf: dict | None = None):
     """Build one isolated view per folding pass."""
     from linkml_runtime.linkml_model import SchemaDefinition
     from linkml_runtime.utils.schemaview import SchemaView
 
     data = deepcopy(schema)
+    core = lokf if lokf is not None else load_schema()
+    for section in (*_SECTIONS, "prefixes"):
+        data[section] = {**deepcopy(core.get(section) or {}), **(data.get(section) or {})}
     data.setdefault("id", "urn:lokf:adapt:probe")
     data.setdefault("name", "adapt_probe")
     data["imports"] = ["linkml:types"]
     return SchemaView(SchemaDefinition(**data))
+
+
+def _attribute_users(schema: dict, owner: str, name: str, view) -> list[str]:
+    users = []
+    for cname in schema.get("classes") or {}:
+        for ancestor in view.class_ancestors(cname):
+            attrs = ((schema.get("classes") or {}).get(ancestor) or {}).get("attributes") or {}
+            if name in attrs:
+                if ancestor == owner:
+                    users.append(cname)
+                break
+    return users
 
 
 def _effective_slot(schema: dict, name: str, cname: str | None = None, view=None) -> dict:
@@ -593,6 +608,12 @@ def _shape_conflict(elem: dict, usages: list[tuple[str, dict]], target: str, sch
         if isinstance(v, str) and not _refines(v, t_range, schema, lokf):
             kind = next((f" ({k})" for s, k in kinds if v in (schema.get(s) or {}) or v in (lokf.get(s) or {})), "")
             return f"has range {v}{kind}{where} where LOKF's {target} takes {t_range}"
+        if t_range in (lokf.get("classes") or {}):
+            for flag in ("inlined", "inlined_as_list"):
+                actual = bool(shape.get(flag) or (flag == "inlined" and shape.get("inlined_as_list")))
+                expected = bool(lokf_slot.get(flag) or (flag == "inlined" and lokf_slot.get("inlined_as_list")))
+                if actual != expected:
+                    return f"has {flag}={actual}{where} where LOKF's {target} has {expected}"
     return None
 
 
@@ -633,7 +654,7 @@ def find_folds(
     folds: dict[str, str] = {}
     problems: list[str] = []
     by_form = {underscore(n): n for n in slots}
-    view = _fold_view(schema)
+    view = _fold_view(schema, lokf)
 
     def resolve(want: str) -> tuple[str | None, str | None]:
         """The vocabulary's own spelling of *want*, or why there is none."""
@@ -659,7 +680,9 @@ def find_folds(
         """The slot or attribute *key* names, and the slot_usages on a slot."""
         if "." in key:
             cname, aname = key.split(".", 1)
-            return _effective_slot(schema, aname, cname, view), []
+            usages = [(c, _effective_slot(schema, aname, c, view))
+                      for c in _attribute_users(schema, cname, aname, view) if c != cname]
+            return _effective_slot(schema, aname, cname, view), usages
         usages = [
             (c, _effective_slot(schema, key, c, view)) for c, cls in classes.items()
             if isinstance(cls, dict) and isinstance((cls.get("slot_usage") or {}).get(key), dict)
@@ -734,7 +757,7 @@ def _carried(elem: dict) -> dict:
     return {k: elem[k] for k in _USAGE_CARRY if k in elem}
 
 
-def fold_twins(schema: dict, folds: dict[str, str], renamed: dict[str, str] | None = None) -> dict[str, str]:
+def fold_twins(schema: dict, folds: dict[str, str], renamed: dict[str, str] | None = None, lokf: dict | None = None) -> dict[str, str]:
     """Delete each slot and ``Class.attr`` attribute in *folds*, and list
     LOKF's slot in its place, as :func:`drop_twins` does for an identifier.
     The slot's constraints (:data:`_USAGE_CARRY`) are copied into a
@@ -749,16 +772,22 @@ def fold_twins(schema: dict, folds: dict[str, str], renamed: dict[str, str] | No
     slots = schema.get("slots") or {}
     classes = schema.get("classes") or {}
     done = {n: folds[n] for n in slots if n in folds}
-    view = _fold_view(schema)
-    effective = {name: _effective_slot(schema, name, view=view) for name in done}
+    snapshot = deepcopy(schema)
+    view = _fold_view(snapshot, lokf)
+    # A retained descendant must not lose the constraints of a removed parent.
+    for name, slot in slots.items():
+        if name not in done and set(view.slot_ancestors(name)) & done.keys():
+            inherited = _effective_slot(snapshot, name, view=view)
+            slot.update({k: v for k, v in inherited.items()
+                         if k in (*_USAGE_CARRY, "multivalued", "inlined", "inlined_as_list")})
     for name in done:
-        carried = _carried(effective[name])
-        for cls in classes.values():
+        for cname, cls in classes.items():
             if not isinstance(cls, dict):
                 continue
             usage = cls.get("slot_usage") or {}
             if name in (cls.get("slots") or []) or name in usage:
-                merged = {**carried, **(usage.get(name) or {})}
+                merged = {**(usage.get(name) or {}),
+                          **_carried(_effective_slot(snapshot, name, cname, view))}
                 if merged:
                     cls.setdefault("slot_usage", {})[name] = merged
         del slots[name]
@@ -775,13 +804,20 @@ def fold_twins(schema: dict, folds: dict[str, str], renamed: dict[str, str] | No
             if (cname, aname) not in located:
                 continue
             key, target = located[cname, aname]
-            attr = attrs.pop(aname) or {}
+            attrs.pop(aname)
             if not attrs:
                 del cls["attributes"]
             cls["slots"] = list(dict.fromkeys([*(cls.get("slots") or []), target]))
-            merged = _conjoin(_carried(attr), (cls.get("slot_usage") or {}).get(target) or {})
-            if merged:
-                cls.setdefault("slot_usage", {})[target] = merged
+            for user in _attribute_users(snapshot, cname, aname, view):
+                using = classes[user]
+                constraints = _carried(_effective_slot(snapshot, aname, user, view))
+                usage = using.setdefault("slot_usage", {})
+                usage.pop(aname, None)
+                merged = _conjoin(constraints, usage.get(target) or {})
+                if merged:
+                    usage[target] = merged
+                _point_at_lokf({"classes": {user: using}}, {aname: target},
+                               keep=_USAGE_KEEP + _USAGE_CARRY)
             done[key] = target
     return done
 
@@ -1006,7 +1042,7 @@ def adapt(
         report.renamed = rename_shared(schema, shared, prefix)
     except ValueError as exc:
         report.problems.append(str(exc))
-    report.folded_into = fold_twins(schema, fold, report.renamed)
+    report.folded_into = fold_twins(schema, fold, report.renamed, lokf_dict)
     if roots:
         # A root may be named as the vocabulary spells it, before any rename.
         classes = schema.get("classes") or {}

@@ -813,3 +813,51 @@ def test_folded_constraints_validate_actual_instances(tmp_path):
     assert not list(validator.iter_errors({"id": "https://example.org/thing", "type": "Thing", "title": "az"}))
     assert list(validator.iter_errors({"id": "https://example.org/thing", "type": "Thing", "title": "ax"}))
     assert list(validator.iter_errors({"id": "https://example.org/thing", "type": "Thing", "title": "bz"}))
+
+
+
+def test_unfolded_child_keeps_removed_parent_constraints():
+    schema = {"slots": {"label": {"equals_string": "fixed"},
+                        "child": {"is_a": "label"}},
+              "classes": {"Thing": {"slots": ["child"]}}}
+    A.fold_twins(schema, {"label": "title"})
+    assert schema["slots"]["child"]["equals_string"] == "fixed"
+    assert schema["slots"]["child"]["is_a"] == "title"
+
+
+def test_fold_uses_linkml_numeric_refinement_rules():
+    schema = {"slots": {"level": {"range": "integer", "minimum_value": 10}},
+              "classes": {"Thing": {"slots": ["level"],
+                                     "slot_usage": {"level": {"minimum_value": 5}}}}}
+    A.fold_twins(schema, {"level": "rating"})
+    assert schema["classes"]["Thing"]["slot_usage"]["rating"]["minimum_value"] == 10
+
+
+
+def test_folded_attribute_preserves_descendant_usage():
+    schema = {"classes": {
+        "Base": {"attributes": {"label": {"slot_uri": "http://schema.org/name", "pattern": "^a"}}},
+        "Child": {"is_a": "Base", "slot_usage": {"label": {"pattern": "^b"}}},
+        "Shadow": {"is_a": "Base", "attributes": {"label": {"range": "integer"}}}}}
+    folds, _, problems = A.find_folds(schema, load_schema(LOKF))
+    assert problems == []
+    A.fold_twins(schema, folds)
+    assert schema["classes"]["Child"]["slot_usage"]["title"]["pattern"] == "^b"
+    assert "label" not in schema["classes"]["Child"]["slot_usage"]
+    assert schema["classes"]["Shadow"]["attributes"]["label"]["range"] == "integer"
+
+
+def test_folded_attribute_checks_descendant_range():
+    schema = {"classes": {
+        "Base": {"attributes": {"label": {"slot_uri": "http://schema.org/name"}}},
+        "Child": {"is_a": "Base", "slot_usage": {"label": {"range": "integer"}}}}}
+    folds, _, problems = A.find_folds(schema, load_schema(LOKF))
+    assert not folds and any("range integer on class Child" in p for p in problems)
+
+
+
+def test_fold_does_not_turn_an_object_reference_into_an_inlined_value():
+    schema = {"slots": {"creators": {"slot_uri": "http://schema.org/author",
+                                     "range": "Agent", "multivalued": True}}}
+    folds, _, problems = A.find_folds(schema, load_schema(LOKF))
+    assert not folds and any("inlined" in p for p in problems)
