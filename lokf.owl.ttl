@@ -1377,7 +1377,7 @@ lokf:from a owl:DatatypeProperty ;
     skos:closeMatch schema1:startDate ;
     skos:definition "Start (inclusive) of a usage window, an ISO 8601 datetime. A bare YYYY-MM-DD is read as that day at 00:00:00Z." ;
     skos:inScheme lokf:schema ;
-    skos:note "dcat:startDate is defined by DCAT 2 precisely for dcterms:PeriodOfTime — exactly this shape. `from` is a Python reserved word: the authored YAML key and JSON-LD term stay `from`, but generated Python needs the induced attribute aliased (see build tooling)." .
+    skos:note "dcat:startDate is defined by DCAT 2 precisely for dcterms:PeriodOfTime — exactly this shape. `from` is a Python reserved word: the authored YAML key and JSON-LD term stay `from`, but generated Python needs the induced attribute aliased. LinkML currently generates `from_` without mapping the authored `from` key when loading dataclasses (https://github.com/linkml/linkml/pull/4083). LOKF's build patches its own generated module; domain schemas importing LOKF and generating their own dataclasses do not receive that patch. Keep the authored key `from`; after an upstream release fixes loading, update the LinkML minimum and remove the local workaround and expected failure in tests/test_keyword_dataclasses.py." .
 
 lokf:generated a owl:ObjectProperty ;
     rdfs:label "generated" ;
