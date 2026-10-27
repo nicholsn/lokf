@@ -231,13 +231,13 @@ def test_registry_mcp_over_stdio(tools):
         async with stdio_client(params) as (read, write):
             async with ClientSession(read, write) as session:
                 initialized = await session.initialize()
-                assert initialized.serverInfo.name == 'lokf-registry'
+                assert initialized.server_info.name == 'lokf-registry'
                 listed = await session.list_tools()
                 assert len(listed.tools) == 5
                 document = await session.call_tool('read_document', {'iri': A + 'x'})
-                assert not document.isError
+                assert not document.is_error
                 assert any('# x' in c.text for c in document.content if hasattr(c, 'text'))
                 query = await session.call_tool('federated_sparql', {'query': 'ASK { ?s ?p ?o }'})
-                assert not query.isError
+                assert not query.is_error
                 assert any('true' in c.text.lower() for c in query.content if hasattr(c, 'text'))
     asyncio.run(exercise())

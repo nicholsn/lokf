@@ -810,7 +810,7 @@ The intended runtime model, layered on the primitives above:
   clearance from the registry's owner. Registry loading skips members with
   a nonempty sensitivity other than `public` before reading their content.
   The owner can clear individual member base IRIs for a run with repeated
-  `--clear-member IRI` options on `registry build`, `query`, or `serve`
+  `--clear-member IRI` options on `registry build`, `query`, `serve`, or `mcp`
   (`cleared_members` in the Python API). Clearance is not persisted into
   shared manifests. A prebuilt N-Quads file is an already-cleared snapshot;
   it contains no sensitivity policy and is loaded as supplied.
