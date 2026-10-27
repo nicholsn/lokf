@@ -13,6 +13,14 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- The site serves `lokf.yaml` and its generated artifacts at
+  `https://lokf.nolan-nichols.com/<file>`, copied in at build time, and
+  `lokf new` declares the context by the identifier the SPEC names,
+  `https://w3id.org/lokf/context.jsonld`, in `index.md` and in the scaffolded
+  site's `graph.jsonld`, in place of a raw GitHub URL that moved with `main`.
+
 ## [0.9.0] — 2026-10-28
 
 Format version is unchanged: **LOKF v0.2**. The schema now accepts what

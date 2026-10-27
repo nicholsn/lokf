@@ -2,7 +2,7 @@
 lokf_version: "0.2"
 okf_version: "0.2"
 base_iri: __KB_BASE_IRI__
-context: https://raw.githubusercontent.com/nicholsn/lokf/main/lokf.context.jsonld
+context: https://w3id.org/lokf/context.jsonld
 title: __KB_TITLE__
 description: A LOKF knowledge base — markdown concepts that are also a graph.
 license: https://creativecommons.org/licenses/by/4.0/

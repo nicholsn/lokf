@@ -1,9 +1,8 @@
 import type { APIRoute } from 'astro';
 import { loadBundle, iriOf, resolveRef, RELATION_SLOTS } from '../lib/lokf';
 
-/** The LOKF JSON-LD context published by the lokf project. */
-const CONTEXT =
-  'https://raw.githubusercontent.com/nicholsn/lokf/main/lokf.context.jsonld';
+/** The LOKF JSON-LD context, at the permanent identifier the SPEC names. */
+const CONTEXT = 'https://w3id.org/lokf/context.jsonld';
 
 /**
  * The whole bundle as one JSON-LD document — this is the LOKF thesis: the
