@@ -13,64 +13,8 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
-### Added
-
-- `lokf adapt` folds a vocabulary slot or class attribute into LOKF's when
-  its `slot_uri` or an `exact_mappings` entry is the IRI of a slot on
-  `Concept`, or when `--fold` names it; `--keep` holds one back. A fold
-  copies the slot's constraints into `slot_usage`, and is refused
-  when its shape differs from LOKF's slot.
-- `Distribution` takes an optional `checksum` (`spdx:Checksum`, as DCAT 3
-  models it: the SPDX algorithm individual and an `xsd:hexBinary` digest as
-  long as that algorithm's) and `byte_size` (`dcat:byteSize`).
-
-- `lokf registry build`, `query` and `serve`: one named graph per member, keyed
-  by its `base_iri`, queried as a union (SPEC §11.4).
-- `lokf registry mcp`: the `lokf-registry` MCP server, with `resolve_iri`,
-  `neighbors`, `subgraph`, `federated_sparql` and `read_document`, each bounded.
-- Registries of registries: an entry of `type: dcat:Catalog` names another
-  registry, which `build`, `query`, `serve`, `mcp` and `resolve` follow to the
-  top registry's `max_depth` (SPEC §11.2-11.4).
-  The walk goes tier by tier, skips a registry it cannot read, and takes from
-  a manifest at a URL only URLs.
-
-### Fixed
-
-- `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label
-  blank nodes from content and fix their order, so one bundle gives the same
-  bytes in N-Triples, Turtle, N3, TriG and JSON-LD.
-
-- Turtle output writes schema.org terms as `schema:`, not rdflib's `schema1:`.
-
-- Sorting N-Triples splits on newlines only, so a literal holding U+2028 no
-  longer breaks `graph.nt`.
-- A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no
-  longer slips a `SERVICE` past the refusal in `lokf serve` and `query`.
-
-- `query_form` reads a query whose `PREFIX` or `BASE` shares its line, so a
-  one-line ASK or CONSTRUCT is no longer run as a SELECT.
-
-- `Registry.add` accepts an entry for a registered `base_iri` when it names the
-  same release, so two registries that share a bundle can be merged.
-
-- `lokf registry add` takes a bundle zip or its URL and records the archive and
-  its `checksum`; local locations are written relative to the manifest.
-
-- Registration now refuses explicit ids outside `base_iri` unless
-  `--allow-foreign-ids` is given, and ids inside another member's namespace.
-
-- An explicit `id` under a member's `base_iri` that differs from its file path
-  now resolves to the concept that declares it.
-
-- SHACL artifacts now match the authoring RDF projection, preserve separate
-  Source/Citation shapes, and avoid false failures from inherited properties
-  and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
-
-- Nested validation errors name the field path and unexpected provenance keys.
-
-- A domain schema's slot named like a ParameterType value, such as `uri`
-  or `date`, keeps its own IRI under `--schema` instead of projecting as a
-  Parameter-kind class. LOKF's published context is unchanged.
+Format version is unchanged: **LOKF v0.2**. The schema now accepts what
+OKF v0.2 writes.
 
 ### Changed
 
@@ -84,37 +28,52 @@ with the 0.x caveat that a minor release may tighten validation.
 - `by` is required by the event classes (`generated`, `verified`) rather than
   on the slot, and the schema notes where LOKF requires more than OKF: `id`,
   and `by` on a verification.
+- **`supporting_text` is renamed `excerpt`** on `Source`, the name proposed
+  for OKF in [knowledge-catalog#438]; its predicate is `lokf:excerpt`. A
+  bundle written against 0.8.0 must rename the key.
+- **`stale_after`, `usage_window.from`/`to` and `sources[].last_modified` are
+  `datetime`**, as OKF defines every timestamp, so OKF's own
+  `stale_after: 2026-09-23T00:00:00Z` now validates. A bare `YYYY-MM-DD` is
+  read as that day at midnight UTC, so existing bundles need no change.
 
 ### Added
 
+- `lokf adapt` folds a vocabulary slot or class attribute into LOKF's when
+  its `slot_uri` or an `exact_mappings` entry is the IRI of a slot on
+  `Concept`, or when `--fold` names it; `--keep` holds one back. A fold
+  copies the slot's constraints into `slot_usage`, and is refused
+  when its shape differs from LOKF's slot.
+- `Distribution` takes an optional `checksum` (`spdx:Checksum`, as DCAT 3
+  models it: the SPDX algorithm individual and an `xsd:hexBinary` digest as
+  long as that algorithm's) and `byte_size` (`dcat:byteSize`).
+- `lokf registry build`, `query` and `serve`: one named graph per member, keyed
+  by its `base_iri`, queried as a union (SPEC §11.4).
+- `lokf registry mcp`: the `lokf-registry` MCP server, with `resolve_iri`,
+  `neighbors`, `subgraph`, `federated_sparql` and `read_document`, each bounded.
+- Registries of registries: an entry of `type: dcat:Catalog` names another
+  registry, which `build`, `query`, `serve`, `mcp` and `resolve` follow to the
+  top registry's `max_depth` (SPEC §11.2-11.4).
+  The walk goes tier by tier, skips a registry it cannot read, and takes from
+  a manifest at a URL only URLs.
 - `exclusions` on a concept: materials looked at and left out on purpose, each
   with a required `reason` and an optional `by`, projected as `lokf:excludes`.
-
 - `lokf validate` warns when a concept lists one material as both a source and
   an exclusion.
-
 - `--check-resources` accepts a pattern such as `docs/*.svg` in a source or an
   exclusion when it matches a file inside the root.
-
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,
   and domain schemas. External reference classes remain unverified.
-
 - Wheels ship the generated JSON Schema and SHACL artifacts alongside the
   source schema and authoring context.
-
 - `isReplacedBy` relates a deprecated concept to one or more successors, with
   RDF mapping, reference checks, and replacement-language proposal cues.
-
 - Opt-in local resource existence checks with an explicit root, symlink
   containment, and diagnostics for ambiguous source descriptions.
-
 - Validate reserved change logs, rejecting malformed dates and warning about
   duplicate dates or groups not ordered newest-first.
-
 - Trust summaries report the latest human review and whether content changed
   since that review, without changing the existing trust tiers.
-
 - `audience`, `typicalAgeRange` and `educationalLevel` say who a concept
   is written for, such as a version of another concept for younger
   readers. They map to `schema:audience` (exact `dcterms:audience`),
@@ -160,9 +119,42 @@ with the 0.x caveat that a minor release may tighten validation.
   `--schema`, so `graph.nt` carries the domain's IRIs as `convert` does. A
   declared file that does not exist is an error, not a fall-back to core.
   `lokf.schema.project_schema()` finds it.
+- `lokf vocab --all --json` and MCP `get_vocabulary(all=True)` report each
+  slot's `pattern` and `required`, and each class's `slot_usage` including
+  its `recommended` fields. Follow-up to [#61].
+- `additionalType` (`schema:additionalType`) on `Concept`: the producer's
+  `type` when it names no LOKF class.
+- `revision` on `generated` and `verified[]` events (`lokf:revision`): the
+  commit id, ETag or content digest of the resource the event checked,
+  proposed for OKF in [knowledge-catalog#437]. Absent means unrecorded.
 
 ### Fixed
 
+- `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label
+  blank nodes from content and fix their order, so one bundle gives the same
+  bytes in N-Triples, Turtle, N3, TriG and JSON-LD.
+- Turtle output writes schema.org terms as `schema:`, not rdflib's `schema1:`.
+- Sorting N-Triples splits on newlines only, so a literal holding U+2028 no
+  longer breaks `graph.nt`.
+- A query rdflib cannot parse, such as one with an RDF 1.2 triple term, no
+  longer slips a `SERVICE` past the refusal in `lokf serve` and `query`.
+- `query_form` reads a query whose `PREFIX` or `BASE` shares its line, so a
+  one-line ASK or CONSTRUCT is no longer run as a SELECT.
+- `Registry.add` accepts an entry for a registered `base_iri` when it names the
+  same release, so two registries that share a bundle can be merged.
+- `lokf registry add` takes a bundle zip or its URL and records the archive and
+  its `checksum`; local locations are written relative to the manifest.
+- Registration now refuses explicit ids outside `base_iri` unless
+  `--allow-foreign-ids` is given, and ids inside another member's namespace.
+- An explicit `id` under a member's `base_iri` that differs from its file path
+  now resolves to the concept that declares it.
+- SHACL artifacts now match the authoring RDF projection, preserve separate
+  Source/Citation shapes, and avoid false failures from inherited properties
+  and fields sharing a predicate. Closed frontmatter checks remain in JSON Schema.
+- Nested validation errors name the field path and unexpected provenance keys.
+- A domain schema's slot named like a ParameterType value, such as `uri`
+  or `date`, keeps its own IRI under `--schema` instead of projecting as a
+  Parameter-kind class. LOKF's published context is unchanged.
 - `lokf validate --check-refs` reads a slot the schema names with spaces
   (`in taxon`) by the key LinkML derives for frontmatter (`in_taxon`); it
   looked up the spaced name and never found the value. `lokf vocab --all`
@@ -186,9 +178,25 @@ with the 0.x caveat that a minor release may tighten validation.
 - `lokf validate --schema` resolves the domain schema's imports next to the
   schema file. Previously it resolved them against the current directory, so
   `imports: [lokf]` failed unless lokf ran from the schema's own directory.
+- The RDF projection dropped an unknown `type` (`BigQuery Table` left the
+  node untyped; `Skill` minted an undeclared class). Both are now
+  `lokf:Concept`, with the original string kept as `additionalType`, as
+  SPEC §8 states. A class declared only in a domain schema (`--schema`)
+  projects the same way, where it minted `lokf:<Class>` before.
+- SPEC §8 names `lokf validate` as the strict producer-side check and
+  `convert`/`query`/`serve` as the permissive OKF consumers; §9.1 states
+  that the 0.8.0 patterns narrow nothing OKF defines.
+- `lokf adapt -o <directory>` writes `<stem>_lokf.yaml` into that directory,
+  or into a new one when the name ends in a slash, and `--check` reads it
+  from there; it ended in a traceback before. The copy gets the mode a plain
+  write gives, or keeps the mode of the file it replaces, where it was
+  readable by its owner only.
 
 ### Internal
 
+- The site's validation guide names `--check-resources`, `--root` and
+  `--shacl`, and a toolkit page covers `lokf registry` and the files
+  `lokf export` writes for it.
 - Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
 - A *Domain schemas* how-to guide on the site, with biolink-model and gist
   as the adapted vocabularies, and a toolkit page for `lokf adapt`; the validation guide now names `--schema`, `--check-refs`

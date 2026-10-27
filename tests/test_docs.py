@@ -49,8 +49,13 @@ def test_docs_quote_the_current_package_version(doc):
 
 
 def test_every_documented_lokf_command_exists():
-    """Every `lokf <cmd>` in a fenced shell block must be a real command."""
+    """Every `lokf <cmd>` in a fenced shell block must be a real command, and a
+    group's `lokf <group> <cmd>` one of that group's commands."""
     real = {c.name or c.callback.__name__ for c in app.registered_commands}
+    groups = {
+        g.name: {c.name or c.callback.__name__ for c in g.typer_instance.registered_commands}
+        for g in app.registered_groups
+    }
     files = [
         p
         for p in ROOT.rglob("*.md*")
@@ -62,9 +67,15 @@ def test_every_documented_lokf_command_exists():
             r"```(?:bash|sh|console)\n(.*?)```", f.read_text(encoding="utf-8", errors="ignore"), re.S
         )
         for line in (l.strip().lstrip("$ ").strip() for b in blocks for l in b.splitlines()):
-            m = re.match(r"^(?:uv run |uvx --from \S+ )?lokf\s+([a-z][\w-]*)", line)
-            if m and m.group(1) not in real:
-                unknown.add((f.relative_to(ROOT).as_posix(), m.group(1)))
+            m = re.match(r"^(?:uv run |uvx --from \S+ )?lokf\s+([a-z][\w-]*)(?:\s+([a-z][\w-]*))?", line)
+            if not m:
+                continue
+            cmd, sub = m.groups()
+            if cmd in groups:
+                if sub is not None and sub not in groups[cmd]:
+                    unknown.add((f.relative_to(ROOT).as_posix(), f"{cmd} {sub}"))
+            elif cmd not in real:
+                unknown.add((f.relative_to(ROOT).as_posix(), cmd))
     assert not unknown, f"documented commands that do not exist: {sorted(unknown)}"
 
 

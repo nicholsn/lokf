@@ -708,9 +708,12 @@ def adapt(
         ..., exists=True, dir_okay=False,
         help="A published LinkML vocabulary: its root schema file.",
     ),
-    output: Optional[Path] = typer.Option(
-        None, "--output", "-o",
-        help="Where to write the copy (default: <stem>_lokf.yaml beside the input).",
+    # A string, not a Path: Path drops the trailing slash that marks a new
+    # directory.
+    output: Optional[str] = typer.Option(
+        None, "--output", "-o", metavar="PATH",
+        help="Where to write the copy: a file, or a directory that gets <stem>_lokf.yaml, "
+        "with a trailing slash for a new one (default: beside the input).",
     ),
     root: list[str] = typer.Option(
         [], "--root",
@@ -760,7 +763,16 @@ def adapt(
             raise typer.BadParameter(f"{pair!r} is not VOCAB_SLOT=LOKF_SLOT", param_hint="--fold")
         if folds.setdefault(want, target) != target:
             raise typer.BadParameter(f"{want} is folded into two slots", param_hint="--fold")
-    out = output or vocab.with_name(f"{vocab.stem}_lokf.yaml")
+    default_name = f"{vocab.stem}_lokf.yaml"
+    if output is None:
+        out = vocab.with_name(default_name)
+    elif output.endswith(("/", os.sep)) or Path(output).is_dir():
+        # A directory, existing or new, gets the default name inside it, since
+        # the candidate cannot be renamed over a directory. A trailing slash is
+        # the only sign of a directory that does not exist yet.
+        out = Path(output) / default_name
+    else:
+        out = Path(output)
     if out.resolve() == vocab.resolve():
         _err(f"{out} is the input; pass --output to write the copy elsewhere.")
         raise typer.Exit(2)
@@ -800,6 +812,16 @@ def adapt(
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(text)
+            # mkstemp makes the file readable by its owner only. Keep the mode
+            # of the copy it replaces, or give a new one what a plain write
+            # would under the current umask.
+            if out.exists():
+                mode = out.stat().st_mode & 0o777
+            else:
+                umask = os.umask(0)
+                os.umask(umask)
+                mode = 0o666 & ~umask
+            candidate.chmod(mode)
             problems = adapter.verify(candidate, lokf_path)
             if not problems:
                 os.replace(candidate, out)

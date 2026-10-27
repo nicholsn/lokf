@@ -7,7 +7,9 @@ each move on its own; the end-to-end tests import the copy from a domain
 schema and run the bundle through `lokf validate` and `lokf convert`. The
 biolink test itself runs only after `just biolink` has fetched the model.
 """
+import os
 import pathlib
+import stat
 
 import pytest
 import yaml
@@ -625,6 +627,33 @@ def test_cli_creates_the_output_directory(tmp_path):
     result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out)])
     assert result.exit_code == 0, result.output
     assert out.exists()
+
+
+def test_cli_writes_the_default_name_into_an_output_directory(tmp_path):
+    result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    out = tmp_path / f"{VOCAB.stem}_lokf.yaml"
+    assert out.exists()
+    assert f"-> {out}" in result.output
+    assert runner.invoke(app, ["adapt", str(VOCAB), "-o", str(tmp_path), "--check"]).exit_code == 0
+
+
+def test_cli_reads_a_trailing_slash_as_a_new_directory(tmp_path):
+    result = runner.invoke(app, ["adapt", str(VOCAB), "-o", f"{tmp_path / 'new'}/"])
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "new" / f"{VOCAB.stem}_lokf.yaml").is_file()
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX file modes")
+def test_cli_gives_the_copy_a_plain_file_mode_and_keeps_the_mode_of_a_replaced_one(tmp_path):
+    out = tmp_path / "copy.yaml"
+    umask = os.umask(0)
+    os.umask(umask)
+    assert runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out)]).exit_code == 0
+    assert stat.S_IMODE(out.stat().st_mode) == 0o666 & ~umask
+    out.chmod(0o640)
+    assert runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out)]).exit_code == 0
+    assert stat.S_IMODE(out.stat().st_mode) == 0o640
 
 
 def test_cli_refuses_to_overwrite_the_input(tmp_path):
