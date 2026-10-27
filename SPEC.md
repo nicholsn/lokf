@@ -803,7 +803,13 @@ The intended runtime model, layered on the primitives above:
   gate lets `harvest` refuse un-cleared members, because metadata each cleared
   *individually* can be *jointly* re-identifying and even `void` counts can leak
   small cells — so aggregating sensitive-domain bundles requires explicit
-  clearance from the registry's owner.
+  clearance from the registry's owner. Registry loading skips members with
+  a nonempty sensitivity other than `public` before reading their content.
+  The owner can clear individual member base IRIs for a run with repeated
+  `--clear-member IRI` options on `registry build`, `query`, or `serve`
+  (`cleared_members` in the Python API). Clearance is not persisted into
+  shared manifests. A prebuilt N-Quads file is an already-cleared snapshot;
+  it contains no sensitivity policy and is loaded as supplied.
 - **Freshness is best-effort.** The federated store reflects the last harvest,
   guarded by conditional requests and a surfaced per-entry `status`; there is no
   live-HEAD guarantee, and an unreachable member degrades to its last-good state

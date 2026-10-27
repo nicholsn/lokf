@@ -682,3 +682,51 @@ def test_registry_build_fails_when_nothing_loads(tmp_path):
     bad.write_text("not n-quads\n", encoding="utf-8")
     q = runner.invoke(app, ["registry", "query", "--quads", str(bad), "ASK { ?s ?p ?o }"])
     assert q.exit_code == 1 and "cannot read" in q.output
+
+
+def test_sensitive_members_require_explicit_clearance_before_reading(tmp_path, monkeypatch):
+    from lokf.store import GraphStore
+    import lokf.registry as registry_module
+
+    reg = _federation(tmp_path)
+    private = reg.repos[1]
+    private.sensitivity = 'confidential'
+    reads = []
+    original = registry_module.member_ntriples
+    def observed(entry):
+        reads.append(entry.base_iri)
+        return original(entry)
+    monkeypatch.setattr(registry_module, 'member_ntriples', observed)
+    store = GraphStore.from_registry(reg)
+    assert private.base_iri not in reads
+    assert 'clearance' in store.load_errors[private.base_iri]
+    assert not store.ask('ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }')
+    cleared = GraphStore.from_registry(reg, cleared_members=[private.base_iri])
+    assert private.base_iri in reads
+    assert cleared.load_errors == {}
+    assert cleared.ask('ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }')
+    assert private.sensitivity == 'confidential'
+
+
+def test_cli_member_clearance_is_per_run(tmp_path):
+    reg = _federation(tmp_path)
+    reg.repos[1].sensitivity = 'private'
+    reg.save()
+    before = reg.path.read_bytes()
+    query = 'ASK { GRAPH <https://b.example/kb/> { ?s ?p ?o } }'
+    args = ['registry', 'query', '-r', str(reg.path), query]
+    denied = runner.invoke(app, args)
+    assert denied.exit_code == 0 and 'false' in denied.output and 'clearance' in denied.output
+    allowed = runner.invoke(app, args + ['--clear-member', reg.repos[1].base_iri])
+    assert allowed.exit_code == 0 and 'true' in allowed.output
+    assert reg.path.read_bytes() == before
+
+
+def test_federated_graph_preserves_cross_bundle_edges(tmp_path):
+    from lokf.store import GraphStore
+    from lokf.export import graph_to_cytoscape
+
+    graph = GraphStore.from_registry(_federation(tmp_path)).rdflib_graph()
+    elements = graph_to_cytoscape(graph)
+    pairs = {(e['data']['source'], e['data']['target']) for e in elements['edges']}
+    assert ('https://a.example/kb/x', 'https://b.example/kb/y') in pairs

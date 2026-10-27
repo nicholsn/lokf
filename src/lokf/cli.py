@@ -1065,7 +1065,7 @@ def registry_resolve(
 
 
 
-def _registry_store(registry: Path, quads: Optional[Path], reg=None):
+def _registry_store(registry: Path, quads: Optional[Path], reg=None, cleared_members=()):
     """A union store over *registry*'s members, or over a built *quads* file.
 
     Members that cannot be loaded are named on stderr and skipped; a
@@ -1079,7 +1079,7 @@ def _registry_store(registry: Path, quads: Optional[Path], reg=None):
         except (SyntaxError, ValueError, OSError) as exc:
             _err(f"cannot read {quads}: {exc}")
             raise typer.Exit(1)
-    store = GraphStore.from_registry(reg if reg is not None else _manifest(registry))
+    store = GraphStore.from_registry(reg if reg is not None else _manifest(registry), cleared_members=cleared_members)
     for base_iri, why in store.load_errors.items():
         _err(f"skipped {base_iri}: {why}")
     return store
@@ -1099,6 +1099,9 @@ def registry_build(
     strict: bool = typer.Option(
         False, "--strict", help="Exit 1 when a member fails to load or a target does not resolve."
     ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Load each member into a named graph (its base_iri) and write them as N-Quads.
 
@@ -1110,7 +1113,7 @@ def registry_build(
     from lokf.registry import unresolved_targets
 
     reg = _manifest(registry)
-    store = _registry_store(registry, None, reg)
+    store = _registry_store(registry, None, reg, clear_member)
     loaded = len(reg.repos) - len(store.load_errors)
     if reg.repos and not loaded:
         _err(f"no member of {registry} could be loaded")
@@ -1141,9 +1144,12 @@ def registry_query(
     format: str = typer.Option(
         "table", "--format", "-f", help="table | json | csv | tsv | ttl (CONSTRUCT)."
     ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Run SPARQL over every member at once, the default graph being their union."""
-    _run_query(_registry_store(registry, quads), sparql, format)
+    _run_query(_registry_store(registry, quads, cleared_members=clear_member), sparql, format)
 
 
 @registry_app.command("serve")
@@ -1156,11 +1162,14 @@ def registry_serve(
     ),
     host: str = typer.Option("127.0.0.1", help="Bind host."),
     port: int = typer.Option(8000, help="Bind port."),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Publish the federation locally: SPARQL endpoint + live graph viz."""
     from lokf.server import serve_store
 
-    store = _registry_store(registry, quads)
+    store = _registry_store(registry, quads, cleared_members=clear_member)
     serve_store(store, str(quads or registry), host=host, port=port)
 
 def main(argv: list[str] | None = None) -> int:

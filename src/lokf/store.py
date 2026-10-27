@@ -167,11 +167,13 @@ class GraphStore:
         return cls.from_graph(rdf.graph_of(path, schema=schema), **kw)
 
     @classmethod
-    def from_registry(cls, registry, **kw) -> "GraphStore":
+    def from_registry(cls, registry, *, cleared_members=(), **kw) -> "GraphStore":
         """Build a store holding each registry member in a named graph whose
         IRI is its ``base_iri`` (SPEC §11.4).
 
         *registry* is a :class:`lokf.registry.Registry` or a manifest path. A
+        member whose sensitivity is neither unset nor public requires its
+        base_iri in cleared_members before any content is read. A
         member that cannot be loaded is skipped and its reason kept in
         :attr:`load_errors`, so one unreachable member does not stop the rest.
         Each member's blank nodes are canonicalised (RDFC-1.0) and then
@@ -187,9 +189,13 @@ class GraphStore:
         if not hasattr(registry, "repos"):
             registry = load_registry(registry)
         registry = registry.located()
+        cleared_members = set(cleared_members)
         store = ox.Store()
         errors: dict[str, str] = {}
         for entry in registry.repos:
+            if (entry.sensitivity or "").strip().lower() not in ("", "public") and entry.base_iri not in cleared_members:
+                errors[entry.base_iri] = "sensitive member requires explicit clearance"
+                continue
             graph = ox.NamedNode(entry.base_iri)
             tag = "m" + hashlib.sha256(entry.base_iri.encode()).hexdigest()[:12] + "_"
 
