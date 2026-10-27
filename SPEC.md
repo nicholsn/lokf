@@ -716,7 +716,9 @@ A registry is a git-committed `lokf-registry.yaml` — a `dcat:Catalog` of
 lightweight `void` planning index (triple and per-type counts, so an agent can
 pick a bundle *without* dereferencing it), and harvest `status`. It parses with a
 plain YAML reader — no LinkML on the read path — and round-trips to a crawlable
-`registry.jsonld`.
+`registry.jsonld`. A local location, the `path` of a checkout or a
+`distribution` value that is not a URL, is relative to the manifest, so a
+manifest written on one machine reads the same in a checkout anywhere else.
 
 ```yaml
 lokf_registry_version: "0.1"
@@ -730,6 +732,8 @@ repos:
     distribution:
       rdf:      https://acme.example/knowledge/graph.nt        # SPARQL harvest source
       concepts: https://acme.example/knowledge/concepts.jsonld # offline document access
+      archive:  https://acme.example/releases/knowledge-v1.zip # the release it was registered from
+    checksum: sha256:…                               # digest of that archive
     void: { triples: 157, class_partition: { Metric: 1, Dataset: 1, GlossaryTerm: 1, AttestedComputation: 1 } }
     id_index:                                        # explicit `id:` IRIs outside base_iri → Concept ID
       https://acme.example/legacy/wau: metrics/weekly-active-users
@@ -748,18 +752,22 @@ target is *already* a correct triple. Three rules keep it trustworthy:
 
 1. **Explicit-id index.** A concept's frontmatter `id:` may diverge from
    `base_iri + concept_id` (§5). Such IRIs are harvested into the entry's
-   `id_index` — a map from the explicit IRI to its Concept ID — and checked as
-   an exact-match fallback before an IRI is declared external, so they still
-   route (to the right source document).
+   `id_index` — a map from the explicit IRI to its Concept ID. The owning
+   member's own index is checked first, so an explicit `id` under its
+   `base_iri` names its concept; every member's index is then an exact-match
+   fallback before an IRI is declared external, so such IRIs still route (to
+   the right source document).
 2. **Boundaries, namespace precedence & non-nesting.** A member `base_iri` must
    end in a path separator (`/` or `#`) so prefix routing respects segment
    boundaries — `…/team/` never captures `…/team-archive/`. It must be strictly
    longer than, and may not capture, the packaged vocabulary namespace
    (`https://w3id.org/lokf/`), which is reserved for the built-in schema; and no
    two `base_iri`s may nest, so at most one prefixes any IRI.
-3. **Ownership validation.** At registration a member's sampled concept IRIs must
-   actually start with its declared `base_iri`, so a bundle cannot claim a
-   namespace it does not own.
+3. **Ownership validation.** At registration a member's concept IRIs must start
+   with its declared `base_iri`, so a bundle cannot claim a namespace it does not
+   own. An explicit `id` outside it is refused unless the registrant allows
+   foreign ids, and even then it may not lie in another member's `base_iri` or
+   the vocabulary namespace.
 
 An IRI owned by no entry is returned as a tolerated **dangling link**, not an
 error — preserving OKF's permissive stance on broken cross-references.
