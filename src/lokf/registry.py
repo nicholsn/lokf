@@ -244,7 +244,7 @@ class Registry:
 
 
 #: The fields that say which release an entry describes, when no checksum does.
-_RELEASE_FIELDS = ("repo", "source_base", "distribution", "id_index")
+_RELEASE_FIELDS = ("repo", "source_base", "distribution", "id_index", "path", "void")
 
 
 def release_difference(a: RepoEntry, b: RepoEntry) -> str | None:
@@ -253,9 +253,9 @@ def release_difference(a: RepoEntry, b: RepoEntry) -> str | None:
     Two checksums decide it alone: the same digest is the same bytes, whatever
     either entry says about where they are. One checksum without the other
     cannot be compared, so it counts as a difference. Otherwise every release
-    field must match. ``title``, ``path`` and ``status`` are a registry's own
-    notes, and ``void`` is counted by whichever lokf registered the entry;
-    none of them is the release, and none is compared.
+    field must match, including the local path and planning index. Without
+    a digest, different local checkouts or changed counts cannot be assumed
+    to describe the same release. ``title`` and ``status`` remain local notes.
     """
     if a.checksum and b.checksum:
         return None if a.checksum == b.checksum else "checksum"

@@ -543,12 +543,12 @@ def test_an_id_in_the_entrys_own_namespace_under_the_vocabulary_is_allowed():
         reg.add(RepoEntry(base_iri="https://b.example/", id_index={VOCAB_NS + "Metric": "m"}))
 
 
-def test_release_difference_ignores_void_and_names_a_lone_checksum():
+def test_release_difference_checks_unpinned_metadata_and_names_a_lone_checksum():
     from lokf.registry import release_difference
 
     a = RepoEntry(base_iri="https://a/", source_base="https://s/", void={"triples": 6})
     assert release_difference(a, RepoEntry(base_iri="https://a/", source_base="https://s/",
-                                           void={"triples": 7})) is None
+                                           void={"triples": 7})) == "void"
     lone = release_difference(a, RepoEntry(base_iri="https://a/", checksum="sha256:" + "0" * 64))
     assert lone.startswith("checksum (one entry has one")
 
@@ -579,3 +579,11 @@ def test_cli_add_replaces_a_local_zip_path_with_its_url(tmp_path, http_files):
     again = runner.invoke(app, ["registry", "add", f"{base}/k.zip", "-r", str(manifest)])
     assert "recorded the locations it lacked" in again.output
     assert yaml.safe_load(manifest.read_text())["repos"][0]["distribution"] == {"archive": f"{base}/k.zip"}
+
+
+def test_distinct_unpinned_local_bundles_are_not_the_same_release():
+    reg = Registry(path=pathlib.Path("r.yaml"))
+    assert reg.add(RepoEntry(base_iri="https://ex.org/", path="one"))
+    with pytest.raises(ValueError, match="path differs"):
+        reg.add(RepoEntry(base_iri="https://ex.org/", path="two"))
+    assert len(reg.repos) == 1
