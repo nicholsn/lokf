@@ -21,6 +21,8 @@ with the 0.x caveat that a minor release may tighten validation.
 
 - `lokf registry build`, `query` and `serve`: one named graph per member, keyed
   by its `base_iri`, queried as a union (SPEC §11.4).
+- `lokf registry mcp`: the `lokf-registry` MCP server, with `resolve_iri`,
+  `neighbors`, `subgraph`, `federated_sparql` and `read_document`, each bounded.
 
 ### Fixed
 
