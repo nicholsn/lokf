@@ -8,6 +8,7 @@
 @prefix schema1: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 lokf:AttestedComputationShape a sh:NodeShape ;
@@ -3317,6 +3318,25 @@ lokf:AttesterShape a sh:NodeShape ;
 
 lokf:BooleanParameter rdfs:subClassOf lokf:Parameter .
 
+lokf:ChecksumShape a sh:NodeShape ;
+    rdfs:comment "A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as DCAT 3 attaches it." ;
+    sh:closed false ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:description "The algorithm that computed a checksum." ;
+            sh:in ( spdx:checksumAlgorithm_sha1 spdx:checksumAlgorithm_sha224 spdx:checksumAlgorithm_sha256 spdx:checksumAlgorithm_sha384 spdx:checksumAlgorithm_sha512 spdx:checksumAlgorithm_sha3_256 spdx:checksumAlgorithm_sha3_384 spdx:checksumAlgorithm_sha3_512 spdx:checksumAlgorithm_blake2b256 spdx:checksumAlgorithm_blake2b384 spdx:checksumAlgorithm_blake2b512 spdx:checksumAlgorithm_md5 ) ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:order 0 ;
+            sh:path spdx:algorithm ],
+        [ sh:datatype xsd:hexBinary ;
+            sh:description "The checksum as lowercase hexadecimal digits, as many as the algorithm's digest has: 32 (md5), 40 (sha1), 56 (sha224), 64 (the 256-bit digests), 96 (the 384-bit ones) or 128 (the 512-bit ones)." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path spdx:checksumValue ;
+            sh:pattern "^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$" ] .
+
 lokf:ConceptShape a sh:NodeShape ;
     rdfs:comment "A single unit of knowledge within a bundle, represented as one markdown document. The abstract base of every LOKF type. Its own IRI (`id`) is the RDF subject; the markdown body and typed relations become triples about that subject." ;
     sh:closed false ;
@@ -3610,12 +3630,24 @@ lokf:DistributionShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
             sh:path schema1:description ],
+        [ sh:description "A digest of the distribution's bytes, for checking a download." ;
+            sh:maxCount 1 ;
+            sh:node lokf:ChecksumShape ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 4 ;
+            sh:path spdx:checksum ],
         [ sh:datatype xsd:string ;
             sh:description "The media (MIME) type of a distribution." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path dcat:mediaType ],
+        [ sh:datatype xsd:nonNegativeInteger ;
+            sh:description "The size of the distribution in bytes." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path dcat:byteSize ],
         [ sh:datatype xsd:string ;
             sh:description "A name." ;
             sh:nodeKind sh:Literal ;

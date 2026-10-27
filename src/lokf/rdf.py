@@ -113,15 +113,25 @@ def docs_to_graph(
         format="json-ld",
         publicID=base or None,
     )
-    # JSON-LD's @id coercion connects an inlined audience but does not
-    # infer its class from the LinkML range. Supply the declared default
-    # so projected audiences satisfy the generated SHACL class constraint.
-    # Work with expanded IRIs so a custom context's unrelated `audience`
-    # property is unaffected, and preserve explicitly typed audiences.
-    for audience in list(g.objects(None, URIRef("http://schema.org/audience"))):
-        if isinstance(audience, (BNode, URIRef)) and not any(g.objects(audience, RDF.type)):
-            g.add((audience, RDF.type, URIRef("http://schema.org/PeopleAudience")))
+    # JSON-LD's @id coercion connects an inlined audience or checksum but
+    # does not infer its class from the LinkML range. Supply the declared
+    # default so projected nodes satisfy the generated SHACL class
+    # constraints. Work with expanded IRIs so a custom context's unrelated
+    # `audience` property is unaffected, and preserve explicit types.
+    for predicate, cls in _NODE_CLASSES:
+        for node in list(g.objects(None, URIRef(predicate))):
+            if isinstance(node, (BNode, URIRef)) and not any(g.objects(node, RDF.type)):
+                g.add((node, RDF.type, URIRef(cls)))
     return g
+
+
+#: The class an inlined object takes by default, by the property that holds
+#: it: JSON-LD cannot infer a class from a LinkML range, and a consumer
+#: reading DCAT 3 expects an spdx:Checksum.
+_NODE_CLASSES = (
+    ("http://schema.org/audience", "http://schema.org/PeopleAudience"),
+    ("http://spdx.org/rdf/terms#checksum", "http://spdx.org/rdf/terms#Checksum"),
+)
 
 
 def _bundle_root(path: pathlib.Path) -> pathlib.Path | None:

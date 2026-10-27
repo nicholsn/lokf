@@ -223,6 +223,41 @@ def test_exclusions_project_apart_from_sources(tmp_path):
     assert based_on == {"docs/a.md"}
 
 
+def test_distribution_checksum_projects_as_dcat_3(tmp_path):
+    """A distribution's checksum is an spdx:Checksum node and its size dcat:byteSize."""
+    from rdflib import Literal
+    from rdflib.namespace import RDF, XSD
+
+    (tmp_path / "index.md").write_text(
+        "---\nbase_iri: https://ex.org/kb/\n---\n# KB\n", encoding="utf-8"
+    )
+    digest = "e6a8030d" * 8
+    (tmp_path / "release.md").write_text(
+        "---\ntype: Dataset\ntitle: Release\ndistribution:\n"
+        "  - access_url: https://ex.org/r/v1.zip\n    byte_size: 12345\n"
+        f"    checksum:\n      algorithm: sha256\n      checksum_value: {digest}\n"
+        "---\n# Release\n",
+        encoding="utf-8",
+    )
+    g = rdf.graph_of(tmp_path)
+    dcat, spdx = "http://www.w3.org/ns/dcat#", "http://spdx.org/rdf/terms#"
+    dist = g.value(URIRef("https://ex.org/kb/release"), URIRef(dcat + "distribution"))
+    assert (dist, URIRef(dcat + "byteSize"), Literal("12345", datatype=XSD.nonNegativeInteger)) in g
+    checksum = g.value(dist, URIRef(spdx + "checksum"))
+    assert (checksum, RDF.type, URIRef(spdx + "Checksum")) in g
+    assert (checksum, URIRef(spdx + "algorithm"), URIRef(spdx + "checksumAlgorithm_sha256")) in g
+    assert (checksum, URIRef(spdx + "checksumValue"), Literal(digest, datatype=XSD.hexBinary)) in g
+
+
+def test_algorithm_names_are_iris_only_under_algorithm(tmp_path):
+    """The SPDX names are scoped to `algorithm`: elsewhere `sha256` is a word."""
+    from rdflib import Literal
+
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\n---\n", encoding="utf-8")
+    (tmp_path / "w.md").write_text("---\ntype: GlossaryTerm\ntitle: sha256\n---\n", encoding="utf-8")
+    g = rdf.graph_of(tmp_path)
+    assert (URIRef("https://ex.org/kb/w"), URIRef("http://schema.org/name"), Literal("sha256")) in g
+
 def test_serialize_is_byte_stable_with_blank_nodes():
     """Blank nodes are labelled from content, so the same input gives the same bytes."""
     bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"

@@ -78,12 +78,28 @@ RDF = CurieNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 RDFS = CurieNamespace('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
 SCHEMA = CurieNamespace('schema', 'http://schema.org/')
 SKOS = CurieNamespace('skos', 'http://www.w3.org/2004/02/skos/core#')
+SPDX = CurieNamespace('spdx', 'http://spdx.org/rdf/terms#')
 VIVO = CurieNamespace('vivo', 'http://vivoweb.org/ontology/core#')
 XSD = CurieNamespace('xsd', 'http://www.w3.org/2001/XMLSchema#')
 DEFAULT_ = LOKF
 
 
 # Types
+class HexBinary(String):
+    """ Binary data written as hexadecimal digits; maps to xsd:hexBinary. """
+    type_class_uri = XSD["hexBinary"]
+    type_class_curie = "xsd:hexBinary"
+    type_name = "HexBinary"
+    type_model_uri = LOKF.HexBinary
+
+
+class NonNegativeInteger(Integer):
+    """ A whole number, 0 or more; maps to xsd:nonNegativeInteger. """
+    type_class_uri = XSD["nonNegativeInteger"]
+    type_class_curie = "xsd:nonNegativeInteger"
+    type_name = "NonNegativeInteger"
+    type_model_uri = LOKF.NonNegativeInteger
+
 
 # Class references
 class ConceptId(URIorCURIE):
@@ -1316,6 +1332,8 @@ class Distribution(YAMLRoot):
     description: Optional[str] = None
     access_url: Optional[Union[str, URIorCURIE]] = None
     media_type: Optional[str] = None
+    checksum: Optional[Union[dict, "Checksum"]] = None
+    byte_size: Optional[Union[int, NonNegativeInteger]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self.name is not None and not isinstance(self.name, str):
@@ -1329,6 +1347,42 @@ class Distribution(YAMLRoot):
 
         if self.media_type is not None and not isinstance(self.media_type, str):
             self.media_type = str(self.media_type)
+
+        if self.checksum is not None and not isinstance(self.checksum, Checksum):
+            self.checksum = Checksum(**as_dict(self.checksum))
+
+        if self.byte_size is not None and not isinstance(self.byte_size, NonNegativeInteger):
+            self.byte_size = NonNegativeInteger(self.byte_size)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Checksum(YAMLRoot):
+    """
+    A digest of a distribution's bytes, which a consumer recomputes before trusting them. Maps to spdx:Checksum, as
+    DCAT 3 attaches it.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = SPDX["Checksum"]
+    class_class_curie: ClassVar[str] = "spdx:Checksum"
+    class_name: ClassVar[str] = "Checksum"
+    class_model_uri: ClassVar[URIRef] = LOKF.Checksum
+
+    algorithm: Union[str, "ChecksumAlgorithm"] = None
+    checksum_value: Union[str, HexBinary] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.algorithm):
+            self.MissingRequiredField("algorithm")
+        if not isinstance(self.algorithm, ChecksumAlgorithm):
+            self.algorithm = ChecksumAlgorithm(self.algorithm)
+
+        if self._is_empty(self.checksum_value):
+            self.MissingRequiredField("checksum_value")
+        if not isinstance(self.checksum_value, HexBinary):
+            self.checksum_value = HexBinary(self.checksum_value)
 
         super().__post_init__(**kwargs)
 
@@ -1950,6 +2004,65 @@ class HttpMethod(EnumDefinitionImpl):
         description="""The IANA HTTP request method registry, restricted to the methods a LOKF Service is realistically documented as being invoked with. Permissible value names are uppercase (unlike this schema's other enums) because the method name is a case-sensitive wire token, not an authoring convenience label.""",
     )
 
+class ChecksumAlgorithm(EnumDefinitionImpl):
+    """
+    Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5
+    identify bytes but no longer resist tampering.
+    """
+    sha1 = PermissibleValue(
+        text="sha1",
+        description="SHA-1 (FIPS 180-4); identifies bytes but no longer resists tampering.",
+        meaning=SPDX["checksumAlgorithm_sha1"])
+    sha224 = PermissibleValue(
+        text="sha224",
+        description="SHA-224 (FIPS 180-4).",
+        meaning=SPDX["checksumAlgorithm_sha224"])
+    sha256 = PermissibleValue(
+        text="sha256",
+        description="SHA-256 (FIPS 180-4).",
+        meaning=SPDX["checksumAlgorithm_sha256"])
+    sha384 = PermissibleValue(
+        text="sha384",
+        description="SHA-384 (FIPS 180-4).",
+        meaning=SPDX["checksumAlgorithm_sha384"])
+    sha512 = PermissibleValue(
+        text="sha512",
+        description="SHA-512 (FIPS 180-4).",
+        meaning=SPDX["checksumAlgorithm_sha512"])
+    sha3_256 = PermissibleValue(
+        text="sha3_256",
+        description="SHA3-256 (FIPS 202).",
+        meaning=SPDX["checksumAlgorithm_sha3_256"])
+    sha3_384 = PermissibleValue(
+        text="sha3_384",
+        description="SHA3-384 (FIPS 202).",
+        meaning=SPDX["checksumAlgorithm_sha3_384"])
+    sha3_512 = PermissibleValue(
+        text="sha3_512",
+        description="SHA3-512 (FIPS 202).",
+        meaning=SPDX["checksumAlgorithm_sha3_512"])
+    blake2b256 = PermissibleValue(
+        text="blake2b256",
+        description="BLAKE2b with a 256-bit digest (RFC 7693).",
+        meaning=SPDX["checksumAlgorithm_blake2b256"])
+    blake2b384 = PermissibleValue(
+        text="blake2b384",
+        description="BLAKE2b with a 384-bit digest (RFC 7693).",
+        meaning=SPDX["checksumAlgorithm_blake2b384"])
+    blake2b512 = PermissibleValue(
+        text="blake2b512",
+        description="BLAKE2b with a 512-bit digest (RFC 7693).",
+        meaning=SPDX["checksumAlgorithm_blake2b512"])
+    md5 = PermissibleValue(
+        text="md5",
+        description="MD5 (RFC 1321); identifies bytes but no longer resists tampering.",
+        meaning=SPDX["checksumAlgorithm_md5"])
+
+    _defn = EnumDefinition(
+        name="ChecksumAlgorithm",
+        description="""Digest algorithms for a Checksum, each mapped to its SPDX individual. Prefer sha256 or stronger; sha1 and md5 identify bytes but no longer resist tampering.""",
+    )
+
 # Slots
 class slots:
     pass
@@ -2077,6 +2190,19 @@ slots.access_url = Slot(uri=DCAT.accessURL, name="access_url", curie=DCAT.curie(
 
 slots.media_type = Slot(uri=DCAT.mediaType, name="media_type", curie=DCAT.curie('mediaType'),
                    model_uri=LOKF.media_type, domain=None, range=Optional[str])
+
+slots.checksum = Slot(uri=SPDX.checksum, name="checksum", curie=SPDX.curie('checksum'),
+                   model_uri=LOKF.checksum, domain=None, range=Optional[Union[dict, Checksum]])
+
+slots.byte_size = Slot(uri=DCAT.byteSize, name="byte_size", curie=DCAT.curie('byteSize'),
+                   model_uri=LOKF.byte_size, domain=None, range=Optional[Union[int, NonNegativeInteger]])
+
+slots.algorithm = Slot(uri=SPDX.algorithm, name="algorithm", curie=SPDX.curie('algorithm'),
+                   model_uri=LOKF.algorithm, domain=None, range=Optional[Union[str, "ChecksumAlgorithm"]])
+
+slots.checksum_value = Slot(uri=SPDX.checksumValue, name="checksum_value", curie=SPDX.curie('checksumValue'),
+                   model_uri=LOKF.checksum_value, domain=None, range=Optional[Union[str, HexBinary]],
+                   pattern=re.compile(r'^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$'))
 
 slots.formula = Slot(uri=LOKF.formula, name="formula", curie=LOKF.curie('formula'),
                    model_uri=LOKF.formula, domain=None, range=Optional[str])
@@ -2245,6 +2371,13 @@ slots.Service_documentation = Slot(uri=SCHEMA.documentation, name="Service_docum
 
 slots.GlossaryTerm_definition = Slot(uri=SKOS.definition, name="GlossaryTerm_definition", curie=SKOS.curie('definition'),
                    model_uri=LOKF.GlossaryTerm_definition, domain=GlossaryTerm, range=Optional[str])
+
+slots.Checksum_algorithm = Slot(uri=SPDX.algorithm, name="Checksum_algorithm", curie=SPDX.curie('algorithm'),
+                   model_uri=LOKF.Checksum_algorithm, domain=Checksum, range=Union[str, "ChecksumAlgorithm"])
+
+slots.Checksum_checksum_value = Slot(uri=SPDX.checksumValue, name="Checksum_checksum_value", curie=SPDX.curie('checksumValue'),
+                   model_uri=LOKF.Checksum_checksum_value, domain=Checksum, range=Union[str, HexBinary],
+                   pattern=re.compile(r'^([0-9a-f]{32}|[0-9a-f]{40}|[0-9a-f]{56}|[0-9a-f]{64}|[0-9a-f]{96}|[0-9a-f]{128})$'))
 
 slots.Source_resource = Slot(uri=SCHEMA.url, name="Source_resource", curie=SCHEMA.curie('url'),
                    model_uri=LOKF.Source_resource, domain=Source, range=str)

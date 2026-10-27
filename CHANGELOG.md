@@ -15,6 +15,10 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- `Distribution` takes an optional `checksum` (`spdx:Checksum`, as DCAT 3
+  models it: the SPDX algorithm individual and an `xsd:hexBinary` digest as
+  long as that algorithm's) and `byte_size` (`dcat:byteSize`).
+
 - `lokf registry build`, `query` and `serve`: one named graph per member, keyed
   by its `base_iri`, queried as a union (SPEC §11.4).
 - `lokf registry mcp`: the `lokf-registry` MCP server, with `resolve_iri`,
