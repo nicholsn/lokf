@@ -44,14 +44,22 @@ def check_resources(bundle, root: Path):
                 continue
             if source and any(c in value for c in '*?['):
                 # A pattern (docs/*.svg) names the files it matches; it holds
-                # when one of them lies inside the root.
+                # when it names existing resources, all inside the root.
                 if value.startswith(('/', '\\')) or '..' in Path(value).parts:
                     yield 'ERROR', f'{label} is a pattern reaching outside resource root {root}: {value!r}'
                 else:
                     try:
-                        if not any(m.resolve().is_relative_to(root) for m in root.glob(value)):
+                        matched = False
+                        for match in root.glob(value):
+                            matched = True
+                            path = match.resolve()
+                            if not path.is_relative_to(root):
+                                yield 'ERROR', f'{label} match resolves outside resource root {root}: {match}'
+                            elif not (path.is_file() or path.is_dir()):
+                                yield 'ERROR', f'{label} match names no file or directory: {match}'
+                        if not matched:
                             yield 'ERROR', f'{label} matches no file or directory: {value!r} (under {root})'
-                    except (OSError, ValueError) as exc:
+                    except (OSError, RuntimeError, ValueError) as exc:
                         yield 'ERROR', f'{label} is not a pattern that can be checked: {value!r}: {exc}'
                 continue
             try:

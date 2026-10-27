@@ -591,7 +591,8 @@ so off-site targets are not errors.
 
 `lokf validate --check-resources` checks local `resource`,
 `sources[].resource` and `exclusions[].resource` paths. A source or exclusion
-may be a pattern (`docs/*.svg`); it holds when it matches inside the root. Use `--root DIR` to choose their resolution root;
+may be a pattern (`docs/*.svg`); it must match at least one resource, and every
+match must resolve to an existing file or directory inside the root. Use `--root DIR` to choose their resolution root;
 the default is the nearest enclosing Git repository, or the bundle's parent
 outside Git. Files and directories are accepted. Missing paths and paths
 escaping the root (including through symlinks) are errors. URI/CURIE values
