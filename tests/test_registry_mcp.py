@@ -190,3 +190,54 @@ def test_index_says_which_members_a_quads_file_holds(tools, tmp_path):
     store = GraphStore.from_quads(only_a.replace(b" .\n", f" <{A}> .\n".encode()))
     index = registry_index(tools.registry, store)
     assert f"{A} (" in index and f"{B} (not loaded)" in index
+
+
+def test_sensitive_document_access_requires_clearance(tools, monkeypatch):
+    entry = tools.registry.repos[0]
+    entry.sensitivity = 'confidential'
+    monkeypatch.setattr(tools, '_archive', lambda e: pytest.fail('must not fetch an uncleared archive'))
+    assert 'clearance' in tools.read_document(A + 'x')['error']
+    assert tools.resolve_iri(A + 'x')['concept'] is None
+    tools.cleared_members.add(A)
+    assert tools.read_document(A + 'x')['read_from'] == 'checkout'
+
+
+def test_concepts_document_obeys_response_size_bound(tools, monkeypatch):
+    entry = tools.registry.repos[1]
+    entry.distribution = {}
+    entry.source_base = ''
+    monkeypatch.setattr('lokf.registry_mcp.DOCUMENT_MAX_BYTES', 100)
+    monkeypatch.setattr(tools, '_concepts_doc', lambda e: {B + 'y': {'id': B + 'y', 'body': 'x' * 101}})
+    assert 'error' in tools.read_document(B + 'y')
+
+
+def test_local_symlink_loop_is_an_error_answer(tools, tmp_path):
+    (tmp_path / 'a' / 'loop.md').symlink_to('loop.md')
+    assert 'error' in tools.read_document(A + 'loop')
+
+
+def test_registry_mcp_over_stdio(tools):
+    import os
+    import sys
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+
+    tools.registry.save()
+    env = dict(os.environ, PYTHONPATH=str(pathlib.Path(__file__).resolve().parents[1] / 'src'))
+    params = StdioServerParameters(command=sys.executable,
+                                  args=['-m', 'lokf.cli', 'registry', 'mcp', '-r', str(tools.registry.path)],
+                                  env=env)
+    async def exercise():
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as session:
+                initialized = await session.initialize()
+                assert initialized.serverInfo.name == 'lokf-registry'
+                listed = await session.list_tools()
+                assert len(listed.tools) == 5
+                document = await session.call_tool('read_document', {'iri': A + 'x'})
+                assert not document.isError
+                assert any('# x' in c.text for c in document.content if hasattr(c, 'text'))
+                query = await session.call_tool('federated_sparql', {'query': 'ASK { ?s ?p ?o }'})
+                assert not query.isError
+                assert any('true' in c.text.lower() for c in query.content if hasattr(c, 'text'))
+    asyncio.run(exercise())

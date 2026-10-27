@@ -1176,6 +1176,9 @@ def registry_mcp(
         None, "--index", exists=True, dir_okay=False,
         help="Markdown to serve as the index instead of the one built from the manifest.",
     ),
+    clear_member: list[str] = typer.Option(
+        [], "--clear-member", help="Explicitly clear this sensitive member base_iri for this run; repeatable."
+    ),
 ) -> None:
     """Run the lokf-registry MCP server (stdio) over the federation (SPEC §11.4)."""
     import signal
@@ -1183,9 +1186,9 @@ def registry_mcp(
     from lokf.registry_mcp import RegistryTools, build_server
 
     reg = _manifest(registry)
-    store = _registry_store(registry, quads)
+    store = _registry_store(registry, quads, cleared_members=clear_member)
     text = index.read_text(encoding="utf-8") if index else None
-    tools = RegistryTools(reg, store, index=text)
+    tools = RegistryTools(reg, store, index=text, cleared_members=clear_member)
     # A client stops a stdio server with SIGTERM as often as by closing its
     # input; exiting through SystemExit lets the finally below remove the
     # downloaded archives.
