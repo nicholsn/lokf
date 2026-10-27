@@ -13,6 +13,29 @@ def resource_root(bundle_dir: Path) -> Path:
                 bundle_dir.parent)
 
 
+def kind_of(value: str, source: bool = True) -> str:
+    """How a resource value is read, for the passes that check local resources.
+
+    ``uri``: a URI or CURIE, never fetched. ``scope``: a prose scope
+    description, which a source or exclusion may carry when the value has
+    whitespace and no ./, ../ or absolute prefix; a concept's own resource is
+    always a path or identifier. ``windows``: a drive path, checkable on
+    Windows only. ``pattern``: a glob a source or exclusion may name.
+    ``path``: anything else, resolved inside the resource root.
+    """
+    windows_path = bool(PureWindowsPath(value).drive)
+    if not windows_path and re.match(r'^[A-Za-z][A-Za-z0-9+.-]*:', value):
+        return 'uri'
+    explicit_path = value.startswith(('./', '../', '/', '.\\', '..\\')) or windows_path
+    if source and any(c.isspace() for c in value) and not explicit_path:
+        return 'scope'
+    if windows_path and os.name != 'nt':
+        return 'windows'
+    if source and any(c in value for c in '*?['):
+        return 'pattern'
+    return 'path'
+
+
 def check_resources(bundle, root: Path):
     """Yield (severity, message), preserving scope descriptions as warnings.
 
@@ -31,18 +54,17 @@ def check_resources(bundle, root: Path):
             if not isinstance(value, str) or not value:
                 continue  # Shape and required fields are checked by the schema.
             label = f'{bundle.iri(concept)}: `{key}`'
-            windows_path = bool(PureWindowsPath(value).drive)
-            if not windows_path and re.match(r'^[A-Za-z][A-Za-z0-9+.-]*:', value):
+            kind = kind_of(value, source)
+            if kind == 'uri':
                 continue  # URI or CURIE, including explicitly scoped identifiers.
-            explicit_path = value.startswith(('./', '../', '/', '.\\', '..\\')) or windows_path
-            if source and any(c.isspace() for c in value) and not explicit_path:
+            if kind == 'scope':
                 yield 'WARNING', (f'{label} is an unchecked scope description: {value!r}; '
                                   'prefix a local path with ./ to check it')
                 continue
-            if windows_path and os.name != 'nt':
+            if kind == 'windows':
                 yield 'ERROR', f'{label} uses a Windows path that cannot be checked on this platform: {value!r}'
                 continue
-            if source and any(c in value for c in '*?['):
+            if kind == 'pattern':
                 # A pattern (docs/*.svg) names the files it matches; it holds
                 # when it names existing resources, all inside the root.
                 if value.startswith(('/', '\\')) or '..' in Path(value).parts:

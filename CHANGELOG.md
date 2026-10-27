@@ -61,6 +61,14 @@ OKF v0.2 writes.
   an exclusion.
 - `--check-resources` accepts a pattern such as `docs/*.svg` in a source or an
   exclusion when it matches a file inside the root.
+- `lokf validate --check-excerpts` finds each `sources[].excerpt` in its local
+  `resource`: whitespace collapsed, case folded, punctuation kept; `...` joins
+  at most two spans in source order inside one heading section, and a
+  bracketed note of up to forty characters is skipped. A URL is not fetched
+  and is counted in the verdict; a scope description, a directory or a
+  pattern holds no text, so an excerpt on one is an error. The grammar's
+  cases are a corpus, `tests/fixtures/excerpt-corpus.yaml`, for any other
+  checker to run.
 - `validate --shacl` and the `lokf[shacl]` extra validate projected RDF with
   local relation range checks, inheritance/mixins, nested value constraints,
   and domain schemas. External reference classes remain unverified.
@@ -206,9 +214,9 @@ OKF v0.2 writes.
 
 ### Internal
 
-- The site's validation guide names `--check-resources`, `--root` and
-  `--shacl`, and a toolkit page covers `lokf registry` and the files
-  `lokf export` writes for it.
+- The site's validation guide names `--check-resources`, `--check-excerpts`,
+  `--root` and `--shacl`, and a toolkit page covers `lokf registry` and the
+  files `lokf export` writes for it.
 - Domain schemas documented as the sixth thing LOKF adds over OKF: SPEC §6.2, with pointers from §1, §2, §3, §6, §8, §9 and §12.
 - A *Domain schemas* how-to guide on the site, with biolink-model and gist
   as the adapted vocabularies, and a toolkit page for `lokf adapt`; the validation guide now names `--schema`, `--check-refs`

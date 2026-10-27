@@ -71,7 +71,7 @@ uv run linkml-validate -s lokf.yaml -C KnowledgeBundle examples/acme-knowledge.b
 uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ```
 
-## Closed-world, and three more passes
+## Closed-world, and four more passes
 
 Both validators are closed-world: a concept naming a `type` or a frontmatter
 key the schema does not declare fails. A project's own types and keys go in
@@ -88,11 +88,15 @@ concept, a source or an exclusion, is also just a string. `--check-resources`
 checks that each one names a file or directory inside the resource root, and
 accepts a pattern such as `docs/*.svg` when it matches there. The root is the nearest
 enclosing Git root, else the bundle's parent, or `--root`; a path that escapes
-it is refused, and a URL is never fetched. All three are opt-in, so the
-default verdict stays the schema's.
+it is refused, and a URL is never fetched. A source's `excerpt` is the passage
+the concept rests on, and nothing else holds it to its source: `--check-excerpts`
+finds each one in its local resource, whitespace collapsed and case folded,
+punctuation kept, with `...` joining at most two spans in source order inside
+one heading section. All four are opt-in, so the default verdict stays the
+schema's.
 
 ```bash
-lokf validate knowledge --schema domain.yaml --check-ids --check-refs --check-resources
+lokf validate knowledge --schema domain.yaml --check-ids --check-refs --check-resources --check-excerpts
 ```
 
 ## SHACL — after projection
