@@ -53,11 +53,16 @@ def sections(text: str, markdown: bool) -> list[str]:
         return [text]
     out: list[str] = []
     current: list[str] = []
-    fenced = False
+    fence = None
     for line in text.splitlines(keepends=True):
-        if line.lstrip().startswith(("```", "~~~")):
-            fenced = not fenced
-        elif not fenced and HEADING.match(line) and current:
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line.rstrip("\r\n"))
+        if fence is not None:
+            if (marker and marker[1][0] == fence[0] and len(marker[1]) >= len(fence)
+                    and not marker[2].strip()):
+                fence = None
+        elif marker and (marker[1][0] != "`" or "`" not in marker[2]):
+            fence = marker[1]
+        elif HEADING.match(line) and current:
             out.append("".join(current))
             current = []
         current.append(line)
@@ -95,9 +100,9 @@ def check_excerpts(bundle, root: Path, stats: dict | None = None):
     """Yield (severity, message) for each ``sources[].excerpt`` not found in
     its local resource. *stats*, when given, receives ``local``, the excerpts
     checked against a file, and ``remote``, the ones on a URL, which is never
-    fetched."""
+    fetched, plus ``unchecked`` for local excerpts skipped by the size limit."""
     root = root.resolve()
-    local = remote = 0
+    local = remote = unchecked = 0
     for concept in bundle.concepts:
         for i, entry in _entries(concept, "sources"):
             excerpt, value = entry.get("excerpt"), entry.get("resource")
@@ -131,17 +136,23 @@ def check_excerpts(bundle, root: Path, stats: dict | None = None):
             else:
                 local += 1
                 finding = _check_file(excerpt, path, value)
+                if finding and finding[0] == "WARNING":
+                    unchecked += 1
+                    local -= 1
                 if finding:
                     yield finding[0], f"{label} {finding[1]}"
     if stats is not None:
-        stats["local"], stats["remote"] = local, remote
+        stats["local"], stats["remote"], stats["unchecked"] = local, remote, unchecked
 
 
 def _check_file(excerpt: str, path: Path, value: str) -> tuple[str, str] | None:
     try:
         if path.stat().st_size > MAX_BYTES:
             return "WARNING", f"is not checked against a file over {MAX_BYTES >> 20} MiB: {value!r}"
-        data = path.read_bytes()
+        with path.open("rb") as stream:
+            data = stream.read(MAX_BYTES + 1)
+        if len(data) > MAX_BYTES:
+            return "WARNING", f"is not checked against a file over {MAX_BYTES >> 20} MiB: {value!r}"
     except OSError as exc:
         return "ERROR", f"cannot read {value!r}: {exc}"
     if b"\x00" in data[:8192]:

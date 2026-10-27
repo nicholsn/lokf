@@ -49,7 +49,7 @@ def test_local_resources_are_read_and_remote_ones_counted(tmp_path):
         {'resource': 'docs/a.md', 'excerpt': 'keeps no copy of the request'}])
     stats = {}
     findings = list(check_excerpts(b, tmp_path, stats))
-    assert stats == {'local': 3, 'remote': 1}
+    assert stats == {'local': 3, 'remote': 1, 'unchecked': 0}
     # Markdown is matched as written: the emphasis markers are part of the passage.
     assert len(findings) == 1 and findings[0][0] == 'ERROR'
     assert "`sources[4].excerpt` ('keeps no copy of the request') is not in 'docs/a.md'" in findings[0][1]
@@ -102,3 +102,23 @@ def test_cli_opt_in_root_and_verdict(tmp_path):
     kb = bundle_at(tmp_path / 'kb3', sources=[{'resource': 'a.md'}]).root
     result = runner.invoke(app, ['validate', str(kb), '--check-excerpts'])
     assert result.exit_code == 0 and 'No local excerpt to check.' in result.output
+
+
+@pytest.mark.parametrize("inner", ["```", "~~~", "````not-a-close"])
+def test_fence_contents_do_not_hide_the_next_section(inner):
+    text = f"## A\nfirst point\n````md\n{inner}\nexample\n````\n## B\nsecond point\n"
+    assert find("first point ... second point", text) is not None
+    # Conversely, a heading inside the outer fence must not split a section.
+    text = f"## A\nfirst point\n````md\n{inner}\n## code heading\n````\nsecond point\n"
+    assert find("first point ... second point", text) is None
+
+
+def test_oversized_excerpt_is_reported_unchecked(tmp_path, monkeypatch):
+    monkeypatch.setattr("lokf.excerpts.MAX_BYTES", 32)
+    (tmp_path / "large.txt").write_text("x" * 33)
+    kb = bundle_at(tmp_path / "kb", sources=[
+        {"resource": "large.txt", "excerpt": "not actually present"}]).root
+    result = runner.invoke(app, ["validate", str(kb), "--check-excerpts"])
+    assert result.exit_code == 0, result.output
+    assert "1 local excerpts left unchecked" in result.output
+    assert "Every local excerpt is in its resource" not in result.output

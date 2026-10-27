@@ -462,7 +462,10 @@ def validate(
     if check_resources:
         ok += " Local resource checks completed."
     if check_excerpts:
-        ok += " Every local excerpt is in its resource" if excerpts["local"] else " No local excerpt to check"
+        if excerpts["unchecked"]:
+            ok += f" {excerpts['local']} local excerpts checked; {excerpts['unchecked']} local excerpts left unchecked"
+        else:
+            ok += " Every local excerpt is in its resource" if excerpts["local"] else " No local excerpt to check"
         ok += f"; {excerpts['remote']} on remote resources not fetched." if excerpts["remote"] else "."
     if shacl:
         ok += " RDF conforms to SHACL shapes."

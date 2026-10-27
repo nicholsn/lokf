@@ -658,7 +658,8 @@ occurs twice. A bracketed editorial note of at most forty characters, such as
 resource's own syntax: `**no**` is the passage, not `no`.
 
 A `resource` that is a URL is not fetched, and the verdict line counts the
-excerpts left unchecked. A scope description, a directory or a pattern holds
+excerpts left unchecked. Local files over 16 MiB are also left unchecked,
+with a warning and a separate count in the verdict. A scope description, a directory or a pattern holds
 no text, so an excerpt on one is an error, as is a file that is not text. The
 cases of the grammar are a corpus, `tests/fixtures/excerpt-corpus.yaml`, so a
 bundle's own gate or an editor can run the same check and agree with `lokf`
