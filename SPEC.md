@@ -754,7 +754,9 @@ Every registry bounds a federated graph of its own, and the registry a walk
 starts from is that walk's top. Its `max_depth` (3 when absent) says how many
 tiers below it the walk follows, tier by tier. A manifest read from a URL
 may point only at URLs, never at a local path, and a registry the walk
-cannot read is left out and reported, as an unreachable member is.
+cannot read is left out and reported, as an unreachable member is. Sensitive
+subregistries require the same per-run `--clear-member` clearance as bundles;
+their manifests are not fetched until cleared.
 
 ```yaml
 max_depth: 3

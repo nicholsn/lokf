@@ -134,6 +134,7 @@ class Registry:
     notes: list[str] = field(default_factory=list)
     #: Sub-registries a walk could not read, each with its reason; not saved.
     skipped: list[str] = field(default_factory=list)
+    _tree_loaded: bool = field(default=False, repr=False)  # runtime-only traversal result
 
     # -- resolution ---------------------------------------------------------
     def _match(self, iri: str) -> tuple[RepoEntry | None, str | None, str | None]:
@@ -498,7 +499,7 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None, 
             limit = _max_depth(value, top_path)
             break
     flat = Registry(path=root.path, id=root.id, title=root.title, publisher=root.publisher,
-                    version=root.version, max_depth=root.max_depth)
+                    version=root.version, max_depth=root.max_depth, _tree_loaded=True)
     origin: dict[str, str] = {}
     cleared_members = set(cleared_members)
     edges: dict[str, set[str]] = {}

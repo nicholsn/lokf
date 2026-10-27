@@ -191,10 +191,10 @@ class GraphStore:
 
         from lokf.registry import has_bundle, load_tree, member_ntriples
 
-        if not hasattr(registry, "repos"):
+        cleared_members = set(cleared_members)
+        if not getattr(registry, "_tree_loaded", False):
             registry = load_tree(registry, cleared_members=cleared_members)
         registry = registry.located()
-        cleared_members = set(cleared_members)
         store = ox.Store()
         errors: dict[str, str] = {}
         for entry in registry.repos:

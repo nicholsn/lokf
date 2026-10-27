@@ -1117,3 +1117,21 @@ def test_sensitive_subregistry_requires_clearance_before_fetch(tmp_path, monkeyp
     assert "clearance" in denied.skipped[0]
     allowed = module.load_tree(top, cleared_members=[secret.base_iri])
     assert reads and allowed.owner(leaf.base_iri) is not None
+
+
+
+def test_store_walks_a_loaded_manifest_and_reuses_a_flat_tree(tmp_path, monkeypatch):
+    import lokf.registry as module
+    from lokf.store import GraphStore
+    bundle = tmp_path / "kb"
+    _write_bundle(bundle, "https://example.org/leaf/", "x", None)
+    _manifest(tmp_path / "sub.yaml", [entry_for_bundle(bundle)])
+    top = _manifest(tmp_path / "top.yaml", [_catalog("https://example.org/sub/", "sub.yaml")])
+    raw = module.load_registry(top)
+    assert GraphStore.from_registry(raw).ask('ASK { GRAPH <https://example.org/leaf/> { ?s ?p ?o } }')
+    flat = module.load_tree(top)
+    def unexpected(*args, **kwargs):
+        raise AssertionError("already flattened registry must not fetch its children again")
+    monkeypatch.setattr(module, "_fetch", unexpected)
+    assert GraphStore.from_registry(flat).ask('ASK { GRAPH <https://example.org/leaf/> { ?s ?p ?o } }')
+    assert "_tree_loaded" not in flat.to_dict()
