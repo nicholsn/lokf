@@ -23,6 +23,11 @@ with the 0.x caveat that a minor release may tighten validation.
   by its `base_iri`, queried as a union (SPEC §11.4).
 - `lokf registry mcp`: the `lokf-registry` MCP server, with `resolve_iri`,
   `neighbors`, `subgraph`, `federated_sparql` and `read_document`, each bounded.
+- Registries of registries: an entry of `type: dcat:Catalog` names another
+  registry, which `build`, `query`, `serve`, `mcp` and `resolve` follow to the
+  top registry's `max_depth` (SPEC §11.2-11.4).
+  The walk goes tier by tier, skips a registry it cannot read, and takes from
+  a manifest at a URL only URLs.
 
 ### Fixed
 
