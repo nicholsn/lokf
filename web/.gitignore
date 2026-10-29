@@ -28,3 +28,9 @@ public/concepts.jsonld
 src/generated/
 src/content/docs/specification.md
 src/content/docs/reference/api.md
+public/lokf.yaml
+public/lokf.context.jsonld
+public/lokf.schema.json
+public/lokf.shacl.ttl
+public/lokf.owl.ttl
+public/lokf.sql
