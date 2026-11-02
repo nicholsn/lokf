@@ -5,7 +5,7 @@ import pytest
 
 import lokf
 from lokf.agentskills import _frontmatter
-from lokf.parse import parse_concept, parse_concept_text, split_frontmatter
+from lokf.parse import parse_concept, parse_concept_text, parse_index_text, split_frontmatter
 
 EVENT = 'verified:\n  - by: human:ada\n    at: "2026-01-02T10:00:00Z"\n'
 
@@ -42,42 +42,65 @@ def test_the_preamble_before_the_block_is_kept_and_may_hold_dashes():
     assert body == "\n\nThe body.\n"
 
 
+def test_a_concept_is_read_past_its_preamble():
+    data = parse_concept_text("<!-- reviewed -->\n\n---\ntype: Service\n---\n\nThe body.\n")
+    assert data["type"] == "Service"
+    assert data["body"] == "The body."
+
+
 @pytest.mark.parametrize(
-    ("what", "raw"),
+    "raw",
     [
-        ("a space after each delimiter", "--- \ntype: Service\n---  \nBody.\n"),
-        ("a tab after each delimiter", "---\t\ntype: Service\n---\t\nBody.\n"),
-        ("CRLF line endings", "---\r\ntype: Service\r\n---\r\nBody.\r\n"),
-        ("carriage returns alone", "---\rtype: Service\r---\rBody.\r"),
-        ("a byte order mark", "﻿---\ntype: Service\n---\nBody.\n"),
-        ("a blank line first", "\n---\ntype: Service\n---\nBody.\n"),
-        ("no body", "---\ntype: Service\n---"),
+        pytest.param("--- \ntype: Service\n---  \nBody.\n", id="a space after each delimiter"),
+        pytest.param("---\t\ntype: Service\n---\t\nBody.\n", id="a tab after each delimiter"),
+        pytest.param("---\r\ntype: Service\r\n---\r\nBody.\r\n", id="CRLF line endings"),
+        pytest.param("---\rtype: Service\r---\rBody.\r", id="carriage returns alone"),
+        pytest.param("\ufeff---\ntype: Service\n---\nBody.\n", id="a byte order mark"),
+        pytest.param("\n---\ntype: Service\n---\nBody.\n", id="a blank line first"),
+        pytest.param("---\ntype: Service\n---", id="no body"),
     ],
-    ids=lambda value: value if " " in value and "---" not in value else "",
 )
-def test_the_block_opens_and_closes_as_it_did(what, raw):
-    assert parse_concept_text(raw)["type"] == "Service", what
+def test_the_block_opens_and_closes_as_it_did(raw):
+    assert parse_concept_text(raw)["type"] == "Service"
 
 
 def test_a_rewriter_gets_the_byte_order_mark_back_in_the_preamble():
-    assert split_frontmatter("﻿---\ntype: Service\n---\n")[0] == "﻿"
+    assert split_frontmatter("\ufeff---\ntype: Service\n---\n")[0] == "\ufeff"
 
 
 @pytest.mark.parametrize(
-    ("what", "raw"),
+    "raw",
     [
-        ("no delimiter", "# A page\n"),
-        ("no closing delimiter", "---\ntype: Service\n\nBody.\n"),
-        ("a closing delimiter only inside a value", "---\ntype: Service\ntitle: a---b\n"),
-        ("an opening delimiter only inside a line", "A page---with dashes---here\n"),
-        ("delimiters that are indented", "  ---\ntype: Service\n  ---\nBody.\n"),
-        ("delimiters with text after them", "--- x\ntype: Service\n--- y\nBody.\n"),
+        pytest.param("# A page\n", id="no delimiter"),
+        pytest.param("---\ntype: Service\n\nBody.\n", id="no closing delimiter"),
+        pytest.param("---\ntype: Service\ntitle: a---b\n", id="a closing delimiter only inside a value"),
+        pytest.param("A page---with dashes---here\n", id="an opening delimiter only inside a line"),
+        pytest.param("  ---\ntype: Service\n  ---\nBody.\n", id="delimiters that are indented"),
+        pytest.param("--- x\ntype: Service\n--- y\nBody.\n", id="delimiters with text after them"),
+        pytest.param("---\nsearch: 1\n---# Type: Time\n", id="a closing delimiter glued to text"),
     ],
-    ids=lambda value: value if "---" not in value or value.startswith(("a ", "an ", "delimiters")) else "",
 )
-def test_no_block_is_a_clear_error(what, raw):
-    assert split_frontmatter(raw) is None, what
-    with pytest.raises(ValueError, match="no YAML frontmatter"):
+def test_no_block_is_a_clear_error(raw):
+    assert split_frontmatter(raw) is None
+    with pytest.raises(ValueError, match="x.md: no YAML frontmatter .* on a line of its own"):
+        parse_concept_text(raw, "x.md")
+
+
+@pytest.mark.parametrize(
+    ("raw", "message"),
+    [
+        pytest.param("---\n- a\n- b\n---\nBody.\n", "must be a mapping, not list", id="a list"),
+        pytest.param("Title\n---\nSome text\n---\nBody.\n", "must be a mapping, not str", id="text"),
+        pytest.param("---\ntype: [\n---\nBody.\n", "not valid YAML", id="broken YAML"),
+        pytest.param(
+            "---\ntype: Service\n--- # note\n\nBody.\n\n---\n\nMore.\n",
+            "not valid YAML",
+            id="a closer with a comment and a rule further down",
+        ),
+    ],
+)
+def test_frontmatter_that_cannot_be_read_names_the_file(raw, message):
+    with pytest.raises(ValueError, match=f"x.md: .*{message}"):
         parse_concept_text(raw, "x.md")
 
 
@@ -94,6 +117,55 @@ def test_the_bundle_index_keeps_its_whole_block(tmp_path):
     bundle = lokf.load_bundle(tmp_path)
     assert bundle.meta["title"] == "Before---after"
     assert bundle.meta["base_iri"] == "https://example.invalid/k/"
+
+
+META = "base_iri: https://example.invalid/k/\n"
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        pytest.param(f"---\n{META}---\n\n# Index\n", id="at the top"),
+        pytest.param(f"\ufeff---\n{META}---\n\n# Index\n", id="after a byte order mark"),
+        pytest.param(f"\n---\n{META}---\n\n# Index\n", id="after a blank line"),
+    ],
+)
+def test_an_index_block_at_the_top_is_read(raw):
+    assert parse_index_text(raw)["base_iri"] == "https://example.invalid/k/"
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        pytest.param("# Index\n", id="no dashes"),
+        pytest.param("# Index\n\n---\n\ntitle: not meta\n\n---\n", id="rules lower down"),
+        pytest.param("----\n\n# Index\n", id="a rule of four dashes first"),
+        pytest.param(f"<!-- c -->\n---\n{META}---\n", id="a block after a preamble"),
+    ],
+)
+def test_an_index_with_no_block_at_the_top_has_no_metadata(raw):
+    assert parse_index_text(raw) == {}
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        pytest.param(f"---\n{META}\n# Index\n", id="no closing delimiter"),
+        pytest.param(f"---\n{META}--- x\n# Index\n", id="text after the closing delimiter"),
+        pytest.param(f"--- x\n{META}---\n# Index\n", id="text after the opening delimiter"),
+        pytest.param(f"--- x\n{META}---\n# Index\n\n---\n", id="text after the opening delimiter and a rule below"),
+    ],
+)
+def test_an_index_that_does_not_close_its_block_is_an_error(raw, tmp_path):
+    (tmp_path / "index.md").write_text(raw, encoding="utf-8")
+    with pytest.raises(ValueError, match="index.md: frontmatter is not closed"):
+        lokf.load_bundle(tmp_path)
+
+
+def test_a_skill_page_with_no_block_has_no_frontmatter(tmp_path):
+    path = tmp_path / "SKILL.md"
+    path.write_text("# A skill\n", encoding="utf-8")
+    assert _frontmatter(path) == {}
 
 
 def test_a_skill_page_keeps_its_whole_block(tmp_path):

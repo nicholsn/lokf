@@ -15,10 +15,9 @@ import json
 import pathlib
 from dataclasses import dataclass
 
-import yaml
 from linkml_runtime.utils.formatutils import underscore
 
-from lokf.parse import isoify, parse_concept, split_frontmatter
+from lokf.parse import parse_concept, parse_index_text
 from lokf.schema import load_context
 
 RESERVED = ("index.md", "log.md")
@@ -224,10 +223,7 @@ def load_bundle(path: str | pathlib.Path) -> Bundle:
     meta: dict = {}
     index = root / "index.md"
     if index.exists():
-        raw = index.read_text(encoding="utf-8")
-        parts = split_frontmatter(raw) if raw.startswith("---") else None
-        if parts:
-            meta = isoify(yaml.safe_load(parts[1])) or {}
+        meta = parse_index_text(index.read_text(encoding="utf-8"), str(index))
     concepts = [
         Concept(
             path=p,

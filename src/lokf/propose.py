@@ -298,8 +298,8 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
     relations append ``{predicate, target}`` to ``relations``. Files are
     edited with round-trip YAML so comments, key order, and quoting survive;
     duplicates are never written, and everything outside the frontmatter
-    block (any preamble before the first ``---`` and the whole body after
-    the second) is preserved byte-for-byte.
+    block (any preamble before its opening ``---`` and the whole body after
+    its closing one) is preserved byte-for-byte.
     """
     from ruamel.yaml.comments import CommentedMap
 

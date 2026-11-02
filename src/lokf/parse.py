@@ -65,8 +65,12 @@ def parse_concept(path: str) -> dict:
 
 
 #: A delimiter of a frontmatter block: ``---`` at the start of a line, with
-#: nothing after it but spaces or tabs, which is also how YAML reads it.
+#: nothing after it but spaces or tabs. YAML also takes a comment or a value
+#: after its ``---``; a delimiter does not.
 _DELIMITER = re.compile(r"(?:\A|(?<=\A\ufeff)|(?<=[\r\n]))---[ \t]*(?=[\r\n]|\Z)")
+#: The start of a page that means to open with a block: three dashes are its
+#: first text, whatever follows them. Four or more are a rule.
+_OPENS_WITH_DASHES = re.compile(r"[\ufeff\s]*---(?!-)")
 
 
 def split_frontmatter(raw: str) -> tuple[str, str, str] | None:
@@ -83,15 +87,44 @@ def split_frontmatter(raw: str) -> tuple[str, str, str] | None:
     return raw[: opening.start()], raw[opening.end() : closing.start()], raw[closing.end() :]
 
 
-def parse_concept_text(raw: str, where: str = "<text>") -> dict:
-    """:func:`parse_concept` for markdown already read; *where* names it in errors."""
+def _load_frontmatter(front: str, where: str) -> dict:
+    """The mapping a frontmatter block holds; *where* names the file in errors."""
     import yaml
 
+    try:
+        data = yaml.safe_load(front) or {}
+    except yaml.YAMLError as exc:
+        raise ValueError(f"{where}: frontmatter is not valid YAML: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ValueError(f"{where}: frontmatter must be a mapping, not {type(data).__name__}")
+    return data
+
+
+def parse_index_text(raw: str, where: str = "<text>") -> dict:
+    """The frontmatter of a bundle's ``index.md``, or ``{}`` for a plain page.
+
+    An index needs no block, so a pair of ``---`` rules lower down a plain page
+    is not one: only a block at the very top counts. A page that opens with
+    ``---`` and has no such block is an error, as ``base_iri`` would go unread.
+    """
+    parts = split_frontmatter(raw)
+    if parts and not parts[0].strip("\ufeff \t\r\n"):
+        return isoify(_load_frontmatter(parts[1], where))
+    if _OPENS_WITH_DASHES.match(raw):
+        raise ValueError(f"{where}: frontmatter is not closed by '---' on a line of its own")
+    return {}
+
+
+def parse_concept_text(raw: str, where: str = "<text>") -> dict:
+    """:func:`parse_concept` for markdown already read; *where* names it in errors."""
     parts = split_frontmatter(raw)
     if parts is None:
-        raise ValueError(f"{where}: no YAML frontmatter (expected a '---' delimited block)")
+        raise ValueError(
+            f"{where}: no YAML frontmatter (expected a block opened and closed by "
+            "'---' on a line of its own)"
+        )
     _, front, body = parts
-    d = yaml.safe_load(front) or {}
+    d = _load_frontmatter(front, where)
     d["body"] = body.strip()
     if d.get("type") in OKF_TYPE_ALIASES:
         d["type"] = OKF_TYPE_ALIASES[d["type"]]

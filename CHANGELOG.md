@@ -150,13 +150,12 @@ OKF v0.2 writes.
 
 ### Fixed
 
-- A `---` inside a frontmatter value no longer ends the block. The parser split
-  on the first two `---` anywhere in a file, so `title: Before---after` kept
-  `Before` as the title and moved the rest of the block, a `verified` event
-  included, into the body, and `lokf validate` still passed. A delimiter is now
-  `---` on a line of its own, with only spaces or tabs after it. The block's
-  readers in `parse`, `model`, `agentskills` and `propose` share one helper. A
-  delimiter that is indented or has text after it no longer opens a block.
+- A `---` inside a frontmatter value no longer ends the block, which dropped
+  later keys such as `verified` while `lokf validate` still passed. A delimiter
+  must now be `---` on a line of its own.
+- An `index.md` that opens a block and does not close it is now an error, and an
+  index with a byte order mark or a leading blank line keeps its `base_iri`.
+- Frontmatter that is invalid YAML or not a mapping now fails with the file's name.
 - `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label
   blank nodes from content and fix their order, so one bundle gives the same
   bytes in N-Triples, Turtle, N3, TriG and JSON-LD.
