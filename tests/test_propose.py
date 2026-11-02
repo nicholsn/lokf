@@ -153,10 +153,10 @@ def test_apply_writes_slot_and_preserves_formatting(tmp_bundle, vocab):
     assert term.read_text(encoding="utf-8") == after
 
 
-def test_apply_preserves_preamble(tmp_bundle, vocab):
+def test_apply_preserves_blank_lines_before_the_block(tmp_bundle, vocab):
     term = tmp_bundle / "glossary" / "active-user.md"
-    preamble = "<!-- reviewed: 2026-07-01 -->\n\n"
-    term.write_text(preamble + term.read_text(encoding="utf-8"), encoding="utf-8")
+    lead = "\n\n"
+    term.write_text(lead + term.read_text(encoding="utf-8"), encoding="utf-8")
     before = term.read_text(encoding="utf-8")
 
     bundle = lokf.load_bundle(tmp_bundle)
@@ -166,9 +166,9 @@ def test_apply_preserves_preamble(tmp_bundle, vocab):
 
     after = term.read_text(encoding="utf-8")
     assert WAU_IRI in after
-    # Preamble (before the first ---) and body (after the second) are
+    # What stands before the first --- and the body after the second are
     # preserved byte-for-byte; only the frontmatter block changed.
-    assert after.split("---", 2)[0] == preamble
+    assert after.split("---", 2)[0] == lead
     assert after.split("---", 2)[2] == before.split("---", 2)[2]
 
 
@@ -200,7 +200,7 @@ def test_apply_writes_the_byte_order_mark_back(tmp_bundle, vocab):
 @pytest.mark.parametrize("eol", ["\r\n", "\r"], ids=["CRLF", "carriage returns alone"])
 def test_apply_keeps_line_endings(tmp_bundle, vocab, eol):
     term = tmp_bundle / "glossary" / "active-user.md"
-    text = "<!-- reviewed -->\n\n" + term.read_text(encoding="utf-8")
+    text = "\n\n" + term.read_text(encoding="utf-8")
     body = text.split("\n---\n", 2)[2]
     term.write_bytes(text.replace("\n", eol).encode("utf-8"))
 
@@ -211,7 +211,7 @@ def test_apply_keeps_line_endings(tmp_bundle, vocab, eol):
     assert WAU_IRI in after
     assert not {"\r", "\n"} & set(after.replace(eol, ""))
     assert "# taxonomy tags" + eol in after
-    assert after.startswith(f"<!-- reviewed -->{eol}{eol}---{eol}")
+    assert after.startswith(f"{eol}{eol}---{eol}")
     assert after.endswith(f"{eol}---{eol}" + body.replace("\n", eol))
 
 

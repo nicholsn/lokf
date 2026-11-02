@@ -137,8 +137,9 @@ Every concept is a UTF-8 markdown file: a YAML **frontmatter** block followed by
 markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 *mean* by mapping each to an RDF property.
 
-The block opens and closes at the first two lines that are `---` with nothing
-after it but spaces or tabs, so a `---` inside a value does not end it.
+The block comes first in the file: only a byte order mark or blank lines may
+stand before it. It opens and closes at the first two lines that are `---` with
+nothing after it but spaces or tabs, so a `---` inside a value does not end it.
 
 ### 5.1 Core frontmatter fields
 

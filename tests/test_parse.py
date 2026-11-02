@@ -34,18 +34,29 @@ def test_a_rule_in_the_body_stays_in_the_body():
     assert data["body"] == "One.\n\n---\n\nTwo.\n\n---"
 
 
-def test_the_preamble_before_the_block_is_kept_and_may_hold_dashes():
-    raw = "<!-- reviewed---2026-07-01 -->\n\n---\ntype: Service\n---\n\nThe body.\n"
-    preamble, front, body = split_frontmatter(raw)
-    assert preamble == "<!-- reviewed---2026-07-01 -->\n\n"
+def test_blank_lines_before_the_block_are_returned_for_a_rewriter():
+    lead, front, body = split_frontmatter("\n\n---\ntype: Service\n---\n\nThe body.\n")
+    assert lead == "\n\n"
     assert front == "\ntype: Service\n"
     assert body == "\n\nThe body.\n"
 
 
-def test_a_concept_is_read_past_its_preamble():
-    data = parse_concept_text("<!-- reviewed -->\n\n---\ntype: Service\n---\n\nThe body.\n")
-    assert data["type"] == "Service"
-    assert data["body"] == "The body."
+@pytest.mark.parametrize(
+    "raw",
+    [
+        pytest.param("<!-- reviewed -->\n\n---\ntype: Service\n---\n\nBody.\n", id="a comment"),
+        pytest.param("Title\n---\ntype: Service\n---\nBody.\n", id="a heading underlined with dashes"),
+        pytest.param("Prose.\n\n```yaml\n---\ntype: Service\n---\n```\n", id="a fenced example"),
+        pytest.param(
+            f"<!--\n---\ntype: Service\n{EVENT}---\n-->\n---\ntype: Service\n---\n\nBody.\n",
+            id="a block hidden in a comment",
+        ),
+    ],
+)
+def test_text_before_the_block_means_no_block(raw):
+    assert split_frontmatter(raw) is None
+    with pytest.raises(ValueError, match="x.md: no YAML frontmatter .* at the top of the file"):
+        parse_concept_text(raw, "x.md")
 
 
 @pytest.mark.parametrize(
@@ -64,7 +75,7 @@ def test_the_block_opens_and_closes_as_it_did(raw):
     assert parse_concept_text(raw)["type"] == "Service"
 
 
-def test_a_rewriter_gets_the_byte_order_mark_back_in_the_preamble():
+def test_a_rewriter_gets_the_byte_order_mark_back():
     assert split_frontmatter("\ufeff---\ntype: Service\n---\n")[0] == "\ufeff"
 
 
@@ -90,7 +101,7 @@ def test_no_block_is_a_clear_error(raw):
     ("raw", "message"),
     [
         pytest.param("---\n- a\n- b\n---\nBody.\n", "must be a mapping, not list", id="a list"),
-        pytest.param("Title\n---\nSome text\n---\nBody.\n", "must be a mapping, not str", id="text"),
+        pytest.param("---\nSome text\n---\nBody.\n", "must be a mapping, not str", id="text"),
         pytest.param("---\ntype: [\n---\nBody.\n", "not valid YAML", id="broken YAML"),
         pytest.param(
             "---\ntype: Service\n--- # note\n\nBody.\n\n---\n\nMore.\n",
@@ -140,7 +151,7 @@ def test_an_index_block_at_the_top_is_read(raw):
         pytest.param("# Index\n", id="no dashes"),
         pytest.param("# Index\n\n---\n\ntitle: not meta\n\n---\n", id="rules lower down"),
         pytest.param("----\n\n# Index\n", id="a rule of four dashes first"),
-        pytest.param(f"<!-- c -->\n---\n{META}---\n", id="a block after a preamble"),
+        pytest.param(f"<!-- c -->\n---\n{META}---\n", id="a block after other text"),
     ],
 )
 def test_an_index_with_no_block_at_the_top_has_no_metadata(raw):

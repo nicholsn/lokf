@@ -70,18 +70,21 @@ def parse_concept(path: str) -> dict:
 _DELIMITER = re.compile(r"(?:\A|(?<=\A\ufeff)|(?<=[\r\n]))---[ \t]*(?=[\r\n]|\Z)")
 #: The start of a page that means to open with a block: three dashes are its
 #: first text, whatever follows them. Four or more are a rule.
-_OPENS_WITH_DASHES = re.compile(r"[\ufeff\s]*---(?!-)")
+_OPENS_WITH_DASHES = re.compile(r"[\ufeff \t\r\n]*---(?!-)")
 
 
 def split_frontmatter(raw: str) -> tuple[str, str, str] | None:
-    """Split markdown into ``(preamble, frontmatter, body)``, or ``None`` with no closed block.
+    """Split markdown into ``(lead, frontmatter, body)``, or ``None`` with no closed block at the top.
 
-    The block opens and closes at the first two delimiter lines, so a ``---``
-    inside a value stays in the value. A preamble before the block, a byte
-    order mark included, is returned whole for a caller that rewrites the file.
+    The block comes first: only a byte order mark or blank lines may stand before
+    it, and they are returned as *lead* for a caller that rewrites the file. It
+    opens and closes at the first two delimiter lines, so a ``---`` inside a
+    value stays in the value.
     """
     opening = _DELIMITER.search(raw)
-    closing = _DELIMITER.search(raw, opening.end()) if opening else None
+    if opening is None or raw[: opening.start()].strip("\ufeff \t\r\n"):
+        return None
+    closing = _DELIMITER.search(raw, opening.end())
     if closing is None:
         return None
     return raw[: opening.start()], raw[opening.end() : closing.start()], raw[closing.end() :]
@@ -103,12 +106,12 @@ def _load_frontmatter(front: str, where: str) -> dict:
 def parse_index_text(raw: str, where: str = "<text>") -> dict:
     """The frontmatter of a bundle's ``index.md``, or ``{}`` for a plain page.
 
-    An index needs no block, so a pair of ``---`` rules lower down a plain page
-    is not one: only a block at the very top counts. A page that opens with
-    ``---`` and has no such block is an error, as ``base_iri`` would go unread.
+    An index needs no block, unlike a concept. A page that opens with ``---``
+    and has no closed block is an error all the same, as ``base_iri`` would go
+    unread.
     """
     parts = split_frontmatter(raw)
-    if parts and not parts[0].strip("\ufeff \t\r\n"):
+    if parts:
         return isoify(_load_frontmatter(parts[1], where))
     if _OPENS_WITH_DASHES.match(raw):
         raise ValueError(f"{where}: frontmatter is not closed by '---' on a line of its own")
@@ -120,8 +123,8 @@ def parse_concept_text(raw: str, where: str = "<text>") -> dict:
     parts = split_frontmatter(raw)
     if parts is None:
         raise ValueError(
-            f"{where}: no YAML frontmatter (expected a block opened and closed by "
-            "'---' on a line of its own)"
+            f"{where}: no YAML frontmatter (expected a block at the top of the file, "
+            "opened and closed by '---' on a line of its own)"
         )
     _, front, body = parts
     d = _load_frontmatter(front, where)
