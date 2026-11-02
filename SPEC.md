@@ -138,9 +138,7 @@ markdown **body**, exactly as in OKF. LOKF specifies what the frontmatter keys
 *mean* by mapping each to an RDF property.
 
 The block opens and closes at the first two lines that are `---` with nothing
-after it but spaces or tabs, so a `---` inside a value does not end it. Anything
-before the opening line is a preamble: it is not part of the concept, and a tool
-that rewrites the file keeps it.
+after it but spaces or tabs, so a `---` inside a value does not end it.
 
 ### 5.1 Core frontmatter fields
 
