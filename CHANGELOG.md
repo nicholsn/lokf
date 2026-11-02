@@ -156,6 +156,8 @@ OKF v0.2 writes.
 - An `index.md` that opens a block and does not close it is now an error, and an
   index with a byte order mark or a leading blank line keeps its `base_iri`.
 - Frontmatter that is invalid YAML or not a mapping now fails with the file's name.
+- `lokf propose --apply` keeps a file's CRLF or CR line endings, where it rewrote
+  the whole file with LF.
 - `lokf export`, `lokf convert`, `lokf query` CONSTRUCT and the MCP server label
   blank nodes from content and fix their order, so one bundle gives the same
   bytes in N-Triples, Turtle, N3, TriG and JSON-LD.

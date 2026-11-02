@@ -197,6 +197,24 @@ def test_apply_writes_the_byte_order_mark_back(tmp_bundle, vocab):
     assert after.startswith("\ufeff---\n") and WAU_IRI in after
 
 
+@pytest.mark.parametrize("eol", ["\r\n", "\r"], ids=["CRLF", "carriage returns alone"])
+def test_apply_keeps_line_endings(tmp_bundle, vocab, eol):
+    term = tmp_bundle / "glossary" / "active-user.md"
+    text = "<!-- reviewed -->\n\n" + term.read_text(encoding="utf-8")
+    body = text.split("\n---\n", 2)[2]
+    term.write_bytes(text.replace("\n", eol).encode("utf-8"))
+
+    bundle = lokf.load_bundle(tmp_bundle)
+    assert apply(propose(bundle, vocab))
+
+    after = term.read_bytes().decode("utf-8")
+    assert WAU_IRI in after
+    assert not {"\r", "\n"} & set(after.replace(eol, ""))
+    assert "# taxonomy tags" + eol in after
+    assert after.startswith(f"<!-- reviewed -->{eol}{eol}---{eol}")
+    assert after.endswith(f"{eol}---{eol}" + body.replace("\n", eol))
+
+
 def test_apply_skips_a_file_whose_block_has_gone(tmp_bundle, vocab):
     term = tmp_bundle / "glossary" / "active-user.md"
     proposals = propose(lokf.load_bundle(tmp_bundle), vocab)

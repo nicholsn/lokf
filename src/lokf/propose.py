@@ -299,7 +299,8 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
     edited with round-trip YAML so comments, key order, and quoting survive;
     duplicates are never written, and everything outside the frontmatter
     block (any preamble before its opening ``---`` and the whole body after
-    its closing one) is preserved byte-for-byte.
+    its closing one) is preserved byte-for-byte, and the block keeps the line
+    endings it had.
     """
     from ruamel.yaml.comments import CommentedMap
 
@@ -310,12 +311,15 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
     yaml_rt = _rt_yaml()
     applied = []
     for path, batch in by_path.items():
-        raw = path.read_text(encoding="utf-8")
+        with path.open(encoding="utf-8", newline="") as f:
+            raw = f.read()
         parts = split_frontmatter(raw)
         if parts is None:
             continue
         prefix, front, remainder = parts
-        fm = yaml_rt.load(front)
+        eol = "\r\n" if "\r\n" in front else "\r" if "\r" in front else "\n"
+        # A comment keeps the line break it was read with, so read only "\n".
+        fm = yaml_rt.load(front.replace("\r\n", "\n").replace("\r", "\n"))
         if fm is None:  # empty frontmatter block
             fm = CommentedMap()
         changed = False
@@ -345,7 +349,8 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
             buf = io.StringIO()
             yaml_rt.dump(fm, buf)
             path.write_text(
-                prefix + "---\n" + buf.getvalue() + "---" + remainder,
+                prefix + "---" + eol + buf.getvalue().replace("\n", eol) + "---" + remainder,
                 encoding="utf-8",
+                newline="",
             )
     return applied
