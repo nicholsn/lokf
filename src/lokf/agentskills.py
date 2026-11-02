@@ -14,6 +14,8 @@ from importlib import resources
 
 import yaml
 
+from lokf.parse import split_frontmatter
+
 
 def skills_dir() -> pathlib.Path:
     """Return the packaged skills directory (``lokf/skills``)."""
@@ -23,8 +25,8 @@ def skills_dir() -> pathlib.Path:
 def _frontmatter(skill_md: pathlib.Path) -> dict:
     """Parse the YAML frontmatter block delimited by ``---`` from a SKILL.md."""
     text = skill_md.read_text(encoding="utf-8")
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parts = split_frontmatter(text)
+    if parts is None:
         return {}
     return yaml.safe_load(parts[1]) or {}
 

@@ -64,12 +64,31 @@ def parse_concept(path: str) -> dict:
     return parse_concept_text(open(path, encoding="utf-8").read(), path)
 
 
+#: A delimiter of a frontmatter block: ``---`` at the start of a line, with
+#: nothing after it but spaces or tabs, which is also how YAML reads it.
+_DELIMITER = re.compile(r"(?:\A|(?<=\A\ufeff)|(?<=[\r\n]))---[ \t]*(?=[\r\n]|\Z)")
+
+
+def split_frontmatter(raw: str) -> tuple[str, str, str] | None:
+    """Split markdown into ``(preamble, frontmatter, body)``, or ``None`` with no closed block.
+
+    The block opens and closes at the first two delimiter lines, so a ``---``
+    inside a value stays in the value. A preamble before the block, a byte
+    order mark included, is returned whole for a caller that rewrites the file.
+    """
+    opening = _DELIMITER.search(raw)
+    closing = _DELIMITER.search(raw, opening.end()) if opening else None
+    if closing is None:
+        return None
+    return raw[: opening.start()], raw[opening.end() : closing.start()], raw[closing.end() :]
+
+
 def parse_concept_text(raw: str, where: str = "<text>") -> dict:
     """:func:`parse_concept` for markdown already read; *where* names it in errors."""
     import yaml
 
-    parts = raw.split("---", 2)
-    if len(parts) < 3:
+    parts = split_frontmatter(raw)
+    if parts is None:
         raise ValueError(f"{where}: no YAML frontmatter (expected a '---' delimited block)")
     _, front, body = parts
     d = yaml.safe_load(front) or {}

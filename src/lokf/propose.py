@@ -15,6 +15,7 @@ import re
 from dataclasses import dataclass
 
 from lokf.model import Bundle, Concept
+from lokf.parse import split_frontmatter
 from lokf.schema import Relation, Vocabulary, vocabulary
 
 # Markdown inline link [text](target); the lookbehind skips images. The
@@ -310,8 +311,10 @@ def apply(proposals: list[Proposal], min_confidence: float = 0.0) -> list[Propos
     applied = []
     for path, batch in by_path.items():
         raw = path.read_text(encoding="utf-8")
-        prefix, _, rest = raw.partition("---")
-        front, _, remainder = rest.partition("---")
+        parts = split_frontmatter(raw)
+        if parts is None:
+            continue
+        prefix, front, remainder = parts
         fm = yaml_rt.load(front)
         if fm is None:  # empty frontmatter block
             fm = CommentedMap()

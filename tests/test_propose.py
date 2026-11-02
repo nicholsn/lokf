@@ -172,6 +172,20 @@ def test_apply_preserves_preamble(tmp_bundle, vocab):
     assert after.split("---", 2)[2] == before.split("---", 2)[2]
 
 
+def test_apply_keeps_dashes_inside_a_value(tmp_bundle, vocab):
+    term = tmp_bundle / "glossary" / "active-user.md"
+    text = term.read_text(encoding="utf-8").replace("title: ", "title: before---after ", 1)
+    term.write_text(text, encoding="utf-8")
+    body = text.split("\n---\n", 1)[1]
+
+    bundle = lokf.load_bundle(tmp_bundle)
+    assert apply(propose(bundle, vocab))
+
+    after = term.read_text(encoding="utf-8")
+    assert WAU_IRI in after and "before---after" in after
+    assert after.split("\n---\n", 1)[1] == body
+
+
 def test_apply_empty_frontmatter(tmp_bundle, vocab):
     notes = tmp_bundle / "notes"
     notes.mkdir()
