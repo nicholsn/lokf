@@ -34,6 +34,26 @@ flowchart TD
 JSON-LD `@type` keyword and `id` to `@id`, so that authoring in plain OKF
 frontmatter is enough to produce correctly-typed Linked Data.
 
+## Published copies
+
+This site serves the schema and each artifact at its own path, copied from
+the repository at build time:
+
+| File | URL |
+|------|-----|
+| `lokf.yaml` | [/lokf.yaml](https://lokf.nolan-nichols.com/lokf.yaml) |
+| `lokf.context.jsonld` | [/lokf.context.jsonld](https://lokf.nolan-nichols.com/lokf.context.jsonld) |
+| `lokf.schema.json` | [/lokf.schema.json](https://lokf.nolan-nichols.com/lokf.schema.json) |
+| `lokf.shacl.ttl` | [/lokf.shacl.ttl](https://lokf.nolan-nichols.com/lokf.shacl.ttl) |
+| `lokf.owl.ttl` | [/lokf.owl.ttl](https://lokf.nolan-nichols.com/lokf.owl.ttl) |
+| `lokf.sql` | [/lokf.sql](https://lokf.nolan-nichols.com/lokf.sql) |
+
+A release tag holds the same files, pinned:
+`https://raw.githubusercontent.com/nicholsn/lokf/<tag>/lokf.context.jsonld`.
+A bundle's `index.md` declares the context by its permanent identifier,
+`https://w3id.org/lokf/context.jsonld`, as the [specification](/specification/)
+shows and `lokf new` writes.
+
 Because meaning lives in the model, adding a field or a type is a one-line
 change in `lokf.yaml`; the context, schema, shapes, and ontology all
 re-derive:
