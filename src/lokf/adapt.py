@@ -168,20 +168,32 @@ def fold_imports(vocab: pathlib.Path) -> tuple[dict, list[str]]:
         raise ValueError(f"{vocab.name} is not a LinkML schema (a YAML mapping)")
     folded: list[str] = []
     seen = {vocab.resolve()}
-    root_prefix = root.get("default_prefix")
+    root_base = _default_curie_base(root)
 
     def pin_iris(schema: dict) -> None:
-        # An element's IRI derives from the default_prefix of the file that
-        # defines it; folded into a file with another, it must say so itself.
-        theirs = schema.get("default_prefix")
-        if not theirs or theirs == root_prefix:
-            return
+        # Copy each definition separately: YAML aliases may otherwise make two
+        # names share the first name's inferred IRI when it is pinned.
+        base = _default_curie_base(schema)
+        pin = base != root_base or not root.get("default_prefix")
         for section, key, form in (
             ("classes", "class_uri", camelcase), ("slots", "slot_uri", underscore), ("enums", "enum_uri", camelcase),
         ):
-            for name, elem in (schema.get(section) or {}).items():
-                if isinstance(elem, dict):
-                    elem.setdefault(key, f"{theirs}:{form(name)}")
+            for name, original in (schema.get(section) or {}).items():
+                elem = schema[section][name] = deepcopy(original or {})
+                if pin:
+                    elem.setdefault(key, f"{base}{form(name)}")
+                if section == "classes":
+                    for attr, original_attr in (elem.get("attributes") or {}).items():
+                        definition = elem["attributes"][attr] = deepcopy(original_attr or {})
+                        if pin:
+                            definition.setdefault("slot_uri", f"{base}{underscore(attr)}")
+
+    def merge(acc: dict, section: str, definitions: dict) -> None:
+        if section == "settings":
+            for name, value in definitions.items():
+                if name in acc.get(section, {}) and acc[section][name] != value:
+                    raise ValueError(f"conflicting imported setting {name!r}; cannot preserve both patterns")
+        acc[section] = {**(acc.get(section) or {}), **definitions}
 
     def folded_view(schema: dict, here: pathlib.Path) -> dict:
         """*schema* over everything it imports: a schema's own definitions win
@@ -200,12 +212,12 @@ def fold_imports(vocab: pathlib.Path) -> tuple[dict, list[str]]:
             seen.add(path)
             part = yaml.safe_load(path.read_text(encoding="utf-8"))
             for section, defs in folded_view(part, path.parent).items():
-                acc[section] = {**(acc.get(section) or {}), **defs}
+                merge(acc, section, defs)
             folded.append(name)
         pin_iris(schema)
-        for section in (*_SECTIONS, "prefixes"):
+        for section in (*_SECTIONS, "prefixes", "settings"):
             if schema.get(section):
-                acc[section] = {**(acc.get(section) or {}), **schema[section]}
+                merge(acc, section, schema[section])
         return acc
 
     for section, defs in folded_view(root, vocab.parent).items():
@@ -433,11 +445,10 @@ def _default_curie_base(schema: dict) -> str:
     default prefix as a CURIE prefix, the default prefix itself when it is an
     IRI, else the schema id."""
     prefix = schema.get("default_prefix")
-    if prefix and prefix in (schema.get("prefixes") or {}):
-        return f"{prefix}:"
-    if prefix and "://" in prefix:
-        return prefix if prefix.endswith(("/", "#")) else prefix + "/"
-    return str(schema.get("id", "")).rstrip("/#") + "/"
+    if prefix:
+        return prefix if "://" in prefix else f"{prefix}:"
+    base = str(schema.get("id", ""))
+    return base if base.endswith(("/", "#", "_", ":")) else base + "/"
 
 
 def rename_shared(schema: dict, shared: dict[str, list[str]], prefix: str) -> dict[str, str]:
@@ -548,7 +559,7 @@ def _fold_view(schema: dict, lokf: dict | None = None):
 
     data = deepcopy(schema)
     core = lokf if lokf is not None else load_schema()
-    for section in (*_SECTIONS, "prefixes"):
+    for section in (*_SECTIONS, "prefixes", "settings"):
         data[section] = {**deepcopy(core.get(section) or {}), **(data.get(section) or {})}
     data.setdefault("id", "urn:lokf:adapt:probe")
     data.setdefault("name", "adapt_probe")
