@@ -757,6 +757,11 @@ def adapt(
         help="The lokf.yaml the copy must share no name with (default: a local "
         "checkout, else the copy packaged with lokf).",
     ),
+    beside: list[Path] = typer.Option(
+        [], "--beside", exists=True, dir_okay=False,
+        help="Another domain schema the copy will share a host with; repeatable. "
+        "Avoid its element and attribute names and verify the combined imports.",
+    ),
     prefix: Optional[str] = typer.Option(
         None, "--prefix",
         help="Prefix for renamed elements (default: the vocabulary's default_prefix).",
@@ -805,13 +810,16 @@ def adapt(
         out = Path(output) / default_name
     else:
         out = Path(output)
+    if out.resolve() in {path.resolve() for path in beside}:
+        _err(f"{out} is a --beside input; write the copy elsewhere.")
+        raise typer.Exit(2)
     if out.resolve() == vocab.resolve():
         _err(f"{out} is the input; pass --output to write the copy elsewhere.")
         raise typer.Exit(2)
     try:
         lokf_path = schema_path(lokf)
         schema, report = adapter.adapt(
-            vocab, lokf=lokf, roots=root, prefix=prefix, name=out.stem, folds=folds, keep=keep,
+            vocab, lokf=lokf, roots=root, prefix=prefix, name=out.stem, folds=folds, keep=keep, beside=beside,
         )
     except (FileNotFoundError, ValueError, yaml.YAMLError) as exc:
         _err(str(exc))
@@ -834,7 +842,7 @@ def adapt(
         with tempfile.TemporaryDirectory() as tmp:
             probe = Path(tmp) / out.name
             probe.write_text(text, encoding="utf-8")
-            problems = adapter.verify(probe, lokf_path)
+            problems = adapter.verify(probe, lokf_path, beside=beside)
     else:
         # Verify a candidate beside the output and replace it only then, so a
         # copy that fails never overwrites one that worked.
@@ -854,7 +862,7 @@ def adapt(
                 os.umask(umask)
                 mode = 0o666 & ~umask
             candidate.chmod(mode)
-            problems = adapter.verify(candidate, lokf_path)
+            problems = adapter.verify(candidate, lokf_path, beside=beside)
             if not problems:
                 os.replace(candidate, out)
         finally:

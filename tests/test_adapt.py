@@ -959,3 +959,143 @@ slots:
         f.write("settings:\n  code: {setting_value: '[0-9]+'}\n")
     with pytest.raises(ValueError, match='conflicting imported setting'):
         A.fold_imports(root)
+
+
+def _beside_vocab(tmp_path, prefix, attribute=False, key='custom_code'):
+    path = tmp_path / f'{prefix}.yaml'
+    cls = {'attributes': {key: {'range': 'string', 'slot_uri': f'{prefix}:code'}}} if attribute else {'slots': [key]}
+    schema = {'id': f'https://example.org/{prefix}', 'name': prefix,
+              'default_prefix': prefix, 'prefixes': {prefix: f'https://example.org/{prefix}/'},
+              'classes': {prefix.title(): cls}}
+    if not attribute:
+        schema['slots'] = {key: {'range': 'string', 'slot_uri': f'{prefix}:code'}}
+    path.write_text(yaml.safe_dump(schema))
+    return path
+
+
+@pytest.mark.parametrize('first_attribute', [False, True])
+@pytest.mark.parametrize('second_attribute', [False, True])
+def test_beside_preserves_both_vocabularies_in_combined_rdf(tmp_path, first_attribute, second_attribute):
+    from lokf.schema import schema_context
+    from rdflib import Graph, URIRef, Literal
+    import json
+
+    first = _beside_vocab(tmp_path, 'foo', first_attribute)
+    second = _beside_vocab(tmp_path, 'bar', second_attribute)
+    a, report = A.adapt(first, lokf=LOKF, roots=['Foo'])
+    assert not report.problems
+    neighbour = tmp_path / 'foo_lokf.yaml'
+    neighbour.write_text(A.dump(a))
+    b, report = A.adapt(second, lokf=LOKF, roots=['Bar'], beside=[neighbour])
+    assert not report.problems
+    assert report.renamed['custom_code'] == 'bar_custom_code'
+    output = tmp_path / 'bar_lokf.yaml'
+    output.write_text(A.dump(b))
+    # Verification resolves lokf even when the neighbours live elsewhere.
+    assert A.verify(output, LOKF, beside=[neighbour]) == []
+    (tmp_path / 'lokf.yaml').symlink_to(LOKF)
+    host = tmp_path / 'host.yaml'
+    host.write_text('id: https://example.org/host\nname: host\nprefixes: {linkml: https://w3id.org/linkml/}\nimports: [linkml:types, lokf, foo_lokf, bar_lokf]\n')
+    context = schema_context(host)
+    graph = Graph().parse(data=json.dumps({'@context': context, '@graph': [
+        {'id': 'https://example.org/a', 'type': 'Foo', 'custom_code': 'first'},
+        {'id': 'https://example.org/b', 'type': 'Bar', 'bar_custom_code': 'second'},
+    ]}), format='json-ld')
+    assert (URIRef('https://example.org/a'), URIRef('https://example.org/foo/code'), Literal('first')) in graph
+    assert (URIRef('https://example.org/b'), URIRef('https://example.org/bar/code'), Literal('second')) in graph
+    assert not list(graph.triples((URIRef('https://example.org/b'), URIRef('https://example.org/foo/code'), None)))
+
+
+def test_verify_reports_unadapted_neighbour_collision(tmp_path):
+    first = _beside_vocab(tmp_path, 'foo', True)
+    second = _beside_vocab(tmp_path, 'bar')
+    schema, _ = A.adapt(second, lokf=LOKF)
+    out = tmp_path / 'out.yaml'
+    out.write_text(A.dump(schema))
+    assert any('custom_code' in p and 'foo.yaml' in p for p in A.verify(out, LOKF, beside=[first]))
+
+
+def test_beside_cli_repeats_and_checks_and_protects_inputs(tmp_path):
+    first = _beside_vocab(tmp_path, 'foo', True)
+    second = _beside_vocab(tmp_path, 'baz', key='other_code')
+    source = _beside_vocab(tmp_path, 'bar')
+    data = yaml.safe_load(source.read_text())
+    data['slots']['other_code'] = {'range': 'string'}
+    data['classes']['Bar']['slots'].append('other_code')
+    source.write_text(yaml.safe_dump(data))
+    out = tmp_path / 'out.yaml'
+    args = ['adapt', str(source), '--lokf', str(LOKF), '--beside', str(first), '--beside', str(second), '-o', str(out)]
+    result = runner.invoke(app, args + ['--dry-run'])
+    assert result.exit_code == 0, result.output
+    assert not out.exists()
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    assert {'bar_custom_code', 'bar_other_code'} <= yaml.safe_load(out.read_text())['slots'].keys()
+    result = runner.invoke(app, args + ['--check'])
+    assert result.exit_code == 0, result.output
+    original = first.read_bytes()
+    result = runner.invoke(app, args + ['-o', str(first)])
+    assert result.exit_code == 2
+    assert first.read_bytes() == original
+
+
+def test_beside_rejects_conflicting_prefixes_and_rename_targets(tmp_path):
+    neighbour = _beside_vocab(tmp_path, 'foo', key='bar_custom_code')
+    source = _beside_vocab(tmp_path, 'bar')
+    data = yaml.safe_load(neighbour.read_text())
+    data['slots']['custom_code'] = {'range': 'string'}
+    neighbour.write_text(yaml.safe_dump(data))
+    _, report = A.adapt(source, lokf=LOKF, beside=[neighbour])
+    assert any('bar_custom_code' in p for p in report.problems)
+    data['prefixes']['bar'] = 'https://example.org/wrong/'
+    neighbour.write_text(yaml.safe_dump(data))
+    _, report = A.adapt(source, lokf=LOKF, beside=[neighbour])
+    assert any("prefix 'bar' conflicts" in p for p in report.problems)
+
+
+def test_beside_finds_attributes_in_transitive_imports(tmp_path):
+    neighbour = _beside_vocab(tmp_path, 'foo', True, key='custom code')
+    wrapper = tmp_path / 'wrapper.yaml'
+    wrapper.write_text('id: https://example.org/wrapper\nname: wrapper\nimports: [foo, lokf]\n')
+    source = _beside_vocab(tmp_path, 'bar')
+    _, report = A.adapt(source, lokf=LOKF, beside=[wrapper])
+    assert not report.problems
+    assert report.renamed['custom_code'] == 'bar_custom_code'
+
+
+def test_beside_renames_class_and_updates_references_and_root_report(tmp_path):
+    neighbour = _beside_vocab(tmp_path, 'foo')
+    source = _beside_vocab(tmp_path, 'bar')
+    data = yaml.safe_load(source.read_text())
+    data['classes']['Foo'] = data['classes'].pop('Bar')
+    data['slots']['related'] = {'range': 'Foo'}
+    source.write_text(yaml.safe_dump(data))
+    schema, report = A.adapt(source, lokf=LOKF, roots=['Foo'], beside=[neighbour])
+    assert not report.problems
+    assert report.roots == ['BarFoo']
+    assert schema['classes']['BarFoo']['class_uri'] == 'bar:Foo'
+    assert schema['slots']['related']['range'] == 'BarFoo'
+
+
+def test_beside_rejects_rename_over_existing_attribute(tmp_path):
+    neighbour = _beside_vocab(tmp_path, 'foo')
+    source = _beside_vocab(tmp_path, 'bar', True)
+    data = yaml.safe_load(source.read_text())
+    data['classes']['Bar']['attributes']['bar_custom_code'] = {'range': 'string'}
+    source.write_text(yaml.safe_dump(data))
+    _, report = A.adapt(source, lokf=LOKF, beside=[neighbour])
+    assert any('cannot rename' in problem for problem in report.problems)
+
+
+def test_beside_failure_does_not_replace_existing_output(tmp_path):
+    neighbour = _beside_vocab(tmp_path, 'foo')
+    source = _beside_vocab(tmp_path, 'bar')
+    data = yaml.safe_load(neighbour.read_text())
+    data['prefixes']['bar'] = 'https://example.org/wrong/'
+    neighbour.write_text(yaml.safe_dump(data))
+    out = tmp_path / 'out.yaml'
+    out.write_text('existing output')
+    result = runner.invoke(app, ['adapt', str(source), '--beside', str(neighbour), '-o', str(out)])
+    assert result.exit_code == 1
+    assert 'conflicts' in result.output
+    assert out.read_text() == 'existing output'

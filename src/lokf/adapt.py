@@ -256,6 +256,56 @@ def shared_names(schema: dict, lokf: dict) -> dict[str, list[str]]:
     return out
 
 
+def _with_attributes(schema: dict) -> dict:
+    """Include attribute keys in the slot namespace used by JSON-LD."""
+    slots = dict(schema.get("slots") or {})
+    for cls in (schema.get("classes") or {}).values():
+        for name, definition in (cls.get("attributes") or {}).items():
+            slots.setdefault(name, definition)
+    return {**schema, "slots": slots}
+
+
+def _neighbours(beside, lokf: pathlib.Path) -> list[tuple[pathlib.Path, dict]]:
+    """Read neighbour definitions, including local imports but excluding core."""
+    from linkml_runtime.dumpers import yaml_dumper
+    from linkml_runtime.utils.schemaview import SchemaView
+
+    neighbours = []
+    core_id = load_schema(lokf)["id"]
+    for filename in beside:
+        path = pathlib.Path(filename).resolve()
+        try:
+            view = SchemaView(str(path), importmap={"lokf": str(lokf.resolve().with_suffix(""))})
+            definitions: dict = {}
+            for key in view.imports_closure():
+                module = view.schema_map[key]
+                if key.startswith("linkml:") or module.id == core_id:
+                    continue
+                data = yaml.safe_load(yaml_dumper.dumps(module))
+                for section in (*_SECTIONS, "prefixes"):
+                    definitions.setdefault(section, {}).update(data.get(section) or {})
+            neighbours.append((path, _with_attributes(definitions)))
+        except Exception as exc:
+            raise ValueError(f"cannot load --beside {path}: {exc}") from exc
+    return neighbours
+
+
+def _neighbour_problems(schema: dict, neighbours) -> list[str]:
+    problems = []
+    names = _with_attributes(schema)
+    for path, neighbour in neighbours:
+        for section, shared in shared_names(names, neighbour).items():
+            problems.append(f"{section} still shared with {path.name}: {', '.join(shared)}; choose another --prefix")
+        for prefix, value in (schema.get("prefixes") or {}).items():
+            if prefix in neighbour.get("prefixes", {}):
+                other = neighbour["prefixes"][prefix]
+                ref = value.get("prefix_reference") if isinstance(value, dict) else value
+                other_ref = other.get("prefix_reference") if isinstance(other, dict) else other
+                if ref != other_ref:
+                    problems.append(f"prefix {prefix!r} conflicts with {path.name}; use distinct prefix bindings")
+    return problems
+
+
 def _map(value, mapping: dict[str, str]):
     if isinstance(value, str):
         return mapping.get(value, value)
@@ -460,9 +510,21 @@ def rename_shared(schema: dict, shared: dict[str, list[str]], prefix: str) -> di
     r = Renames()
     for section, names in shared.items():
         for old in names:
-            elem = schema[section][old]
-            if not isinstance(elem, dict):
-                elem = schema[section][old] = {}
+            definitions = []
+            if old in (schema.get(section) or {}):
+                elem = schema[section][old]
+                if not isinstance(elem, dict):
+                    elem = schema[section][old] = {}
+                definitions.append(elem)
+            if section == "slots":
+                for cls in (schema.get("classes") or {}).values():
+                    if old in (cls.get("attributes") or {}):
+                        attr = cls["attributes"][old]
+                        if not isinstance(attr, dict):
+                            attr = cls["attributes"][old] = {}
+                        attr.setdefault("slot_uri", f"{base}{underscore(old)}")
+                        definitions.append(attr)
+            elem = definitions[0]
             if section == "slots":
                 new = f"{underscore(prefix)}_{underscore(old)}"
                 elem.setdefault("slot_uri", f"{base}{underscore(old)}")
@@ -479,11 +541,12 @@ def rename_shared(schema: dict, shared: dict[str, list[str]], prefix: str) -> di
                 uri_key = {"classes": "class_uri", "enums": "enum_uri"}[section]
                 elem.setdefault(uri_key, f"{base}{camelcase(old)}")
                 r.elements[old] = new
-            if new in schema[section]:
+            if new in (_with_attributes(schema).get(section) or {}):
                 raise ValueError(f"cannot rename {section[:-1]} {old!r} to {new!r}: the vocabulary has one")
-            aliases = list(elem.get("aliases") or [])
-            if old not in aliases:
-                elem["aliases"] = aliases + [old]
+            for definition in definitions:
+                aliases = list(definition.get("aliases") or [])
+                if old not in aliases:
+                    definition["aliases"] = aliases + [old]
     rewrite_refs(schema, r)
     return {**r.elements, **r.slots, **r.subsets}
 
@@ -928,25 +991,35 @@ def canonical_names(schema: dict, prefix: str) -> tuple[dict[str, str], dict[str
 
 # --- verify -------------------------------------------------------------------
 
-def verify(adapted: pathlib.Path, lokf: pathlib.Path) -> list[str]:
+def verify(
+    adapted: pathlib.Path, lokf: pathlib.Path,
+    *, beside: list[str | pathlib.Path] | tuple[str | pathlib.Path, ...] = (),
+) -> list[str]:
     """Load the copy beside *lokf* with SchemaView and report what does not
     hold: a reference no schema defines, a name still shared, a class that
-    lists LOKF's ``id`` but does not descend from ``Concept``."""
+    lists LOKF's ``id`` but does not descend from ``Concept``. *beside*
+    adds other domain schemas to the load and checks their element and
+    attribute names and prefix bindings for collisions."""
     from linkml_runtime.utils.schemaview import SchemaView
 
     schema = yaml.safe_load(adapted.read_text(encoding="utf-8"))
-    problems = []
+    try:
+        neighbours = _neighbours(beside, lokf)
+    except ValueError as exc:
+        return [str(exc)]
+    problems = _neighbour_problems(schema, neighbours)
     for section, names in shared_names(schema, load_schema(lokf)).items():
         problems.append(f"{section} still shared with {lokf.name}: {', '.join(names)}")
     # Point the `lokf` import at the file we were given, wherever the copy sits.
     schema["imports"] = [
         str(lokf.resolve().with_suffix("")) if i == "lokf" else i for i in schema.get("imports") or []
     ]
+    schema["imports"].extend(str(path.with_suffix("")) for path, _ in neighbours)
     with tempfile.TemporaryDirectory() as tmp:
         probe = pathlib.Path(tmp) / adapted.name
         probe.write_text(yaml.safe_dump(schema, sort_keys=False, allow_unicode=True), encoding="utf-8")
         try:
-            view = SchemaView(str(probe))
+            view = SchemaView(str(probe), importmap={"lokf": str(lokf.resolve().with_suffix(""))})
             classes, slots = view.all_classes(), view.all_slots()
         except Exception as exc:  # SchemaView raises many kinds; the copy is unusable either way
             return problems + [f"SchemaView cannot load the copy beside {lokf.name}: {exc}"]
@@ -1021,17 +1094,21 @@ def adapt(
     name: str | None = None,
     folds: dict[str, str] | None = None,
     keep: list[str] | tuple[str, ...] = (),
+    beside: list[str | pathlib.Path] | tuple[str | pathlib.Path, ...] = (),
 ) -> tuple[dict, Report]:
     """The copy of *vocab* a domain schema imports beside ``lokf.yaml``, and a
     report of the moves. *roots* names classes to re-root on ``Concept``, in
     the vocabulary's own spelling or CamelCase, instead of the detected ones.
     *name* is the copy's schema name (default ``<stem>_lokf``). *folds* maps a
     vocabulary slot, or a ``Class.attr`` attribute, to the LOKF slot it
-    means, beside those its IRI folds; *keep* names those its IRI must not."""
+    means, beside those its IRI folds; *keep* names those its IRI must not.
+    *beside* names other domain schemas whose element and attribute names
+    the copy must avoid; their imports are included in the comparison."""
     vocab = pathlib.Path(vocab)
     lokf_path = schema_path(lokf)
     lokf_dict = load_schema(lokf_path)
     schema, folded = fold_imports(vocab)
+    neighbours = _neighbours(beside, lokf_path)
     version = schema.get("version")
     report = Report(
         source=f"{vocab.name} ({schema.get('name', vocab.stem)}{f' {version}' if version else ''})",
@@ -1070,9 +1147,21 @@ def adapt(
         report.collided, report.canonical = canonical_names(schema, prefix)
     except ValueError as exc:
         report.problems.append(str(exc))
+    if neighbours:
+        reserved: dict = {}
+        for _, neighbour in neighbours:
+            for section in _SECTIONS:
+                reserved.setdefault(section, {}).update(neighbour.get(section) or {})
+        try:
+            renamed = rename_shared(schema, shared_names(_with_attributes(schema), reserved), prefix)
+            report.renamed.update(renamed)
+        except ValueError as exc:
+            report.problems.append(str(exc))
+        report.problems.extend(_neighbour_problems(schema, neighbours))
     # Report roots by their final names: a collision rename happens after re-rooting.
     def final(n: str) -> str:
-        return report.collided.get(n, camelcase(n))
+        canonical = report.collided.get(n, camelcase(n))
+        return report.renamed.get(canonical, canonical)
 
     report.roots = [final(n) for n in chosen]
     report.tree_roots = [final(n) for n in had_tree_root]

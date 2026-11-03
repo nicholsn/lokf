@@ -42,11 +42,34 @@ record them for anyone who opens the file.
 | `-o, --output PATH` | Where to write the copy: a file, or a directory that gets `<stem>_lokf.yaml`, with a trailing slash for a new one (default: beside the input). |
 | `--root CLASS` | A class to re-root on `Concept`, as the vocabulary names it; repeatable, replaces detection. A vocabulary with no identifier slot (gist's shape) has no root to detect; name each top class. |
 | `--lokf PATH` | The `lokf.yaml` to share no name with (default: a local checkout, else the copy packaged with lokf). |
+| `--beside PATH` | Another domain schema the copy will share a host with; repeatable. Avoids its element and attribute names, including imported definitions, and verifies the combined imports. |
 | `--prefix P` | Prefix for renamed elements (default: the vocabulary's `default_prefix`). |
 | `--fold V=L` | Fold the vocabulary's slot `V`, or attribute `Class.attr`, into LOKF's slot `L`, for one that declares no mapping; repeatable. A name missing on either side is refused, and so is a shape that differs from `L`'s. |
 | `--keep V` | Leave slot `V`, or attribute `Class.attr`, out of the fold by IRI; repeatable. It is renamed or kept as it would be without the mapping, and the copy's notes record it. |
 | `--dry-run` | Print the report and verify the copy; write nothing. |
 | `--check` | Write nothing; exit 1 unless `--output` already holds exactly this copy and it verifies. |
+
+## Combining vocabularies
+
+Adapt each new vocabulary beside the copies your host already imports:
+
+```bash
+lokf adapt foo.yaml -o schema/foo_lokf.yaml
+lokf adapt bar.yaml -o schema/bar_lokf.yaml --beside schema/foo_lokf.yaml
+lokf adapt baz.yaml -o schema/baz_lokf.yaml --beside schema/foo_lokf.yaml --beside schema/bar_lokf.yaml
+```
+
+If both vocabularies define `custom_code`, the second copy uses
+`bar_custom_code` and preserves its original IRI. This also applies when
+one or both definitions are class attributes. The existing copies stay as
+they are; import all of them from your host schema.
+
+If the prefixed name is already taken, choose another `--prefix`. Conflicting
+prefix bindings are rejected because renaming a field cannot preserve two
+meanings for the same CURIE prefix. Give the source schemas distinct prefix
+bindings first. Keep the same `--beside` arguments for `--check` and `--dry-run`.
+
+In Python, pass `beside=[path, ...]` to both `adapt()` and `verify()`.
 
 ## In CI
 
