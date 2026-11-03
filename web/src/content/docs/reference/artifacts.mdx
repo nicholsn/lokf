@@ -50,9 +50,9 @@ the repository at build time:
 
 A release tag holds the same files, pinned:
 `https://raw.githubusercontent.com/nicholsn/lokf/<tag>/lokf.context.jsonld`.
-A bundle's `index.md` declares the context by its permanent identifier,
-`https://w3id.org/lokf/context.jsonld`, as the [specification](/specification/)
-shows and `lokf new` writes.
+New bundles use the site's `/lokf.context.jsonld` URL. The permanent identifier
+`https://w3id.org/lokf/context.jsonld` remains reserved in the specification;
+its redirect must be configured before clients can use it.
 
 Because meaning lives in the model, adding a field or a type is a one-line
 change in `lokf.yaml`; the context, schema, shapes, and ontology all

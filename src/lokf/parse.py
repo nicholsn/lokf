@@ -95,7 +95,9 @@ def _load_frontmatter(front: str, where: str) -> dict:
     import yaml
 
     try:
-        data = yaml.safe_load(front) or {}
+        data = yaml.safe_load(front)
+        if data is None:
+            data = {}
     except yaml.YAMLError as exc:
         raise ValueError(f"{where}: frontmatter is not valid YAML: {exc}") from exc
     if not isinstance(data, dict):

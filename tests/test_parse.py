@@ -183,3 +183,11 @@ def test_a_skill_page_keeps_its_whole_block(tmp_path):
     path = tmp_path / "SKILL.md"
     path.write_text("---\nname: x\ndescription: Before---after\nlicense: MIT\n---\n\nBody.\n", encoding="utf-8")
     assert _frontmatter(path) == {"name": "x", "description": "Before---after", "license": "MIT"}
+
+
+@pytest.mark.parametrize("value", ["false", "0", "[]", "''"])
+def test_falsey_non_mapping_frontmatter_is_rejected(value):
+    raw = f"---\n{value}\n---\nBody.\n"
+    for parser in (parse_concept_text, parse_index_text):
+        with pytest.raises(ValueError, match="must be a mapping"):
+            parser(raw, "x.md")
