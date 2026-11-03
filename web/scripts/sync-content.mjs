@@ -7,6 +7,8 @@
 //   - Two example files become fenced-code partials.
 //   - SPEC.md becomes the Specification page (its H1 dropped; Starlight adds
 //     the title).
+//   - The schema and its generated artifacts are copied into public/, so the
+//     site serves each one at its own path.
 //
 // All outputs are generated (gitignored); edit the sources, not these.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -17,6 +19,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "..", "..");
 const GEN = resolve(HERE, "..", "src", "generated");
 const DOCS = resolve(HERE, "..", "src", "content", "docs");
+const PUBLIC = resolve(HERE, "..", "public");
 
 const read = (rel) => readFileSync(resolve(REPO, rel), "utf8");
 
@@ -85,10 +88,27 @@ if (existsSync(datasets)) {
   copyFileSync(datasets, resolve(GEN, "datasets.json"));
 }
 
+// -- the schema and its artifacts, served at the site root -----------------
+// `https://w3id.org/lokf/<file>` is meant to redirect here; a bundle's
+// `context:` names the context this way (SPEC §4).
+const ARTIFACTS = [
+  "lokf.yaml",
+  "lokf.context.jsonld",
+  "lokf.schema.json",
+  "lokf.shacl.ttl",
+  "lokf.owl.ttl",
+  "lokf.sql",
+];
+for (const name of ARTIFACTS) {
+  copyFileSync(resolve(REPO, name), resolve(PUBLIC, name));
+}
+
 const names = [
   ...Object.keys(readme),
   ...Object.keys(spec),
   "metric-source",
   "metric-nt",
 ];
-console.log(`sync-content: ${names.length} partials + specification.md + datasets.json`);
+console.log(
+  `sync-content: ${names.length} partials + specification.md + datasets.json + ${ARTIFACTS.length} artifacts`,
+);

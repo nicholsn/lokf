@@ -13,6 +13,30 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- The site serves `lokf.yaml` and its generated artifacts at
+  `https://lokf.nolan-nichols.com/<file>`, copied in at build time, and
+  `lokf new` declares the context by the published site URL,
+  `https://lokf.nolan-nichols.com/lokf.context.jsonld`, in `index.md` and in the scaffolded
+  site's `graph.jsonld`, in place of a raw GitHub URL that moved with `main`.
+
+### Fixed
+
+- A `---` inside a frontmatter value no longer ends the block, which dropped
+  later keys such as `verified` while `lokf validate` still passed. A delimiter
+  must now be `---` on a line of its own.
+- An `index.md` that opens a block and does not close it is now an error, and an
+  index with a byte order mark or a leading blank line keeps its `base_iri`.
+- Frontmatter that is invalid YAML or not a mapping now fails with the file's name.
+- `lokf propose --apply` keeps a file's CRLF or CR line endings, where it rewrote
+  the whole file with LF.
+- A concept's block must now come first in the file, after at most a byte order
+  mark or blank lines. A block inside an HTML comment used to win over the real
+  one, so tools read what a rendered page hid.
+
+## [0.9.0] — 2026-10-28
+
 Format version is unchanged: **LOKF v0.2**. The schema now accepts what
 OKF v0.2 writes.
 
@@ -313,4 +337,5 @@ via `lokf validate --schema`.
 [#78]: https://github.com/nicholsn/lokf/pull/78
 [#79]: https://github.com/nicholsn/lokf/pull/79
 [#80]: https://github.com/nicholsn/lokf/pull/80
+[0.9.0]: https://github.com/nicholsn/lokf/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/nicholsn/lokf/compare/v0.7.0...v0.8.0
