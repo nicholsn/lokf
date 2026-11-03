@@ -890,3 +890,72 @@ def test_fold_does_not_turn_an_object_reference_into_an_inlined_value():
                                      "range": "Agent", "multivalued": True}}}
     folds, _, problems = A.find_folds(schema, load_schema(LOKF))
     assert not folds and any("inlined" in p for p in problems)
+
+
+@pytest.mark.parametrize('default_prefix, schema_id, expected', [
+    ('https://example.org/term#', 'https://example.org/module', 'https://example.org/term#'),
+    ('https://example.org/term', 'https://example.org/module', 'https://example.org/term'),
+    (None, 'https://example.org/module#', 'https://example.org/module#'),
+    (None, 'https://example.org/module_', 'https://example.org/module_'),
+    (None, 'https://example.org/module:', 'https://example.org/module:'),
+    (None, 'https://example.org/module', 'https://example.org/module/'),
+])
+def test_fold_preserves_module_iris_and_attributes(tmp_path, default_prefix, schema_id, expected):
+    module = {'id': schema_id, 'name': 'module', 'classes': {'Widget': {'attributes': {'part code': {}}}},
+              'slots': {'part label': {}}, 'enums': {'Choice': {}}}
+    if default_prefix:
+        module['default_prefix'] = default_prefix
+    (tmp_path / 'module.yaml').write_text(yaml.safe_dump(module))
+    root = tmp_path / 'root.yaml'
+    root.write_text('id: https://example.org/root\nname: root\ndefault_prefix: root\nprefixes: {root: https://example.org/root/}\nimports: [module]\n')
+    schema, _ = A.fold_imports(root)
+    assert schema['classes']['Widget']['class_uri'] == expected + 'Widget'
+    assert schema['classes']['Widget']['attributes']['part code']['slot_uri'] == expected + 'part_code'
+    assert schema['slots']['part label']['slot_uri'] == expected + 'part_label'
+    assert schema['enums']['Choice']['enum_uri'] == expected + 'Choice'
+
+
+def test_adapt_preserves_root_id_based_iris_and_yaml_aliases(tmp_path):
+    source = tmp_path / 'root.yaml'
+    source.write_text('''id: https://example.org/root#
+name: root
+classes:
+  Widget: &cls
+    attributes:
+      first: &attr {range: string}
+      second: *attr
+  Other: *cls
+''')
+    schema, report = A.adapt(source, lokf=LOKF)
+    assert not report.problems
+    assert schema['classes']['Widget']['class_uri'] == 'https://example.org/root#Widget'
+    assert schema['classes']['Other']['class_uri'] == 'https://example.org/root#Other'
+    for cls in schema['classes'].values():
+        for name, attr in cls['attributes'].items():
+            assert attr['slot_uri'] == 'https://example.org/root#' + name
+
+
+def test_fold_carries_pattern_settings_and_rejects_conflicts(tmp_path):
+    (tmp_path / 'module.yaml').write_text('''id: https://example.org/module
+name: module
+settings:
+  code: {setting_value: '[A-Z]+'}
+slots:
+  code_value:
+    structured_pattern: {syntax: '{code}', interpolated: true}
+''')
+    root = tmp_path / 'root.yaml'
+    root.write_text('id: https://example.org/root\nname: root\nimports: [module]\n')
+    schema, _ = A.fold_imports(root)
+    assert schema['settings']['code']['setting_value'] == '[A-Z]+'
+    from linkml_runtime.utils.schemaview import SchemaView
+    schema['imports'] = ['linkml:types']
+    view = SchemaView(yaml.safe_dump(schema))
+    import re
+    pattern = view.resolve_pattern(view.get_slot('code_value'))
+    assert re.fullmatch(pattern, 'ABC')
+    assert not re.fullmatch(pattern, '123')
+    with root.open('a') as f:
+        f.write("settings:\n  code: {setting_value: '[0-9]+'}\n")
+    with pytest.raises(ValueError, match='conflicting imported setting'):
+        A.fold_imports(root)
