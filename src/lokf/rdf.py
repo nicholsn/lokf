@@ -142,13 +142,11 @@ _BUNDLE_KEYS = ("lokf_version", "okf_version", "base_iri", "context")
 
 
 def _declares_bundle(index: pathlib.Path) -> bool:
-    """Whether the ``index.md`` at *index* declares a bundle. One whose
-    frontmatter cannot be read declares nothing; :func:`lokf.model.load_bundle`
-    reports it if it turns out to be the root all the same."""
-    try:
-        meta = parse_index_text(index.read_text(encoding="utf-8"), str(index))
-    except (OSError, ValueError):
-        return False
+    """Whether *index* declares a bundle; unreadable metadata is an error.
+
+    A malformed inner root must not silently inherit an outer namespace.
+    """
+    meta = parse_index_text(index.read_text(encoding="utf-8"), str(index))
     return any(key in meta for key in _BUNDLE_KEYS)
 
 

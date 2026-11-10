@@ -167,3 +167,14 @@ def test_excerpt_conflicts_group_by_the_node_an_id_mints(tmp_path):
     findings = list(excerpt_conflicts(load_bundle(loud)))
     assert [severity for severity, _ in findings] == ['WARNING']
     assert 'a.md sources[0], b.md sources[0] vs. c.md sources[0]' in findings[0][1]
+
+
+def test_malformed_source_id_warns_without_aborting_other_conflict_checks(tmp_path):
+    kb = cite_at(tmp_path / 'kb', a=('http://[', 'invalid id passage'),
+                 b=('paper', 'first passage'), c=('paper', 'second passage'))
+    result = runner.invoke(app, ['validate', str(kb)])
+    assert result.exit_code == 0, result.output
+    assert "a.md sources[0]: cannot resolve source id 'http://['" in result.output
+    assert 'excerpt conflict check skipped for this entry' in result.output
+    assert "source id 'paper'" in result.output
+    assert 'b.md sources[0] vs. c.md sources[0]' in result.output

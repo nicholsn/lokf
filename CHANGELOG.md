@@ -23,7 +23,8 @@ with the 0.x caveat that a minor release may tighten validation.
 - `lokf validate` warns when concepts give one source `id` different excerpts,
   naming the id and the files. The id is one node in the graph, so its excerpts
   all land on it, and `--shacl` failed on that node without naming a file. The
-  warning does not change the verdict.
+  warning does not change the verdict. An unresolvable source id produces a
+  diagnostic warning without aborting checks on the remaining entries.
 
 ### Fixed
 
@@ -34,7 +35,8 @@ with the 0.x caveat that a minor release may tighten validation.
   `index.md`. The nearest `index.md` of any kind was taken, so in a bundle with
   an index page per section a file below one lost `base_iri`: the concept and
   its relative `sources[].id` came out as `file://` IRIs. The root is also
-  found above the working directory now.
+  found above the working directory now. Malformed or unreadable ancestor
+  index metadata raises an error instead of silently selecting an outer namespace.
 - A `---` inside a frontmatter value no longer ends the block, which dropped
   later keys such as `verified` while `lokf validate` still passed. A delimiter
   must now be `---` on a line of its own.
