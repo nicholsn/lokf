@@ -78,6 +78,24 @@ def test_convert_output_writes_file(tmp_path):
     assert "lokf:Metric" in text
 
 
+def test_single_file_under_a_section_index_keeps_the_bundle_base_iri():
+    """`convert` and `query` on one file below a section's own `index.md` root
+    at the `index.md` that declares the bundle, so the file's IRIs - its own
+    and its relative `sources[].id` - are under `base_iri`, not `file://`."""
+    lrrk2 = FIXTURES / "nested-index" / "genetics" / "lrrk2.md"
+    result = runner.invoke(app, ["convert", str(lrrk2), "-f", "nt"])
+    assert result.exit_code == 0, result.output
+    assert "<https://kb.example/knowledge/genetics/lrrk2>" in result.stdout
+    assert "<https://kb.example/knowledge/smith-2020>" in result.stdout
+    assert "file://" not in result.stdout
+    result = runner.invoke(
+        app, ["query", str(lrrk2), "SELECT ?s WHERE { ?c schema:isBasedOn ?s }", "-f", "json"]
+    )
+    assert result.exit_code == 0, result.output
+    bindings = json.loads(result.stdout)["results"]["bindings"]
+    assert [b["s"]["value"] for b in bindings] == ["https://kb.example/knowledge/smith-2020"]
+
+
 # A concept of the class and slot that tests/fixtures/domain-schema/
 # adds-a-slot.yaml declares, neither of them LOKF's.
 _COURSE = "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/real]\n---\n\n# C\n"

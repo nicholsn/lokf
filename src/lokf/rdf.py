@@ -12,9 +12,10 @@ any format rdflib supports.
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 
-from lokf.parse import parse_concept
+from lokf.parse import parse_concept, parse_index_text
 from lokf.schema import schema_context
 
 # CLI/RDF short names -> the format rdflib understands.
@@ -134,12 +135,37 @@ _NODE_CLASSES = (
 )
 
 
+#: The frontmatter keys only a bundle-root ``index.md`` declares (SPEC §4).
+#: OKF reserves ``index.md`` at any depth, so a section of a bundle may have an
+#: index page of its own; these keys tell the root from such a page.
+_BUNDLE_KEYS = ("lokf_version", "okf_version", "base_iri", "context")
+
+
+def _declares_bundle(index: pathlib.Path) -> bool:
+    """Whether *index* declares a bundle; unreadable metadata is an error.
+
+    A malformed inner root must not silently inherit an outer namespace.
+    """
+    meta = parse_index_text(index.read_text(encoding="utf-8"), str(index))
+    return any(key in meta for key in _BUNDLE_KEYS)
+
+
 def _bundle_root(path: pathlib.Path) -> pathlib.Path | None:
-    """The nearest ancestor directory that is a bundle root (has ``index.md``)."""
-    for parent in path.parents:
-        if (parent / "index.md").exists():
-            return parent
-    return None
+    """The root of the bundle enclosing *path*, or ``None`` outside any.
+
+    That is the nearest ancestor whose ``index.md`` declares the bundle
+    (:data:`_BUNDLE_KEYS`), else the outermost ancestor with an ``index.md``.
+    The nearest ``index.md`` alone may be a section's, and rooting there loses
+    ``base_iri``. Ancestors are those of the absolute path, so a root above the
+    working directory is found too.
+    """
+    indexed = [
+        parent
+        for parent in pathlib.Path(os.path.abspath(path)).parents
+        if (parent / "index.md").is_file()
+    ]
+    declared = (parent for parent in indexed if _declares_bundle(parent / "index.md"))
+    return next(declared, indexed[-1] if indexed else None)
 
 
 def graph_of(

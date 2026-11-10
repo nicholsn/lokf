@@ -19,7 +19,9 @@ uv run lokf convert examples/acme-knowledge/metrics/weekly-active-users.md --for
 
 - Point it at one `.md` file and it emits just that concept's triples. IRIs
   are still resolved against the enclosing bundle, so relative links land on
-  the right subjects.
+  the right subjects. The enclosing bundle is the nearest folder above the
+  file whose `index.md` declares it (`base_iri`, `lokf_version`, ...), so a
+  section's own `index.md` page does not cut it short.
 - Point it at the bundle directory (`examples/acme-knowledge`) and it projects
   every concept at once — the whole graph in one document.
 

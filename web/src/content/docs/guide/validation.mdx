@@ -99,6 +99,12 @@ schema's.
 lokf validate knowledge --schema domain.yaml --check-ids --check-refs --check-resources --check-excerpts
 ```
 
+A cross-file check runs without a flag, as a warning. A source `id` mints one
+node that every concept citing it shares, so two concepts that give it
+different excerpts each validate, and `--shacl` then fails on the node, which
+may hold one. `lokf validate` names the id and the files; the warning does not
+fail validation.
+
 ## SHACL — after projection
 
 [`lokf.shacl.ttl`](https://github.com/nicholsn/lokf/blob/main/lokf.shacl.ttl)

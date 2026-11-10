@@ -59,6 +59,21 @@ def test_describe_concept_not_found():
     assert "error" in mcp.describe_concept(BUNDLE, "no/such-concept")
 
 
+def test_concept_under_a_section_index_projects_under_the_bundle_base_iri():
+    """describe_concept and convert project one file, which roots at the
+    `index.md` declaring the bundle rather than the section's own: rooted at
+    the section, the turtle named `file://` IRIs while `iri` named the
+    bundle's."""
+    nested = pathlib.Path(__file__).resolve().parent / "fixtures" / "nested-index"
+    d = mcp.describe_concept(str(nested), "genetics/lrrk2")
+    assert d["iri"] == "https://kb.example/knowledge/genetics/lrrk2"
+    assert f"<{d['iri']}>" in d["turtle"]
+    assert "file://" not in d["turtle"]
+    out = mcp.convert(str(nested / "genetics" / "lrrk2.md"), "nt")
+    assert "<https://kb.example/knowledge/smith-2020>" in out["rdf"]
+    assert "file://" not in out["rdf"]
+
+
 def test_sparql_select_metrics():
     result = mcp.sparql_query(
         BUNDLE, "SELECT ?m ?t WHERE { ?m a lokf:Metric ; schema:name ?t }"

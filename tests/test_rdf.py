@@ -11,6 +11,9 @@ from lokf import rdf
 BUNDLE = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
 METRIC = BUNDLE / "metrics" / "weekly-active-users.md"
 WAU = URIRef("https://acme.example/knowledge/metrics/weekly-active-users")
+# A bundle whose `genetics/` section has an `index.md` of its own.
+NESTED = pathlib.Path(__file__).resolve().parent / "fixtures" / "nested-index"
+NESTED_LRRK2 = NESTED / "genetics" / "lrrk2.md"
 
 
 @pytest.mark.parametrize("fmt", ["ttl", "nt", "jsonld", "xml"])
@@ -186,6 +189,50 @@ def test_standalone_file_without_id_gets_file_iri(tmp_path):
     g = rdf.graph_of(p)
     subjects = {str(s) for s, _, _ in g}
     assert p.resolve().as_uri() in subjects
+
+
+def test_single_file_under_a_section_index_gets_the_bundles_iris():
+    """OKF reserves `index.md` at any depth, so a section may have an index
+    page of its own. Converting one file below it must root at the `index.md`
+    that declares the bundle: the section's has no `base_iri`, and rooting
+    there minted `file://` IRIs for the concept and its relative
+    `sources[].id`. The file gives the triples the whole bundle gives it."""
+    single = set(rdf.serialize(NESTED_LRRK2, "nt").splitlines())
+    whole = set(rdf.serialize(NESTED, "nt").splitlines())
+    assert single and single <= whole
+    text = "\n".join(single)
+    assert "<https://kb.example/knowledge/genetics/lrrk2>" in text
+    assert "<https://kb.example/knowledge/smith-2020>" in text
+    assert "file://" not in text
+
+
+def test_single_file_finds_a_bundle_root_above_the_working_directory(monkeypatch):
+    """Run from inside a section, the bundle root is above the working
+    directory, where the parents of a relative path never reach."""
+    monkeypatch.chdir(NESTED_LRRK2.parent)
+    text = rdf.serialize(NESTED_LRRK2.name, "nt")
+    assert "<https://kb.example/knowledge/genetics/lrrk2>" in text
+    assert "file://" not in text
+
+
+def test_bundle_root_is_the_index_md_that_declares_the_bundle(tmp_path):
+    """The nearest `index.md` declaring the bundle (`base_iri`,
+    `lokf_version`, ...) is the root, so a nested bundle with its own keeps
+    its files; with no declaration anywhere, the outermost `index.md` is."""
+    def write(rel: str, text: str = "---\ntype: Explanation\ntitle: C\n---\n") -> pathlib.Path:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text, encoding="utf-8")
+        return p
+
+    write("a/index.md", "---\nbase_iri: https://ex.org/a/\n---\n")
+    write("a/s/index.md", "# A section\n")
+    assert rdf._bundle_root(write("a/s/c.md")) == tmp_path / "a"
+    write("a/sub/index.md", '---\nlokf_version: "0.2"\nbase_iri: https://ex.org/sub/\n---\n')
+    assert rdf._bundle_root(write("a/sub/c.md")) == tmp_path / "a" / "sub"
+    write("b/index.md", "# B\n")
+    write("b/s/index.md", "# A section\n")
+    assert rdf._bundle_root(write("b/s/c.md")) == tmp_path / "b"
 
 
 @pytest.mark.parametrize("single_file", [False, True])
@@ -387,3 +434,16 @@ def test_canonical_labels_for_long_paths_and_symmetric_cycles():
             assert isomorphic(graph, canonical)
             outputs.add(rdf.serialize_graph(graph, "nt"))
         assert len(outputs) == 1
+
+
+@pytest.mark.parametrize('index_text', ['---\nbase_iri: [broken\n---\n', '---\nbase_iri: https://inner.example/\n'])
+def test_malformed_inner_index_does_not_inherit_outer_namespace(tmp_path, index_text):
+    (tmp_path / 'index.md').write_text('---\nbase_iri: https://outer.example/\n---\n')
+    inner = tmp_path / 'inner'
+    inner.mkdir()
+    (inner / 'index.md').write_text(index_text)
+    concept = inner / 'concept.md'
+    concept.write_text('---\ntype: Explanation\ntitle: Concept\n---\n')
+    for source in (concept, inner):
+        with pytest.raises(ValueError, match='inner/index.md: frontmatter'):
+            rdf.graph_of(source)
