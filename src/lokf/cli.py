@@ -312,7 +312,9 @@ def validate(
     inside one heading section. Neither fetches a URL.
 
     Reserved ``log.md`` files are also checked: malformed date headings are
-    errors; duplicate dates and out-of-order groups are warnings.
+    errors; duplicate dates and out-of-order groups are warnings. A source
+    ``id`` that concepts give different excerpts is a warning: the id is one
+    node in the graph, and ``--shacl`` allows it one excerpt.
 
     Needs LinkML, which the core install leaves out: ``pip install
     'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
@@ -387,6 +389,11 @@ def validate(
     from lokf.resources import exclusion_conflicts
 
     for severity, message in exclusion_conflicts(bundle):
+        _err(f"[{severity}] {message}")
+
+    from lokf.excerpts import excerpt_conflicts
+
+    for severity, message in excerpt_conflicts(bundle):
         _err(f"[{severity}] {message}")
 
     from lokf.events import event_findings

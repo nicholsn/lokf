@@ -122,3 +122,48 @@ def test_oversized_excerpt_is_reported_unchecked(tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert "1 local excerpts left unchecked" in result.output
     assert "Every local excerpt is in its resource" not in result.output
+
+
+def cite_at(root, **ids_and_excerpts):
+    """A bundle whose concepts each cite a source by `id`, with an excerpt or
+    none: ``a=('paper', 'a passage')``."""
+    root.mkdir(exist_ok=True)
+    (root / 'index.md').write_text('---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n')
+    for name, (ref, excerpt) in ids_and_excerpts.items():
+        source = {'id': ref, 'resource': 'https://example.org/paper'}
+        if excerpt is not None:
+            source['excerpt'] = excerpt
+        (root / f'{name}.md').write_text(
+            '---\n' + yaml.safe_dump({'type': 'Explanation', 'title': name, 'sources': [source]}) + '---\n')
+    return root
+
+
+def test_one_source_id_with_two_excerpts_passes_the_schema_but_not_shacl(tmp_path):
+    """SPEC §5.4 reads an excerpt as the passage the concept relies on, but a
+    source `id` mints one node that every concept citing it shares. Each file
+    passes the schema; the node then holds both excerpts, where SHACL allows
+    one, and the SHACL report names neither file. `lokf validate` names the id
+    and the files without changing its verdict."""
+    kb = cite_at(tmp_path / 'kb', a=('paper', 'the first passage'), b=('paper', 'the second passage'))
+    result = runner.invoke(app, ['validate', str(kb)])
+    assert result.exit_code == 0, result.output
+    assert ("[WARNING] source id 'paper' (https://example.org/kb/paper) has 2 different "
+            "excerpts: a.md sources[0] vs. b.md sources[0]") in result.output
+    result = runner.invoke(app, ['validate', str(kb), '--shacl'])
+    assert result.exit_code == 1
+    assert 'MaxCount' in result.output and 'lokf:excerpt' in result.output
+
+
+def test_excerpt_conflicts_group_by_the_node_an_id_mints(tmp_path):
+    """One excerpt, or none, under a shared id is no clash; two spellings of
+    one IRI are one node, and the files giving one excerpt are named together."""
+    from lokf.excerpts import excerpt_conflicts
+
+    quiet = cite_at(tmp_path / 'quiet', a=('paper', 'one passage'), b=('paper', 'one passage'),
+                    c=('paper', None), d=('other', 'another passage'))
+    assert list(excerpt_conflicts(load_bundle(quiet))) == []
+    loud = cite_at(tmp_path / 'loud', a=('paper', 'one passage'), b=('/kb/paper', 'one passage'),
+                   c=('https://example.org/kb/paper', 'another passage'))
+    findings = list(excerpt_conflicts(load_bundle(loud)))
+    assert [severity for severity, _ in findings] == ['WARNING']
+    assert 'a.md sources[0], b.md sources[0] vs. c.md sources[0]' in findings[0][1]

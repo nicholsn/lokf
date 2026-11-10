@@ -19,11 +19,15 @@ toolkit rather than by a reader. The cases of the grammar are a corpus,
 A URL is never fetched, as ``--check-resources`` never fetches one. A scope
 description, a directory or a pattern holds no text, so an excerpt on one is
 an error, as is a file that is not text.
+
+:func:`excerpt_conflicts` is not opt-in: ``lokf validate`` always warns when
+concepts give one source ``id`` different excerpts.
 """
 from __future__ import annotations
 
 import re
 from pathlib import Path
+from urllib.parse import urljoin
 
 from lokf.resources import _entries, kind_of
 
@@ -160,6 +164,39 @@ def _check_file(excerpt: str, path: Path, value: str) -> tuple[str, str] | None:
     problem = find(excerpt, data.decode("utf-8", errors="replace"),
                    markdown=path.suffix.lower() in MARKDOWN, where=repr(value))
     return ("ERROR", problem) if problem else None
+
+
+def excerpt_conflicts(bundle):
+    """Yield a warning for each source ``id`` cited with different excerpts.
+
+    An ``id`` resolves against ``base_iri`` to one source node that every
+    concept citing it shares (SPEC §5.4), so all their excerpts land on it.
+    Each file passes the schema; the SHACL shapes allow the node one
+    ``lokf:excerpt`` and report the node, not the files. The id is joined to
+    ``base_iri`` as the JSON-LD projection joins it, so two spellings of one
+    IRI are one node.
+    """
+    nodes: dict[str, list[tuple[str, str, str]]] = {}
+    for concept in bundle.concepts:
+        where = concept.path.relative_to(bundle.root).as_posix()
+        for i, entry in _entries(concept, "sources"):
+            ref, excerpt = entry.get("id"), entry.get("excerpt")
+            if isinstance(ref, str) and ref.strip() and isinstance(excerpt, str):
+                nodes.setdefault(urljoin(bundle.base_iri, ref), []).append(
+                    (ref, f"{where} sources[{i}]", excerpt))
+    for node, uses in nodes.items():
+        sides: dict[str, list[str]] = {}
+        for _, at, excerpt in uses:
+            sides.setdefault(excerpt, []).append(at)
+        if len(sides) < 2:
+            continue
+        ref = uses[0][0]
+        shown = f"'{ref}'" + (f" ({node})" if node != ref else "")
+        yield "WARNING", (
+            f"source id {shown} has {len(sides)} different excerpts: "
+            + " vs. ".join(", ".join(ats) for ats in sides.values())
+            + ". The id is one source node, shared by every concept citing it, and "
+            "SHACL allows that node one excerpt, so --shacl fails on it")
 
 
 def _short(excerpt: str) -> str:

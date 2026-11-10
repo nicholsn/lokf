@@ -20,6 +20,10 @@ with the 0.x caveat that a minor release may tighten validation.
   `lokf new` declares the context by the published site URL,
   `https://lokf.nolan-nichols.com/lokf.context.jsonld`, in `index.md` and in the scaffolded
   site's `graph.jsonld`, in place of a raw GitHub URL that moved with `main`.
+- `lokf validate` warns when concepts give one source `id` different excerpts,
+  naming the id and the files. The id is one node in the graph, so its excerpts
+  all land on it, and `--shacl` failed on that node without naming a file. The
+  warning does not change the verdict.
 
 ### Fixed
 

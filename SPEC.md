@@ -628,6 +628,12 @@ or an IRI under `base_iri` — because a bundle can only vouch for what it
 contains; `definedBy` and `source` are defined as taking an external resource,
 so off-site targets are not errors.
 
+A source `id` merges the same way: it resolves against `base_iri` to one source
+node that every concept citing it shares (§5.4). Concepts that give it different
+`excerpt`s each validate, but the node holds them all and the SHACL shapes allow
+it one, so `--shacl` fails. `lokf validate` warns when that happens, naming the
+id and the files; the warning does not fail validation.
+
 ### Local resource checks
 
 `lokf validate --check-resources` checks local `resource`,
