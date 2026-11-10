@@ -434,3 +434,16 @@ def test_canonical_labels_for_long_paths_and_symmetric_cycles():
             assert isomorphic(graph, canonical)
             outputs.add(rdf.serialize_graph(graph, "nt"))
         assert len(outputs) == 1
+
+
+@pytest.mark.parametrize('index_text', ['---\nbase_iri: [broken\n---\n', '---\nbase_iri: https://inner.example/\n'])
+def test_malformed_inner_index_does_not_inherit_outer_namespace(tmp_path, index_text):
+    (tmp_path / 'index.md').write_text('---\nbase_iri: https://outer.example/\n---\n')
+    inner = tmp_path / 'inner'
+    inner.mkdir()
+    (inner / 'index.md').write_text(index_text)
+    concept = inner / 'concept.md'
+    concept.write_text('---\ntype: Explanation\ntitle: Concept\n---\n')
+    for source in (concept, inner):
+        with pytest.raises(ValueError, match='inner/index.md: frontmatter'):
+            rdf.graph_of(source)

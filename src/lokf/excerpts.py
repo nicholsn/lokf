@@ -182,7 +182,15 @@ def excerpt_conflicts(bundle):
         for i, entry in _entries(concept, "sources"):
             ref, excerpt = entry.get("id"), entry.get("excerpt")
             if isinstance(ref, str) and ref.strip() and isinstance(excerpt, str):
-                nodes.setdefault(urljoin(bundle.base_iri, ref), []).append(
+                try:
+                    node = urljoin(bundle.base_iri, ref)
+                except ValueError as exc:
+                    yield "WARNING", (
+                        f"{where} sources[{i}]: cannot resolve source id {ref!r} "
+                        f"against base_iri {bundle.base_iri!r}: {exc}; "
+                        "excerpt conflict check skipped for this entry")
+                    continue
+                nodes.setdefault(node, []).append(
                     (ref, f"{where} sources[{i}]", excerpt))
     for node, uses in nodes.items():
         sides: dict[str, list[str]] = {}
