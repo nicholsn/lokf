@@ -23,6 +23,14 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
+- One concept file given to `lokf convert`, `query` or `serve`, or to the MCP
+  `convert` and `describe_concept` tools, is now read in the bundle whose
+  `index.md` declares it (`base_iri`, `lokf_version`, `okf_version` or
+  `context`), the nearest such one above the file, else the outermost
+  `index.md`. The nearest `index.md` of any kind was taken, so in a bundle with
+  an index page per section a file below one lost `base_iri`: the concept and
+  its relative `sources[].id` came out as `file://` IRIs. The root is also
+  found above the working directory now.
 - A `---` inside a frontmatter value no longer ends the block, which dropped
   later keys such as `verified` while `lokf validate` still passed. A delimiter
   must now be `---` on a line of its own.
