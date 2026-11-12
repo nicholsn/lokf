@@ -41,7 +41,7 @@ server = MCPServer("lokf", instructions=_INSTRUCTIONS, version=_version())
 
 
 def _schema(path: str):
-    """The domain schema the project around *path* declares in its
+    """The domain vocabulary the project around *path* declares in its
     pyproject.toml, or None: the same default the CLI applies, so an agent
     and a person see one graph."""
     from lokf.schema import project_schema

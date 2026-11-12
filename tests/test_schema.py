@@ -324,10 +324,11 @@ def test_ancestor_schema_wins_over_packaged(tmp_path, monkeypatch):
     assert load_schema()["name"] == "lokf-local-edit"
 
 
-def test_vocabulary_follows_a_domain_schemas_imports():
-    # The vocabulary of a domain schema that imports lokf must include LOKF's
-    # slots as well as the domain's own, not only the slots in its own file.
-    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+def test_vocabulary_follows_a_domain_vocabularys_imports():
+    # vocabulary() over a domain vocabulary that imports lokf must include
+    # LOKF's slots as well as the domain's own, not only the slots in its own
+    # file.
+    domain = FIXTURES / "domain-vocabulary" / "adds-a-slot.yaml"
     stock, own = vocabulary(ROOT / "lokf.yaml"), vocabulary(domain)
     assert set(own.relation_slots) == set(stock.relation_slots) | {"taughtBy"}
     assert own.relation_slots["isPartOf"] == stock.relation_slots["isPartOf"]
@@ -335,20 +336,20 @@ def test_vocabulary_follows_a_domain_schemas_imports():
 
 
 def test_vocabulary_reads_a_relation_from_slot_usage():
-    # An imported vocabulary's slot that a domain class ranges over Concept
+    # An imported schema's slot that a domain class ranges over Concept
     # with slot_usage is a relation on that class, and only on that class.
-    own = vocabulary(FIXTURES / "domain-schema" / "reranges-a-slot.yaml")
+    own = vocabulary(FIXTURES / "domain-vocabulary" / "reranges-a-slot.yaml")
     governed_by = own.relation_slots["governedBy"]
     assert governed_by.domains == {"Regulation"}
     assert governed_by.uri == "https://ex.org/schema/vocabulary/governedBy"
-    assert "governedBy" not in vocabulary(FIXTURES / "domain-schema" / "vocabulary.yaml").relation_slots
+    assert "governedBy" not in vocabulary(FIXTURES / "domain-vocabulary" / "vocabulary.yaml").relation_slots
 
 
 def test_vocabulary_resolves_references_by_inheritance():
     # Course narrows a relation to a subclass, Requirement gets its slot from
     # a mixin, Unit's reference is single-valued, and Tag's mixin overrides
     # Base's slot_usage, so Tag's label is a string, as LinkML reads it.
-    own = vocabulary(FIXTURES / "domain-schema" / "inherits-references.yaml")
+    own = vocabulary(FIXTURES / "domain-vocabulary" / "inherits-references.yaml")
     assert own.relation_slots["taughtBy"].domains == {"Course"}
     assert own.relation_slots["governedBy"].domains == {"Requirement"}
     assert own.reference_slots["ownedBy"] == {"Unit"}
@@ -361,7 +362,7 @@ def test_references_follow_the_concepts_type():
     # A concept holds concept ids in the reference slots of its class and
     # ancestors, not in one a mixin narrows to a string, and a type no class
     # declares holds Concept's.
-    own = vocabulary(FIXTURES / "domain-schema" / "inherits-references.yaml")
+    own = vocabulary(FIXTURES / "domain-vocabulary" / "inherits-references.yaml")
     assert "label" in own.references("Base") and "label" not in own.references("Tag")
     assert {"isPartOf", "taughtBy"} <= own.references("Course")
     assert own.references("Widget") == own.references("Concept")
@@ -379,7 +380,7 @@ def test_vocabulary_reads_attributes_and_any_of_ranges():
     # A class's attributes are its slots, and a slot whose any_of includes
     # Concept holds concept ids. An attribute with no slot_uri has no
     # predicate to propose, so it is a reference but not a relation.
-    own = vocabulary(FIXTURES / "domain-schema" / "attribute-references.yaml")
+    own = vocabulary(FIXTURES / "domain-vocabulary" / "attribute-references.yaml")
     assert {"taughtBy", "advisedBy", "mentoredBy"} <= set(own.reference_slots)
     assert "code" not in own.reference_slots
     assert "taughtBy" not in own.relation_slots
@@ -609,7 +610,7 @@ def test_http_method_is_an_enum_of_iana_verbs():
 
 
 def test_schema_context_of_lokf_itself_is_the_published_context():
-    """A domain schema's context is built the way lokf-build builds LOKF's:
+    """A domain vocabulary's context is built the way lokf-build builds LOKF's:
     built from lokf.yaml, it is the published context."""
     pytest.importorskip("linkml")
     root = pathlib.Path(__file__).resolve().parents[1]
@@ -618,21 +619,21 @@ def test_schema_context_of_lokf_itself_is_the_published_context():
 
 def test_vocabulary_gives_an_imported_class_its_own_schemas_iri(tmp_path):
     """A domain class without class_uri derives it from the domain's default
-    prefix, not from lokf's, when read through the domain schema."""
-    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    prefix, not from lokf's, when read through the domain vocabulary."""
+    domain = FIXTURES / "domain-vocabulary" / "adds-a-slot.yaml"
     v = vocabulary(domain)
     assert v.classes["Course"] == "domain:Course"
     assert v.classes["Metric"] == "lokf:Metric"
 
 
 def test_schema_context_of_a_domain_falls_back_to_lokf():
-    """A domain schema's context keeps LOKF's @vocab, so an undeclared key
-    projects as it does without a schema, and every term the domain writes
+    """A domain vocabulary's context keeps LOKF's @vocab, so an undeclared key
+    projects as it does without ``--schema``, and every term the domain writes
     relative to its own namespace is made absolute first."""
     pytest.importorskip("linkml")
     from lokf.schema import _vocab_relative
 
-    ctx = schema_context(FIXTURES / "domain-schema" / "adds-a-slot.yaml")
+    ctx = schema_context(FIXTURES / "domain-vocabulary" / "adds-a-slot.yaml")
     assert ctx["@vocab"] == load_context()["@vocab"]
     assert ctx["Course"] == {"@id": "https://ex.org/schema/domain/Course"}
     assert ctx["taughtBy"]["@id"] == "https://ex.org/schema/domain/taughtBy"
@@ -646,7 +647,7 @@ def test_schema_context_keeps_a_domain_slot_named_like_a_parameter_type():
     ParameterType value the domain does not declare still expands to its
     Parameter-kind class."""
     pytest.importorskip("linkml")
-    ctx = schema_context(FIXTURES / "domain-schema" / "names-a-slot-like-a-parameter-type.yaml")
+    ctx = schema_context(FIXTURES / "domain-vocabulary" / "names-a-slot-like-a-parameter-type.yaml")
     assert ctx["uri"] == {"@id": "https://ex.org/schema/domain/uri"}
     assert ctx["date"] == {"@id": "https://ex.org/schema/domain/date"}
     assert ctx["string"] == {"@id": "https://w3id.org/lokf/StringParameter"}
@@ -733,8 +734,8 @@ def test_distribution_checksum_follows_dcat_3(vocab):
     assert checksum["slots"] == ["algorithm", "checksum_value"]
     assert slots["algorithm"]["slot_uri"] == "spdx:algorithm"
     assert slots["checksum_value"]["slot_uri"] == "spdx:checksumValue"
-    # Required only inside a Checksum, so a domain schema's own slot of the
-    # same name is not made required.
+    # Required only inside a Checksum, so a domain vocabulary's own slot of
+    # the same name is not made required.
     for name in ("checksum", "byte_size", "algorithm", "checksum_value"):
         assert "required" not in slots[name], name
     assert checksum["slot_usage"]["algorithm"]["required"] is True

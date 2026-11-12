@@ -1,10 +1,10 @@
-"""`lokf adapt`: a published LinkML vocabulary becomes a domain-schema import.
+"""`lokf adapt`: a published LinkML schema becomes a LOKF domain vocabulary.
 
 The fixture vocabulary-with-root.yaml is shaped like biolink-model: a root of
 its own with an identifier, an rdf:type slot and a designator, lowercase names
 with spaces, names LOKF also defines, and a sibling import. The unit tests take
 each move on its own; the end-to-end tests import the copy from a domain
-schema and run the bundle through `lokf validate` and `lokf convert`. The
+vocabulary and run the bundle through `lokf validate` and `lokf convert`. The
 biolink test itself runs only after `just biolink` has fetched the model.
 """
 import os
@@ -20,7 +20,7 @@ from lokf.cli import app
 from lokf.schema import load_schema
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-FIXTURES = ROOT / "tests" / "fixtures" / "domain-schema"
+FIXTURES = ROOT / "tests" / "fixtures" / "domain-vocabulary"
 VOCAB = FIXTURES / "vocabulary-with-root.yaml"
 LOKF = ROOT / "lokf.yaml"
 runner = CliRunner()
@@ -108,7 +108,7 @@ def test_drop_twins_replaces_an_identifier_attribute_with_lokfs_id():
     assert schema["classes"]["thing"] == {"attributes": {"n": {}}, "slots": ["id"]}
 
 
-def test_rename_shared_refuses_a_name_the_vocabulary_already_has():
+def test_rename_shared_refuses_a_name_the_schema_already_has():
     schema = {"default_prefix": "v", "prefixes": {"v": "https://ex.org/v/"}, "slots": {"license": {}, "v_license": {}}}
     with pytest.raises(ValueError, match="v_license"):
         A.rename_shared(schema, {"slots": ["license"]}, "v")
@@ -269,7 +269,7 @@ def test_a_slot_with_the_iri_of_lokfs_title_folds_into_it_not_into_lokfs_name(tm
     assert report.problems == []
     assert report.folded_into == {"label": "title", "summary": "description"}
     assert "label" not in schema["slots"] and "summary" not in schema["slots"]
-    # the vocabulary's own title is renamed first; the fold's title is LOKF's
+    # the schema's own title is renamed first; the fold's title is LOKF's
     assert report.renamed == {"title": "f_title"}
     assert schema["classes"]["Thing"]["slots"] == ["id", "title", "description", "f_title", "size"]
     assert schema["slots"]["short_label"]["is_a"] == "title"
@@ -288,7 +288,7 @@ def test_a_fold_carries_the_slots_constraints_and_the_classs_own_win(tmp_path):
 
 
 def test_a_fold_carries_a_range_that_refines_the_targets():
-    """A vocabulary type over string, renamed as shared, is a narrower string."""
+    """One of the schema's types over string, renamed as shared, is a narrower string."""
     schema, report = A.adapt(VOCAB, folds={"symbol": "title"})
     assert report.problems == []
     assert schema["classes"]["Gene"]["slot_usage"]["title"] == {"range": "vocab_unit"}
@@ -386,7 +386,7 @@ def test_fold_flag_folds_a_slot_that_declares_no_mapping():
     assert "folded into LOKF's: name -> title, description -> description" in schema["notes"][-1]
 
 
-def test_fold_flag_takes_the_vocabularys_spelling_or_the_underscored_one():
+def test_fold_flag_takes_the_schemas_spelling_or_the_underscored_one():
     _, report = A.adapt(VOCAB, folds={"has_attribute": "tags"})
     assert report.folded_into == {"has attribute": "tags"}
 
@@ -394,7 +394,7 @@ def test_fold_flag_takes_the_vocabularys_spelling_or_the_underscored_one():
 def test_fold_flag_refuses_a_slot_either_side_lacks():
     _, report = A.adapt(VOCAB, folds={"nonesuch": "title", "name": "nonesuch"})
     assert report.problems == [
-        "--fold nonesuch=title: the vocabulary has no slot nonesuch",
+        "--fold nonesuch=title: the source schema has no slot nonesuch",
         "--fold name=nonesuch: lokf.yaml has no slot nonesuch",
     ]
 
@@ -402,8 +402,8 @@ def test_fold_flag_refuses_a_slot_either_side_lacks():
 def test_fold_flag_on_a_slot_dropped_as_a_twin_says_so():
     _, report = A.adapt(VOCAB, folds={"id": "title"}, keep=["type"])
     assert report.problems == [
-        "--fold id=title: the vocabulary's id was dropped as LOKF's id",
-        "--keep type: the vocabulary's type was dropped as LOKF's type",
+        "--fold id=title: the source schema's id was dropped as LOKF's id",
+        "--keep type: the source schema's type was dropped as LOKF's type",
     ]
 
 
@@ -452,7 +452,7 @@ def test_fold_flag_takes_an_attribute_as_class_dot_attr(tmp_path):
     assert widget["slot_usage"]["version"] == {"range": "string"}
     _, report = A.adapt(_folds_vocab(tmp_path, _ATTRS), folds={"nonesuch.x": "title", "widget.nope": "title"})
     assert report.problems == [
-        "--fold nonesuch.x=title: the vocabulary has no class nonesuch",
+        "--fold nonesuch.x=title: the source schema has no class nonesuch",
         "--fold widget.nope=title: class widget has no attribute nope",
     ]
 
@@ -483,10 +483,10 @@ def test_keep_holds_a_slot_back_from_the_iri_route(tmp_path):
     assert (report.kept, report.folded_into) == (["widget.label"], {})
 
 
-def test_keep_refuses_a_name_the_vocabulary_lacks_or_fold_names_too(tmp_path):
+def test_keep_refuses_a_name_the_schema_lacks_or_fold_names_too(tmp_path):
     _, report = A.adapt(_folds_vocab(tmp_path), keep=["nonesuch", "label"], folds={"label": "title"})
     assert report.problems == [
-        "--keep nonesuch: the vocabulary has no slot nonesuch",
+        "--keep nonesuch: the source schema has no slot nonesuch",
         "--keep label: --fold names label too",
     ]
 
@@ -503,7 +503,7 @@ def _adapted(tmp_path) -> pathlib.Path:
 
 
 def _domain(tmp_path) -> pathlib.Path:
-    """A domain schema that imports lokf and the copy, and declares nothing."""
+    """A domain vocabulary that imports lokf and the copy, and declares nothing."""
     domain = tmp_path / "genomics.yaml"
     domain.write_text(
         "id: https://ex.org/schema/genomics\nname: genomics\n"
@@ -549,7 +549,7 @@ def test_verify_reports_a_name_still_shared_and_a_dangling_reference(tmp_path):
     assert any("Nonesuch" in p for p in problems)
 
 
-def test_the_copy_is_a_domain_schema_and_a_schema_that_imports_it_is_another(tmp_path):
+def test_the_copy_is_a_domain_vocabulary_and_a_file_that_imports_it_is_another(tmp_path):
     copy, kb = _adapted(tmp_path), _bundle(tmp_path)
     for schema in (copy, _domain(tmp_path)):
         result = runner.invoke(app, ["validate", str(kb), "--schema", str(schema), "--check-refs"])
@@ -557,7 +557,7 @@ def test_the_copy_is_a_domain_schema_and_a_schema_that_imports_it_is_another(tmp
         assert result.output.startswith("OK")
 
 
-def test_check_refs_covers_the_vocabularys_relation_slots(tmp_path):
+def test_check_refs_covers_the_schemas_relation_slots(tmp_path):
     _adapted(tmp_path)
     domain, kb = _domain(tmp_path), _bundle(tmp_path, taxon_target="taxa/nope")
     result = runner.invoke(app, ["validate", str(kb), "--schema", str(domain), "--check-refs"])
@@ -585,7 +585,7 @@ def test_check_refs_reads_a_curie_as_the_iri_it_expands_to(tmp_path):
     assert "kb:taxa/nope" in result.output
 
 
-def test_the_copy_projects_under_the_vocabularys_iris(tmp_path):
+def test_the_copy_projects_under_the_schemas_iris(tmp_path):
     _adapted(tmp_path)
     domain, kb = _domain(tmp_path), _bundle(tmp_path)
     result = runner.invoke(app, ["convert", str(kb / "genes" / "brca1.md"), "-f", "nt", "--schema", str(domain)])
@@ -664,7 +664,7 @@ def test_cli_refuses_to_overwrite_the_input(tmp_path):
     assert "is the input" in result.output
 
 
-def test_cli_reports_a_malformed_vocabulary(tmp_path):
+def test_cli_reports_a_malformed_schema(tmp_path):
     vocab = tmp_path / "v.yaml"
     vocab.write_text("- just\n- a list\n", encoding="utf-8")
     result = runner.invoke(app, ["adapt", str(vocab), "-o", str(tmp_path / "x.yaml")])
@@ -708,7 +708,7 @@ def test_cli_keep_is_reported_and_check_holds_the_copy_to_it(tmp_path):
     assert "is stale" in result.output
     result = runner.invoke(app, ["adapt", str(vocab), "-o", str(out), "--keep", "nonesuch"])
     assert result.exit_code == 1
-    assert "--keep nonesuch: the vocabulary has no slot nonesuch" in result.output
+    assert "--keep nonesuch: the source schema has no slot nonesuch" in result.output
 
 
 def test_cli_folds_an_attribute_and_warns_of_a_shadow(tmp_path):
@@ -727,7 +727,7 @@ def test_cli_refuses_a_fold_it_cannot_make(tmp_path):
     assert not out.exists()
     result = runner.invoke(app, ["adapt", str(VOCAB), "-o", str(out), "--fold", "name"])
     assert result.exit_code == 2
-    assert "VOCAB_SLOT=LOKF_SLOT" in result.output
+    assert "SCHEMA_SLOT=LOKF_SLOT" in result.output
 
 
 def test_cli_exits_one_when_root_names_no_class(tmp_path):
@@ -787,7 +787,7 @@ def test_biolink_round_trip(tmp_path):
     copy = BIOLINK / "biolink_lokf.yaml"
     copy.write_text(A.dump(schema, A.header(report)), encoding="utf-8")
     assert A.verify(copy, LOKF) == []
-    # The copy is the LOKF domain schema: nothing of the bundle's own imports it.
+    # The copy is the LOKF domain vocabulary: nothing of the bundle's own imports it.
     result = runner.invoke(app, ["validate", str(BIOLINK / "knowledge"), "--schema", str(copy), "--check-refs"])
     assert result.exit_code == 0, result.output
     result = runner.invoke(app, ["convert", str(BIOLINK / "knowledge"), "-f", "nt", "--schema", str(copy)])
@@ -975,7 +975,7 @@ def _beside_vocab(tmp_path, prefix, attribute=False, key='custom_code'):
 
 @pytest.mark.parametrize('first_attribute', [False, True])
 @pytest.mark.parametrize('second_attribute', [False, True])
-def test_beside_preserves_both_vocabularies_in_combined_rdf(tmp_path, first_attribute, second_attribute):
+def test_beside_preserves_both_schemas_in_combined_rdf(tmp_path, first_attribute, second_attribute):
     from lokf.schema import schema_context
     from rdflib import Graph, URIRef, Literal
     import json

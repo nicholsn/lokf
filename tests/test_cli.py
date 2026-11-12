@@ -96,7 +96,7 @@ def test_single_file_under_a_section_index_keeps_the_bundle_base_iri():
     assert [b["s"]["value"] for b in bindings] == ["https://kb.example/knowledge/smith-2020"]
 
 
-# A concept of the class and slot that tests/fixtures/domain-schema/
+# A concept of the class and slot that tests/fixtures/domain-vocabulary/
 # adds-a-slot.yaml declares, neither of them LOKF's.
 _COURSE = "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/real]\n---\n\n# C\n"
 _DOMAIN = "https://ex.org/schema/domain/"
@@ -107,7 +107,7 @@ def test_convert_schema_projects_domain_terms_under_their_own_iris(tmp_path):
     slot ranging over Concept gives an IRI, not a string. The schema's imports
     resolve next to it, from any working directory."""
     kb = _kb(tmp_path, _COURSE)
-    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "adds-a-slot.yaml"
     result = runner.invoke(
         app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
     )
@@ -121,7 +121,7 @@ def test_convert_schema_leaves_an_undeclared_key_under_lokf(tmp_path):
     """A key neither schema declares projects under LOKF's namespace, as it
     does without --schema, while the domain's own terms keep their IRIs."""
     kb = _kb(tmp_path, _COURSE.replace("title: C\n", "title: C\nstray: x\n"))
-    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "adds-a-slot.yaml"
     result = runner.invoke(
         app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
     )
@@ -135,7 +135,7 @@ def test_convert_schema_projects_a_slot_named_like_a_parameter_type(tmp_path):
     """A domain slot named `uri` projects under the domain's own IRI, not as
     the lokf:UriParameter class in predicate position."""
     kb = _kb(tmp_path, "---\ntype: Endpoint\ntitle: E\nuri: https://ex.org/dep\n---\n\n# E\n")
-    domain = FIXTURES / "domain-schema" / "names-a-slot-like-a-parameter-type.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "names-a-slot-like-a-parameter-type.yaml"
     result = runner.invoke(
         app, ["convert", str(kb / "term.md"), "-f", "nt", "--schema", str(domain)]
     )
@@ -154,12 +154,12 @@ def test_convert_without_schema_reads_a_domain_class_as_concept(tmp_path):
 
 
 def test_convert_schema_that_only_imports_lokf_changes_nothing():
-    """A domain schema that adds nothing projects the reference bundle as the
+    """A domain vocabulary that adds nothing projects the reference bundle as the
     published context does, so LOKF's own terms keep their IRIs under it."""
     from rdflib import Graph
     from rdflib.compare import isomorphic
 
-    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "imports-only.yaml"
     plain = runner.invoke(app, ["convert", str(BUNDLE), "-f", "nt"])
     extended = runner.invoke(
         app, ["convert", str(BUNDLE), "-f", "nt", "--schema", str(domain)]
@@ -181,7 +181,7 @@ def test_convert_schema_without_linkml_hints_at_the_build_extra(monkeypatch):
     # A context another test built would be served from the cache.
     _schema_context.cache_clear()
     monkeypatch.setitem(sys.modules, "linkml.generators.jsonldcontextgen", None)
-    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "imports-only.yaml"
     result = runner.invoke(app, ["convert", str(METRIC), "--schema", str(domain)])
     assert result.exit_code == 1
     assert "lokf[build]" in result.output
@@ -502,9 +502,9 @@ def test_validate_rejects_unknown_http_method(tmp_path):
 
 
 def test_validate_resolves_schema_imports_from_any_directory(tmp_path, monkeypatch):
-    """A domain schema's imports must resolve next to the schema file, not in
+    """A domain vocabulary's imports must resolve next to the file, not in
     the current directory, so --schema works from wherever lokf runs."""
-    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "imports-only.yaml"
     (tmp_path / "index.md").write_text(
         "---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8"
     )
@@ -659,7 +659,7 @@ def test_check_refs_follows_the_schemas_imports(tmp_path, monkeypatch):
     """--check-refs must check LOKF's relation slots even when the domain
     schema only imports lokf and declares no slots of its own. The validator
     sees those slots, so the reference check must see them too."""
-    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "imports-only.yaml"
     # The validator resolves the schema's imports against the current
     # directory, not the schema's own, so run from the schema's directory.
     monkeypatch.chdir(domain.parent)
@@ -675,11 +675,11 @@ def test_check_refs_follows_the_schemas_imports(tmp_path, monkeypatch):
     assert "isPartOf" in result.output and "does-not-exist" in result.output
 
 
-def test_check_refs_covers_a_slot_the_domain_schema_declares(tmp_path, monkeypatch):
-    """--check-refs checks the relation slot the domain schema declares itself
-    as well as the slots it imports, and the validator accepts the domain's
-    own class."""
-    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+def test_check_refs_covers_a_slot_the_domain_vocabulary_declares(tmp_path, monkeypatch):
+    """--check-refs checks the relation slot the domain vocabulary declares
+    itself as well as the slots it imports, and the validator accepts the
+    domain's own class."""
+    domain = FIXTURES / "domain-vocabulary" / "adds-a-slot.yaml"
     # The validator resolves the schema's imports against the current
     # directory, not the schema's own, so run from the schema's directory.
     monkeypatch.chdir(domain.parent)
@@ -699,9 +699,9 @@ def test_check_refs_covers_a_slot_the_domain_schema_declares(tmp_path, monkeypat
 
 
 def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path):
-    """An imported vocabulary's slot that the domain schema ranges over
+    """An imported schema's slot that the domain vocabulary ranges over
     Concept with slot_usage is checked like a slot declared that way."""
-    domain = FIXTURES / "domain-schema" / "reranges-a-slot.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "reranges-a-slot.yaml"
     kb = _kb(
         tmp_path,
         "---\ntype: Regulation\ntitle: R\n"
@@ -718,7 +718,7 @@ def test_check_refs_covers_a_slot_the_domain_ranges_over_concept(tmp_path):
 def test_check_refs_covers_references_the_domain_inherits(tmp_path):
     """--check-refs checks a relation narrowed to a subclass, a slot a class
     gets from a mixin, and a single-valued reference."""
-    domain = FIXTURES / "domain-schema" / "inherits-references.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "inherits-references.yaml"
     kb = _kb(
         tmp_path,
         "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/nobody]\n---\n\n# C\n",
@@ -741,7 +741,7 @@ def test_check_refs_covers_references_the_domain_inherits(tmp_path):
 def test_check_refs_covers_attributes_and_any_of_ranges(tmp_path):
     """--check-refs checks a reference declared as a class attribute and a
     slot whose any_of includes Concept."""
-    domain = FIXTURES / "domain-schema" / "attribute-references.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "attribute-references.yaml"
     kb = _kb(
         tmp_path,
         "---\ntype: Course\ntitle: C\ntaughtBy: [https://ex.org/kb/nobody]\n"
@@ -761,7 +761,7 @@ def test_check_refs_reads_a_slot_as_the_concepts_type_does(tmp_path):
     """Tag's mixin narrows `label` to a string, so a Tag's label is never a
     dangling reference; a type no class declares is a Concept, so its
     `isPartOf` still is."""
-    domain = FIXTURES / "domain-schema" / "inherits-references.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "inherits-references.yaml"
     kb = _kb(
         tmp_path,
         "---\ntype: Tag\ntitle: T\nlabel: [https://ex.org/kb/nowhere]\n---\n\n# T\n",
@@ -777,10 +777,10 @@ def test_check_refs_reads_a_slot_as_the_concepts_type_does(tmp_path):
 
 # -- query ------------------------------------------------------------------
 def test_query_schema_presets_its_prefixes(tmp_path):
-    """query --schema projects under the domain schema and presets its
+    """query --schema projects under the domain vocabulary and presets its
     prefixes, so `domain:` needs no PREFIX line."""
     kb = _kb(tmp_path, _COURSE)
-    domain = FIXTURES / "domain-schema" / "adds-a-slot.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "adds-a-slot.yaml"
     sparql = "SELECT ?t WHERE { ?c a domain:Course ; domain:taughtBy ?t }"
     result = runner.invoke(app, ["query", str(kb), sparql, "--schema", str(domain)])
     assert result.exit_code == 0, result.output
@@ -792,7 +792,7 @@ def test_serve_passes_the_schema_to_the_server(monkeypatch):
     the way query does."""
     calls = {}
     monkeypatch.setattr("lokf.server.serve", lambda source, **kw: calls.update(kw))
-    domain = FIXTURES / "domain-schema" / "imports-only.yaml"
+    domain = FIXTURES / "domain-vocabulary" / "imports-only.yaml"
     result = runner.invoke(app, ["serve", str(BUNDLE), "--schema", str(domain)])
     assert result.exit_code == 0, result.output
     assert calls["schema"] == domain
@@ -903,10 +903,10 @@ def test_export_writes_registry_producer_contract(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# [tool.lokf] schema: a project declares its domain schema once
+# [tool.lokf] schema: a project declares its domain vocabulary once
 # ---------------------------------------------------------------------------
 def _project(tmp_path, schema_line: str = 'schema = "domain.yaml"'):
-    """A project: pyproject.toml declaring a domain schema, the schema beside
+    """A project: pyproject.toml declaring a domain vocabulary, the file beside
     it with lokf.yaml, and a bundle with one domain-typed concept."""
     (tmp_path / "pyproject.toml").write_text(f"[tool.lokf]\n{schema_line}\n", encoding="utf-8")
     (tmp_path / "lokf.yaml").write_text((FIXTURES.parent.parent / "lokf.yaml").read_text(encoding="utf-8"), encoding="utf-8")
@@ -966,14 +966,14 @@ def test_export_writes_the_project_schemas_iris(tmp_path, monkeypatch):
 
 
 def test_export_draws_a_prefixed_target_in_both_graphs(tmp_path):
-    """A relation target written as a CURIE under a prefix the domain schema
-    declares is one edge in graph.nt and the same edge in graph.json."""
+    """A relation target written as a CURIE under a prefix the domain
+    vocabulary declares is one edge in graph.nt and the same edge in graph.json."""
     from rdflib import Graph, URIRef
 
     from lokf.schema import vocabulary
 
-    schema = FIXTURES / "domain-schema" / "prefixes-the-bundle.yaml"
-    kb = FIXTURES / "domain-schema" / "prefixed-target"
+    schema = FIXTURES / "domain-vocabulary" / "prefixes-the-bundle.yaml"
+    kb = FIXTURES / "domain-vocabulary" / "prefixed-target"
     out = tmp_path / "out"
     result = runner.invoke(app, ["export", str(kb), "-d", str(out), "--schema", str(schema)])
     assert result.exit_code == 0, result.output

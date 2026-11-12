@@ -8,7 +8,7 @@
     lokf propose examples/acme-knowledge --apply      # typed relations from links
     lokf vocab                                        # the typed-relation vocabulary
     lokf vocab --all --json                           # the full vocabulary + descriptions
-    lokf adapt biolink_model.yaml                     # a vocabulary as a LOKF domain schema
+    lokf adapt biolink_model.yaml                     # a schema as a LOKF domain vocabulary
     lokf skills                                        # bundled agent skills
     lokf mcp                                           # run the MCP server
     lokf --version                                     # print the lokf version
@@ -91,7 +91,7 @@ def new(
 # convert
 # ---------------------------------------------------------------------------
 _SCHEMA_HELP = (
-    "A domain schema that `imports: [lokf]`, as passed to `lokf validate "
+    "A domain vocabulary that `imports: [lokf]`, as passed to `lokf validate "
     "--schema`: project its classes and slots under their own IRIs rather than "
     "as lokf: terms. Default: the `[tool.lokf] schema` of the nearest "
     "pyproject.toml above the bundle. Needs lokf[build]."
@@ -107,8 +107,8 @@ def _shown(path: Path) -> str:
 
 
 def _domain_schema(schema: Optional[Path], source: Path) -> Optional[Path]:
-    """``--schema``, else the schema the pyproject.toml above *source*
-    declares. A declaration naming a missing file is an error, not a
+    """``--schema``, else the domain vocabulary the pyproject.toml above
+    *source* declares. A declaration naming a missing file is an error, not a
     fall-back to core."""
     from lokf.schema import domain_schema
 
@@ -120,10 +120,10 @@ def _domain_schema(schema: Optional[Path], source: Path) -> Optional[Path]:
 
 
 def _schema_or_exit(schema: Optional[Path], source: Path) -> Optional[Path]:
-    """Resolve the domain schema and build its context up front, so a lean
+    """Resolve the domain vocabulary and build its context up front, so a lean
     install without LinkML fails with an install hint rather than a traceback.
     The context is cached, so the projection that follows does not build it
-    again. Returns the schema to project under, ``None`` for core LOKF."""
+    again. Returns the file to project under, ``None`` for core LOKF."""
     schema = _domain_schema(schema, source)
     if schema is None:
         return None
@@ -216,7 +216,7 @@ def _sharpen_anyof_message(message: str, source, defs: dict) -> str:
             return message
         return (
             f"{message}\n  hint: `type: {class_name!r}` isn't a class this schema "
-            "declares. A project-specific type needs a domain schema that "
+            "declares. A project-specific type needs a domain vocabulary that "
             "`imports: [lokf]` and adds it - see `lokf validate --schema`."
         )
     import jsonschema
@@ -248,9 +248,9 @@ def validate(
         None, "--schema", "-s", exists=True, dir_okay=False,
         help="Schema file (default: the `[tool.lokf] schema` of the nearest "
         "pyproject.toml above the bundle, else a local lokf.yaml checkout, else the copy "
-        "packaged with lokf). Pass a project's own schema here - one that "
-        "`imports: [lokf]` and adds its own types/keys - to validate "
-        "concepts that go beyond stock LOKF.",
+        "packaged with lokf). Pass a domain vocabulary here to validate concepts "
+        "that go beyond stock LOKF: a LinkML file that `imports: [lokf]` and adds "
+        "the bundle's own types and keys.",
     ),
     check_refs: bool = typer.Option(
         False, "--check-refs",
@@ -291,9 +291,9 @@ def validate(
     current directory or an ancestor, otherwise from the copy shipped inside
     the installed ``lokf`` package - so a bundle needs no schema file of its
     own to be validated. A concept using a type or frontmatter key this schema
-    doesn't declare needs a domain schema that ``imports: [lokf]`` and adds
+    doesn't declare needs a domain vocabulary that ``imports: [lokf]`` and adds
     it - pass that file via ``--schema``, or declare it once in
-    ``pyproject.toml``. The verdict names a domain schema when one is used.
+    ``pyproject.toml``. The verdict names a domain vocabulary when one is used.
 
     ``--check-refs`` adds a referential-integrity pass: a relation target
     naming this bundle's own namespace must resolve to a concept in it, so a
@@ -363,7 +363,7 @@ def validate(
     # Load the schema through SchemaView, which records the file's path, so
     # its imports resolve next to the schema. Given only the path string,
     # linkml resolves them against the current directory instead, and a
-    # domain schema's `imports: [lokf]` fails from anywhere else.
+    # domain vocabulary's `imports: [lokf]` fails from anywhere else.
     from linkml_runtime.utils.schemaview import SchemaView
 
     report = linkml_validate(doc, SchemaView(str(sch)).schema, "KnowledgeBundle")
@@ -739,13 +739,13 @@ def _echo_vocab_manifest(manifest: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# adapt — a published vocabulary becomes a domain-schema import; SPEC §6.2
+# adapt — a published schema becomes a domain vocabulary; SPEC §6.2
 # ---------------------------------------------------------------------------
 @app.command()
 def adapt(
     vocab: Path = typer.Argument(
-        ..., exists=True, dir_okay=False,
-        help="A published LinkML vocabulary: its root schema file.",
+        ..., exists=True, dir_okay=False, metavar="schema",
+        help="A published LinkML schema: its root file.",
     ),
     # A string, not a Path: Path drops the trailing slash that marks a new
     # directory.
@@ -756,8 +756,8 @@ def adapt(
     ),
     root: list[str] = typer.Option(
         [], "--root",
-        help="A class to re-root on Concept, as the vocabulary names it; repeatable. "
-        "Default: every rootless, non-mixin class that carries the vocabulary's identifier.",
+        help="A class to re-root on Concept, as the schema names it; repeatable. "
+        "Default: every rootless, non-mixin class that carries the schema's identifier.",
     ),
     lokf: Optional[Path] = typer.Option(
         None, "--lokf", exists=True, dir_okay=False,
@@ -766,22 +766,22 @@ def adapt(
     ),
     beside: list[Path] = typer.Option(
         [], "--beside", exists=True, dir_okay=False,
-        help="Another domain schema the copy will share a host with; repeatable. "
+        help="Another domain vocabulary the copy will share a host with; repeatable. "
         "Avoid its element and attribute names and verify the combined imports.",
     ),
     prefix: Optional[str] = typer.Option(
         None, "--prefix",
-        help="Prefix for renamed elements (default: the vocabulary's default_prefix).",
+        help="Prefix for renamed elements (default: the schema's default_prefix).",
     ),
     fold: list[str] = typer.Option(
-        [], "--fold", metavar="VOCAB_SLOT=LOKF_SLOT",
-        help="Fold a vocabulary slot, or a class attribute as Class.attr, into the LOKF slot "
+        [], "--fold", metavar="SCHEMA_SLOT=LOKF_SLOT",
+        help="Fold one of the schema's slots, or a class attribute as Class.attr, into the LOKF slot "
         "it means; repeatable. A slot whose IRI matches one of Concept's slots folds "
         "without this flag.",
     ),
     keep: list[str] = typer.Option(
-        [], "--keep", metavar="VOCAB_SLOT",
-        help="Leave a vocabulary slot, or a Class.attr attribute, out of the fold by IRI; "
+        [], "--keep", metavar="SCHEMA_SLOT",
+        help="Leave one of the schema's slots, or a Class.attr attribute, out of the fold by IRI; "
         "repeatable. It is renamed, or left as it is, as if no IRI matched.",
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Report the moves; write nothing."),
@@ -791,7 +791,7 @@ def adapt(
         "and it verifies beside lokf.yaml. For CI, when either schema moves.",
     ),
 ) -> None:
-    """Copy a LinkML vocabulary into a LOKF domain schema beside lokf.yaml."""
+    """Copy a published LinkML schema into a LOKF domain vocabulary beside lokf.yaml."""
     from lokf import adapt as adapter
     from lokf.schema import schema_path
 
@@ -804,7 +804,7 @@ def adapt(
     for pair in fold:
         want, _, target = (part.strip() for part in pair.partition("="))
         if not (want and target):
-            raise typer.BadParameter(f"{pair!r} is not VOCAB_SLOT=LOKF_SLOT", param_hint="--fold")
+            raise typer.BadParameter(f"{pair!r} is not SCHEMA_SLOT=LOKF_SLOT", param_hint="--fold")
         if folds.setdefault(want, target) != target:
             raise typer.BadParameter(f"{want} is folded into two slots", param_hint="--fold")
     default_name = f"{vocab.stem}_lokf.yaml"
@@ -879,7 +879,7 @@ def adapt(
     if problems:
         raise typer.Exit(1)
     typer.echo(f"  verified beside {lokf_path.name}{' (dry run, nothing written)' if dry_run else ''}")
-    typer.echo("It is a LOKF domain schema: pass it as --schema, or import it from one of your own beside lokf.yaml:")
+    typer.echo("It is a LOKF domain vocabulary: pass it as --schema, or import it from one of your own beside lokf.yaml:")
     typer.echo(f"  imports: [linkml:types, lokf, {out.stem}]")
 
 
@@ -949,7 +949,7 @@ def export(
     from lokf.model import load_bundle
     from lokf.schema import schema_context, vocabulary
 
-    # Under a domain schema the four files carry its IRIs, as convert does,
+    # Under a domain vocabulary the four files carry its IRIs, as convert does,
     # so a registry sees `a analytics:Dashboard`, not `a lokf:Concept`.
     schema = _schema_or_exit(schema, bundle_dir)
     vocab = vocabulary(schema)

@@ -1,6 +1,7 @@
-# A domain schema that declares a prefix for the bundle's own namespace, so a
-# relation target can be written as a CURIE (taughtBy: [kb:real]); the bundle
-# in prefixed-target/ does. The relative import reaches the repo-root lokf.yaml.
+# A domain vocabulary that declares a prefix for the bundle's own namespace,
+# so a relation target can be written as a CURIE (taughtBy: [kb:real]); the
+# bundle in prefixed-target/ does. The relative import reaches the repo-root
+# lokf.yaml.
 id: https://ex.org/schema/domain-prefixes-the-bundle
 name: domain_prefixes_the_bundle
 imports:

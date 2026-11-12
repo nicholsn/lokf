@@ -95,7 +95,7 @@ def docs_to_graph(
     keys are relative and would otherwise resolve against the local file
     system.
 
-    ``schema`` is a domain schema to project under. Its context replaces the
+    ``schema`` is a domain vocabulary to project under. Its context replaces the
     published one unless *context* is given, and its classes count as
     declared, so a domain type keeps its own class instead of reading as
     ``lokf:Concept``.

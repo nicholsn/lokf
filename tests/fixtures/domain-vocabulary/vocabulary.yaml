@@ -1,4 +1,4 @@
-# A published vocabulary as a domain schema imports it: it stands alone, and
+# A published schema as a domain vocabulary imports it: it stands alone, and
 # its reference slot has no range, so it holds a string, as many of gist's do.
 id: https://ex.org/schema/vocabulary
 name: vocabulary
