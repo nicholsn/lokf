@@ -657,7 +657,7 @@ def test_check_refs_honours_an_explicit_schema(tmp_path):
 
 def test_check_refs_follows_the_schemas_imports(tmp_path, monkeypatch):
     """--check-refs must check LOKF's relation slots even when the domain
-    schema only imports lokf and declares no slots of its own. The validator
+    vocabulary only imports lokf and declares no slots of its own. The validator
     sees those slots, so the reference check must see them too."""
     domain = FIXTURES / "domain-vocabulary" / "imports-only.yaml"
     # The validator resolves the schema's imports against the current
