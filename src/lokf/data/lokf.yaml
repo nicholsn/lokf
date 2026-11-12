@@ -1588,8 +1588,9 @@ slots:
         but generated Python needs the induced attribute aliased. LinkML
         currently generates `from_` without mapping the authored `from` key
         when loading dataclasses (https://github.com/linkml/linkml/pull/4083).
-        LOKF's build patches its own generated module; domain schemas importing
-        LOKF and generating their own dataclasses do not receive that patch.
+        LOKF's build patches its own generated module; domain vocabularies
+        importing LOKF and generating their own dataclasses do not receive that
+        patch.
         Keep the authored key `from`; after an upstream release fixes loading,
         update the LinkML minimum and remove the local workaround and expected
         failure in tests/test_keyword_dataclasses.py.

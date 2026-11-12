@@ -16,7 +16,7 @@ against `upstream.sha256`, copies `lokf.yaml` beside it, writes
 ignored by git. The bundle and the checksums are committed.
 
 What `lokf adapt` changed, and why, is in the toolkit page for the command
-and the *Domain schemas* guide on the documentation site.
+and the *Domain vocabularies* guide on the documentation site.
 
 Biolink-model is published under CC0 1.0 by the Biolink Model consortium; it
 is fetched here, never vendored.

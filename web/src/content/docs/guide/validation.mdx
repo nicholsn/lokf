@@ -30,11 +30,11 @@ lokf validate knowledge
 # -> OK — 2 concepts in knowledge validate against KnowledgeBundle.
 ```
 
-A project with a domain schema declares it once, in the `pyproject.toml` that
-pins `lokf`, and every command that reads the bundle uses it when no `--schema`
-is passed: `validate`, `convert`, `query`, `serve`, `export` and the MCP
-server. The verdict then names the schema, so a run against core LOKF alone is
-never mistaken for one against the domain's:
+A project with a domain vocabulary declares it once, in the `pyproject.toml`
+that pins `lokf`, and every command that reads the bundle uses it when no
+`--schema` is passed: `validate`, `convert`, `query`, `serve`, `export` and
+the MCP server. The verdict then names the file, so a run against core LOKF
+alone is never mistaken for one against the domain's:
 
 ```toml
 [tool.lokf]
@@ -47,7 +47,7 @@ lokf validate knowledge
 ```
 
 The nearest `pyproject.toml` with a `[tool.lokf]` table above the bundle
-decides, so the schema is the bundle's project's wherever the command runs
+decides, so the file is the bundle's project's wherever the command runs
 from; `--schema` still wins. A declared file that does not exist is an error,
 never a fall-back to core.
 
@@ -74,9 +74,9 @@ uv run linkml-validate -s lokf.yaml -C Metric metric.json
 ## Closed-world, and four more passes
 
 Both validators are closed-world: a concept naming a `type` or a frontmatter
-key the schema does not declare fails. A project's own types and keys go in
-a [domain schema](/guide/domain-schemas/), passed as `--schema`; `convert`,
-`query` and `serve` take the same flag.
+key the schema does not declare fails. A bundle's own types and keys go in
+a [domain vocabulary](/guide/domain-vocabularies/), passed as `--schema`;
+`convert`, `query` and `serve` take the same flag.
 
 Schema validation sees one concept at a time, so two things escape it. Two
 files declaring one `id` each validate and then merge into one subject in
@@ -119,8 +119,8 @@ lokf validate knowledge --shacl
 # -> OK — 2 concepts in knowledge validate against KnowledgeBundle. RDF conforms to SHACL shapes.
 ```
 
-With a domain schema, from `--schema` or `[tool.lokf]`, the shapes are built
-from it as well, so a domain class's own ranges are checked too.
+With a domain vocabulary, from `--schema` or `[tool.lokf]`, the shapes are
+built from it as well, so a domain class's own ranges are checked too.
 
 ## Conformance in brief
 

@@ -21,10 +21,10 @@ OKF's ergonomics:
 2. **Typed relationships** - `dependsOn`, `derivedFrom`, `isPartOf`, … each pinned to an RDF predicate, instead of one untyped markdown link.
 3. **A real graph** - the same bundle is queryable with SPARQL, validatable with SHACL, and reason-able with OWL.
 4. **Queryable trust** - OKF v0.2's provenance, trust, and lifecycle frontmatter (`sources`, `usage_window`, `generated`, `verified`, `status`, `stale_after`) and the `AttestedComputation` type, each bound to PROV-O / schema.org, so "where did this come from and should I trust it" is a SPARQL query rather than YAML an agent has to interpret. See [SPEC §5.4](./SPEC.md).
-5. **Domain schemas** - a project's own types and keys, declared in a LinkML schema that `imports: [lokf]`. The same validator checks them (`lokf validate --schema`), `--check-refs` resolves their relations, and `convert`, `query` and `serve --schema` project them under their own IRIs. The core vocabulary stays small; a domain extends it without forking it. See [SPEC §6.2](./SPEC.md).
+5. **Domain vocabularies** - a bundle's own types and keys, declared in a LinkML file that `imports: [lokf]`. The same validator checks them (`lokf validate --schema`), `--check-refs` resolves their relations, and `convert`, `query` and `serve --schema` project them under their own IRIs. The core vocabulary stays small; a domain extends it without forking it. A project's own LinkML schema is never edited to import `lokf`: `lokf adapt` writes the bundle a copy that does. See [SPEC §6.2](./SPEC.md).
 6. **Documentation modes** - an optional `genre` facet (and `Tutorial`/`Explanation` types) aligns each concept's prose to the four [Diátaxis](https://diataxis.fr/) modes, on an axis orthogonal to `type`.
 
-It stays **bidirectionally compatible**: every LOKF bundle is a valid OKF bundle, and every OKF bundle is valid LOKF with default mappings — with or without its domain schema.
+It stays **bidirectionally compatible**: every LOKF bundle is a valid OKF bundle, and every OKF bundle is valid LOKF with default mappings — with or without its domain vocabulary.
 
 ## Files
 
@@ -138,7 +138,7 @@ a standalone SHACL engine must supply that hierarchy as ontology data and
 choose its own external-reference policy. JSON Schema retains closed-field and
 per-field cardinality checks where multiple authoring fields share one predicate.
 
-Validation is closed-world (SPEC §9): a project-specific type or key needs a domain schema that `imports: [lokf]` (SPEC §6.2), passed via `lokf validate --schema`. Pass the same file to `lokf convert`, `query` or `serve` with `--schema` to project its types and keys under their own IRIs. A published LinkML vocabulary becomes such a schema's import with `lokf adapt VOCAB.yaml`; `examples/biolink/` does this for biolink-model.
+Validation is closed-world (SPEC §9): a project-specific type or key needs a domain vocabulary that `imports: [lokf]` (SPEC §6.2), passed via `lokf validate --schema`. Pass the same file to `lokf convert`, `query` or `serve` with `--schema` to project its types and keys under their own IRIs. `lokf adapt SCHEMA.yaml` writes a domain vocabulary from a published LinkML schema; `examples/biolink/` does this for biolink-model.
 
 Schema validation sees one concept at a time, so two files declaring one `id` (a sync client's conflict copy is the usual way) pass and then merge into one subject in the graph; `--check-ids` catches that. It cannot tell a live relation target from a fabricated one either - both are valid strings. `--check-refs` adds that pass:
 
