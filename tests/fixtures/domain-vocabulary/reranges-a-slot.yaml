@@ -1,12 +1,12 @@
 # A domain vocabulary that imports lokf and the published schema in
-# vocabulary.yaml, and ranges that schema's governedBy slot over Concept on
+# schema.yaml, and ranges that schema's governedBy slot over Concept on
 # Regulation alone, by slot_usage.
 id: https://ex.org/schema/domain-reranges-a-slot
 name: domain_reranges_a_slot
 imports:
   - linkml:types
   - ../../../lokf
-  - vocabulary
+  - schema
 default_prefix: domain
 prefixes:
   domain: https://ex.org/schema/domain/

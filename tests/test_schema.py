@@ -341,8 +341,8 @@ def test_vocabulary_reads_a_relation_from_slot_usage():
     own = vocabulary(FIXTURES / "domain-vocabulary" / "reranges-a-slot.yaml")
     governed_by = own.relation_slots["governedBy"]
     assert governed_by.domains == {"Regulation"}
-    assert governed_by.uri == "https://ex.org/schema/vocabulary/governedBy"
-    assert "governedBy" not in vocabulary(FIXTURES / "domain-vocabulary" / "vocabulary.yaml").relation_slots
+    assert governed_by.uri == "https://ex.org/schema/published/governedBy"
+    assert "governedBy" not in vocabulary(FIXTURES / "domain-vocabulary" / "schema.yaml").relation_slots
 
 
 def test_vocabulary_resolves_references_by_inheritance():

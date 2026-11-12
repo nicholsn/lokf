@@ -3,11 +3,11 @@
 # lowercase class names with spaces, names LOKF also defines, and a sibling
 # import. `lokf adapt` turns it into a domain vocabulary.
 id: https://ex.org/schema/vocab
-name: vocabulary_with_root
+name: schema_with_root
 version: 1.2.3
 imports:
   - linkml:types
-  - vocabulary-with-root-attributes
+  - schema-with-root-attributes
 default_prefix: vocab
 default_range: string
 prefixes:
