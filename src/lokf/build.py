@@ -197,7 +197,7 @@ def generate(root: pathlib.Path) -> None:
         run(["gen-jsonld-context", str(schema)], stdout=f)
     ctx = json.load(open(base))
     # `type`/`id` aliases, ParameterType values, an uncoerced `author`: the
-    # same authoring fixes `lokf convert --schema` applies to a domain schema.
+    # same authoring fixes `lokf convert --schema` applies to a domain vocabulary.
     ctx["@context"] = authoring_context(ctx["@context"])
     # A wall-clock stamp on a committed artifact is pure churn - git already
     # records when it changed - and it is the only volatile field here.

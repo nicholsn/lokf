@@ -53,7 +53,7 @@ graph.
 3. Provide a **typed relationship** vocabulary so links carry meaning.
 4. Define the format **once** in LinkML and generate every downstream artifact.
 5. Remain **bidirectionally compatible** with OKF (see §10).
-6. Let a domain **extend the vocabulary without forking it**: a schema that imports LOKF's validates with the same validator and projects under its own IRIs (§6.2).
+6. Let a domain **extend the vocabulary without forking it**: a domain vocabulary imports `lokf.yaml`, validates with the same validator and projects under its own IRIs (§6.2).
 
 ### Non-goals
 
@@ -78,7 +78,8 @@ adds:
   frontmatter keys to IRIs. Attaching it to a concept's frontmatter yields JSON-LD.
 - **Typed relation** — a frontmatter key whose value is another concept and whose
   RDF predicate is fixed by this spec (e.g. `derivedFrom` → `prov:wasDerivedFrom`).
-- **Domain schema** - a LinkML schema that imports `lokf.yaml` and declares a domain's own classes and slots, which then validate and project alongside LOKF's (§6.2).
+- **Domain vocabulary** - a LinkML file that imports `lokf.yaml` and declares the classes and slots a bundle's concepts may use beyond §6, which then validate and project alongside LOKF's (§6.2).
+- **Domain schema** - a LinkML schema that models a domain, owned by its own project. It does not import `lokf.yaml`; `lokf adapt` writes a domain vocabulary from it (§6.2).
 
 ---
 
@@ -99,7 +100,7 @@ the LOKF package is generated from it and MUST NOT be edited by hand:
 `@type` keyword and `id` to `@id`, so that authoring in plain OKF frontmatter is
 enough to produce correctly-typed Linked Data (see §7.3).
 
-Because meaning lives in the model, adding a field or a type is a one-line change in `lokf.yaml`; the context, schema, shapes, and ontology all re-derive. A domain schema (§6.2) goes through the same generators, so its types and keys get a context without anyone writing one.
+Because meaning lives in the model, adding a field or a type is a one-line change in `lokf.yaml`; the context, schema, shapes, and ontology all re-derive. A domain vocabulary (§6.2) goes through the same generators, so its types and keys get a context without anyone writing one.
 
 ---
 
@@ -349,7 +350,7 @@ identifier does not change this derivation.
 
 ## 6. The type vocabulary
 
-A concept's `type` SHOULD name one of the following classes, or one a domain schema declares (§6.2). Each LOKF class maps to a public ontology term; consumers MUST tolerate unknown values by treating the concept as a generic `lokf:Concept` (OKF §4.1 / §9).
+A concept's `type` SHOULD name one of the following classes, or one a domain vocabulary declares (§6.2). Each LOKF class maps to a public ontology term; consumers MUST tolerate unknown values by treating the concept as a generic `lokf:Concept` (OKF §4.1 / §9).
 
 <!-- --8<-- [start:type-table] -->
 | `type`         | Class IRI (`@type`)   | Aligned to                                   |
@@ -423,11 +424,11 @@ Following Diátaxis's separation principle, a concept body SHOULD stay in a sing
 mode; where prose would span modes, split it into separate concepts and connect
 them with typed relations (`references`, `about`).
 
-### 6.2 Domain schemas: extending the vocabulary
+### 6.2 Domain vocabularies: extending the core
 
-An unknown `type` reads as `lokf:Concept` (§8): the bundle stays valid, but the type has no meaning. A **LOKF domain schema** (hereafter *domain schema*) gives it one. It is a LinkML schema that imports `lokf.yaml` and declares the classes and slots a domain needs beyond §6, under the domain's own IRIs.
+An unknown `type` reads as `lokf:Concept` (§8): the bundle stays valid, but the type has no meaning. A **LOKF domain vocabulary** (hereafter *domain vocabulary*) gives it one. It is a LinkML file that imports `lokf.yaml` and declares the classes and slots a bundle needs beyond §6, under the domain's own IRIs.
 
-<!-- --8<-- [start:domain-schema] -->
+<!-- --8<-- [start:domain-vocabulary] -->
 ```yaml title="analytics.yaml"
 id: https://acme.example/schema/analytics
 name: analytics
@@ -450,20 +451,20 @@ slots:
   refresh_interval:
     range: string
 ```
-<!-- --8<-- [end:domain-schema] -->
+<!-- --8<-- [end:domain-vocabulary] -->
 
-Imports resolve beside the schema file, so `- lokf` names a copy of `lokf.yaml` there (§12). Four rules follow:
+Imports resolve beside the domain vocabulary, so `- lokf` names a copy of `lokf.yaml` there (§12). Four rules follow:
 
 1. **A domain class descends from `Concept`**, directly or through a LOKF class such as `Reference`. Every descendant joins the bundle's concept union, so the validator accepts §6 plus the domain's classes.
-2. **A shared name is renamed and keeps its IRI.** LinkML merges imports into one namespace, so a `Person` or `title` the domain declares silently replaces LOKF's. A domain schema, or a vocabulary it imports, therefore renames any element that shares a name with `lokf.yaml` and keeps its `class_uri` or `slot_uri`. The name is local to the schema and the IRI carries the meaning, so gist's `Person`, renamed `GistPerson`, still projects as `gist:Person`. A vocabulary with a root of its own is re-rooted on `Concept` in the copy; a shared name with the same meaning (`id`, `type`) is dropped there so LOKF's serves, and a second type designator is demoted, since `type` is the one.
+2. **A shared name is renamed and keeps its IRI.** LinkML merges imports into one namespace, so a `Person` or `title` the domain declares silently replaces LOKF's. A domain vocabulary, or the copy of a published schema that it imports, therefore renames any element that shares a name with `lokf.yaml` and keeps its `class_uri` or `slot_uri`. The name is local to the file and the IRI carries the meaning, so gist's `Person`, renamed `GistPerson`, still projects as `gist:Person`. A published schema with a root of its own is re-rooted on `Concept` in the copy; a shared name with the same meaning (`id`, `type`) is dropped there so LOKF's serves, and a second type designator is demoted, since `type` is the one.
 3. **A key needs a class that declares it.** Classes are closed (§9), so a LOKF class with one extra key fails. Subclass it, declare the key on the subclass, and write the subclass's name in `type`; a subclass is matched by its own name, not its parent's.
-4. **A relation slot ranges over `Concept`** or a subclass, so its values project as IRIs and `--check-refs` resolves them. A slot ranged over a type such as `string` holds a literal. Each slot SHOULD carry a `slot_uri` under the domain's prefix, and the schema's `id` and prefixes SHOULD sit under the same authority as the bundle's `base_iri`.
+4. **A relation slot ranges over `Concept`** or a subclass, so its values project as IRIs and `--check-refs` resolves them. A slot ranged over a type such as `string` holds a literal. Each slot SHOULD carry a `slot_uri` under the domain's prefix, and the domain vocabulary's `id` and prefixes SHOULD sit under the same authority as the bundle's `base_iri`.
 
-A published LinkML vocabulary is adopted through a copy that satisfies these rules: the copy imports `lokf.yaml`, renames what it shares, and its classes descend from `Concept`. `lokf adapt` writes such a copy. The copy is a domain schema, and so is a schema that imports it beside `lokf.yaml` and declares additions.
+A published LinkML schema is adopted through a copy that satisfies these rules: the copy imports `lokf.yaml`, renames what it shares, and its classes descend from `Concept`. `lokf adapt` writes such a copy. The copy is a domain vocabulary, and so is a file that imports it beside `lokf.yaml` and declares additions. The published schema itself is unchanged and never imports `lokf.yaml`.
 
-`lokf validate`, `convert`, `query` and `serve` take the schema as `--schema` (§9). Under it, a `Dashboard` projects as `a analytics:Dashboard` and `shows` as `analytics:shows`, and the domain's classes are declared types rather than unknown ones.
+`lokf validate`, `convert`, `query` and `serve` take the domain vocabulary as `--schema` (§9). Under it, a `Dashboard` projects as `a analytics:Dashboard` and `shows` as `analytics:shows`, and the domain's classes are declared types rather than unknown ones.
 
-The schema is the consumer's, not the bundle's: the files are the same with or without it. Without it, a consumer reads a `Dashboard` as `lokf:Concept` with `additionalType: Dashboard`, and `shows` as a string it cannot follow (§8).
+The domain vocabulary is the consumer's, not the bundle's: the files are the same with or without it. Without it, a consumer reads a `Dashboard` as `lokf:Concept` with `additionalType: Dashboard`, and `shows` as a string it cannot follow (§8).
 
 ---
 
@@ -570,8 +571,8 @@ A bundle is **LOKF v0.2 conformant** if:
    `lokf:Concept`, and the original string is kept in `additionalType` so
    nothing is lost. OKF's spaced type spellings (`Attested Computation`) are
    recognized as their LOKF class names (`AttestedComputation`). A consumer
-   given a domain schema (§6.2) knows its classes too; without it they are
-   unknown types. Both readings are conformant.
+   given a domain vocabulary (§6.2) knows its classes too; without it they
+   are unknown types. Both readings are conformant.
 3. The bundle-root `index.md` declares `base_iri` and `context` if the bundle is to
    be consumed as Linked Data. (A bundle without them is still LOKF-conformant, but
    is consumed as plain OKF.)
@@ -605,8 +606,8 @@ The reference bundle in `examples/` passes JSON Schema validation for all eight
 concepts and for the assembled `KnowledgeBundle`.
 
 `lokf validate --shacl` adds graph validation after frontmatter validation;
-install `lokf[shacl]` to enable it. `--schema` selects the domain schema for
-both projection and shapes. SHACL shapes follow the authoring context: class
+install `lokf[shacl]` to enable it. `--schema` selects the domain vocabulary
+for both projection and shapes. SHACL shapes follow the authoring context: class
 inheritance and mixins are recognized, provenance objects are checked through
 their containing properties, and enum literals and URI-typed resource literals
 match conversion. Shapes are open; JSON Schema enforces undeclared keys and
@@ -718,13 +719,13 @@ its `recommended` fields, so a client that cannot run `lokf validate` can still
 check a value against the same rules.
 
 Both validators are closed-world: a concept naming a type or frontmatter key
-this schema doesn't declare fails. A domain schema (§6.2) declares the
-project's own; `lokf validate --schema your-schema.yaml` checks against both,
+this schema doesn't declare fails. A domain vocabulary (§6.2) declares the
+bundle's own; `lokf validate --schema your-vocabulary.yaml` checks against both,
 `--check-refs` resolves the relation slots of both, and `lokf convert`, `query`
 and `serve` take the same `--schema` to project its classes and slots under
-their own IRIs. A project declares the schema once as `[tool.lokf] schema` in the
-`pyproject.toml` above its bundle, and every command reads it when the flag
-is absent.
+their own IRIs. A project declares its domain vocabulary once as
+`[tool.lokf] schema` in the `pyproject.toml` above its bundle, and every
+command reads it when the flag is absent.
 
 ---
 
@@ -939,8 +940,8 @@ without implying a format change: LOKF v0.2 is realized by schema 0.9.0. Because
 format is defined in LinkML, a format version is pinned by a tagged `lokf.yaml`, and
 the context/schema/shapes/OWL for it are reproducible by regeneration.
 
-A domain schema (§6.2) versions on its own track and pins the `lokf.yaml` it
-imports; adding one changes neither the bundle nor its `lokf_version`.
+A domain vocabulary (§6.2) versions on its own track and pins the `lokf.yaml`
+it imports; adding one changes neither the bundle nor its `lokf_version`.
 
 ---
 

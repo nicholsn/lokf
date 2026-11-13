@@ -1,4 +1,4 @@
-# A domain schema that declares concept references as class attributes,
+# A domain vocabulary that declares concept references as class attributes,
 # LinkML's usual style, and as a slot ranged by any_of.
 id: https://ex.org/schema/domain-attribute-references
 name: domain_attribute_references
