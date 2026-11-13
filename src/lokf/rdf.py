@@ -208,19 +208,41 @@ def graph_of(
 def relabel_bnodes(g):
     """Copy a graph with canonical blank-node labels, preserving its triples.
 
-    Refinement alone cannot distinguish all nodes (long paths and symmetric
-    cycles are common counterexamples). RDFLib's canonicalizer resolves such
-    ties structurally instead of breaking them with random source node IDs.
+    The labels come from pyoxigraph's RDFC-1.0, which resolves ties that
+    refinement alone cannot (long paths and symmetric cycles) and runs in
+    near-linear time, where rdflib's ``to_canonical_graph`` is quadratic in
+    blank nodes. ``GraphStore.from_registry`` uses the same algorithm, so a
+    member exported here is already in the form the registry gives it.
     """
-    from rdflib import Graph
-    from rdflib.compare import to_canonical_graph
+    import pyoxigraph as ox
+    from rdflib import BNode, Graph, URIRef
     from rdflib.graph import DATASET_DEFAULT_GRAPH_ID
+
+    blanks: dict = {}
+    terms: dict = {}  # pyoxigraph term -> the rdflib term it came from
+
+    def to_ox(term):
+        if isinstance(term, BNode):
+            return blanks.setdefault(term, ox.BlankNode())
+        if isinstance(term, URIRef):
+            node = ox.NamedNode(str(term))
+        else:
+            datatype = None if term.language or term.datatype is None else ox.NamedNode(str(term.datatype))
+            node = ox.Literal(str(term), language=term.language, datatype=datatype)
+        terms.setdefault(node, term)
+        return node
+
+    def to_rdflib(term):
+        return BNode(term.value) if isinstance(term, ox.BlankNode) else terms[term]
+
+    dataset = ox.Dataset(ox.Quad(to_ox(s), to_ox(p), to_ox(o)) for s, p, o in g)
+    dataset.canonicalize(ox.CanonicalizationAlgorithm.RDFC_1_0)
 
     out = Graph(identifier=DATASET_DEFAULT_GRAPH_ID)
     for prefix, ns in g.namespaces():
         out.bind(prefix, ns)
-    for triple in to_canonical_graph(g):
-        out.add(triple)
+    for quad in dataset:
+        out.add((to_rdflib(quad.subject), to_rdflib(quad.predicate), to_rdflib(quad.object)))
     return out
 
 
