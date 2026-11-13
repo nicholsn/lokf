@@ -48,6 +48,11 @@ with the 0.x caveat that a minor release may tighten validation.
 - A concept's block must now come first in the file, after at most a byte order
   mark or blank lines. A block inside an HTML comment used to win over the real
   one, so tools read what a rendered page hid.
+- `lokf convert`, `lokf export` and the build label blank nodes with
+  pyoxigraph's RDFC-1.0, as `lokf registry build` does, in place of rdflib's
+  canonicaliser, which is quadratic in blank nodes. A bundle of 1,000 concepts
+  with 3,000 blank nodes now takes under a second, not five minutes. Blank-node
+  labels in generated files change once; the graphs are the same.
 
 ## [0.9.0] — 2026-10-28
 
