@@ -1,4 +1,4 @@
-# A domain schema that declares slots named like ParameterType values: an
+# A domain vocabulary that declares slots named like ParameterType values: an
 # Endpoint with its own `uri` and `date`. The relative import reaches
 # the repo-root lokf.yaml, as in imports-only.yaml.
 id: https://ex.org/schema/domain-parameter-type-slots

@@ -6,6 +6,10 @@ import mermaid from "astro-mermaid";
 // Served at its own subdomain (no base path).
 export default defineConfig({
   site: "https://lokf.nolan-nichols.com",
+  // The guide's earlier address, which other projects link.
+  redirects: {
+    "/guide/domain-schemas": "/guide/domain-vocabularies/",
+  },
   integrations: [
     // Renders ```mermaid fences client-side, synced to the Starlight theme.
     // Must precede starlight() so it can hook Expressive Code.

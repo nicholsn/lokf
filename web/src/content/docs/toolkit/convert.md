@@ -56,11 +56,12 @@ uv run lokf convert examples/acme-knowledge --format nt --output acme.nt
 # wrote acme.nt
 ```
 
-## A domain schema
+## A domain vocabulary
 
 A bundle that validates with `lokf validate --schema` takes the same file
-here; the [Domain schemas](/guide/domain-schemas/) guide says how to write
-one, or make one from a published vocabulary with [`lokf adapt`](/toolkit/adapt/):
+here; the [Domain vocabularies](/guide/domain-vocabularies/) guide says how
+to write one, or make one from a published schema with
+[`lokf adapt`](/toolkit/adapt/):
 
 ```bash
 uv run lokf convert knowledge --schema domain.yaml
@@ -70,11 +71,12 @@ Or declare it once as `[tool.lokf] schema = "domain.yaml"` in the project's
 `pyproject.toml` above the bundle, and `convert`, `query`, `serve`, `export`,
 `validate` and the MCP server all read it.
 
-The graph then uses a JSON-LD context generated from that schema. Its classes
+The graph then uses a JSON-LD context generated from that file. Its classes
 and slots project under their own IRIs instead of as `lokf:` terms, and its
-classes count as declared instead of reading as `lokf:Concept`. A key neither
-schema declares still projects as a `lokf:` term, as it does without
-`--schema`. Generating the context needs the `build` extra (`lokf[build]`).
+classes count as declared instead of reading as `lokf:Concept`. A key that
+neither that file nor `lokf.yaml` declares still projects as a `lokf:` term,
+as it does without `--schema`. Generating the context needs the `build` extra
+(`lokf[build]`).
 
 ## The `just` recipe
 

@@ -1,14 +1,15 @@
 ---
-title: Adapt a vocabulary
-description: lokf adapt turns a published LinkML vocabulary into a LOKF domain schema beside lokf.yaml.
+title: Adapt a schema
+description: lokf adapt turns a published LinkML schema into a LOKF domain vocabulary beside lokf.yaml.
 sidebar:
   order: 9
 ---
 
-`lokf adapt` copies a published LinkML vocabulary into a
-[LOKF domain schema](/guide/domain-schemas/). The copy imports `lokf.yaml`,
-shares no element name with it, and its classes descend from `Concept`. Pass
-it as `--schema`, or import it from a schema of your own when you add to it.
+`lokf adapt` copies a published LinkML schema into a
+[LOKF domain vocabulary](/guide/domain-vocabularies/). The copy imports
+`lokf.yaml`, shares no element name with it, and its classes descend from
+`Concept`. Pass it as `--schema`, or import it from a domain vocabulary of
+your own when you add to it.
 
 ```bash
 lokf adapt biolink_model.yaml                       # -> biolink_model_lokf.yaml beside it
@@ -22,17 +23,17 @@ the result needs `lokf[build]`, as `--schema` always does.
 
 | Move | What | Why |
 |---|---|---|
-| fold imports | The vocabulary's own imports are merged into the one file; the copy imports `linkml:types` and `lokf`. | Imports resolve beside the file that names them; the copy must stand alone. |
-| drop for LOKF's | The vocabulary's identifier slot and its `rdf:type` slot are deleted; what listed them now lists LOKF's `id` and `type`. | A class carries one identifier and one type designator, and LOKF's are those. |
+| fold imports | The schema's own imports are merged into the one file; the copy imports `linkml:types` and `lokf`. | Imports resolve beside the file that names them; the copy must stand alone. |
+| drop for LOKF's | The schema's identifier slot and its `rdf:type` slot are deleted; what listed them now lists LOKF's `id` and `type`. | A class carries one identifier and one type designator, and LOKF's are those. |
 | detach, demote | A slot that inherited from a dropped one loses its `is_a`; every other `designates_type` is stripped. | Biolink's `category: is_a: type` would otherwise inherit LOKF's designator; `type` is the one. |
-| rename, IRIs kept | Every name `lokf.yaml` also defines, in any section, is renamed (`name` → `biolink_name`, `agent` → `BiolinkAgent`) with its `slot_uri`/`class_uri` pinned and the old name in `aliases`. | The name is local to the schema; the IRI carries the meaning. A type and a slot called `unit` is an overlap LinkML warns about. |
+| rename, IRIs kept | Every name `lokf.yaml` also defines, in any section, is renamed (`name` → `biolink_name`, `agent` → `BiolinkAgent`) with its `slot_uri`/`class_uri` pinned and the old name in `aliases`. | The name is local to the file; the IRI carries the meaning. A type and a slot called `unit` is an overlap LinkML warns about. |
 | fold into LOKF's | A slot or class attribute that means what a `Concept` slot means is deleted, not renamed. Every class that used it uses LOKF's slot instead, with the deleted slot's constraints copied into a `slot_usage`. It matches by `slot_uri` or an `exact_mappings` entry (`schema:name` is `title`, over `http` or `https`), or by `--fold`; `--keep` holds it back. The fold is refused when two `Concept` slots share the IRI, until `--fold` picks one, and when the shape differs: multivalued against single, or a class or a number against a string. | One fact, one key, one IRI: a concept writes `title`, not `title` and `slsa_name`. |
-| re-root | Every rootless, non-mixin class that carries the identifier gets `is_a: Concept`; `tree_root` comes off. | One line puts the whole vocabulary in the concept union; `KnowledgeBundle` is the document root. |
+| re-root | Every rootless, non-mixin class that carries the identifier gets `is_a: Concept`; `tree_root` comes off. | One line puts every class of the schema in the concept union; `KnowledgeBundle` is the document root. |
 | one canonical form | Two names that would canonicalise to one (biolink's `KnowledgeGraph` and `knowledge graph`) are both kept: the canonical spelling keeps its name, the other is renamed as a shared name is. | The rewrite would otherwise keep one definition and lose the other. |
 | canonical names | Class names CamelCased, slot names underscored. | `type`, frontmatter keys and the JSON-LD context all use these forms; derived IRIs do not change. |
 | verify | The copy is loaded beside `lokf.yaml` with SchemaView: every reference resolves, no name is shared, every re-rooted class reaches `Concept`. | A copy that fails is not written. |
 
-The report names each move's targets, and the copy's schema-level `notes`
+The report names each move's targets, and the copy's top-level `notes`
 record them for anyone who opens the file.
 
 ## Options
@@ -40,18 +41,18 @@ record them for anyone who opens the file.
 | Option | Meaning |
 |---|---|
 | `-o, --output PATH` | Where to write the copy: a file, or a directory that gets `<stem>_lokf.yaml`, with a trailing slash for a new one (default: beside the input). |
-| `--root CLASS` | A class to re-root on `Concept`, as the vocabulary names it; repeatable, replaces detection. A vocabulary with no identifier slot (gist's shape) has no root to detect; name each top class. |
+| `--root CLASS` | A class to re-root on `Concept`, as the schema names it; repeatable, replaces detection. A schema with no identifier slot (gist's shape) has no root to detect; name each top class. |
 | `--lokf PATH` | The `lokf.yaml` to share no name with (default: a local checkout, else the copy packaged with lokf). |
-| `--beside PATH` | Another domain schema the copy will share a host with; repeatable. Avoids its element and attribute names, including imported definitions, and verifies the combined imports. |
-| `--prefix P` | Prefix for renamed elements (default: the vocabulary's `default_prefix`). |
-| `--fold V=L` | Fold the vocabulary's slot `V`, or attribute `Class.attr`, into LOKF's slot `L`, for one that declares no mapping; repeatable. A name missing on either side is refused, and so is a shape that differs from `L`'s. |
-| `--keep V` | Leave slot `V`, or attribute `Class.attr`, out of the fold by IRI; repeatable. It is renamed or kept as it would be without the mapping, and the copy's notes record it. |
+| `--beside PATH` | Another domain vocabulary the copy will share a host with; repeatable. Avoids its element and attribute names, including imported definitions, and verifies the combined imports. |
+| `--prefix P` | Prefix for renamed elements (default: the schema's `default_prefix`). |
+| `--fold S=L` | Fold the schema's slot `S`, or attribute `Class.attr`, into LOKF's slot `L`, for one that declares no mapping; repeatable. A name missing on either side is refused, and so is a shape that differs from `L`'s. |
+| `--keep S` | Leave slot `S`, or attribute `Class.attr`, out of the fold by IRI; repeatable. It is renamed or kept as it would be without the mapping, and the copy's notes record it. |
 | `--dry-run` | Print the report and verify the copy; write nothing. |
 | `--check` | Write nothing; exit 1 unless `--output` already holds exactly this copy and it verifies. |
 
-## Combining vocabularies
+## Combining schemas
 
-Adapt each new vocabulary beside the copies your host already imports:
+Adapt each new schema beside the copies your domain vocabulary already imports:
 
 ```bash
 lokf adapt foo.yaml -o schema/foo_lokf.yaml
@@ -59,10 +60,10 @@ lokf adapt bar.yaml -o schema/bar_lokf.yaml --beside schema/foo_lokf.yaml
 lokf adapt baz.yaml -o schema/baz_lokf.yaml --beside schema/foo_lokf.yaml --beside schema/bar_lokf.yaml
 ```
 
-If both vocabularies define `custom_code`, the second copy uses
+If both schemas define `custom_code`, the second copy uses
 `bar_custom_code` and preserves its original IRI. This also applies when
 one or both definitions are class attributes. The existing copies stay as
-they are; import all of them from your host schema.
+they are; import all of them from your domain vocabulary.
 
 If the prefixed name is already taken, choose another `--prefix`. Conflicting
 prefix bindings are rejected because renaming a field cannot preserve two
@@ -73,7 +74,7 @@ In Python, pass `beside=[path, ...]` to both `adapt()` and `verify()`.
 
 ## In CI
 
-The copy depends on two moving inputs, the vocabulary's release and
+The copy depends on two moving inputs, the schema's release and
 `lokf.yaml`. Keep it fresh with one step:
 
 ```bash
@@ -87,8 +88,8 @@ and projects `examples/biolink/`.
 ## Limits
 
 - A slot ranged over `uriorcurie` projects as an `xsd:anyURI` literal, a
-  class-ranged one as an IRI; that is the vocabulary's choice, kept.
-- An unranged slot takes the vocabulary's `default_range`, usually `string`,
-  so an object property the vocabulary left unranged projects as a literal.
+  class-ranged one as an IRI; that is the schema's choice, kept.
+- An unranged slot takes the schema's `default_range`, usually `string`,
+  so an object property the schema left unranged projects as a literal.
 - Comments in the source YAML are not carried over; the copy is generated,
   not edited.
