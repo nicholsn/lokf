@@ -816,8 +816,8 @@ def entry_for_archive(
 def member_ntriples(entry: RepoEntry) -> str:
     """A member's graph as N-Triples, offline first (SPEC §11.4).
 
-    Tries the local checkout in ``path``, projected under the domain schema
-    its project declares; then ``distribution.rdf`` (a ``graph.nt`` from
+    Tries the local checkout in ``path``, projected under the domain
+    vocabulary its project declares; then ``distribution.rdf`` (a ``graph.nt`` from
     ``lokf export``); then ``distribution.archive``, checked against
     ``checksum`` and projected under core LOKF. Only the archive is checked:
     a ``distribution.rdf`` is trusted as the manifest lists it. Relative

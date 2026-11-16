@@ -79,7 +79,7 @@ def schema_path(path: str | pathlib.Path | None = None) -> pathlib.Path:
 
 
 def project_schema(start: str | pathlib.Path | None = None) -> pathlib.Path | None:
-    """The domain schema the project declares, or ``None``.
+    """The domain vocabulary the project declares, or ``None``.
 
     A project names it once, in the ``pyproject.toml`` that already pins
     ``lokf``, so every command reads the same file without a ``--schema`` on
@@ -90,7 +90,7 @@ def project_schema(start: str | pathlib.Path | None = None) -> pathlib.Path | No
 
     *start* is the bundle or concept file a command was given; the nearest
     ``pyproject.toml`` with a ``[tool.lokf]`` table, from there upwards,
-    decides. The schema is the bundle's project's, wherever the shell is, and
+    decides. The file is the bundle's project's, wherever the shell is, and
     a bundle reached through a link (``knowledge_bundle -> .lokf/knowledge``)
     is searched where it really lives. Without *start*, the search runs from
     the working directory. A declared file that does not exist raises
@@ -129,7 +129,7 @@ def project_schema(start: str | pathlib.Path | None = None) -> pathlib.Path | No
 def domain_schema(
     explicit: str | pathlib.Path | None = None, start: str | pathlib.Path | None = None
 ) -> pathlib.Path | None:
-    """The domain schema a command validates or projects under: *explicit*
+    """The domain vocabulary a command validates or projects under: *explicit*
     (``--schema``) when given, else the one the project around *start*
     declares (:func:`project_schema`), else ``None`` for core LOKF."""
     if explicit is not None:
@@ -166,7 +166,7 @@ _CHECKSUM_ALGORITHMS = (
 def authoring_context(context: dict) -> dict:
     """Return a ``gen-jsonld-context`` ``@context`` mapping made fit for OKF
     frontmatter. ``lokf-build`` publishes LOKF's own context this way, and
-    :func:`schema_context` builds a domain schema's the same way."""
+    :func:`schema_context` builds a domain vocabulary's the same way."""
     ctx = dict(context)
     # Two standard JSON-LD keyword aliases make unmodified OKF frontmatter
     # behave as Linked Data: `type` designates the RDF class, `id` the subject.
@@ -176,7 +176,7 @@ def authoring_context(context: dict) -> dict:
     # the alias above), so each authoring value must expand to its designed
     # lokf Parameter-kind class — gen-jsonld-context does not emit enum-meaning
     # terms. Same mechanism by which class names like "Metric" expand as @type.
-    # A domain schema may declare a slot by one of these names (a `uri`);
+    # A domain vocabulary may declare a slot by one of these names (a `uri`);
     # its own term wins, since a Parameter kind in its place would put a class
     # IRI in predicate position. LOKF declares none, so its context is unchanged.
     for value, cls in _PARAMETER_KINDS.items():
@@ -231,7 +231,7 @@ def schema_context(schema_path: str | pathlib.Path | None = None) -> dict:
     """Return the ``@context`` that projects a bundle under *schema_path*.
 
     With no *schema_path*, this is the published context
-    (:func:`load_context`). A domain schema that ``imports: [lokf]`` gets a
+    (:func:`load_context`). A domain vocabulary that ``imports: [lokf]`` gets a
     context generated from it, so its classes and slots expand to their own
     IRIs rather than to ``lokf:`` terms. Generating one needs LinkML (the
     ``build`` extra).
@@ -281,8 +281,9 @@ class Vocabulary:
         # structural slots like KnowledgeBundle's `concepts` and Relation's
         # `target` do not. A slot holds concept ids on a class if its range
         # there, after slot_usage, is Concept or a subclass, or if one of its
-        # `any_of` ranges is. So a domain schema can turn an imported slot into
-        # a relation with slot_usage. A class's `attributes` count as its slots.
+        # `any_of` ranges is. So a domain vocabulary can turn an imported slot
+        # into a relation with slot_usage. A class's `attributes` count as its
+        # slots.
         self._classes = schema.get("classes") or {}
         self._slots = schema.get("slots") or {}
         classes = self._classes
@@ -574,7 +575,7 @@ def _with_imports(resolved: str) -> dict:
     """Merge the schema at *resolved* with every schema it imports, and return
     one dict in the raw YAML shape that :class:`Vocabulary` reads.
 
-    A domain schema that ``imports: [lokf]`` usually defines none of LOKF's
+    A domain vocabulary that ``imports: [lokf]`` usually defines none of LOKF's
     slots itself, so reading only its own file finds no relation slots.
     SchemaView resolves each import against the directory of the file that
     imports it. When two schemas define the same name, the later one in the

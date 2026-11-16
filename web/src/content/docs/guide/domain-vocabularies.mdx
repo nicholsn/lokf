@@ -1,37 +1,38 @@
 ---
-title: Domain schemas
-description: How to give a bundle types LOKF does not define, with a schema of your own or a published LinkML vocabulary such as biolink-model.
+title: Domain vocabularies
+description: How to give a bundle types LOKF does not define, with a domain vocabulary you write or one made from a published LinkML schema such as biolink-model.
 sidebar:
   order: 4
 ---
 
-import { Content as DomainSchema } from "../../../generated/domain-schema.md";
+import { Content as DomainVocabulary } from "../../../generated/domain-vocabulary.md";
 
 This page is for a bundle author whose domain needs types LOKF does not
-define. It shows how to write a LOKF domain schema, and how to make one from
-a published LinkML vocabulary.
+define. It shows how to write a LOKF domain vocabulary, and how to make one
+from a published LinkML schema.
 
 Following OKF, a `type` that LOKF does not define is tolerated: the concept
 reads as `lokf:Concept` and the bundle stays valid. The type carries no
-meaning until a schema declares it.
+meaning until a domain vocabulary declares it.
 
-A **LOKF domain schema** declares it. It is a LinkML schema that imports
-`lokf.yaml` and whose classes descend from `Concept`. Pass it as `--schema`
-to `validate`, `convert`, `query` and `serve`. The rules are in
-[specification §6.2](/specification/#62-domain-schemas-extending-the-vocabulary).
+A **LOKF domain vocabulary** is a LinkML file that imports `lokf.yaml` and
+whose classes descend from `Concept`. Pass it as `--schema` to `validate`,
+`convert`, `query` and `serve`. The rules are in
+[specification §6.2](/specification/#62-domain-vocabularies-extending-the-core).
 
 | You have | Do this |
 |---|---|
-| Types of your own | [Write a schema](#write-a-schema) |
-| A published LinkML vocabulary | [Adapt it](#adapt-a-published-vocabulary) |
-| A vocabulary, and types or keys of your own | Adapt it, then [extend the copy](#extend-an-adapted-vocabulary) |
+| Types of your own | [Write a domain vocabulary](#write-a-domain-vocabulary) |
+| A published LinkML schema | [Adapt it](#adapt-a-published-schema) |
+| A published schema, and types or keys of your own | Adapt it, then [extend the copy](#extend-an-adapted-schema) |
 
-## Write a schema
+## Write a domain vocabulary
 
-<DomainSchema />
+<DomainVocabulary />
 
-1. **Put `lokf.yaml` beside the schema.** The `- lokf` import reads it from
-   there. Copy it from the installed package, so it matches the toolkit:
+1. **Put `lokf.yaml` beside the domain vocabulary.** The `- lokf` import
+   reads it from there. Copy it from the installed package, so it matches
+   the toolkit:
 
    ```bash
    cp "$(python -c "from importlib.resources import files; print(files('lokf') / 'data' / 'lokf.yaml')")" .
@@ -49,7 +50,7 @@ to `validate`, `convert`, `query` and `serve`. The rules are in
 5. **Range each relation slot over `Concept`** or a subclass of it. Its
    values then project as IRIs, and `--check-refs` resolves them. A slot
    ranged over `string` holds a literal.
-6. **Pass the schema to each command:**
+6. **Pass the domain vocabulary to each command:**
 
    ```bash
    lokf validate knowledge --schema analytics.yaml --check-refs
@@ -58,19 +59,21 @@ to `validate`, `convert`, `query` and `serve`. The rules are in
    lokf serve    knowledge --schema analytics.yaml
    ```
 
-With the schema, a `Dashboard` projects as `a analytics:Dashboard` and
-`shows` as `analytics:shows`. Without it, the same file reads as
-`lokf:Concept` with `additionalType: Dashboard`, and `shows` is a string.
-Both readings are conformant, and the bundle's files are the same in each.
+With the domain vocabulary, a `Dashboard` projects as
+`a analytics:Dashboard` and `shows` as `analytics:shows`. Without it, the
+same file reads as `lokf:Concept` with `additionalType: Dashboard`, and
+`shows` is a string. Both readings are conformant, and the bundle's files
+are the same in each.
 
-## Adapt a published vocabulary
+## Adapt a published schema
 
-`lokf adapt` copies a published LinkML vocabulary into a LOKF domain schema.
+`lokf adapt` copies a published LinkML schema into a LOKF domain vocabulary.
 The copy imports `lokf.yaml`, renames each name the two share and keeps its
-IRI, and puts the vocabulary's root class under `Concept`.
+IRI, and puts the schema's root class under `Concept`. The published schema
+is not changed. A schema that your own project owns is adapted the same way.
 [Biolink-model](https://github.com/biolink/biolink-model) is the worked case.
 
-1. **Run `lokf adapt`** on the vocabulary, with `lokf.yaml` beside it:
+1. **Run `lokf adapt`** on the schema, with `lokf.yaml` beside it:
 
    ```bash
    lokf adapt biolink_model.yaml
@@ -84,12 +87,13 @@ IRI, and puts the vocabulary's root class under `Concept`.
      demoted designators:     category
      renamed, IRIs kept:      agent -> BiolinkAgent, dataset -> BiolinkDataset, unit -> biolink_unit, name -> biolink_name, ...
      folded into LOKF's:      none
+     kept from folding:       none
      re-rooted on Concept:    Entity
      tree_root removed:       BiolinkKnowledgeGraph, MappingCollection
      one canonical form:      knowledge graph -> BiolinkKnowledgeGraph
      canonical names:         835
      verified beside lokf.yaml
-   It is a LOKF domain schema: pass it as --schema, or import it from one of your own beside lokf.yaml:
+   It is a LOKF domain vocabulary: pass it as --schema, or import it from one of your own beside lokf.yaml:
      imports: [linkml:types, lokf, biolink_model_lokf]
    ```
 
@@ -104,7 +108,7 @@ IRI, and puts the vocabulary's root class under `Concept`.
        Entity -- "is_a (added)" --> Concept["lokf:Concept"]
    ```
 
-2. **Write concepts with the vocabulary's classes as `type`:**
+2. **Write concepts with the schema's classes as `type`:**
 
    ```markdown title="knowledge/genes/brca1.md"
    ---
@@ -145,8 +149,8 @@ IRI, and puts the vocabulary's root class under `Concept`.
 
    A slot ranged over a class (`in_taxon`) projects as an IRI. A slot ranged
    over `uriorcurie` (`xref`) projects as a literal. LOKF's fields and
-   relations work on the vocabulary's classes: a LOKF `Dataset` can be
-   `about` the gene, and `--check-refs` resolves it.
+   relations work on the schema's classes: a LOKF `Dataset` can be `about`
+   the gene, and `--check-refs` resolves it.
 
 :::tip[Try it]
 `just biolink` in the lokf repository fetches biolink-model 4.4.4 at its tag,
@@ -154,9 +158,9 @@ runs `lokf adapt`, and validates and projects `examples/biolink/` with the
 copy as `--schema`.
 :::
 
-### Name the root when the vocabulary has none
+### Name the root when the schema has none
 
-`lokf adapt` finds the root class by its identifier slot. A vocabulary whose
+`lokf adapt` finds the root class by its identifier slot. A schema whose
 classes carry no identifier has no root to find. Name its top classes with
 `--root`, one flag for each:
 
@@ -171,15 +175,15 @@ projects as `a gist:Requirement`.
 
 ### Fold a slot that LOKF already has
 
-`lokf adapt` folds a vocabulary slot into a slot on `Concept` when the
-slot's `slot_uri`, or one of its `exact_mappings`, is that slot's IRI. The
-copy drops the vocabulary's slot, and the classes that used it use LOKF's
-instead. A slot
-mapped to `schema:name` becomes `title`, whether the vocabulary spells
-schema.org with `http` or `https`. A class attribute folds the same way.
+`lokf adapt` folds one of the schema's slots into a slot on `Concept` when
+the slot's `slot_uri`, or one of its `exact_mappings`, is that slot's IRI.
+The copy drops the schema's slot, and the classes that used it use LOKF's
+instead. A slot mapped to `schema:name` becomes `title`, whether the schema
+spells schema.org with `http` or `https`. A class attribute folds the same
+way.
 
 The fold copies the slot's constraints into a `slot_usage` on every class
-that used the slot, so those classes still enforce what the vocabulary did:
+that used the slot, so those classes still enforce what the schema did:
 including inherited restrictions, class refinements, fixed values, cardinalities,
 patterns, and a narrower `range` such as `uriorcurie`. When two fields fold
 into one, both restrictions are retained using `all_of` where necessary.
@@ -205,13 +209,14 @@ A concept then writes its display name once, as `title`, which projects as
 `lokf adapt` warns about an attribute on a re-rooted class that has a
 `Concept` slot's name but not its IRI. The attribute shadows LOKF's slot on
 that class, and a record of the class writes the attribute. Fold it, or
-rename it in the vocabulary.
+rename it in the source schema.
 
-## Extend an adapted vocabulary
+## Extend an adapted schema
 
-The copy is generated, so additions go in a schema of your own. That schema
-imports `lokf.yaml` and the copy, and `--schema` names it in place of the
-copy. The steps in [Write a schema](#write-a-schema) apply to what it adds.
+The copy is generated, so additions go in a domain vocabulary of your own.
+That file imports `lokf.yaml` and the copy, and `--schema` names it in place
+of the copy. The steps in
+[Write a domain vocabulary](#write-a-domain-vocabulary) apply to what it adds.
 
 gist attaches few slots to its classes, and classes are closed. A concept
 that needs a gist slot therefore takes a class that lists it:
@@ -249,7 +254,7 @@ is_governed_by: [policies/security]
 
 ## Keep the copy current
 
-The copy has two inputs: the vocabulary's release and `lokf.yaml`. Re-run
+The copy has two inputs: the schema's release and `lokf.yaml`. Re-run
 `lokf adapt` when either changes, and commit the result. In CI, `--check`
 exits 1 when the copy is stale or no longer verifies:
 

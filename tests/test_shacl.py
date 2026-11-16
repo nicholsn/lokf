@@ -85,7 +85,7 @@ def test_nested_value_validation_is_not_skipped(tmp_path, shapes):
 
 
 def test_domain_shapes_follow_slot_ranges(tmp_path):
-    schema = ROOT / 'tests/fixtures/domain-schema/reranges-a-slot.yaml'
+    schema = ROOT / 'tests/fixtures/domain-vocabulary/reranges-a-slot.yaml'
     b = make_bundle(tmp_path, rule={'type': 'Regulation', 'title': 'Rule', 'governedBy': ['person']},
                     person={'type': 'Person', 'title': 'Person', 'name': 'Pat'})
     graph = b.graph(schema=schema)
@@ -107,9 +107,9 @@ def test_missing_optional_extra_has_install_hint(tmp_path, monkeypatch):
     assert "pip install 'lokf[shacl]'" in result.output
 
 
-def test_cli_domain_schema_is_used_for_projection_and_shapes():
+def test_cli_domain_vocabulary_is_used_for_projection_and_shapes():
     result = CliRunner().invoke(app, ['validate', str(ROOT / 'examples/acme-knowledge'),
-        '--shacl', '--schema', str(ROOT / 'tests/fixtures/domain-schema/imports-only.yaml')])
+        '--shacl', '--schema', str(ROOT / 'tests/fixtures/domain-vocabulary/imports-only.yaml')])
     assert result.exit_code == 0, result.output
 
 

@@ -13,6 +13,14 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Changed
+
+- A LinkML file extending a bundle's types is now called a **domain vocabulary**,
+  (SPEC §6.2). The term **domain schema** is reserved for a LinkML schema that
+  models a domain (and never imports `lokf.yaml`). `lokf adapt` reads a published
+  schema and writes a domain vocabulary. `--schema`, `[tool.lokf] schema` and the
+  Python names are unchanged. `/guide/domain-vocabularies/` is the redirect.
+
 ### Added
 
 - The site serves `lokf.yaml` and its generated artifacts at

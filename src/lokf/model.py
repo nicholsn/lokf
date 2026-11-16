@@ -203,7 +203,7 @@ class Bundle:
 
     def graph(self, context: dict | None = None, schema: str | pathlib.Path | None = None):
         """The whole bundle as one :class:`rdflib.Graph`, under the domain
-        *schema* when one is given.
+        vocabulary *schema* when one is given.
 
         All concepts are parsed in a single pass (one ``@graph`` document) so
         the JSON-LD context is compiled once, not once per concept.

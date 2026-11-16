@@ -1,4 +1,4 @@
-# A domain schema whose concept references LinkML resolves by inheritance:
+# A domain vocabulary whose concept references LinkML resolves by inheritance:
 # a relation narrowed to a subclass, a slot a class gets from a mixin, a
 # single-valued reference, and a mixin's slot_usage that overrides a
 # grandparent's.
