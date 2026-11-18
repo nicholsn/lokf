@@ -102,6 +102,25 @@ def to_cytoscape(bundle, vocab=None) -> dict:
     }
 
 
+def vocabulary_meta(graph: dict, vocab=None) -> dict:
+    """How a site labels what *graph* holds, read from the schema: a title
+    (and description) for each node ``type``; a title, and an inverse title
+    where the schema gives one, for each edge ``slot``; and each type's own
+    value fields. Only the types and relations the graph uses are listed."""
+    vocab = vocab or vocabulary()
+    types = sorted({str(n["data"]["type"]) for n in graph["nodes"] if n["data"].get("type")})
+    names = sorted({
+        str(e["data"]["slot"])
+        for e in (*graph["edges"], *graph.get("external_edges", []))
+        if e["data"].get("slot")
+    })
+    return {
+        "types": {t: vocab.type_label(t) for t in types},
+        "relations": {n: vocab.relation_label(n) for n in names},
+        "fields": {t: fields for t in types if (fields := vocab.fields(t))},
+    }
+
+
 def graph_to_cytoscape(graph, vocab=None) -> dict:
     """Any :class:`rdflib.Graph` as cytoscape.js ``elements``.
 

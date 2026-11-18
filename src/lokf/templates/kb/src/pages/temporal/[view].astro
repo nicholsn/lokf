@@ -1,6 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { loadTemporalEvidence } from '../../lib/temporal-data';
+import { loadVocabulary } from '../../lib/graph-data';
+import { typeTitle } from '../../lib/labels.mjs';
 
 export async function getStaticPaths() {
   const evidence = await loadTemporalEvidence();
@@ -8,6 +10,7 @@ export async function getStaticPaths() {
 }
 
 const { evidence } = Astro.props;
+const vocabulary = await loadVocabulary();
 ---
 
 <Base title="Temporal evidence" description="Explore dated concepts by time and an asserted grouping relation." wide>
@@ -42,7 +45,7 @@ const { evidence } = Astro.props;
               <li>
                 <time datetime={record.date}>{record.date}</time>
                 <a href={record.href}>{record.title}</a>
-                <span class="temporal-type">{record.type}</span>
+                <span class="temporal-type">{typeTitle(vocabulary, record.type)}</span>
                 <span class="temporal-groups">
                   {record.groups.map((group, index) => (
                     <><a href={group.href}>{group.title}</a>{index < record.groups.length - 1 ? ', ' : ''}</>

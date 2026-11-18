@@ -209,6 +209,9 @@ th { background: var(--surface-2); }
 .concept-tools button:hover { border-color: var(--accent); }
 .provenance { border-top: 1px solid var(--border); margin-top: 2rem; padding-top: .6rem; font-size: .9rem; }
 .provenance h4, .relations h4 { margin: 1.2rem 0 .4rem; }
+.fields { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: .25rem .8rem; margin: .8rem 0 1.2rem; }
+.fields dt { color: var(--muted); }
+.fields dd { margin: 0; overflow-wrap: anywhere; }
 .provenance dl { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: .25rem .8rem; }
 .provenance dt { color: var(--muted); }
 .provenance dd { margin: 0; }

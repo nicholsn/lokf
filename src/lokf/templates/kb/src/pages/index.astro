@@ -3,11 +3,14 @@ import Base from '../layouts/Base.astro';
 import { loadBundle, hrefOf, titleOf, href } from '../lib/lokf';
 import { getCollection, render } from 'astro:content';
 import { loadTemporalEvidence } from '../lib/temporal-data';
+import { loadVocabulary } from '../lib/graph-data';
+import { typeTitle } from '../lib/labels.mjs';
 
 const { concepts } = await loadBundle();
 const index = (await getCollection('editorial'))[0];
 const editorial = index ? await render(index) : undefined;
 const temporal = await loadTemporalEvidence();
+const vocabulary = await loadVocabulary();
 const types = [...new Set(concepts.map((c) => c.data.type))].sort();
 const byType = (t: string) => concepts.filter((c) => c.data.type === t);
 ---
@@ -27,7 +30,7 @@ const byType = (t: string) => concepts.filter((c) => c.data.type === t);
   <h2>Browse concepts</h2>
   {types.map((t) => (
     <>
-      <h2>{t}</h2>
+      <h2>{typeTitle(vocabulary, t)}</h2>
       <div class="grid">
         {byType(t).map((c) => (
           <a class="card" href={hrefOf(c)}>

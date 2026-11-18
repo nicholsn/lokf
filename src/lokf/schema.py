@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib import resources
@@ -241,6 +242,21 @@ def schema_context(schema_path: str | pathlib.Path | None = None) -> dict:
     return _schema_context(str(pathlib.Path(schema_path).resolve()))
 
 
+def humanize(name: str) -> str:
+    """A schema name as a reader sees it: ``DataStage`` becomes "Data stage",
+    ``isPartOf`` "Is part of" and ``processing_step`` "Processing step". A run
+    of capitals stays one word (``URLField`` becomes "URL field")."""
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", name)
+    text = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", text)
+    words = [
+        word if len(word) > 1 and word.isupper() else word.lower()
+        for word in re.split(r"[\s_-]+", text)
+        if word
+    ]
+    out = " ".join(words)
+    return out[:1].upper() + out[1:]
+
+
 @dataclass(frozen=True)
 class Relation:
     """One relationship predicate: a frontmatter name bound to an RDF IRI."""
@@ -435,6 +451,98 @@ class Vocabulary:
         for prefix, ns in self.prefixes.items():
             if uri.startswith(ns) and len(ns) > len(best):
                 best, out = ns, f"{prefix}:{uri[len(ns):]}"
+        return out
+
+    @staticmethod
+    def _annotation(element: dict, tag: str) -> str | None:
+        """The value of annotation *tag* on a schema element, in either of
+        LinkML's spellings (``tag: value`` or ``tag: {tag:, value:}``)."""
+        value = (element.get("annotations") or {}).get(tag)
+        if isinstance(value, dict):
+            value = value.get("value")
+        if value is None:
+            return None
+        return str(value).strip() or None
+
+    def _relation_element(self, name: str) -> dict:
+        """The schema element behind relation *name*: its slot, a class
+        attribute of that name, or, for a type written under ``relations:``,
+        its RelationType value."""
+        if name in self._slots:
+            return self._slots[name] or {}
+        for cls in self._classes.values():
+            attribute = ((cls or {}).get("attributes") or {}).get(name)
+            if attribute is not None:
+                return attribute
+        enum = (self._schema.get("enums") or {}).get("RelationType") or {}
+        return (enum.get("permissible_values") or {}).get(name) or {}
+
+    def type_label(self, type_name: str) -> dict:
+        """How a site names concept type *type_name*: the class's ``title``,
+        else its name made readable, with its description where it has one."""
+        cls = self._classes.get(type_name) or {}
+        row = {"title": str(cls.get("title") or humanize(type_name))}
+        if desc := (cls.get("description") or "").strip():
+            row["description"] = desc
+        return row
+
+    def relation_label(self, name: str) -> dict:
+        """How a site names relation *name* in both directions. ``title`` reads
+        from the subject (its ``title``, else the name made readable).
+        ``inverse_title`` reads from the object, as on the target's page: the
+        element's ``inverse_title`` annotation, else the title of the slot its
+        LinkML ``inverse`` names. With neither, it is left out."""
+        element = self._relation_element(name)
+        row = {"title": str(element.get("title") or humanize(name))}
+        inverse = self._annotation(element, "inverse_title")
+        if not inverse and element.get("inverse"):
+            other = str(element["inverse"])
+            inverse = str((self._slots.get(other) or {}).get("title") or humanize(other))
+        if inverse:
+            row["inverse_title"] = inverse
+        if desc := (element.get("description") or "").strip():
+            row["description"] = desc
+        return row
+
+    def fields(self, type_name: str) -> list[dict]:
+        """The value fields concept type *type_name* adds to Concept's own, in
+        the order its classes declare them, each with a title (its ``title``,
+        else its name made readable) and description. A slot whose range is a
+        class is left out: relations are drawn as edges, and nested objects
+        have no single value to show."""
+        classes = self._classes
+        if type_name not in classes:
+            return []
+        base = set(self._ancestors(classes, "Concept"))
+
+        def declared(owner: str) -> list[str]:
+            cls = classes.get(owner) or {}
+            return [
+                *(cls.get("slots") or []),
+                *(cls.get("attributes") or {}),
+                *(cls.get("slot_usage") or {}),
+            ]
+
+        inherited = {name for owner in base for name in declared(owner)}
+        names: list[str] = []
+        for owner in self._ancestors(classes, type_name):
+            if owner in base:
+                continue
+            for name in declared(owner):
+                if name not in names and name not in inherited:
+                    names.append(name)
+        out: list[dict] = []
+        for name in names:
+            induced = self._induced(type_name, name)
+            if any(r in classes for r in (induced["range"], *induced["any_of"]) if r):
+                continue
+            definition = self._definition(type_name, name)
+            row: dict = {"name": name, "title": str(definition.get("title") or humanize(name))}
+            if desc := (definition.get("description") or "").strip():
+                row["description"] = desc
+            if induced["multivalued"]:
+                row["multivalued"] = True
+            out.append(row)
         return out
 
     #: The `slot_usage` keys a class row reports. Everything a client needs to
