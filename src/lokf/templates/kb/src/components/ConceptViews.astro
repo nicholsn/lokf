@@ -1,0 +1,17 @@
+---
+import ViewSection from './ViewSection.astro';
+import { href } from '../lib/lokf';
+import { filledSections, type Root, type View, type ViewRecord } from '../lib/view-navigation';
+
+interface Props { blocks: { view: View; root: Root; link: string }[]; records: Record<string, ViewRecord> }
+const { blocks, records } = Astro.props;
+---
+{blocks.map(({ view, root, link }) => {
+  const sections = filledSections(view, root);
+  return sections.length > 0 && (
+    <section class="concept-view" aria-label={view.title}>
+      <h2><a href={href(link)}>{view.title}</a></h2>
+      {sections.map(section => <ViewSection {view} {root} {section} {records} />)}
+    </section>
+  );
+})}

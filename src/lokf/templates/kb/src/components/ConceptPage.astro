@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { render } from 'astro:content';
-import ViewSection from './ViewSection.astro';
+import ConceptViews from './ConceptViews.astro';
 import { checkConceptFragments, type Navigation } from '../lib/view-navigation';
 import type { Concept } from '../lib/lokf';
 import { loadBundle, iriOf, hrefOf, titleOf, href } from '../lib/lokf';
@@ -17,6 +17,8 @@ const [{ byIri }, projection, vocabulary] = await Promise.all([
 const { Content, headings } = await render(entry);
 checkConceptFragments(navigation, entry.id, headings);
 const roots = navigation.roots.get(entry.id) ?? [];
+const leading = roots.filter(({ view }) => view.placement === 'before_text');
+const trailing = roots.filter(({ view }) => view.placement !== 'before_text');
 const memberships = navigation.memberships.get(entry.id) ?? [];
 const d = entry.data as Record<string, any>;
 const myIri = iriOf(entry);
@@ -92,15 +94,11 @@ const correctionUrl = webUrl(siteConfig.correctionUrl) ||
       </>)}
     </dl>
   )}
+  <ConceptViews blocks={leading} records={navigation.records} />
 
   <article><Content /></article>
 
-  {roots.map(({ view, root, link }) => (
-    <section class="concept-view" aria-label={view.title}>
-      <h2><a href={href(link)}>{view.title}</a></h2>
-      {view.sections.map(section => <ViewSection {view} {root} {section} records={navigation.records} />)}
-    </section>
-  ))}
+  <ConceptViews blocks={trailing} records={navigation.records} />
   {memberships.length > 0 && <nav aria-label="Appears in" class="view-memberships">
     <h2>Appears in</h2>
     <ul>{memberships.map(context => <li>

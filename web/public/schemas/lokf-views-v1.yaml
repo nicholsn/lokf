@@ -29,6 +29,9 @@ classes:
     attributes:
       description:
         required: true
+      placement:
+        range: Placement
+        description: Where the view's sections appear on each root concept's page, after its authored text (the default) or before it.
       roots:
         range: RootSelector
         required: true
@@ -156,3 +159,7 @@ enums:
     permissible_values:
       asc:
       desc:
+  Placement:
+    permissible_values:
+      after_text:
+      before_text:

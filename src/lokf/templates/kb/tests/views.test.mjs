@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildNavigation, checkConceptFragments, rowId } from '../src/lib/view-navigation.ts';
+import { buildNavigation, checkConceptFragments, filledSections, rowId } from '../src/lib/view-navigation.ts';
 import { checkViewRoutes } from '../src/lib/view-data.ts';
 
 function fixture() {
@@ -51,6 +51,14 @@ test('only emitted view paths and page-one fragments are reserved', t => {
     { slug: rowId('view.editions.entries', 'developments/25') },
   ]));
   assert.equal(buildNavigation({ views: [], records: {} }).pages.size, 0);
+});
+
+test('a root page leaves off sections with no rows and frees their fragments', () => {
+  const navigation = buildNavigation(fixture());
+  const shown = id => navigation.roots.get(id).flatMap(({ view, root }) => filledSections(view, root).map(s => s.id));
+  assert.deepEqual(shown('issues/issue 0'), ['entries']);
+  assert.deepEqual(shown('issues/issue 1'), []);
+  assert.doesNotThrow(() => checkConceptFragments(navigation, 'issues/issue 1', [{ slug: 'view.editions.entries' }]));
 });
 
 test('empty collections still have a destination and generate no return links', () => {

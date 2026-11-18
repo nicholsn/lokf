@@ -143,6 +143,15 @@
             "title": "Layout",
             "type": "string"
         },
+        "Placement": {
+            "description": "",
+            "enum": [
+                "after_text",
+                "before_text"
+            ],
+            "title": "Placement",
+            "type": "string"
+        },
         "RootSelector": {
             "additionalProperties": false,
             "description": "",
@@ -285,6 +294,10 @@
                 },
                 "index": {
                     "$ref": "#/$defs/IndexDisplay"
+                },
+                "placement": {
+                    "$ref": "#/$defs/Placement",
+                    "description": "Where the view's sections appear on each root concept's page, after its authored text (the default) or before it."
                 },
                 "roots": {
                     "$ref": "#/$defs/RootSelector"

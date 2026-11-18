@@ -106,6 +106,8 @@ def verify(site: Path, base: str) -> None:
         metric = (dist / "metrics/weekly-active-users/index.html").read_text(encoding="utf-8")
         check(f'id="{section}"' in metric and "What this metric measures" in metric,
               "canonical metric page lacks its configured section")
+        check(metric.index("<article") < metric.index(f'id="{section}"'),
+              "a view without a placement does not follow the authored text")
         member = LocalLinks()
         member.feed((dist / "glossary/active-user/index.html").read_text(encoding="utf-8"))
         row_links = [link for link in member.values if link.startswith(url(f"/metrics/weekly-active-users/#{section}:"))]
@@ -186,6 +188,11 @@ def verify_domain(site: Path, base: str) -> None:
 
     term = (dist / "term/index.html").read_text(encoding="utf-8")
     real = (dist / "real/index.html").read_text(encoding="utf-8")
+    teachers = 'id="view.modules.teachers"'
+    check(teachers in term and term.index(teachers) < term.index("<article"),
+          "the module view's section does not lead the module's page")
+    check('id="view.modules.units"' not in term and "Units in this module" not in term,
+          "the module's page shows a view section with no rows")
     check("Connections from this concept" in term and
           f'href="{prefix}/real"' in term and "domain:taughtBy" in term,
           "domain source page lacks its outgoing relation")
