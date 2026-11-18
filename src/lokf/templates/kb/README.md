@@ -22,9 +22,10 @@ and date filters when the data supports them. Its URL can be bookmarked.
 The `/graph` page offers bounded neighborhoods for large bundles, a list view,
 several layouts, typed incoming/outgoing connections, and path finding. Share
 its URL to restore a view. The complete toolkit graph remains at `/graph.json`
-and its JSON-LD projection at `/graph.jsonld`. A timeline appears when your
-concepts have enough dated, related records; configure its date and relation
-fields in `src/temporal.config.mjs`.
+and its JSON-LD projection at `/graph.jsonld`. A timeline of dated concepts
+is off by default, since its default dates record when concepts were written.
+To show it, choose date and relation fields in `src/temporal.config.mjs` and
+set `enabled: true`.
 
 Prefer an AI agent? The bundled skills in `.claude/skills/` drive the whole
 workflow — open this repo in [Claude Code](https://claude.com/claude-code) and

@@ -29,7 +29,7 @@ my-kb/
     pages/graph-index.json.ts    #   concept list for choosing a neighborhood
     pages/graph-data/            #   bounded concept-neighborhood views
     pages/graph.jsonld.ts        #   the whole bundle as JSON-LD (the RDF view)
-    pages/temporal/              #   conditional evidence timeline
+    pages/temporal/              #   evidence timeline, off until enabled
     temporal.config.mjs          #   candidate date and relation fields
   scripts/export-graph.mjs       # uses the matching LOKF toolkit at build time
   site.config.mjs                # optional repository/correction link
@@ -84,8 +84,11 @@ the current view rather than global importance. The complete `graph.json` and
 `graph.jsonld` exports remain
 available for other tools.
 
-If dated concepts share a suitable typed relation, a generic timeline appears.
-Choose its date fields and grouping relation in `src/temporal.config.mjs`.
+A generic timeline of dated concepts is available but off by default: its
+default dates record when concepts were created or written, which says little
+about what they describe. To show it, choose date fields and a grouping
+relation that mean something in your bundle in `src/temporal.config.mjs`, and
+set `enabled: true`.
 Concept pages show recorded sources and review signals, with permalink and
 citation controls. Set `repositoryUrl` in `site.config.mjs` to offer a GitHub
 correction link. Raw HTML in knowledge Markdown is escaped by default.
