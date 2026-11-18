@@ -20,10 +20,37 @@ export function graphIndex(graph) {
   }
   const choices = [...nodes.values()].sort(byLabel).map(({ data }) => ({
     id: data.id, concept_id: data.concept_id, label: data.label,
-    type: data.type, href: data.href, degree: degree.get(data.id),
+    type: data.type, type_title: data.type_title || data.type, href: data.href, degree: degree.get(data.id),
   }));
   const defaultNode = [...choices].sort((a, b) => b.degree - a.degree || a.label.localeCompare(b.label) || a.id.localeCompare(b.id))[0];
   return { count: choices.length, default_focus: defaultNode?.concept_id || '', nodes: choices };
+}
+
+const words = (text) => ` ${String(text ?? '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()} `;
+
+/**
+ * The index entries a typed term picks out, best first: the exact title, then
+ * titles that start with the term, then titles with a word that does, then
+ * titles, ids or types that contain it anywhere. Ties keep the index's title
+ * order, so typing a concept's full name and pressing Enter opens it.
+ */
+export function rankChoices(nodes, term, limit = 20) {
+  const needle = String(term ?? '').trim().toLowerCase();
+  if (!needle) return [];
+  const rank = (node) => {
+    const title = String(node.label ?? '').toLowerCase();
+    if (title === needle) return 0;
+    if (title.startsWith(needle)) return 1;
+    if (words(title).includes(words(needle).trimEnd())) return 2;
+    if (title.includes(needle)) return 3;
+    return `${node.concept_id} ${node.type} ${node.type_title ?? ''}`.toLowerCase().includes(needle) ? 4 : -1;
+  };
+  return nodes
+    .map((node, order) => ({ node, order, rank: rank(node) }))
+    .filter((entry) => entry.rank >= 0)
+    .sort((a, b) => a.rank - b.rank || a.order - b.order)
+    .slice(0, limit)
+    .map((entry) => entry.node);
 }
 
 export function graphScopes(graph, { pageSize = PAGE_SIZE, maxNodes = MAX_NODES } = {}) {

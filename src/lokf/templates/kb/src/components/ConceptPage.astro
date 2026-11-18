@@ -5,13 +5,14 @@ import ViewSection from './ViewSection.astro';
 import { checkConceptFragments, type Navigation } from '../lib/view-navigation';
 import type { Concept } from '../lib/lokf';
 import { loadBundle, iriOf, hrefOf, titleOf, href } from '../lib/lokf';
-import { loadProjectionIndex } from '../lib/graph-data';
+import { loadProjectionIndex, loadVocabulary } from '../lib/graph-data';
+import { fieldsOf, fieldValues, incomingTitle, relationTitle, typeTitle } from '../lib/labels.mjs';
 import siteConfig from '../../site.config.mjs';
 
 interface Props { entry: Concept; navigation: Navigation }
 const { entry, navigation } = Astro.props;
-const [{ byIri }, projection] = await Promise.all([
-  loadBundle(), loadProjectionIndex(),
+const [{ byIri }, projection, vocabulary] = await Promise.all([
+  loadBundle(), loadProjectionIndex(), loadVocabulary(),
 ]);
 const { Content, headings } = await render(entry);
 checkConceptFragments(navigation, entry.id, headings);
@@ -55,6 +56,10 @@ const verifications = asItems(d.verified);
 const refutations = asItems(d.refuted);
 const format = (value: unknown) => value instanceof Date ? value.toISOString() : String(value ?? '');
 const readable = (slot: string) => slot.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]/g, ' ');
+// The type's own fields that this concept fills in, titled as the schema names them
+const fields = fieldsOf(vocabulary, d.type)
+  .map((field: Record<string, any>) => ({ ...field, values: fieldValues(d[field.name]) }))
+  .filter((field: Record<string, any>) => field.values.length > 0);
 const searchLink = (key: string, value: string) => `${href('/search')}?${new URLSearchParams({ [key]: value })}`;
 const permalink = new URL(Astro.url.pathname, Astro.site).href;
 const citation = `${titleOf(entry)}. __KB_TITLE__. ${permalink}`;
@@ -68,13 +73,24 @@ const correctionUrl = webUrl(siteConfig.correctionUrl) ||
 ---
 
 <Base title={titleOf(entry)} description={d.description} jsonld={jsonld}>
-  <p><a class="badge" href={searchLink('type', d.type)}>{d.type}</a></p>
+  <p><a class="badge" href={searchLink('type', d.type)}>{typeTitle(vocabulary, d.type)}</a></p>
   <h1>{titleOf(entry)}</h1>
   {d.description && <p class="tagline">{d.description}</p>}
   {Array.isArray(d.tags) && d.tags.length > 0 && (
     <div class="tags" aria-label="Tags">
       {d.tags.map((tag: string) => <a href={searchLink('tag', tag)}>{tag}</a>)}
     </div>
+  )}
+  {fields.length > 0 && (
+    <dl class="fields" aria-label="Details">
+      {fields.map((field: Record<string, any>) => <>
+        <dt title={field.description}>{field.title}</dt>
+        <dd>{field.values.map((text: string, i: number) => <>
+          {i > 0 && ', '}
+          {/^https?:\/\//i.test(text) ? <a href={text}>{text}</a> : text}
+        </>)}</dd>
+      </>)}
+    </dl>
   )}
 
   <article><Content /></article>
@@ -112,14 +128,14 @@ const correctionUrl = webUrl(siteConfig.correctionUrl) ||
       {outgoing.size > 0 && <h4>Connections from this concept</h4>}
       {[...outgoing.entries()].map(([slot, items]) => (
         <div>
-          <span class="rel-kind">{readable(slot)}</span>
+          <span class="rel-kind">{relationTitle(vocabulary, slot)}</span>
+          {items[0]?.predicate && <span class="rel-note"> · {items[0].predicate}</span>}
           <ul>
             {items.map((item) => <li>
               {item.concept ? <a href={hrefOf(item.concept)}>{titleOf(item.concept)}</a>
                 : /^https?:/.test(item.iri) ? <a href={item.iri}>{item.iri}</a>
                 : <code>{item.iri}</code>}
               {item.reified && <span class="rel-note"> (asserted relation)</span>}
-              {item.predicate && <span class="rel-note"> · {item.predicate}</span>}
             </li>)}
           </ul>
         </div>
@@ -127,13 +143,13 @@ const correctionUrl = webUrl(siteConfig.correctionUrl) ||
       {incoming.size > 0 && <h4>Connections to this concept</h4>}
       {[...incoming.entries()].map(([slot, items]) => (
         <div>
-          <span class="rel-kind">{readable(slot)}</span>
+          <span class="rel-kind">{incomingTitle(vocabulary, slot)}</span>
+          {items[0]?.predicate && <span class="rel-note"> · {items[0].predicate}</span>}
           <ul>
             {items.map((item) => <li>
               {item.concept ? <a href={hrefOf(item.concept)}>{titleOf(item.concept)}</a>
                 : <code>{item.iri}</code>}
               {item.reified && <span class="rel-note"> (asserted relation)</span>}
-              {item.predicate && <span class="rel-note"> · {item.predicate}</span>}
             </li>)}
           </ul>
         </div>

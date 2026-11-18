@@ -20,6 +20,7 @@ export const GET: APIRoute = async () => {
     return {
       title: titleOf(c),
       type: c.data.type,
+      type_title: String(node?.type_title ?? c.data.type),
       concept_id: c.id,
       href: hrefOf(c),
       tags: Array.isArray(data.tags) ? data.tags.filter((tag): tag is string => typeof tag === 'string') : [],

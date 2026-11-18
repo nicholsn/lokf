@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { href } from './lokf';
+import { incomingTitle, relationTitle, typeTitle } from './labels.mjs';
 
 export type GraphElement = { data: Record<string, any> };
 export type GraphData = {
@@ -23,13 +24,25 @@ async function readGenerated(name: string): Promise<any> {
 let graphPromise: Promise<GraphData> | undefined;
 let conceptsPromise: Promise<any> | undefined;
 
-/** The same schema-aware graph emitted by `lokf export`, with site URLs added. */
+/**
+ * The same schema-aware graph emitted by `lokf export`, with site URLs added
+ * and every type and relation titled as the schema names it (`type_title` on
+ * nodes; `title` and, read from the target, `incoming_title` on edges).
+ */
 export function loadGraphData(): Promise<GraphData> {
   const read = () => Promise.all([readGenerated('graph.json'), loadConceptsJsonLd()])
     .then(([graph, concepts]) => {
       const byIri = new Map<string, Record<string, any>>(
         (concepts['@graph'] ?? []).map((doc: Record<string, any>) => [String(doc.id), doc]),
       );
+      const vocabulary = graph.meta?.vocabulary;
+      const titled = (edge: GraphElement) => ({
+        data: {
+          ...edge.data,
+          title: relationTitle(vocabulary, edge.data.slot || edge.data.predicate),
+          incoming_title: incomingTitle(vocabulary, edge.data.slot || edge.data.predicate),
+        },
+      });
       return {
         ...graph,
         nodes: graph.nodes.map((node: GraphElement) => {
@@ -38,15 +51,23 @@ export function loadGraphData(): Promise<GraphData> {
             data: {
               ...node.data,
               href: href('/' + node.data.concept_id),
+              type_title: typeTitle(vocabulary, node.data.type),
               ...(doc?.description ? { description: doc.description } : {}),
               ...(Array.isArray(doc?.tags) ? { tags: doc.tags } : {}),
             },
           };
         }),
+        edges: graph.edges.map(titled),
+        external_edges: (graph.external_edges ?? []).map(titled),
       };
     });
   if (import.meta.env.DEV) return read();
   return graphPromise ||= read();
+}
+
+/** The schema's titles for the types, relations and fields the graph uses. */
+export async function loadVocabulary(): Promise<Record<string, any>> {
+  return ((await loadGraphData()).meta?.vocabulary ?? {}) as Record<string, any>;
 }
 
 export function loadConceptsJsonLd() {

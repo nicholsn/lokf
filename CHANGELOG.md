@@ -20,8 +20,28 @@ with the 0.x caveat that a minor release may tighten validation.
   generate family indexes, ordered lists, timelines, and tables with linked
   concept columns. `lokf export --views` validates the manifest and writes
   the static site's `views.json` plan alongside the graph.
+- A site created with `lokf new` names types, relations and fields as the
+  schema does. `lokf export` writes `meta.vocabulary` into `graph.json`: a
+  title for each type and relation the graph uses (the class's or slot's
+  `title`, else its name made readable), an `inverse_title` for each relation
+  that declares one, and each type's own value fields. Concept pages, search,
+  the home page, the timeline and the graph explorer show these titles in
+  place of class names and CURIEs. A concept's page lists its type's fields
+  under its description. Backlinks on a target's page read from the target,
+  as "Has derivative" rather than "Derived from". The core relations in
+  `lokf.yaml` carry `inverse_title` annotations; a domain vocabulary can add
+  its own, or name a LinkML `inverse`.
 
 ### Fixed
+
+- The graph explorer's concept picker ranks the exact title first, then
+  titles that start with the term, so typing a concept's name and pressing
+  Enter opens it. Before, Enter opened the first title, alphabetically, that
+  contained the term anywhere.
+- Every concept type in a graph gets its own color. With more than seven
+  types, domain types shared palette colors, and `Reference` and
+  `GlossaryTerm` always shared one.
+- The graph explorer's list says "1 connection", not "1 connections".
 
 - A site created with `lokf new` now builds when its `pyproject.toml` declares
   a domain vocabulary (`[tool.lokf] schema`). The build exports the graph with

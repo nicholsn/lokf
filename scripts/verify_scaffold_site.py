@@ -196,16 +196,31 @@ def verify_domain(site: Path, base: str) -> None:
     body = modules.partition("<tbody>")[2].partition("</tbody>")[0]
     rows = LocalLinks()
     rows.feed(body)
-    check(rows.values == [f"{prefix}/term", f"{prefix}/real"] and ">Real</a>" in body and "Taught by" in modules,
+    check(rows.values == [f"{prefix}/term", f"{prefix}/real"] and ">Real</a>" in body and
+          '<th scope="col">Taught by</th>' in modules,
           "domain table lost its row or its relation-backed concept link")
+    # The fixture omits forward slot and class titles. The readable defaults
+    # and the schema's explicit inverse_title should both reach the pages.
+    check('class="badge"' in term and ">Module</a>" in term and ">Glossary term</a>" in real,
+          "concept pages do not title their types from the schema")
+    check(">Taught by</span>" in term and ">Teaches</span>" in real,
+          "concept pages do not read the domain relation from both ends")
+    check(">Credits</dt>" in term and "<dd>5</dd>" in term.replace("\n", ""),
+          "the domain source page does not show its credits field")
+    titled = graph["edges"][0]["data"]
+    check((titled["title"], titled["incoming_title"]) == ("Taught by", "Teaches") and
+          {node["data"]["type_title"] for node in graph["nodes"]} == {"Module", "Glossary term"},
+          "the site graph does not carry the schema's titles")
     search = read_json(dist / "search-index.json")
     check({doc["concept_id"] for doc in search["documents"]} == {"real", "term"},
           "domain concepts are missing from search")
+    check({doc["type_title"] for doc in search["documents"]} == {"Module", "Glossary term"},
+          "domain search results do not carry type titles")
     check({doc["href"] for doc in search["documents"]} ==
           {f"{prefix}/real", f"{prefix}/term"},
           "domain search results have incorrect base links")
     print(f"verified {site.name} at {base}: domain:taughtBy resolves "
-          "in graph, JSON-LD, scope, and incoming/outgoing concept pages")
+          "in graph, JSON-LD, scope, incoming/outgoing concept pages, and the linked view table")
 
 
 if __name__ == "__main__":

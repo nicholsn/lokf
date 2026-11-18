@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { graphIndex, graphScopes, MAX_NODES } from '../src/lib/graph-scope.mjs';
+import { graphIndex, graphScopes, MAX_NODES, rankChoices } from '../src/lib/graph-scope.mjs';
 import { readView, writeView, validLayout } from '../src/lib/graph-view.mjs';
 import { findPath } from '../src/lib/graph-path.mjs';
 
@@ -50,4 +50,18 @@ test('path finder keeps edge predicate and direction and obeys visible filters',
   assert.equal(findPath(graph, 'https://graph-test.invalid/a', 'https://graph-test.invalid/c', { directed: true }), null);
   assert.equal(findPath(graph, 'https://graph-test.invalid/a', 'https://graph-test.invalid/c', { hiddenRelations: ['references'] }), null);
   assert.equal(findPath(graph, 'https://graph-test.invalid/a', 'https://graph-test.invalid/c', { hiddenTypes: ['Dataset'] }), null);
+});
+
+test('ranks picker matches so the exact title comes first', () => {
+  const nodes = ['Cohort methylation matrix', 'Epigenomics', 'Genomics', 'Genomics analysis datasets',
+    'Sequencing-based epigenomics', 'WGS aligned reads (CRAM)', 'Whole-genome sequencing']
+    .map((label, i) => ({ label, concept_id: i === 0 ? 'epigenomics/cohort-matrix' : `c${i}`, type: 'Stage' }));
+  assert.deepEqual(rankChoices(nodes, 'Genomics').map((node) => node.label), [
+    'Genomics', 'Genomics analysis datasets', 'Epigenomics', 'Sequencing-based epigenomics', 'Cohort methylation matrix',
+  ]);
+  // a word inside a title outranks a match in an id
+  assert.equal(rankChoices(nodes, 'cram')[0].label, 'WGS aligned reads (CRAM)');
+  assert.equal(rankChoices(nodes, 'genome seq')[0].label, 'Whole-genome sequencing');
+  assert.deepEqual(rankChoices(nodes, '  '), []);
+  assert.equal(rankChoices(nodes, 'e', 2).length, 2);
 });

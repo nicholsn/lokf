@@ -65,6 +65,33 @@ same file reads as `lokf:Concept` with `additionalType: Dashboard`, and
 `shows` is a string. Both readings are conformant, and the bundle's files
 are the same in each.
 
+### Label terms for a site
+
+A site made with `lokf new` names your types, relations and fields as the
+domain vocabulary does. Where the vocabulary gives no name, the site makes
+one from the schema name: `DataStage` reads "Data stage", and
+`processing_step` reads "Processing step".
+
+- **Set `title` on a class or slot** to name it some other way.
+- **Give each relation an `inverse_title` annotation.** The target's page
+  lists the relation under that name, read from the target. Without one,
+  the page shows the forward title behind an arrow, such as "← Shows". A
+  LinkML `inverse` that names another slot also works.
+
+  ```yaml
+  slots:
+    shows:
+      range: Metric
+      multivalued: true
+      slot_uri: analytics:shows
+      annotations:
+        inverse_title: Shown on
+  ```
+
+- **A class's own value slots appear on each concept's page**, under its
+  description: text, numbers, dates, enum values and links. Relations
+  appear in the page's knowledge graph section instead.
+
 ## Adapt a published schema
 
 `lokf adapt` copies a published LinkML schema into a LOKF domain vocabulary.

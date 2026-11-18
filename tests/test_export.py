@@ -4,7 +4,7 @@ from __future__ import annotations
 import pathlib
 
 import lokf
-from lokf.export import dataset_search_jsonld, to_cytoscape
+from lokf.export import dataset_search_jsonld, to_cytoscape, vocabulary_meta
 
 BUNDLE = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
 
@@ -205,3 +205,16 @@ def test_export_graph_nt_is_byte_stable(tmp_path):
         outs.append((tmp_path / name / "graph.nt").read_text(encoding="utf-8"))
     assert "_:" in outs[0], "precondition: the example projects blank nodes"
     assert outs[0] == outs[1]
+
+
+def test_vocabulary_meta_labels_only_what_the_graph_uses():
+    graph = to_cytoscape(lokf.load_bundle(BUNDLE))
+    meta = vocabulary_meta(graph)
+    assert set(meta["types"]) == {n["data"]["type"] for n in graph["nodes"]}
+    assert set(meta["relations"]) == {
+        e["data"]["slot"] for e in (*graph["edges"], *graph["external_edges"])
+    }
+    assert meta["types"]["GlossaryTerm"]["title"] == "Glossary term"
+    # core relations carry the inverse the schema declares
+    assert meta["relations"]["isPartOf"]["inverse_title"] == "Has part"
+    assert [f["name"] for f in meta["fields"]["Metric"]] == ["unit", "formula"]

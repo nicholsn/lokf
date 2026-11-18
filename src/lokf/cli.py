@@ -958,7 +958,9 @@ def export(
     Writes four files (the *producer contract* a meta-lokf registry harvests):
 
     - ``graph.json`` — cytoscape.js elements (typed-relation edges) plus
-      ``meta.source_base``; drives the docs-site graph explorer.
+      ``meta.source_base`` and ``meta.vocabulary``, the schema's titles for
+      the types, relations and fields the graph uses; drives the docs-site
+      graph explorer and the labels on a generated site.
     - ``datasets.jsonld`` — schema.org Dataset docs for Google Dataset Search.
     - ``graph.nt`` — the whole bundle as N-Triples; the RDF a registry loads
       into its federated store for cross-bundle SPARQL.
@@ -971,7 +973,7 @@ def export(
     successful export without a manifest removes that generated plan.
     """
     from lokf import rdf
-    from lokf.export import dataset_search_jsonld, to_cytoscape
+    from lokf.export import dataset_search_jsonld, to_cytoscape, vocabulary_meta
     from lokf.model import load_bundle
     from lokf.schema import schema_context, vocabulary
 
@@ -982,6 +984,7 @@ def export(
     bundle = load_bundle(bundle_dir)
     graph = to_cytoscape(bundle, vocab)
     graph["meta"] = {"source_base": source_base} if source_base else {}
+    graph["meta"]["vocabulary"] = vocabulary_meta(graph, vocab)
     view_plan = None
     if views is not None:
         from lokf.views import compile_views

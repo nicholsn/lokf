@@ -999,6 +999,8 @@ slots:
     slot_uri: dcterms:isPartOf
     close_mappings:
       - schema:isPartOf
+    annotations:
+      inverse_title: Has part
     in_subset:
       - lokf_semantic
 
@@ -1009,6 +1011,8 @@ slots:
     slot_uri: schema:hasPart
     close_mappings:
       - dcterms:hasPart
+    annotations:
+      inverse_title: Is part of
     in_subset:
       - lokf_semantic
 
@@ -1017,6 +1021,8 @@ slots:
     range: Concept
     multivalued: true
     slot_uri: dcterms:references
+    annotations:
+      inverse_title: Referenced by
     in_subset:
       - lokf_semantic
 
@@ -1027,6 +1033,8 @@ slots:
     slot_uri: dcterms:requires
     close_mappings:
       - lokf:dependsOn
+    annotations:
+      inverse_title: Required by
     in_subset:
       - lokf_semantic
 
@@ -1035,6 +1043,8 @@ slots:
     range: Concept
     multivalued: true
     slot_uri: prov:wasDerivedFrom
+    annotations:
+      inverse_title: Has derivative
     in_subset:
       - lokf_semantic
 
@@ -1043,6 +1053,8 @@ slots:
     range: Concept
     multivalued: true
     slot_uri: dcterms:isReplacedBy
+    annotations:
+      inverse_title: Replaces
     in_subset:
       - lokf_semantic
 
@@ -1053,6 +1065,8 @@ slots:
     slot_uri: schema:about
     close_mappings:
       - foaf:primaryTopic
+    annotations:
+      inverse_title: Subject of
     in_subset:
       - lokf_semantic
 
@@ -1063,6 +1077,8 @@ slots:
     slot_uri: schema:sameAs
     close_mappings:
       - owl:sameAs
+    annotations:
+      inverse_title: Same as
     in_subset:
       - lokf_semantic
 
@@ -1073,6 +1089,8 @@ slots:
     slot_uri: dcterms:relation
     close_mappings:
       - skos:related
+    annotations:
+      inverse_title: Related to
     in_subset:
       - lokf_semantic
 
@@ -1081,6 +1099,8 @@ slots:
     range: Concept
     multivalued: true
     slot_uri: rdfs:isDefinedBy
+    annotations:
+      inverse_title: Defines
     in_subset:
       - lokf_semantic
 
@@ -1089,6 +1109,8 @@ slots:
     range: Concept
     multivalued: true
     slot_uri: dcterms:source
+    annotations:
+      inverse_title: Source for
     in_subset:
       - lokf_semantic
 
@@ -1269,6 +1291,8 @@ slots:
     range: Concept
     multivalued: true
     slot_uri: lokf:measures
+    annotations:
+      inverse_title: Measured by
     in_subset:
       - lokf_semantic
 
@@ -1339,6 +1363,8 @@ slots:
     slot_uri: schema:memberOf
     close_mappings:
       - org:organization
+    annotations:
+      inverse_title: Has member
     in_subset:
       - lokf_semantic
 
@@ -1349,6 +1375,8 @@ slots:
     slot_uri: org:member
     close_mappings:
       - schema:member
+    annotations:
+      inverse_title: Holds
     in_subset:
       - lokf_semantic
 
@@ -1946,6 +1974,8 @@ enums:
           The concept is a revised version of the target: a derivation that
           keeps substantial content of the original.
         meaning: prov:wasRevisionOf
+        annotations:
+          inverse_title: Has revision
       about:
         description: The concept is about the target.
         meaning: schema:about
@@ -1958,6 +1988,8 @@ enums:
       wasAttributedTo:
         description: The concept was attributed to the target agent.
         meaning: prov:wasAttributedTo
+        annotations:
+          inverse_title: Responsible for
       definedBy:
         description: The concept is formally defined by the target.
         meaning: rdfs:isDefinedBy
@@ -1967,6 +1999,8 @@ enums:
       joinsWith:
         description: The concept (a table) is joined with the target.
         meaning: lokf:joinsWith
+        annotations:
+          inverse_title: Joins with
       source:
         description: The concept is sourced from the target.
         meaning: dcterms:source

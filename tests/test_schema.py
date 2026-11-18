@@ -4,7 +4,7 @@ import pathlib
 import pytest
 import yaml
 
-from lokf.schema import Vocabulary, load_context, load_schema, schema_context, vocabulary
+from lokf.schema import Vocabulary, humanize, load_context, load_schema, schema_context, vocabulary
 
 ROOT = pathlib.Path(__file__).parent.parent
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -807,3 +807,94 @@ def test_distribution_byte_size_is_an_integer_in_generated_sql():
     columns = {row[1]: row[2] for row in connection.execute('PRAGMA table_info("Distribution")')}
     assert columns["byte_size"] == "INTEGER"
     connection.close()
+
+
+@pytest.mark.parametrize(
+    "name, title",
+    [
+        ("DataStage", "Data stage"),
+        ("isPartOf", "Is part of"),
+        ("processing_step", "Processing step"),
+        ("URLField", "URL field"),
+        ("SAA", "SAA"),
+        ("taughtBy", "Taught by"),
+    ],
+)
+def test_humanize_reads_a_schema_name_as_words(name, title):
+    assert humanize(name) == title
+
+
+LABELLED = yaml.safe_load(
+    """
+    classes:
+      Concept: {slots: [title]}
+      Course:
+        is_a: Concept
+        title: Course of study
+        description: A taught course.
+        slots: [title, taughtBy, credits, level, syllabus, prerequisite, cites]
+        attributes:
+          code: {description: The course code.}
+      Syllabus: {}
+      Teacher: {is_a: Concept, slots: [teaches]}
+    slots:
+      title: {}
+      taughtBy:
+        range: Concept
+        multivalued: true
+        slot_uri: ex:taughtBy
+        annotations: {inverse_title: Teaches}
+      teaches: {range: Concept, multivalued: true, slot_uri: ex:teaches, inverse: taughtBy}
+      prerequisite:
+        title: Prerequisite
+        range: Concept
+        multivalued: true
+        slot_uri: ex:prerequisite
+        annotations: {inverse_title: {tag: inverse_title, value: Prerequisite for}}
+      cites: {range: Concept, multivalued: true, slot_uri: ex:cites, description: A cited work.}
+      credits: {range: integer, title: Credit points}
+      level: {range: Level, multivalued: true}
+      syllabus: {range: Syllabus}
+    enums:
+      Level: {permissible_values: {intro: {}, advanced: {}}}
+    """
+)
+
+
+def test_type_label_takes_the_class_title_else_its_name_as_words():
+    vocab = Vocabulary(LABELLED)
+    assert vocab.type_label("Course") == {"title": "Course of study", "description": "A taught course."}
+    assert vocab.type_label("Teacher") == {"title": "Teacher"}
+    # a type no class declares is a plain Concept, still named readably
+    assert vocab.type_label("ReadingList") == {"title": "Reading list"}
+
+
+def test_relation_label_reads_both_ways_when_the_schema_says_how():
+    vocab = Vocabulary(LABELLED)
+    assert vocab.relation_label("taughtBy") == {"title": "Taught by", "inverse_title": "Teaches"}
+    # the annotation's expanded {tag, value} spelling reads the same
+    assert vocab.relation_label("prerequisite") == {
+        "title": "Prerequisite", "inverse_title": "Prerequisite for",
+    }
+    # a LinkML `inverse` lends the other slot's name
+    assert vocab.relation_label("teaches") == {"title": "Teaches", "inverse_title": "Taught by"}
+    # with neither, there is no inverse title to guess at
+    assert vocab.relation_label("cites") == {"title": "Cites", "description": "A cited work."}
+
+
+def test_fields_are_a_types_own_value_slots_in_declared_order():
+    """Concept's slots, relations and class-ranged slots are left out."""
+    assert Vocabulary(LABELLED).fields("Course") == [
+        {"name": "credits", "title": "Credit points"},
+        {"name": "level", "title": "Level", "multivalued": True},
+        {"name": "code", "title": "Code", "description": "The course code."},
+    ]
+    assert Vocabulary(LABELLED).fields("Teacher") == []
+    assert Vocabulary(LABELLED).fields("ReadingList") == []
+
+
+def test_every_core_relation_reads_in_both_directions(vocab):
+    """A new core relation needs an `inverse_title`, or its backlinks on a
+    generated site would read as if they pointed the other way."""
+    names = [*vocab.relation_slots, *vocab.relation_types]
+    assert [n for n in names if "inverse_title" not in vocab.relation_label(n)] == []
