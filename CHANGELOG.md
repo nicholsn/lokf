@@ -23,6 +23,26 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- Sites created with `lokf new` now include build-time full-text search over
+  concept titles, tags, descriptions, bodies, and present claim, thesis, or
+  summary text.
+  Search shows snippets, type/tag/status/genre/trust/freshness/date filters,
+  relevance or newest sorting, and links into each result's graph neighborhood.
+  The static site needs no search service.
+- The generated graph explorer now offers bounded concept neighborhoods for
+  large bundles, connected/community/type/spread/hub layouts, a list view,
+  relation filters, shortest typed-relation paths, and shareable view URLs.
+  Complete `graph.json` and JSON-LD exports remain available. The LOKF docs
+  graph page uses this same explorer.
+- Generated concept pages now show incoming and outgoing typed relations,
+  provenance and review signals, sources, and permalink/citation/correction
+  actions. The generated home page renders the introduction authored in
+  `knowledge/index.md` before the concept browser.
+- Generated sites can include an evidence-over-time view when a bundle has
+  enough dated, linked concepts; `src/temporal.config.mjs` chooses candidate
+  dates and grouping relations. A new CI smoke job builds fresh root-domain
+  and GitHub project-page sites with this checkout's toolkit and checks their
+  routes, base-aware links, search index, and graph exports.
 - The site serves `lokf.yaml` and its generated artifacts at
   `https://lokf.nolan-nichols.com/<file>`, copied in at build time, and
   `lokf new` declares the context by the published site URL,
@@ -56,6 +76,13 @@ with the 0.x caveat that a minor release may tighten validation.
 - A concept's block must now come first in the file, after at most a byte order
   mark or blank lines. A block inside an HTML comment used to win over the real
   one, so tools read what a rendered page hid.
+
+### Known limitations
+
+- Bounded graph views duplicate data across static scope files: a local
+  1,002-concept fixture produced 36.3 MB of scope JSON, although each view
+  stayed at or below 180 nodes. The graph explorer's JavaScript is about
+  177 KB gzip.
 
 ## [0.9.0] — 2026-10-28
 

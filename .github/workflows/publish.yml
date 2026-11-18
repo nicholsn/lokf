@@ -30,6 +30,11 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          # This job publishes an artifact; do not read a shared npm cache.
+          package-manager-cache: false
 
       # A release tag whose version was never bumped in pyproject.toml only
       # surfaces at upload time, as an opaque PyPI "400 File already exists".
@@ -45,6 +50,13 @@ jobs:
 
       - name: Test (gate the release)
         run: uv run --locked --group dev pytest -q
+
+      - name: Smoke-test generated sites (gate the release)
+        run: |
+          uv sync --locked
+          bash scripts/smoke_scaffold_sites.sh "$RUNNER_TEMP/lokf-site-smoke"
+        env:
+          LOKF_EXPORT_EXECUTABLE: ${{ github.workspace }}/.venv/bin/lokf
 
       - name: Build sdist + wheel
         run: uv build

@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+import { loadTemporalEvidence } from '../../lib/temporal-data';
+
+export async function getStaticPaths() {
+  const evidence = await loadTemporalEvidence();
+  return evidence ? [{ params: { view: 'evidence' }, props: { evidence } }] : [];
+}
+
+const { evidence } = Astro.props;
+---
+
+<Base title="Temporal evidence" description="Explore dated concepts by time and an asserted grouping relation." wide>
+  <h1>Temporal evidence</h1>
+  <p class="temporal-intro">
+    This view uses <strong>{evidence.dateField.label}</strong> (<code>{evidence.dateField.path}</code>)
+    and groups concepts by the asserted <strong>{evidence.grouping.label}</strong>
+    relation (<code>{evidence.grouping.relation}</code>).
+  </p>
+  <p class="temporal-method">
+    Each month counts distinct dated concepts that have this relation to a concept in the bundle.
+    Each group counts its linked dated concepts once. A concept linked to several groups appears
+    in each of those groups, so group counts need not add up to a monthly total.
+  </p>
+
+  <nav class="temporal-jump" aria-label="Jump to a month">
+    <ul>
+      {evidence.periods.map((period) => (
+        <li><a href={`#month-${period.key}`}>{period.label} ({period.records.length})</a></li>
+      ))}
+    </ul>
+  </nav>
+
+  <div class="temporal-layout">
+    <div class="temporal-months">
+      <h2>By month</h2>
+      {evidence.periods.map((period) => (
+        <section class="temporal-period" id={`month-${period.key}`}>
+          <h3>{period.label} <small>{period.records.length} concepts</small></h3>
+          <ol>
+            {period.records.map((record) => (
+              <li>
+                <time datetime={record.date}>{record.date}</time>
+                <a href={record.href}>{record.title}</a>
+                <span class="temporal-type">{record.type}</span>
+                <span class="temporal-groups">
+                  {record.groups.map((group, index) => (
+                    <><a href={group.href}>{group.title}</a>{index < record.groups.length - 1 ? ', ' : ''}</>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+
+    <aside class="temporal-by-group" id="groups" aria-label="Dated concepts by related concept">
+      <h2>By {evidence.grouping.label.toLowerCase()} relation</h2>
+      {evidence.groups.map((group) => (
+        <details>
+          <summary>{group.title} <small>{group.records.length} concepts</small></summary>
+          <p><a href={group.href}>Open {group.title} →</a></p>
+          <ul>
+            {group.records.map((record) => (
+              <li><time datetime={record.date}>{record.date}</time> <a href={record.href}>{record.title}</a></li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </aside>
+  </div>
+</Base>
+
+<style>
+  .temporal-intro { max-width: 72ch; }
+  .temporal-method { max-width: 78ch; color: var(--muted); font-size: .9rem; }
+  .temporal-jump ul { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; }
+  .temporal-jump a { display: inline-block; padding: .3rem .65rem; border: 1px solid var(--border); border-radius: 999px; }
+  .temporal-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(15rem, 1fr); gap: 2rem; align-items: start; }
+  .temporal-period { border-top: 1px solid var(--border); padding: .5rem 0 1rem; scroll-margin-top: 6rem; }
+  .temporal-period h3 { display: flex; flex-wrap: wrap; gap: .7rem; align-items: baseline; }
+  .temporal-period h3 small, .temporal-by-group small { color: var(--muted); font: normal .8rem var(--font); }
+  .temporal-period ol { padding-left: 1.5rem; }
+  .temporal-period li { margin: .65rem 0; }
+  time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .85rem; }
+  .temporal-period time { display: inline-block; min-width: 6.6rem; }
+  .temporal-type { margin-left: .4rem; color: var(--muted); font-size: .8rem; }
+  .temporal-groups { display: block; margin-left: 6.6rem; font-size: .8rem; }
+  .temporal-by-group { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; background: var(--surface); }
+  .temporal-by-group h2 { margin-top: 0; }
+  .temporal-by-group details { border-top: 1px solid var(--border); padding: .6rem 0; }
+  .temporal-by-group summary { cursor: pointer; font-weight: 600; }
+  .temporal-by-group li { margin: .4rem 0; }
+  @media (max-width: 50rem) {
+    .temporal-layout { grid-template-columns: 1fr; }
+  }
+</style>

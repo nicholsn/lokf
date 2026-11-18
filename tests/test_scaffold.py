@@ -26,6 +26,11 @@ def test_scaffold_writes_the_repo(tmp_path):
         "src/pages/graph.astro",
         "src/pages/graph.json.ts",
         "src/pages/graph.jsonld.ts",
+        "src/pages/search.astro",
+        "src/pages/search-index.json.ts",
+        "src/lib/graph-data.ts",
+        "site.config.mjs",
+        "scripts/export-graph.mjs",
         ".github/workflows/pages.yml",
         ".gitignore",
         "justfile",
@@ -53,7 +58,8 @@ def test_tokens_substituted_everywhere(tmp_path):
     )
     leftovers = [
         p for p in root.rglob("*")
-        if p.is_file() and ".claude" not in p.parts and "__KB_" in p.read_text()
+        if p.is_file() and ".claude" not in p.parts
+        and ("__KB_" in p.read_text() or "__LOKF_PACKAGE_VERSION__" in p.read_text())
     ]
     assert leftovers == []
     # site/base derived from the base IRI (a GitHub *project* page here)
@@ -124,8 +130,10 @@ def test_template_handles_real_authoring(tmp_path):
     astro = (root / "astro.config.mjs").read_text()
     assert "remarkLokfLinks" in astro                         # .md cross-links -> routes
     assert (root / "remark-lokf-links.mjs").exists()
-    lib = (root / "src/lib/lokf.ts").read_text()
-    assert "resolveRef" in lib                                # relative relation targets
+    graph = (root / "src/pages/graph.json.ts").read_text()
+    assert "loadGraphData" in graph                          # schema-aware export
+    exporter = (root / "scripts/export-graph.mjs").read_text()
+    assert "'export', 'knowledge'" in exporter                # toolkit resolves refs
 
 
 def test_scaffolded_skills_point_at_a_path_that_exists(tmp_path):

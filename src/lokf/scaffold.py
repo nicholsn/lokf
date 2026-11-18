@@ -12,6 +12,7 @@ then start authoring (or point Claude at it).
 from __future__ import annotations
 
 import pathlib
+from importlib.metadata import version
 from importlib import resources
 from urllib.parse import urlsplit
 
@@ -47,6 +48,7 @@ def _tokens(name: str, title: str, base_iri: str) -> dict[str, str]:
         "__KB_BASE_IRI__": base_iri,
         "__KB_SITE__": site,
         "__KB_BASE__": base,
+        "__LOKF_PACKAGE_VERSION__": version("lokf"),
     }
 
 

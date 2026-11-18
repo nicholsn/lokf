@@ -1,6 +1,7 @@
 # build output
 dist/
 .astro/
+src/generated/
 build/
 lokf-tables/
 

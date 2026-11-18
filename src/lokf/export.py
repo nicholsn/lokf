@@ -24,8 +24,10 @@ def to_cytoscape(bundle, vocab=None) -> dict:
     """Bundle as cytoscape.js ``elements`` (nodes + typed-relation edges).
 
     Nodes are the bundle's concepts; edges are RDF predicates drawn from each
-    concept's typed relation slots and reified ``relations`` entries, keeping
-    only those whose target resolves to another concept in the bundle.
+    concept's typed relation slots and reified ``relations`` entries. Local
+    targets become display edges; ``external_edges`` keeps typed links to
+    resources outside the bundle for concept pages without adding phantom
+    nodes to the graph canvas.
 
     Named-slot edges match the concept-to-concept subset of
     :meth:`Bundle.graph` one-to-one and carry ``data.reified = False``. Reified
@@ -50,11 +52,14 @@ def to_cytoscape(bundle, vocab=None) -> dict:
                 "status": trust.effective_status(c.data),
                 "trust_tier": trust.trust_tier(c.data),
                 "stale": trust.is_stale(c.data),
+                "edited_since_human_review": trust.edited_since_human_review(c.data),
+                "refuted": bool(trust.active_refutations(c.data)),
             }
         }
         for iri, c in iris.items()
     ]
     edges: dict[tuple[str, str, str], dict] = {}
+    external_edges: dict[tuple[str, str, str], dict] = {}
     for source, c in iris.items():
         # (predicate CURIE, relation name, target-ref, reified?) per concept
         assertions: list[tuple[str, str, str, bool]] = []
@@ -76,10 +81,8 @@ def to_cytoscape(bundle, vocab=None) -> dict:
             # A `prefix:local` target is the IRI the schema's prefix gives it,
             # as JSON-LD reads it in the RDF projection, not a relative ref.
             tgt = bundle.resolve(vocab.expand(str(target)))
-            if tgt not in iris:
-                continue
             key = (source, predicate, tgt)
-            edges.setdefault(
+            (edges if tgt in iris else external_edges).setdefault(
                 key,
                 {
                     "data": {
@@ -92,7 +95,11 @@ def to_cytoscape(bundle, vocab=None) -> dict:
                     }
                 },
             )
-    return {"nodes": nodes, "edges": list(edges.values())}
+    return {
+        "nodes": nodes,
+        "edges": list(edges.values()),
+        "external_edges": list(external_edges.values()),
+    }
 
 
 def graph_to_cytoscape(graph, vocab=None) -> dict:
