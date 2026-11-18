@@ -9,6 +9,10 @@
  * `recordRole: 'target'` means the group points to the dated concept.
  */
 export const temporalConfig = {
+  // Off until you turn it on. The dates below record when concepts were
+  // created or written, which says little about what they describe; set
+  // `enabled: true` once the fields and relations mean something here.
+  enabled: false,
   dateFields: [
     { path: 'created', label: 'Concept creation date' },
     { path: 'generated.at', label: 'Content generation date' },

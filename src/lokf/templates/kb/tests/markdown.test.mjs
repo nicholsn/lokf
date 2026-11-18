@@ -32,3 +32,14 @@ test('turns raw HTML into a text node for escaped rendering', () => {
   assert.equal(html.type, 'text');
   assert.equal(html.value, '<script>alert(1)</script>');
 });
+
+test("sends a link to a section's index.md to its section page, and the root's home", () => {
+  const nested = path.join(process.cwd(), 'knowledge', 'metrics', 'weekly-active-users.md');
+  const section = { type: 'link', url: '../glossary/index.md#terms', children: [] };
+  const sibling = { type: 'link', url: 'index.md', children: [] };
+  const root = { type: 'link', url: '../index.md', children: [] };
+  rewriteLinks({ base: '/my-kb' })({ children: [section, sibling, root] }, { path: nested });
+  assert.equal(section.url, '/my-kb/glossary/#terms');
+  assert.equal(sibling.url, '/my-kb/metrics/');
+  assert.equal(root.url, '/my-kb/');
+});

@@ -77,3 +77,8 @@ test('ignores missing and invalid dates, and hides a view without enough linked 
   const partial = buildTemporalEvidence(documents, withLink, { ...temporalConfig, minimumRecords: 1 });
   assert.deepEqual(partial.records.map(r => r.id), ['records/valid']);
 });
+
+test('leaves the timeline off until a site enables it', () => {
+  // Its default dates say when concepts were written, not what they describe
+  assert.equal(temporalConfig.enabled, false);
+});

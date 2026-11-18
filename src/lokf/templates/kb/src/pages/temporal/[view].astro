@@ -13,11 +13,11 @@ const { evidence } = Astro.props;
 const vocabulary = await loadVocabulary();
 ---
 
-<Base title="Temporal evidence" description="Explore dated concepts by time and an asserted grouping relation." wide>
+<Base title="Temporal evidence — __KB_TITLE__" description="Explore dated concepts by time and an asserted grouping relation." wide>
   <h1>Temporal evidence</h1>
   <p class="temporal-intro">
     This view uses <strong>{evidence.dateField.label}</strong> (<code>{evidence.dateField.path}</code>)
-    and groups concepts by the asserted <strong>{evidence.grouping.label}</strong>
+    and groups concepts by the asserted <strong>{evidence.grouping.label}</strong>{' '}
     relation (<code>{evidence.grouping.relation}</code>).
   </p>
   <p class="temporal-method">

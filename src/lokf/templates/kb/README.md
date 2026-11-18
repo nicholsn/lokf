@@ -10,10 +10,11 @@ full-text search, and an interactive graph browser.
 Add concept files under `knowledge/` (see the two examples). Each has YAML
 frontmatter (a `type` and fields) plus a markdown body. The authored
 `knowledge/index.md` is the site's home-page guide, followed by browsable
-concept cards. Typed relations declared by LOKF or your domain schema become
-edges in the graph and named connections on concept pages. Prose hyperlinks
-remain ordinary links. Raw HTML in knowledge Markdown is escaped, and unsafe
-link schemes are shown as text.
+concept cards. An `index.md` in a subdirectory becomes that section's page,
+and a link to it goes there. Typed relations declared by LOKF or your domain
+schema become edges in the graph and named connections on concept pages.
+Prose hyperlinks remain ordinary links. Raw HTML in knowledge Markdown is
+escaped, and unsafe link schemes are shown as text.
 
 Search covers titles, descriptions, tags, body text, and optional claim/thesis
 fields. The `/search` page offers type, tag, genre, status, trust, freshness,
@@ -22,9 +23,10 @@ and date filters when the data supports them. Its URL can be bookmarked.
 The `/graph` page offers bounded neighborhoods for large bundles, a list view,
 several layouts, typed incoming/outgoing connections, and path finding. Share
 its URL to restore a view. The complete toolkit graph remains at `/graph.json`
-and its JSON-LD projection at `/graph.jsonld`. A timeline appears when your
-concepts have enough dated, related records; configure its date and relation
-fields in `src/temporal.config.mjs`.
+and its JSON-LD projection at `/graph.jsonld`. A timeline of dated concepts
+is off by default, since its default dates record when concepts were written.
+To show it, choose date and relation fields in `src/temporal.config.mjs` and
+set `enabled: true`.
 
 Prefer an AI agent? The bundled skills in `.claude/skills/` drive the whole
 workflow — open this repo in [Claude Code](https://claude.com/claude-code) and

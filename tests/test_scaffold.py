@@ -26,6 +26,7 @@ def test_scaffold_writes_the_repo(tmp_path):
         "src/layouts/Base.astro",
         "src/pages/index.astro",
         "src/pages/[...slug].astro",
+        "src/pages/[...section].astro",
         "src/pages/graph.astro",
         "src/pages/graph.json.ts",
         "src/pages/graph.jsonld.ts",
