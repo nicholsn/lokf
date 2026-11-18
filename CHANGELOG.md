@@ -11,6 +11,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 with the 0.x caveat that a minor release may tighten validation.
 
+## [Unreleased]
+
+### Fixed
+
+- A site created with `lokf new` now builds when its `pyproject.toml` declares
+  a domain vocabulary (`[tool.lokf] schema`). The build exports the graph with
+  `uvx --from 'lokf[build]==<version>'`: reading the vocabulary needs LinkML,
+  which the `lokf==<version>` it installed leaves out, so `npm run build` and
+  `npm run dev` stopped with "--schema needs LinkML". A site made with 0.10.0
+  can set `LOKF_TOOLKIT_SPEC='lokf[build]==0.10.0'`, or make the same change in
+  its `scripts/export-graph.mjs`.
+
 ## [0.10.0] — 2026-11-18
 
 ### Changed

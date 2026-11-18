@@ -47,6 +47,8 @@ the site works at a domain root **or** as a GitHub *project* page
 Building the site requires Node 24 (or Node 22.23.4 or newer) and `uv`.
 The build runs the matching `lokf` package to produce the graph and JSON-LD,
 so domain vocabulary relations and trust signals use the toolkit projection.
+It installs the package with its `build` extra, because reading a domain
+vocabulary declared in `pyproject.toml` needs LinkML.
 
 ## Then
 

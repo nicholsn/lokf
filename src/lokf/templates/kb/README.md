@@ -50,7 +50,9 @@ just tables   # project the bundle to linked tables (CSV)
 
 The `lokf` recipes use `uvx`, so no `pip install` is needed. For a local toolkit
 checkout, set `LOKF_EXPORT_EXECUTABLE` to its `lokf` executable when building
-the site. Set `LOKF_TOOLKIT_SPEC` to override the pinned package spec.
+the site. Set `LOKF_TOOLKIT_SPEC` to override the pinned package spec. The
+default includes the `build` extra, whose LinkML reads a domain vocabulary
+declared in `pyproject.toml`.
 
 To offer a correction link on concept pages, set `repositoryUrl` to your GitHub
 repository in `site.config.mjs`. For another host, set `correctionUrl` to its

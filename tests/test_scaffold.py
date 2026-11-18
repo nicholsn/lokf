@@ -1,7 +1,10 @@
 """`lokf new` — scaffold a publishable knowledge-base repo (Astro + graph browser)."""
 import pathlib
+import re
+from importlib.metadata import requires, version
 
 import pytest
+from packaging.requirements import Requirement
 
 from lokf import rdf, scaffold
 from lokf.model import load_bundle
@@ -134,6 +137,25 @@ def test_template_handles_real_authoring(tmp_path):
     assert "loadGraphData" in graph                          # schema-aware export
     exporter = (root / "scripts/export-graph.mjs").read_text()
     assert "'export', 'knowledge'" in exporter                # toolkit resolves refs
+
+
+def test_site_export_installs_linkml_for_a_domain_vocabulary(tmp_path):
+    """The site build runs `uvx --from <spec> lokf export`. Reading a domain
+    vocabulary that the site's pyproject.toml declares needs LinkML, so the
+    default spec must name an extra that installs it: plain `lokf==X` stopped
+    the build with "--schema needs LinkML"."""
+    root = scaffold.new("kb", path=tmp_path)
+    exporter = (root / "scripts/export-graph.mjs").read_text()
+    match = re.search(r"LOKF_TOOLKIT_SPEC \|\| '([^']+)'", exporter)
+    assert match, "export-graph.mjs names no default toolkit spec"
+    spec = Requirement(match.group(1))
+    assert spec.name == "lokf"
+    assert str(spec.specifier) == f"=={version('lokf')}"     # pinned to this release
+    linkml = [r for r in map(Requirement, requires("lokf") or []) if r.name == "linkml"]
+    assert any(
+        r.marker is not None and any(r.marker.evaluate({"extra": e}) for e in spec.extras)
+        for r in linkml
+    ), f"{spec} does not install LinkML"
 
 
 def test_scaffolded_skills_point_at_a_path_that_exists(tmp_path):

@@ -7,7 +7,9 @@ import { join } from 'node:path';
 // projection instead of maintaining a second parser in Astro.
 const output = join(process.cwd(), 'src', 'generated');
 mkdirSync(output, { recursive: true });
-const toolkit = process.env.LOKF_TOOLKIT_SPEC || 'lokf==__LOKF_PACKAGE_VERSION__';
+// The `build` extra brings LinkML, which reads a domain vocabulary declared in
+// pyproject.toml (`[tool.lokf] schema`); the core install leaves it out.
+const toolkit = process.env.LOKF_TOOLKIT_SPEC || 'lokf[build]==__LOKF_PACKAGE_VERSION__';
 const local = process.env.LOKF_EXPORT_EXECUTABLE;
 const command = local || 'uvx';
 const args = local
