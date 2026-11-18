@@ -16,12 +16,14 @@ mkdir -p "$smoke_dir"
 uv run --locked lokf new root-kb --path "$smoke_dir" --base-iri https://kb.example.com/
 uv run --locked lokf new project-kb --path "$smoke_dir" --base-iri https://owner.github.io/project-kb/
 uv run --locked lokf new domain-kb --path "$smoke_dir" --base-iri https://ex.org/kb/
+cp "$smoke_dir/project-kb/lokf.views.example.yaml" "$smoke_dir/project-kb/lokf.views.yaml"
 
 # The domain fixture is copied into a scaffolded site. Its vocabulary stays
 # at the repo path because its relative import intentionally reaches lokf.yaml.
 domain_site="$smoke_dir/domain-kb"
 rm "$domain_site/knowledge/glossary/active-user.md" "$domain_site/knowledge/metrics/weekly-active-users.md"
 cp tests/fixtures/domain-vocabulary/prefixed-target/*.md "$domain_site/knowledge/"
+cp tests/fixtures/domain-vocabulary/prefixed-target/lokf.views.yaml "$domain_site/"
 uv run --locked python - "$repo_root/tests/fixtures/domain-vocabulary/prefixes-the-bundle.yaml" "$domain_site/pyproject.toml" <<'PY'
 import json
 import sys

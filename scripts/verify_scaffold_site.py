@@ -95,6 +95,25 @@ def verify(site: Path, base: str) -> None:
               f"wrong search result link for {doc['concept_id']}")
 
     home = (dist / "index.html").read_text(encoding="utf-8")
+    view_page = dist / "views/metrics/index.html"
+    if (site / "lokf.views.yaml").exists():
+        check(view_page.is_file() and f'href="{url("/views/metrics/")}"' in home,
+              "configured view is missing from the home page")
+        preview = view_page.read_text(encoding="utf-8")
+        check("Weekly Active Users" in preview and "Active User" in preview and "Showing 1 of 1" in preview,
+              "metrics index lost its linked definition preview")
+        section = "view.metrics.definitions"
+        metric = (dist / "metrics/weekly-active-users/index.html").read_text(encoding="utf-8")
+        check(f'id="{section}"' in metric and "What this metric measures" in metric,
+              "canonical metric page lacks its configured section")
+        member = LocalLinks()
+        member.feed((dist / "glossary/active-user/index.html").read_text(encoding="utf-8"))
+        row_links = [link for link in member.values if link.startswith(url(f"/metrics/weekly-active-users/#{section}:"))]
+        check(len(row_links) == 1 and f'id="{row_links[0].split("#")[1]}"' in metric,
+              "definition's return link does not land on its row")
+    else:
+        check(not view_page.exists() and not (generated / "views.json").exists(),
+              "a scaffold without a view manifest generated a metrics view")
     graph_page = (dist / "graph/index.html").read_text(encoding="utf-8")
     search_page = (dist / "search/index.html").read_text(encoding="utf-8")
     check("Every markdown file" in home and "Browse concepts" in home,
@@ -173,8 +192,15 @@ def verify_domain(site: Path, base: str) -> None:
     check("Connections to this concept" in real and
           f'href="{prefix}/term"' in real and "domain:taughtBy" in real,
           "domain target page lacks its incoming backlink")
-    # The schema's titles reach the pages: the type, the relation read from
-    # each end (the target by the vocabulary's inverse_title), and the field
+    modules = (dist / "views/modules/index.html").read_text(encoding="utf-8")
+    body = modules.partition("<tbody>")[2].partition("</tbody>")[0]
+    rows = LocalLinks()
+    rows.feed(body)
+    check(rows.values == [f"{prefix}/term", f"{prefix}/real"] and ">Real</a>" in body and
+          '<th scope="col">Taught by</th>' in modules,
+          "domain table lost its row or its relation-backed concept link")
+    # The fixture omits forward slot and class titles. The readable defaults
+    # and the schema's explicit inverse_title should both reach the pages.
     check('class="badge"' in term and ">Module</a>" in term and ">Glossary term</a>" in real,
           "concept pages do not title their types from the schema")
     check(">Taught by</span>" in term and ">Teaches</span>" in real,
@@ -194,8 +220,7 @@ def verify_domain(site: Path, base: str) -> None:
           {f"{prefix}/real", f"{prefix}/term"},
           "domain search results have incorrect base links")
     print(f"verified {site.name} at {base}: domain:taughtBy resolves "
-          "in graph, JSON-LD, scope, and incoming/outgoing concept pages, "
-          "titled from the schema")
+          "in graph, JSON-LD, scope, incoming/outgoing concept pages, and the linked view table")
 
 
 if __name__ == "__main__":

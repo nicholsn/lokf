@@ -1,0 +1,158 @@
+id: https://w3id.org/lokf/views/v1
+name: lokf_views_v1
+title: LOKF static views manifest
+version: '1'
+prefixes:
+  linkml: https://w3id.org/linkml/
+  views: https://w3id.org/lokf/views/v1/
+default_prefix: views
+default_range: string
+imports: [linkml:types]
+
+classes:
+  ViewManifest:
+    tree_root: true
+    attributes:
+      version:
+        required: true
+        equals_string: '1'
+      views:
+        range: View
+        required: true
+        multivalued: true
+        inlined_as_list: true
+        list_elements_ordered: true
+        minimum_cardinality: 1
+
+  View:
+    slots: [id, title]
+    attributes:
+      description:
+        required: true
+      roots:
+        range: RootSelector
+        required: true
+        inlined: true
+      index:
+        range: IndexDisplay
+        required: true
+        inlined: true
+      sections:
+        range: Section
+        multivalued: true
+        inlined_as_list: true
+        list_elements_ordered: true
+
+  RootSelector:
+    attributes:
+      type:
+        required: true
+        description: Exact concept type to select as a root.
+      concept:
+        description: Optional bundle-relative concept ID within the selected type.
+
+  Display:
+    attributes:
+      layout:
+        range: Layout
+        required: true
+      columns:
+        range: Column
+        multivalued: true
+        inlined_as_list: true
+        list_elements_ordered: true
+      date:
+        description: Field supplying the timeline date.
+      date_from:
+        equals_string: root
+        description: On a section timeline, read the date from the root concept that groups the rows.
+      date_label:
+        description: Human-readable meaning of the timeline date.
+      direction:
+        range: Direction
+
+  IndexDisplay:
+    is_a: Display
+    attributes:
+      family_by:
+        description: On a list index, follow this step from a selected concept to its broader concepts. Group descendants under each top-level family.
+        range: Step
+        inlined: true
+      embed:
+        description: Sections to include under each root on this view's index.
+        range: string
+        pattern: '^[a-z][a-z0-9-]*$'
+        multivalued: true
+        list_elements_ordered: true
+
+  SectionDisplay:
+    is_a: Display
+    attributes:
+      order_by:
+        description: On a list or table, follow this step from a row to its predecessors. Place each predecessor in the section before that row.
+        range: Step
+        inlined: true
+
+  Section:
+    slots: [id, title]
+    attributes:
+      path:
+        range: Step
+        required: true
+        multivalued: true
+        inlined_as_list: true
+        list_elements_ordered: true
+        minimum_cardinality: 1
+        maximum_cardinality: 4
+      display:
+        range: SectionDisplay
+        required: true
+        inlined: true
+
+  Step:
+    attributes:
+      in:
+        description: Follow the named predicate from target to source.
+      out:
+        description: Follow the named predicate from source to target.
+      type:
+        description: Optional exact type of the concept reached by this step.
+    exactly_one_of:
+      - slot_conditions:
+          in: {value_presence: PRESENT}
+      - slot_conditions:
+          out: {value_presence: PRESENT}
+
+  Column:
+    attributes:
+      field:
+        description: Name of a scalar field on the displayed record.
+      relation:
+        description: Follow one recorded relation from the displayed record and link the matching concepts in this cell.
+        range: Step
+        inlined: true
+      label:
+        required: true
+    exactly_one_of:
+      - slot_conditions:
+          field: {value_presence: PRESENT}
+      - slot_conditions:
+          relation: {value_presence: PRESENT}
+
+slots:
+  id:
+    required: true
+    pattern: '^[a-z][a-z0-9-]*$'
+  title:
+    required: true
+
+enums:
+  Layout:
+    permissible_values:
+      list:
+      table:
+      timeline:
+  Direction:
+    permissible_values:
+      asc:
+      desc:

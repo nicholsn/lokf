@@ -1,0 +1,205 @@
+---
+import Base from '../layouts/Base.astro';
+import { render } from 'astro:content';
+import ViewSection from './ViewSection.astro';
+import { checkConceptFragments, type Navigation } from '../lib/view-navigation';
+import type { Concept } from '../lib/lokf';
+import { loadBundle, iriOf, hrefOf, titleOf, href } from '../lib/lokf';
+import { loadProjectionIndex, loadVocabulary } from '../lib/graph-data';
+import { fieldsOf, fieldValues, incomingTitle, relationTitle, typeTitle } from '../lib/labels.mjs';
+import siteConfig from '../../site.config.mjs';
+
+interface Props { entry: Concept; navigation: Navigation }
+const { entry, navigation } = Astro.props;
+const [{ byIri }, projection, vocabulary] = await Promise.all([
+  loadBundle(), loadProjectionIndex(), loadVocabulary(),
+]);
+const { Content, headings } = await render(entry);
+checkConceptFragments(navigation, entry.id, headings);
+const roots = navigation.roots.get(entry.id) ?? [];
+const memberships = navigation.memberships.get(entry.id) ?? [];
+const d = entry.data as Record<string, any>;
+const myIri = iriOf(entry);
+const node = projection.nodes.get(myIri);
+const document = projection.documents.get(myIri);
+const jsonld = document ? { '@context': projection.context, ...document } : undefined;
+
+type Link = { iri: string; concept?: typeof entry; predicate: string; reified: boolean };
+const outgoing = new Map<string, Link[]>();
+const incoming = new Map<string, Link[]>();
+for (const { data } of projection.outgoing.get(myIri) ?? []) {
+  const label = String(data.slot || data.predicate || 'related to');
+  const link = {
+    iri: String(data.target),
+    concept: byIri.get(String(data.target)),
+    predicate: String(data.predicate || ''),
+    reified: Boolean(data.reified),
+  };
+  if (!outgoing.has(label)) outgoing.set(label, []);
+  outgoing.get(label)!.push(link);
+}
+for (const { data } of projection.incoming.get(myIri) ?? []) {
+  const label = String(data.slot || data.predicate || 'related to');
+  if (!incoming.has(label)) incoming.set(label, []);
+  incoming.get(label)!.push({
+    iri: String(data.source),
+    concept: byIri.get(String(data.source)),
+    predicate: String(data.predicate || ''),
+    reified: Boolean(data.reified),
+  });
+}
+const asItems = (value: unknown): Record<string, any>[] =>
+  (Array.isArray(value) ? value : value && typeof value === 'object' ? [value] : [])
+    .filter((item): item is Record<string, any> => item !== null && typeof item === 'object');
+const sources = asItems(d.sources);
+const verifications = asItems(d.verified);
+const refutations = asItems(d.refuted);
+const format = (value: unknown) => value instanceof Date ? value.toISOString() : String(value ?? '');
+const readable = (slot: string) => slot.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]/g, ' ');
+// The type's own fields that this concept fills in, titled as the schema names them
+const fields = fieldsOf(vocabulary, d.type)
+  .map((field: Record<string, any>) => ({ ...field, values: fieldValues(d[field.name]) }))
+  .filter((field: Record<string, any>) => field.values.length > 0);
+const searchLink = (key: string, value: string) => `${href('/search')}?${new URLSearchParams({ [key]: value })}`;
+const permalink = new URL(Astro.url.pathname, Astro.site).href;
+const citation = `${titleOf(entry)}. __KB_TITLE__. ${permalink}`;
+const repositoryUrl = String(siteConfig.repositoryUrl ?? '').replace(/\/$/, '');
+const webUrl = (value: unknown) => /^https?:\/\//i.test(String(value ?? '')) ? String(value) : '';
+const resourceUrl = webUrl(d.resource);
+const correctionUrl = webUrl(siteConfig.correctionUrl) ||
+  (/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(repositoryUrl)
+    ? `${repositoryUrl}/issues/new?${new URLSearchParams({ title: `Correction: ${titleOf(entry)}`, body: `Concept: ${permalink}\n\nSuggested correction:\n` })}`
+    : '');
+---
+
+<Base title={titleOf(entry)} description={d.description} jsonld={jsonld}>
+  <p><a class="badge" href={searchLink('type', d.type)}>{typeTitle(vocabulary, d.type)}</a></p>
+  <h1>{titleOf(entry)}</h1>
+  {d.description && <p class="tagline">{d.description}</p>}
+  {Array.isArray(d.tags) && d.tags.length > 0 && (
+    <div class="tags" aria-label="Tags">
+      {d.tags.map((tag: string) => <a href={searchLink('tag', tag)}>{tag}</a>)}
+    </div>
+  )}
+  {fields.length > 0 && (
+    <dl class="fields" aria-label="Details">
+      {fields.map((field: Record<string, any>) => <>
+        <dt title={field.description}>{field.title}</dt>
+        <dd>{field.values.map((text: string, i: number) => <>
+          {i > 0 && ', '}
+          {/^https?:\/\//i.test(text) ? <a href={text}>{text}</a> : text}
+        </>)}</dd>
+      </>)}
+    </dl>
+  )}
+
+  <article><Content /></article>
+
+  {roots.map(({ view, root, link }) => (
+    <section class="concept-view" aria-label={view.title}>
+      <h2><a href={href(link)}>{view.title}</a></h2>
+      {view.sections.map(section => <ViewSection {view} {root} {section} records={navigation.records} />)}
+    </section>
+  ))}
+  {memberships.length > 0 && <nav aria-label="Appears in" class="view-memberships">
+    <h2>Appears in</h2>
+    <ul>{memberships.map(context => <li>
+      <a href={href(context.link)}>{context.title} · {context.section}</a>
+    </li>)}</ul>
+  </nav>}
+
+  {d.resource && (
+    <p class="lede-links">{resourceUrl ? <a href={resourceUrl}>Visit resource ↗</a> : <span>Resource: {format(d.resource)}</span>}</p>
+  )}
+
+  <section class="concept-tools" aria-label="Share this concept">
+    <a href={permalink}>Permalink</a>
+    <button type="button" id="copy-citation" data-citation={citation}>Copy citation</button>
+    {correctionUrl && <a href={correctionUrl}>Suggest a correction ↗</a>}
+    <span id="copy-status" role="status" aria-live="polite"></span>
+  </section>
+
+  {(outgoing.size > 0 || incoming.size > 0) && (
+    <section class="relations" aria-labelledby="relations-title">
+      <h3 id="relations-title">
+        Knowledge graph
+        <a class="rel-open" href={`${href('/graph')}?focus=${encodeURIComponent(entry.id)}`}>open in browser →</a>
+      </h3>
+      {outgoing.size > 0 && <h4>Connections from this concept</h4>}
+      {[...outgoing.entries()].map(([slot, items]) => (
+        <div>
+          <span class="rel-kind">{relationTitle(vocabulary, slot)}</span>
+          {items[0]?.predicate && <span class="rel-note"> · {items[0].predicate}</span>}
+          <ul>
+            {items.map((item) => <li>
+              {item.concept ? <a href={hrefOf(item.concept)}>{titleOf(item.concept)}</a>
+                : /^https?:/.test(item.iri) ? <a href={item.iri}>{item.iri}</a>
+                : <code>{item.iri}</code>}
+              {item.reified && <span class="rel-note"> (asserted relation)</span>}
+            </li>)}
+          </ul>
+        </div>
+      ))}
+      {incoming.size > 0 && <h4>Connections to this concept</h4>}
+      {[...incoming.entries()].map(([slot, items]) => (
+        <div>
+          <span class="rel-kind">{incomingTitle(vocabulary, slot)}</span>
+          {items[0]?.predicate && <span class="rel-note"> · {items[0].predicate}</span>}
+          <ul>
+            {items.map((item) => <li>
+              {item.concept ? <a href={hrefOf(item.concept)}>{titleOf(item.concept)}</a>
+                : <code>{item.iri}</code>}
+              {item.reified && <span class="rel-note"> (asserted relation)</span>}
+            </li>)}
+          </ul>
+        </div>
+      ))}
+    </section>
+  )}
+
+  <section class="provenance" aria-labelledby="provenance-title">
+    <h3 id="provenance-title">Provenance and review</h3>
+    <p class="meta">These are recorded signals about origin and review; they do not prove a claim is correct.</p>
+    <dl>
+      <dt>Status</dt><dd>{node?.status ?? d.status ?? 'stable'}</dd>
+      <dt>Trust tier</dt><dd>{readable(String(node?.trust_tier ?? 'unverified'))}</dd>
+      {node?.edited_since_human_review && <><dt>Review currency</dt><dd>Edited after the latest human review</dd></>}
+      {node?.refuted && <><dt>Refutation</dt><dd>An active refutation is recorded</dd></>}
+      {node?.stale && <><dt>Review date</dt><dd>Past the stated review date</dd></>}
+      {d.stale_after && <><dt>Stale after</dt><dd>{format(d.stale_after)}</dd></>}
+      {d.generated && <><dt>Generated</dt><dd>{format(d.generated.by)}{d.generated.at && ` · ${format(d.generated.at)}`}</dd></>}
+      {d.revised && <><dt>Revised</dt><dd>{format(d.revised.by)}{d.revised.at && ` · ${format(d.revised.at)}`}</dd></>}
+    </dl>
+    {verifications.length > 0 && <>
+      <h4>Verification events</h4>
+      <ul>{verifications.map((event) => <li>{format(event.by)}{event.at && ` · ${format(event.at)}`}</li>)}</ul>
+    </>}
+    {refutations.length > 0 && <>
+      <h4>Refutation events</h4>
+      <ul>{refutations.map((event) => <li>{format(event.by)}{event.at && ` · ${format(event.at)}`}{event.reason && ` · ${format(event.reason)}`}</li>)}</ul>
+    </>}
+    {sources.length > 0 && <>
+      <h4>Sources</h4>
+      <ul>{sources.map((source) => <li>
+        {/^https?:/.test(String(source.resource ?? ''))
+          ? <a href={source.resource}>{format(source.title || source.resource)}</a>
+          : <span>{format(source.title || source.resource || 'Source')}</span>}
+        {source.author && <span> · {format(source.author)}</span>}
+        {source.excerpt && <blockquote>{format(source.excerpt)}</blockquote>}
+      </li>)}</ul>
+    </>}
+  </section>
+</Base>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('#copy-citation');
+  const status = document.querySelector<HTMLElement>('#copy-status');
+  button?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(button.dataset.citation ?? '');
+      if (status) status.textContent = 'Citation copied.';
+    } catch {
+      if (status) status.textContent = 'Copy unavailable. Use the permalink.';
+    }
+  });
+</script>

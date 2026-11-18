@@ -1,0 +1,13 @@
+version: "1"
+views:
+  - id: metrics
+    title: Explore metrics
+    description: Choose a metric to see the concepts it measures.
+    roots: {type: Metric}
+    index: {layout: list, embed: [definitions]}
+    sections:
+      - id: definitions
+        title: What this metric measures
+        path:
+          - {out: measures, type: GlossaryTerm}
+        display: {layout: list}

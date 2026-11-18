@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { existsSync } from 'node:fs';
 import remarkLokfLinks from './remark-lokf-links.mjs';
 import remarkStripLeadingTitle from './remark-strip-leading-title.mjs';
 
@@ -12,6 +13,7 @@ import remarkStripLeadingTitle from './remark-strip-leading-title.mjs';
 export default defineConfig({
   site: '__KB_SITE__',
   base: '__KB_BASE__',
+  prerenderConflictBehavior: existsSync('lokf.views.yaml') ? 'error' : 'warn',
   markdown: {
     remarkPlugins: [
       [remarkLokfLinks, { base: '__KB_BASE__' }],

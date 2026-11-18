@@ -863,6 +863,45 @@ def test_vocab_json_valid():
 
 
 # -- export -----------------------------------------------------------------
+def test_export_compiles_scaffold_views_before_replacing_outputs(tmp_path):
+    template = pathlib.Path(__file__).resolve().parents[1] / "src/lokf/templates/kb"
+    output = tmp_path / "output"
+    args = ["export", str(BUNDLE), "--out-dir", str(output)]
+    result = runner.invoke(app, [*args, "--views", str(template / "lokf.views.example.yaml")])
+    assert result.exit_code == 0, result.output
+    plan_path = output / "views.json"
+    before = plan_path.read_bytes()
+    root, = json.loads(before)["views"][0]["roots"]
+    assert root["sections"]["definitions"] == [{"id": "glossary/active-user"}]
+    assert "metrics: 1 roots" in result.output
+
+    broken = tmp_path / "bad.yaml"
+    broken.write_text((template / "lokf.views.example.yaml").read_text().replace("out: measures", "out: typo"))
+    result = runner.invoke(app, [*args, "--views", str(broken)])
+    assert result.exit_code != 0 and "typo" in result.output
+    assert plan_path.read_bytes() == before
+
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    assert not plan_path.exists()
+
+
+def test_export_without_manifest_preserves_public_assets_named_views_json(tmp_path):
+    path = tmp_path / "views.json"
+    args = ["export", str(BUNDLE), "--out-dir", str(tmp_path)]
+    for content in (b"not JSON", b'{"views": []}'):
+        path.write_bytes(content)
+        result = runner.invoke(app, args)
+        assert result.exit_code == 0, result.output
+        assert path.read_bytes() == content
+
+    path.unlink()
+    path.mkdir()
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    assert path.is_dir()
+
+
 def test_export_writes_graph_and_datasets(tmp_path):
     """export writes graph.json (cytoscape) + datasets.jsonld (Dataset docs)."""
     result = runner.invoke(

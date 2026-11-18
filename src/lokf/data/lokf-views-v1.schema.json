@@ -1,0 +1,361 @@
+{
+    "$defs": {
+        "Column": {
+            "additionalProperties": false,
+            "description": "",
+            "oneOf": [
+                {
+                    "properties": {
+                        "field": {}
+                    },
+                    "required": [
+                        "field"
+                    ]
+                },
+                {
+                    "properties": {
+                        "relation": {}
+                    },
+                    "required": [
+                        "relation"
+                    ]
+                }
+            ],
+            "properties": {
+                "field": {
+                    "description": "Name of a scalar field on the displayed record.",
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "relation": {
+                    "$ref": "#/$defs/Step",
+                    "description": "Follow one recorded relation from the displayed record and link the matching concepts in this cell."
+                }
+            },
+            "required": [
+                "label"
+            ],
+            "title": "Column",
+            "type": "object"
+        },
+        "Direction": {
+            "description": "",
+            "enum": [
+                "asc",
+                "desc"
+            ],
+            "title": "Direction",
+            "type": "string"
+        },
+        "Display": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "columns": {
+                    "items": {
+                        "$ref": "#/$defs/Column"
+                    },
+                    "type": "array"
+                },
+                "date": {
+                    "description": "Field supplying the timeline date.",
+                    "type": "string"
+                },
+                "date_from": {
+                    "const": "root",
+                    "description": "On a section timeline, read the date from the root concept that groups the rows.",
+                    "type": "string"
+                },
+                "date_label": {
+                    "description": "Human-readable meaning of the timeline date.",
+                    "type": "string"
+                },
+                "direction": {
+                    "$ref": "#/$defs/Direction"
+                },
+                "layout": {
+                    "$ref": "#/$defs/Layout"
+                }
+            },
+            "required": [
+                "layout"
+            ],
+            "title": "Display",
+            "type": "object"
+        },
+        "IndexDisplay": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "columns": {
+                    "items": {
+                        "$ref": "#/$defs/Column"
+                    },
+                    "type": "array"
+                },
+                "date": {
+                    "description": "Field supplying the timeline date.",
+                    "type": "string"
+                },
+                "date_from": {
+                    "const": "root",
+                    "description": "On a section timeline, read the date from the root concept that groups the rows.",
+                    "type": "string"
+                },
+                "date_label": {
+                    "description": "Human-readable meaning of the timeline date.",
+                    "type": "string"
+                },
+                "direction": {
+                    "$ref": "#/$defs/Direction"
+                },
+                "embed": {
+                    "description": "Sections to include under each root on this view's index.",
+                    "items": {
+                        "pattern": "^[a-z][a-z0-9-]*$",
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "family_by": {
+                    "$ref": "#/$defs/Step",
+                    "description": "On a list index, follow this step from a selected concept to its broader concepts. Group descendants under each top-level family."
+                },
+                "layout": {
+                    "$ref": "#/$defs/Layout"
+                }
+            },
+            "required": [
+                "layout"
+            ],
+            "title": "IndexDisplay",
+            "type": "object"
+        },
+        "Layout": {
+            "description": "",
+            "enum": [
+                "list",
+                "table",
+                "timeline"
+            ],
+            "title": "Layout",
+            "type": "string"
+        },
+        "RootSelector": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "concept": {
+                    "description": "Optional bundle-relative concept ID within the selected type.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Exact concept type to select as a root.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "title": "RootSelector",
+            "type": "object"
+        },
+        "Section": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "display": {
+                    "$ref": "#/$defs/SectionDisplay"
+                },
+                "id": {
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "type": "string"
+                },
+                "path": {
+                    "items": {
+                        "$ref": "#/$defs/Step"
+                    },
+                    "maxItems": 4,
+                    "minItems": 1,
+                    "type": "array"
+                },
+                "title": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "title",
+                "path",
+                "display"
+            ],
+            "title": "Section",
+            "type": "object"
+        },
+        "SectionDisplay": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "columns": {
+                    "items": {
+                        "$ref": "#/$defs/Column"
+                    },
+                    "type": "array"
+                },
+                "date": {
+                    "description": "Field supplying the timeline date.",
+                    "type": "string"
+                },
+                "date_from": {
+                    "const": "root",
+                    "description": "On a section timeline, read the date from the root concept that groups the rows.",
+                    "type": "string"
+                },
+                "date_label": {
+                    "description": "Human-readable meaning of the timeline date.",
+                    "type": "string"
+                },
+                "direction": {
+                    "$ref": "#/$defs/Direction"
+                },
+                "layout": {
+                    "$ref": "#/$defs/Layout"
+                },
+                "order_by": {
+                    "$ref": "#/$defs/Step",
+                    "description": "On a list or table, follow this step from a row to its predecessors. Place each predecessor in the section before that row."
+                }
+            },
+            "required": [
+                "layout"
+            ],
+            "title": "SectionDisplay",
+            "type": "object"
+        },
+        "Step": {
+            "additionalProperties": false,
+            "description": "",
+            "oneOf": [
+                {
+                    "properties": {
+                        "in": {}
+                    },
+                    "required": [
+                        "in"
+                    ]
+                },
+                {
+                    "properties": {
+                        "out": {}
+                    },
+                    "required": [
+                        "out"
+                    ]
+                }
+            ],
+            "properties": {
+                "in": {
+                    "description": "Follow the named predicate from target to source.",
+                    "type": "string"
+                },
+                "out": {
+                    "description": "Follow the named predicate from source to target.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Optional exact type of the concept reached by this step.",
+                    "type": "string"
+                }
+            },
+            "title": "Step",
+            "type": "object"
+        },
+        "View": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "type": "string"
+                },
+                "index": {
+                    "$ref": "#/$defs/IndexDisplay"
+                },
+                "roots": {
+                    "$ref": "#/$defs/RootSelector"
+                },
+                "sections": {
+                    "items": {
+                        "$ref": "#/$defs/Section"
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "title",
+                "description",
+                "roots",
+                "index"
+            ],
+            "title": "View",
+            "type": "object"
+        },
+        "ViewManifest": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "version": {
+                    "const": "1",
+                    "type": "string"
+                },
+                "views": {
+                    "items": {
+                        "$ref": "#/$defs/View"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                }
+            },
+            "required": [
+                "version",
+                "views"
+            ],
+            "title": "ViewManifest",
+            "type": "object"
+        }
+    },
+    "$id": "https://w3id.org/lokf/views/v1",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "additionalProperties": false,
+    "description": "",
+    "metamodel_version": "1.12.0",
+    "properties": {
+        "version": {
+            "const": "1",
+            "type": "string"
+        },
+        "views": {
+            "items": {
+                "$ref": "#/$defs/View"
+            },
+            "minItems": 1,
+            "type": "array"
+        }
+    },
+    "required": [
+        "version",
+        "views"
+    ],
+    "title": "lokf_views_v1",
+    "type": "object",
+    "version": "1"
+}

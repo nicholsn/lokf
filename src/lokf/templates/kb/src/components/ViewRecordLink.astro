@@ -1,0 +1,25 @@
+---
+import { href } from '../lib/lokf';
+import { encodedPath, type Row, type ViewRecord } from '../lib/view-navigation';
+
+interface Props { row: Row; records: Record<string, ViewRecord>; rootId?: string }
+const { row, records, rootId } = Astro.props;
+---
+<a href={href(encodedPath(row.id))}>{records[row.id].title}</a>
+{rootId && row.witness && row.witness.length > 1 && (
+  <details class="view-witness">
+    <summary>How are these connected?</summary>
+    <ol>
+      {row.witness.map((step, i) => {
+        const previous = i ? row.witness![i - 1].id : rootId;
+        const source = step.direction === 'out' ? previous : step.id;
+        const target = step.direction === 'out' ? step.id : previous;
+        return <li>
+          <a href={href(encodedPath(source))}>{records[source].title}</a>
+          {' '}<code>{step.predicate}</code> → <a href={href(encodedPath(target))}>{records[target].title}</a>
+          {step.reified && ' (reified assertion)'}
+        </li>;
+      })}
+    </ol>
+  </details>
+)}

@@ -28,6 +28,17 @@ is off by default, since its default dates record when concepts were written.
 To show it, choose date and relation fields in `src/temporal.config.mjs` and
 set `enabled: true`.
 
+### Choose how readers enter the knowledge base
+
+Copy `lokf.views.example.yaml` to `lokf.views.yaml` in the project root and
+build the site. The starter adds **Explore metrics** to the home page,
+previews definitions under each metric, and links each definition back to
+its row. Edit the root type, relation path, and display for your vocabulary.
+The dev server watches the manifest. Each build renders the configured
+views as static HTML. A family index can group related concepts, and
+table rows can follow predecessor links or display related concepts in
+their own cells. [Declarative views reference](https://lokf.nolan-nichols.com/reference/declarative-views/)
+
 Prefer an AI agent? The bundled skills in `.claude/skills/` drive the whole
 workflow — open this repo in [Claude Code](https://claude.com/claude-code) and
 ask it to build out the knowledge base from your idea.
@@ -55,6 +66,13 @@ checkout, set `LOKF_EXPORT_EXECUTABLE` to its `lokf` executable when building
 the site. Set `LOKF_TOOLKIT_SPEC` to override the pinned package spec. The
 default includes the `build` extra, whose LinkML reads a domain vocabulary
 declared in `pyproject.toml`.
+
+If you created this project **from a LOKF source revision between releases**,
+use the same revision for local and Pages builds. With a local checkout,
+run `uv sync --extra build` there before pointing the site at its executable.
+For a portable build, set
+`LOKF_TOOLKIT_SPEC` to `lokf[build] @ git+https://github.com/nicholsn/lokf.git@COMMIT`,
+replacing `COMMIT` with the full commit that generated the scaffold.
 
 To offer a correction link on concept pages, set `repositoryUrl` to your GitHub
 repository in `site.config.mjs`. For another host, set `correctionUrl` to its

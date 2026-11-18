@@ -437,6 +437,17 @@ class Vocabulary:
         classes = self._schema.get("classes", {})
         return {n for n in classes if self._descends_from(classes, n, ancestor)}
 
+    def induced_slots(self, class_name: str) -> dict[str, dict]:
+        """Fields a class declares or inherits, with their effective ranges and multiplicity."""
+        if class_name not in self._classes:
+            class_name = "Concept"  # The ordinary reading of an unknown type (SPEC §8).
+        names = set()
+        for owner in self._ancestors(self._classes, class_name):
+            definition = self._classes.get(owner) or {}
+            for key in ("slots", "attributes", "slot_usage"):
+                names.update(definition.get(key) or ())
+        return {name: self._induced(class_name, name) for name in sorted(names)}
+
     def expand(self, curie: str) -> str:
         """Expand a ``prefix:local`` CURIE to a full IRI."""
         prefix, _, local = curie.partition(":")

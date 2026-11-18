@@ -230,7 +230,11 @@ Site builds need Node 24 (or Node 22.23.4 or newer) and `uv`; they run the
 matching LOKF package export before Astro renders the site. Domain vocabulary
 relations and trust signals therefore use the same projection as the toolkit.
 
-See the [scaffold docs](https://lokf.nolan-nichols.com/toolkit/scaffold/).
+An optional `lokf.views.yaml` gives readers task-oriented entry points
+through the same graph. A publisher can group concepts into families, list
+stages in dependency order, or show which related records belong to each
+row of a table. Copy the generated `lokf.views.example.yaml` to try the
+starter metric view. [Scaffold setup and source-checkout instructions](https://lokf.nolan-nichols.com/toolkit/scaffold/#add-a-navigation-view) · [Declarative navigation views](https://lokf.nolan-nichols.com/reference/declarative-views/)
 
 ## Status
 
