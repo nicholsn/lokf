@@ -60,7 +60,11 @@ export default function remarkLokfLinks({ base = '/' } = {}) {
         : path.resolve(dir, markdownPath);
       const rel = path.relative(KNOWLEDGE_ROOT, abs).replace(/\.md$/, '');
       if (rel.startsWith('..')) return;
-      node.url = prefix + '/' + rel.split(path.sep).join('/') + suffix;
+      // A directory's index.md is its section page; the root's is the home page.
+      const route = rel === 'index' ? ''
+        : rel.endsWith(path.sep + 'index') ? rel.slice(0, -'index'.length)
+        : rel;
+      node.url = prefix + '/' + route.split(path.sep).join('/') + suffix;
     });
   };
 }

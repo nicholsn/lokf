@@ -31,6 +31,20 @@ with the 0.x caveat that a minor release may tighten validation.
   as "Has derivative" rather than "Derived from". The core relations in
   `lokf.yaml` carry `inverse_title` annotations; a domain vocabulary can add
   its own, or name a LinkML `inverse`.
+- A site created with `lokf new` publishes each `index.md` below the bundle
+  root as its section's page, at the directory's address (`/metrics/`). A
+  Markdown link to a section's `index.md` goes there, and a link to the root
+  `index.md` goes to the home page. Before, the site left section guides
+  unpublished, and such links went to `/metrics/index`, which did not exist.
+
+### Changed
+
+- The timeline in a site created with `lokf new` is off until
+  `src/temporal.config.mjs` sets `enabled: true`. Its default dates
+  (`created`, `generated.at`, `timestamp`) record when concepts were written,
+  so in most bundles it charted authoring dates as if they were evidence. A
+  site made with 0.10.0 that takes this template's `src/lib/temporal-data.ts`
+  needs `enabled: true` in its config to keep its timeline.
 
 ### Fixed
 
@@ -42,7 +56,8 @@ with the 0.x caveat that a minor release may tighten validation.
   types, domain types shared palette colors, and `Reference` and
   `GlossaryTerm` always shared one.
 - The graph explorer's list says "1 connection", not "1 connections".
-
+- The timeline page names the site in its title, and its introduction keeps
+  the space before "relation".
 - A site created with `lokf new` now builds when its `pyproject.toml` declares
   a domain vocabulary (`[tool.lokf] schema`). The build exports the graph with
   `uvx --from 'lokf[build]==<version>'`: reading the vocabulary needs LinkML,
