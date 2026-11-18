@@ -32,6 +32,7 @@ Open **Explore metrics** on the home page. Under **Weekly Active Users**, the pr
 ## Choose roots and paths
 
 - Give each view an `id`, `title`, `description`, `roots` selector, and `index` display. Views appear on the home page in declaration order. View and section IDs start with a lowercase letter and use lowercase letters, digits, or hyphens. Section IDs are unique within a view.
+- A view's sections appear on each root's concept page after its authored text. To show them under the concept's description instead, set `placement: before_text` on the view. Use it when the sections summarize the concept, such as a table of its stages, and its text is long.
 - `roots.type` selects the exact class in the bundle's vocabulary. To start from a single overview, also set `roots.concept` to its bundle-relative concept ID, such as `guides/overview`, without the `.md` extension.
 - A section supplies an `id`, `title`, `path`, and `display`. Its path contains one to four steps. Each step has exactly one direction, `out` or `in`, and can filter the reached concepts with an exact `type`. A predicate can be a projected relation name, a CURIE, or its full IRI.
 - Each step reads local concept links from the same graph as `lokf export`, including typed entries under `relations`. An incoming step reads an existing assertion backwards. A section lists each matching endpoint once and omits its own root. A multi-step result includes a **How are these connected?** disclosure with one matching chain.
@@ -59,6 +60,7 @@ views:
     title: Follow curation for a data modality
     description: Choose a data family and follow its documented stages.
     roots: {type: Modality}
+    placement: before_text
     index:
       layout: list
       family_by: {out: isPartOf}
@@ -104,7 +106,7 @@ display:
   date_label: Reported in this edition
 ```
 
-A list or timeline index can use `embed` to preview named sections in the specified order. Each preview shows up to three rows with a link to the full section. Titles fall back to the concept ID. Missing field values show **Not recorded**. The compiler checks fields against the effective vocabulary, including inherited slots. An untyped section may contain multiple classes, and a field present on only some of them uses the missing-value display for the others.
+A list or timeline index can use `embed` to preview named sections in the specified order. Each preview shows up to three rows with a link to the full section. A root with no rows in a section shows no preview of it. Titles fall back to the concept ID. Missing field values show **Not recorded**. The compiler checks fields against the effective vocabulary, including inherited slots. An untyped section may contain multiple classes, and a field present on only some of them uses the missing-value display for the others.
 
 ## Pages, links, and counts
 
@@ -112,7 +114,7 @@ A list or timeline index can use `embed` to preview named sections in the specif
 | --- | --- |
 | Home | Open a view in manifest order, use **All concepts**, or continue to the authored introduction. |
 | `/views/<view-id>/` | Choose a root. Indexes show 20 roots or 20 whole families per page. |
-| A root's concept page | Read its authored text and then its sections in declaration order. Each section has its own fragment, such as `#view.metrics.definitions`, and shows up to 25 rows per page. |
+| A root's concept page | Read its authored text and then its sections in declaration order, or the sections first when the view sets `placement: before_text`. A section with no rows for that root is left off the page. Each section has its own fragment, such as `#view.metrics.definitions`, and shows up to 25 rows per page. |
 | A section member's concept page | Follow **Appears in** to the row on the page that contains it. Concepts belonging to several sections have multiple return links. |
 
 Continuation routes start at page two. An index uses `/views/<view-id>/page/<n>/`. A section uses `/views/<view-id>/sections/<section-id>/<concept-id>/page/<n>/`. Page links use the site's configured base and the concept's bundle-relative ID. A concept can have a different RDF IRI. Counts refer to distinct rows before pagination. Links inside a table cell leave row counts and section membership unchanged.

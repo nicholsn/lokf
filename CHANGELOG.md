@@ -19,7 +19,10 @@ with the 0.x caveat that a minor release may tighten validation.
   task-oriented navigation. Declare starting concepts and relation paths to
   generate family indexes, ordered lists, timelines, and tables with linked
   concept columns. `lokf export --views` validates the manifest and writes
-  the static site's `views.json` plan alongside the graph.
+  the static site's `views.json` plan alongside the graph. A view's sections
+  follow each root concept's authored text, or come before it when the view
+  sets `placement: before_text`. A section with no rows for a root is left off
+  that root's page.
 - A site created with `lokf new` names types, relations and fields as the
   schema does. `lokf export` writes `meta.vocabulary` into `graph.json`: a
   title for each type and relation the graph uses (the class's or slot's

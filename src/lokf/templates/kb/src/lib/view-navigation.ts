@@ -30,6 +30,7 @@ export interface View {
   id: string;
   title: string;
   description: string;
+  placement?: 'after_text' | 'before_text'; // Where its sections go on each root's page.
   index: Display & { embed?: string[]; family_by?: RelationStep };
   sections: Section[];
   roots: Root[];
@@ -66,6 +67,10 @@ export function sectionLink(view: View, section: Section, root: Root, page = 1, 
   return `${encodedPath(route)}/#${member ? rowId(fragment, member) : fragment}`;
 }
 export function rootScope(view: View) { return `index.${view.id}`; }
+/** A root's page shows only the sections that have rows for that root. */
+export function filledSections(view: View, root: Root) {
+  return view.sections.filter(section => root.sections[section.id].length > 0);
+}
 
 export function pageSlice<T>(items: T[], page: number, size: number) {
   return items.slice((page - 1) * size, page * size);
@@ -134,7 +139,7 @@ export type Navigation = ReturnType<typeof buildNavigation>;
 export function checkConceptFragments(navigation: Navigation, id: string, headings: { slug: string }[]) {
   const occupied = new Set(headings.map(h => h.slug));
   for (const { view, root } of navigation.roots.get(id) ?? []) {
-    for (const section of view.sections) {
+    for (const section of filledSections(view, root)) {
       const scope = sectionId(view, section);
       const anchors = [scope, ...pageSlice(root.sections[section.id], 1, SECTION_SIZE).map(r => rowId(scope, r.id))];
       for (const anchor of anchors) {

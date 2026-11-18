@@ -97,7 +97,7 @@ const cell = (row: Row, field: string) => {
               {index && previews.map(section => {
                 const root = row as Root;
                 const related = root.sections[section.id];
-                return <section class="view-preview">
+                return related.length > 0 && <section class="view-preview">
                   <PreviewHeading>{section.title}</PreviewHeading>
                   <Astro.self rows={related.slice(0, PREVIEW_SIZE)} display={section.display} {records} rootId={root.id} ordering={root.ordering?.[section.id]} caption={section.title} />
                   <p class="view-count">Showing {Math.min(related.length, PREVIEW_SIZE)} of {related.length}

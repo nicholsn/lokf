@@ -4,8 +4,20 @@ views:
     title: Modules and teachers
     description: Find the concepts that teach each module.
     roots: {type: Module}
+    # The sections lead each module's page. Nothing in this bundle is part of
+    # a module, so the site leaves the empty "units" section off the page.
+    placement: before_text
     index:
       layout: table
       columns:
         - {field: title, label: Module}
         - {relation: {out: taughtBy, type: GlossaryTerm}, label: Taught by}
+    sections:
+      - id: teachers
+        title: Who teaches it
+        path: [{out: taughtBy, type: GlossaryTerm}]
+        display: {layout: list}
+      - id: units
+        title: Units in this module
+        path: [{in: isPartOf}]
+        display: {layout: list}

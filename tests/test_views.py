@@ -173,11 +173,18 @@ def test_section_timeline_uses_root_publication_date_without_redating_members(tm
                 "family_by": {"out": "isPartOf"}}}, "does not support family_by"),
     ({"sections": [section([{"out": "hasPart"}], {"layout": "timeline", "date": "created",
                   "date_label": "Created", "order_by": {"out": "derivedFrom"}})]}, "does not support order_by"),
+    ({"placement": "top"}, "'top' is not one of"),
     ({"unknown": "property"}, "Additional properties"),
 ])
 def test_rejects_invalid_declarations(tmp_path, update, message):
     with pytest.raises(ValueError, match=message):
         compile_manifest(tmp_path, {**view("Document"), **update})
+
+
+def test_sections_follow_the_text_unless_the_view_places_them_before_it(tmp_path):
+    assert compile_manifest(tmp_path, view("Document"))["views"][0]["placement"] == "after_text"
+    leading = {**view("Document"), "placement": "before_text"}
+    assert compile_manifest(tmp_path, leading)["views"][0]["placement"] == "before_text"
 
 
 def test_manifest_rejects_duplicate_keys(tmp_path):

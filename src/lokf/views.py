@@ -374,6 +374,7 @@ class _Compiler:
                                         f"({direction} {self.vocab.compact(predicate)}, type {cls or 'any'})")
         result = {
             "id": view["id"], "title": view["title"], "description": view["description"],
+            "placement": view.get("placement", "after_text"),
             "index": view["index"], "roots": root_rows,
             "sections": [{k: s[k] for k in ("id", "title", "display")} for s in sections],
         }
