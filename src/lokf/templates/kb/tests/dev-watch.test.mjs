@@ -97,10 +97,16 @@ test('dev watcher debounces exports, refreshes Astro, and shuts down', async (t)
     writeFileSync(join(root, 'domain.yaml'), 'name: second\n');
     await waitFor('export-run', 3);
     await waitFor('astro-start', 4);
+    writeFileSync(join(root, 'lokf.views.yaml'), 'version: "1"\n');
+    await waitFor('export-run', 4);
+    await waitFor('astro-start', 5);
+    rmSync(join(root, 'lokf.views.yaml'));
+    await waitFor('export-run', 5);
+    await waitFor('astro-start', 6);
     child.kill('SIGTERM');
     const code = child.exitCode ?? await new Promise((resolve) => child.once('close', resolve));
     assert.equal(code, 143);
-    assert.equal(output.split('export-run').length - 1, 3);
+    assert.equal(output.split('export-run').length - 1, 5);
   } finally {
     child?.kill('SIGKILL');
     rmSync(root, { recursive: true, force: true });

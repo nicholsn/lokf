@@ -32,6 +32,7 @@ my-kb/
     pages/temporal/              #   conditional evidence timeline
     temporal.config.mjs          #   candidate date and relation fields
   scripts/export-graph.mjs       # uses the matching LOKF toolkit at build time
+  lokf.views.example.yaml       # starter navigation manifest
   site.config.mjs                # optional repository/correction link
   package.json · astro.config.mjs · tsconfig.json
   .github/workflows/pages.yml    # builds + publishes to GitHub Pages
@@ -92,6 +93,51 @@ correction link. Raw HTML in knowledge Markdown is escaped by default.
 
 Search and layout are website features. They do not change the LOKF format or
 turn ordinary Markdown links into asserted RDF relationships.
+
+## Add a navigation view
+
+Give readers a way into the site through a question they recognize. From the
+KB root, enable the scaffold's example and build the site.
+
+```sh
+cp lokf.views.example.yaml lokf.views.yaml
+npm run build
+```
+
+The home page now links to **Explore metrics** at `/views/metrics/`. Open
+**Weekly Active Users** to see the glossary term it measures. Edit the manifest
+to choose your own starting concepts and follow the relations in your
+vocabulary. Sections can show lists, tables with linked concept columns, or
+timelines. [Navigation views reference and examples](/reference/declarative-views/)
+
+### Build from a toolkit checkout
+
+Navigation views are available in the LOKF source tree. The 0.10.0 release
+predates them. To use the source before a release containing views, generate
+the project and run the exporter from the same checkout.
+
+```sh
+git clone https://github.com/nicholsn/lokf.git
+cd lokf
+uv sync --locked --extra build
+export LOKF_EXPORT_EXECUTABLE="$PWD/.venv/bin/lokf"
+cd ..
+"$LOKF_EXPORT_EXECUTABLE" new my-kb
+cd my-kb
+cp lokf.views.example.yaml lokf.views.yaml
+npm install
+npm run dev
+```
+
+On CI, set `LOKF_TOOLKIT_SPEC` in the site build's environment to
+`lokf[build] @ git+https://github.com/nicholsn/lokf.git@<commit>`, replacing
+`<commit>` with the full SHA of the checkout that generated the site. A
+scaffold created from a published toolkit release uses its matching package
+version automatically.
+
+For a KB generated before views were introduced, generate a fresh scaffold in
+a separate directory and port its site and build changes into the existing
+project. The older renderer needs those changes to read the new export.
 
 ## Publish
 

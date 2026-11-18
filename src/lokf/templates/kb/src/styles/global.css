@@ -244,3 +244,60 @@ article :is(h2, h3) { scroll-margin-top: 5rem; }
   .site-search { width: 100%; }
   .site-search input { width: 100%; flex: 1; }
 }
+
+/* Publisher-defined reading paths. All navigation, previews and tables are static HTML. */
+.grid .card h2 { margin: 0 0 .4rem; font-size: 1.26rem; }
+.grid .card h2::before { display: none; }
+.view-crumb, .view-count, .view-paging, .view-witness { font-size: .88rem; }
+.view-crumb { margin-bottom: 1rem; }
+.view-count, .view-paging { color: var(--muted); font-family: var(--font); font-weight: 400; }
+.view-days, .view-days > li > ol { padding: 0; list-style: none; }
+.view-days > li { padding: .6rem 0 1.15rem 1.15rem; border-left: 2px solid var(--border); }
+.view-day { margin: 0 0 .5rem; color: var(--muted); font-size: .9rem; }
+.view-days > li > ol > li { margin-bottom: .45rem; }
+.view-preview { margin: .55rem 0 1.25rem; padding: .35rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: .5rem; }
+.view-preview h3 { margin-top: .6rem; font-size: 1.03rem; }
+.view-table { max-width: 100%; overflow-x: auto; margin: .7rem 0; }
+.view-table th[scope="row"] { background: var(--surface); font-weight: 500; }
+.view-cell-links { margin: 0; padding-inline-start: 1.1em; }
+.view-cell-links li + li { margin-top: .25em; }
+.view-table-hint { display: none; }
+.view-relation-table :is(th, td) { min-inline-size: 8rem; vertical-align: top; }
+.view-relation-table a { text-decoration: underline; }
+/* Give wide detail tables room on desktop while keeping the article's reading measure. */
+@media (min-width: 50rem) {
+  .concept-view .view-section:has(> .view-wide-table) {
+    --table-width: min(var(--wide), calc(100vw - 4rem));
+    width: var(--table-width);
+    margin-inline-start: calc((100% - var(--table-width)) / 2);
+  }
+}
+@media (max-width: 32rem) {
+  .view-table-hint { display: block; margin: .4rem 0; font-size: .85rem; color: var(--muted); }
+  .view-wide-table { scroll-padding-inline-start: 8.5rem; }
+  .view-wide-table table { width: max-content; min-width: 100%; }
+  .view-wide-table :is(th, td) { max-inline-size: 16rem; }
+  .view-wide-table tr > th:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    width: 8rem;
+    max-width: 8rem;
+  }
+}
+.view-table td, .view-table th, .view-witness { overflow-wrap: anywhere; }
+.view-section, .view-days, .view-list { min-width: 0; }
+.view-section [id], .view-days [id], .view-list [id], .view-section, #all-concepts { scroll-margin-top: 7rem; }
+.view-days :target, .view-list :target, .view-table :target { outline: 2px solid var(--accent); outline-offset: 1px; }
+.view-paging, .view-paging nav { display: flex; flex-wrap: wrap; gap: 1rem; align-items: baseline; }
+.view-paging { margin: .75rem 0 1.5rem; }
+.view-witness { margin: .3rem 0 .55rem; font-weight: 400; }
+.view-witness summary { color: var(--muted); cursor: pointer; }
+.view-witness ol, .view-memberships ul { padding-inline-start: 1.5rem; }
+.view-root-title { margin: .25rem 0 .8rem; font-size: 1.38rem; }
+.view-root-title::before { display: none; }
+.view-families { list-style: none; padding: 0; }
+.view-families > li { padding: .85rem 0; border-top: 1px solid var(--border); }
+.view-families .view-root-title { margin: .25rem 0; }
+.view-family-jump, .view-order-note { margin: .25rem 0 .65rem; font-size: .9rem; }
+.view-order-note { color: var(--muted); }

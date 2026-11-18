@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+import { loadViews } from '../lib/view-data';
+import { indexPath } from '../lib/view-navigation';
 import { loadBundle, hrefOf, titleOf, href } from '../lib/lokf';
 import { getCollection, render } from 'astro:content';
 import { loadTemporalEvidence } from '../lib/temporal-data';
@@ -8,12 +10,25 @@ const { concepts } = await loadBundle();
 const index = (await getCollection('editorial'))[0];
 const editorial = index ? await render(index) : undefined;
 const temporal = await loadTemporalEvidence();
+const { views } = await loadViews();
+if (views.length && editorial?.headings.some(h => h.slug === 'all-concepts')) {
+  throw new Error('View directory fragment #all-concepts collides with a heading in knowledge/index.md');
+}
 const types = [...new Set(concepts.map((c) => c.data.type))].sort();
 const byType = (t: string) => concepts.filter((c) => c.data.type === t);
 ---
 
 <Base title={index?.data.title ?? '__KB_TITLE__'} description={index?.data.description ?? 'A LOKF knowledge base.'} wide>
   <h1>{index?.data.title ?? '__KB_TITLE__'}</h1>
+  {views.length > 0 && <nav aria-label="Browse this knowledge base">
+    <div class="grid">
+      {views.map(view => <a class="card" href={href(indexPath(view) + '/')}>
+        <h2>{view.title}</h2>
+        <p>{view.description}</p>
+      </a>)}
+    </div>
+    <a href="#all-concepts">All concepts ↓</a>
+  </nav>}
   {editorial ? <article class="editorial"><editorial.Content /></article> : (
     <p class="tagline">A <a href="https://lokf.nolan-nichols.com/">LOKF</a> knowledge base.</p>
   )}
@@ -24,7 +39,7 @@ const byType = (t: string) => concepts.filter((c) => c.data.type === t);
     <a href={href('/graph.jsonld')}>JSON-LD</a>
   </div>
 
-  <h2>Browse concepts</h2>
+  <h2 id={views.length ? 'all-concepts' : undefined}>Browse concepts</h2>
   {types.map((t) => (
     <>
       <h2>{t}</h2>

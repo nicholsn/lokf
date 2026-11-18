@@ -911,8 +911,26 @@ def skills(
 
 
 # ---------------------------------------------------------------------------
-# mcp
+# export
 # ---------------------------------------------------------------------------
+_VIEW_PLAN_FORMAT = "lokf:compiled-views-v1"
+
+
+def _remove_generated_view_plan(path: Path) -> None:
+    # An export destination can also hold a site's own public assets. Inspect
+    # only the first member of our compact serialization before removing it.
+    if path.is_symlink() or not path.is_file():
+        return
+    prefix = f'{{"format":"{_VIEW_PLAN_FORMAT}",'.encode("utf-8")
+    try:
+        with path.open("rb") as stream:
+            generated = stream.read(len(prefix)) == prefix
+    except OSError:
+        return
+    if generated:
+        path.unlink(missing_ok=True)
+
+
 @app.command()
 def export(
     bundle_dir: Path = typer.Argument(
@@ -930,6 +948,10 @@ def export(
     schema: Optional[Path] = typer.Option(
         None, "--schema", "-s", exists=True, dir_okay=False, help=_SCHEMA_HELP
     ),
+    views: Optional[Path] = typer.Option(
+        None, "--views", exists=True, dir_okay=False,
+        help="Compile a static-site view manifest into views.json alongside the graph.",
+    ),
 ) -> None:
     """Export a bundle's artifacts for a static site — and a registry — to consume.
 
@@ -943,6 +965,10 @@ def export(
     - ``concepts.jsonld`` — every concept's frontmatter + body under one
       ``@context``/``@graph``; lets a registry read a foreign concept's source
       document offline, without re-fetching the markdown.
+
+    With ``--views lokf.views.yaml``, also write ``views.json`` for the site's
+    navigation indexes, concept sections, and return links. A subsequent
+    successful export without a manifest removes that generated plan.
     """
     from lokf import rdf
     from lokf.export import dataset_search_jsonld, to_cytoscape
@@ -956,6 +982,15 @@ def export(
     bundle = load_bundle(bundle_dir)
     graph = to_cytoscape(bundle, vocab)
     graph["meta"] = {"source_base": source_base} if source_base else {}
+    view_plan = None
+    if views is not None:
+        from lokf.views import compile_views
+
+        try:
+            view_plan = compile_views(views, bundle, vocab, graph)
+        except (ValueError, OSError) as exc:
+            _err(str(exc))
+            raise typer.Exit(2)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "graph.json").write_text(json.dumps(graph, indent=2), encoding="utf-8")
     (out_dir / "datasets.jsonld").write_text(
@@ -972,6 +1007,16 @@ def export(
         json.dumps({"@context": ctx, "@graph": bundle.docs()}, indent=2),
         encoding="utf-8",
     )
+    view_path = out_dir / "views.json"
+    if view_plan is not None:
+        view_path.write_text(
+            json.dumps({"format": _VIEW_PLAN_FORMAT, **view_plan}, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+        for diagnostic in view_plan.get("diagnostics", []):
+            typer.echo(diagnostic)
+    else:
+        _remove_generated_view_plan(view_path)
     typer.echo(
         f"wrote {out_dir}/graph.json ({len(graph['nodes'])} nodes, "
         f"{len(graph['edges'])} edges), datasets.jsonld, graph.nt, "

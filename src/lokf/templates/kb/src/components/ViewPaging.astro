@@ -1,0 +1,13 @@
+---
+import { href } from '../lib/lokf';
+
+interface Props { page: number; total: number; size: number; label: string; unit?: string; path: (page: number) => string }
+const { page, total, size, label, unit, path } = Astro.props;
+---
+{total > 0 && <div class="view-paging">
+  <span>Showing {(page - 1) * size + 1}–{Math.min(page * size, total)} of {total}{unit && ` ${unit}`}</span>
+  {total > size && <nav aria-label={label}>
+    {page > 1 && <a rel="prev" href={href(path(page - 1))}>← Previous</a>}
+    {page * size < total && <a rel="next" href={href(path(page + 1))}>Next →</a>}
+  </nav>}
+</div>}

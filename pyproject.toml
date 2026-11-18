@@ -29,6 +29,7 @@ dependencies = [
     "rdflib>=7.0",
     "pyyaml>=6.0",
     "ruamel-yaml>=0.18",
+    "jsonschema>=4.18",
     "typer>=0.15",
     "pyoxigraph>=0.5.4",
     # 2.0 removed `mcp.server.fastmcp`; MCPServer is its successor.

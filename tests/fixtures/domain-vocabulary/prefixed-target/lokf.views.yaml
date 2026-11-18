@@ -1,0 +1,11 @@
+version: "1"
+views:
+  - id: modules
+    title: Modules and teachers
+    description: Find the concepts that teach each module.
+    roots: {type: Module}
+    index:
+      layout: table
+      columns:
+        - {field: title, label: Module}
+        - {relation: {out: taughtBy, type: GlossaryTerm}, label: Taught by}

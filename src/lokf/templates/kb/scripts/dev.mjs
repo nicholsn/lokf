@@ -136,6 +136,10 @@ process.once('SIGTERM', () => shutdown('SIGTERM'));
 const knowledgeWatcher = watchDirectory(join(root, 'knowledge'), { recursive: true }, scheduleExport);
 if (knowledgeWatcher) otherWatchers.push(knowledgeWatcher);
 const configWatcher = watchDirectory(root, {}, (_event, filename) => {
+  if (String(filename) === 'lokf.views.yaml') {
+    scheduleExport();
+    return;
+  }
   if (filename && String(filename) !== 'pyproject.toml') return;
   refreshSchemaWatchers();
   scheduleExport();

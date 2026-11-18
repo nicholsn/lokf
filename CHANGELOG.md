@@ -13,6 +13,14 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- Sites created with `lokf new` support an optional `lokf.views.yaml` for
+  task-oriented navigation. Declare starting concepts and relation paths to
+  generate family indexes, ordered lists, timelines, and tables with linked
+  concept columns. `lokf export --views` validates the manifest and writes
+  the static site's `views.json` plan alongside the graph.
+
 ### Fixed
 
 - A site created with `lokf new` now builds when its `pyproject.toml` declares

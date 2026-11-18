@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 // The toolkit is the authority for relation slots, CURIE expansion, domain
@@ -12,18 +12,26 @@ mkdirSync(output, { recursive: true });
 const toolkit = process.env.LOKF_TOOLKIT_SPEC || 'lokf[build]==__LOKF_PACKAGE_VERSION__';
 const local = process.env.LOKF_EXPORT_EXECUTABLE;
 const command = local || 'uvx';
-const args = local
-  ? ['export', 'knowledge', '--out-dir', output]
-  : ['--from', toolkit, 'lokf', 'export', 'knowledge', '--out-dir', output];
-const result = spawnSync(command, args, { stdio: 'inherit' });
-if (result.error) {
-  console.error(`Could not run ${command}: ${result.error.message}. Install uv to build this site.`);
-  process.exit(1);
-}
-if (result.status !== 0) process.exit(result.status || 1);
-for (const name of ['graph.json', 'concepts.jsonld']) {
-  if (!existsSync(join(output, name))) {
-    console.error(`LOKF export did not produce ${name}`);
-    process.exit(1);
+const manifest = 'lokf.views.yaml';
+const hasViews = existsSync(manifest);
+const stage = mkdtempSync(join(output, '.export-'));
+try {
+  const args = ['export', 'knowledge', '--out-dir', stage];
+  if (hasViews) args.push('--views', manifest);
+  if (!local) args.unshift('--from', toolkit, 'lokf');
+  const result = spawnSync(command, args, { stdio: 'inherit' });
+  if (result.error) throw new Error(`Could not run ${command}: ${result.error.message}`);
+  if (result.status !== 0) {
+    process.exitCode = result.status || 1;
+  } else {
+    const files = ['graph.json', 'concepts.jsonld', 'graph.nt', 'datasets.jsonld'];
+    if (hasViews) files.push('views.json');
+    for (const name of files) {
+      if (!existsSync(join(stage, name))) throw new Error(`LOKF export did not produce ${name}`);
+    }
+    for (const name of files) renameSync(join(stage, name), join(output, name));
+    if (!hasViews) rmSync(join(output, 'views.json'), { force: true });
   }
+} finally {
+  rmSync(stage, { recursive: true, force: true });
 }

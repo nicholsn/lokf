@@ -1,0 +1,16 @@
+---
+import ViewRows from './ViewRows.astro';
+import ViewPaging from './ViewPaging.astro';
+import { sectionId, sectionLink, SECTION_SIZE, pageSlice, type View, type Root, type Section, type ViewRecord } from '../lib/view-navigation';
+
+interface Props { view: View; section: Section; root: Root; records: Record<string, ViewRecord>; page?: number; continuation?: boolean }
+const { view, section, root, records, page = 1, continuation } = Astro.props;
+const rows = root.sections[section.id];
+const scope = sectionId(view, section);
+const path = (p: number) => sectionLink(view, section, root, p);
+---
+<section class="view-section" data-view-section={section.id} id={scope} aria-label={section.title}>
+  {!continuation && <h3>{section.title} <span class="view-count">({rows.length})</span></h3>}
+  <ViewRows {scope} {records} caption={section.title} rows={pageSlice(rows, page, SECTION_SIZE)} start={(page - 1) * SECTION_SIZE + 1} display={section.display} ordering={root.ordering?.[section.id]} rootId={root.id} />
+  <ViewPaging {page} total={rows.length} size={SECTION_SIZE} label={`Pages for ${section.title}`} {path} />
+</section>

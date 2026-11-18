@@ -1057,6 +1057,7 @@ source = { editable = "." }
 dependencies = [
     { name = "curies", version = "0.14.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "curies", version = "0.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "jsonschema" },
     { name = "linkml-runtime" },
     { name = "mcp" },
     { name = "pyoxigraph" },
@@ -1092,6 +1093,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "curies", specifier = ">=0.14" },
+    { name = "jsonschema", specifier = ">=4.18" },
     { name = "linkml", marker = "extra == 'build'", specifier = ">=1.12.0" },
     { name = "linkml-runtime", specifier = ">=1.12.0" },
     { name = "lokf", extras = ["build"], marker = "extra == 'shacl'" },

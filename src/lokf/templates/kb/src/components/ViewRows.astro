@@ -1,0 +1,114 @@
+---
+import { href } from '../lib/lokf';
+import ViewRecordLink from './ViewRecordLink.astro';
+import { PREVIEW_SIZE, rowId, sectionLink, type Display, type IndexFamily, type OrderStatus, type ViewRecord, type Root, type Row, type View } from '../lib/view-navigation';
+
+interface Props {
+  rows: Row[];
+  display: Display;
+  records: Record<string, ViewRecord>;
+  caption: string;
+  scope?: string;
+  rootId?: string;
+  index?: View;
+  families?: IndexFamily[];
+  memberListOf?: IndexFamily;
+  ordering?: OrderStatus;
+  start?: number;
+}
+const { rows, display, records, caption, scope, rootId, index, families, memberListOf, ordering, start } = Astro.props;
+const familyById = new Map(families?.map(family => [family.root.id, family]));
+const repeated = new Set(memberListOf?.repeated);
+const timeline = display.layout === 'timeline';
+const columns = display.columns ?? [];
+const relationTable = columns.some(column => 'relation' in column);
+const wideTable = relationTable && columns.length >= 4;
+const groups = new Map<string, Row[]>();
+for (const row of rows) {
+  const dateSource = display.date_from === 'root' && rootId ? rootId : row.id;
+  const day = timeline ? records[dateSource].dates[display.date!] ?? '' : '';
+  if (!groups.has(day)) groups.set(day, []);
+  groups.get(day)!.push(row);
+}
+const Groups = timeline ? 'ol' : 'div';
+const Group = timeline ? 'li' : 'div';
+const orderedList = display.order_by && ordering !== 'unlinked';
+const Items = timeline || orderedList ? 'ol' : 'ul';
+const Heading = memberListOf ? 'h3' : 'h2';
+const PreviewHeading = memberListOf ? 'h4' : 'h3';
+const previews = (index?.index.embed ?? []).map(id => index!.sections.find(section => section.id === id)!);
+const anchor = (row: Row) => scope && !repeated.has(row.id) ? rowId(scope, row.id) : undefined;
+const orderNotes = {
+  complete: 'Each item follows its recorded predecessors.',
+  partial: 'Predecessors appear first. When several items can come next, they are listed by title.',
+  unlinked: 'No predecessor links recorded among these items. Listed by title.',
+};
+const cell = (row: Row, field: string) => {
+  const value = records[row.id].fields[field];
+  if (Array.isArray(value)) return value.length ? value.join(', ') : 'Not recorded';
+  return value == null || value === '' ? 'Not recorded' : String(value);
+};
+---
+{ordering && <p class="view-order-note" data-order-status={ordering}>{orderNotes[ordering]}</p>}
+{!rows.length ? <p class="meta">{index ? 'No matching concepts in this view.' : 'No linked concepts in this section.'}</p> :
+  display.layout === 'table' ? (
+    <>
+      {wideTable && <p class="view-table-hint">Scroll across the table to see all columns.</p>}
+      <div class:list={['view-table', {'view-relation-table': relationTable, 'view-wide-table': wideTable}]}
+        role={relationTable ? 'region' : undefined} aria-label={relationTable ? caption : undefined}
+        tabindex={relationTable ? '0' : undefined}>
+        <table>
+          <caption class="sr-only">{caption}</caption>
+          <thead><tr>{columns.map(column => <th scope="col">{column.label}</th>)}</tr></thead>
+          <tbody>{rows.map(row => (
+            <tr data-concept-id={row.id} id={anchor(row)} tabindex={scope ? '-1' : undefined}>
+              {columns.map((column, i) => {
+                if (i === 0) return <th scope="row"><ViewRecordLink {row} {records} {rootId} /></th>;
+                if ('field' in column) return <td>{cell(row, column.field)}</td>;
+                const targets = row.links?.[i] ?? [];
+                if (!targets.length) return <td>Not recorded</td>;
+                if (targets.length === 1) return <td><ViewRecordLink row={{ id: targets[0] }} {records} /></td>;
+                return <td><ul class="view-cell-links">{targets.map(id =>
+                  <li><ViewRecordLink row={{ id }} {records} /></li>
+                )}</ul></td>;
+              })}
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </>
+  ) : (
+    <Groups class={timeline ? 'view-days' : 'view-list'}>
+      {[...groups].map(([day, members]) => (
+        <Group>
+          {timeline && <p class="view-day">{day ? <>{display.date_label} <time datetime={day}>{day}</time></> : 'Date not recorded'}</p>}
+          <Items class={families ? 'view-families' : undefined} start={orderedList ? start : undefined}>{members.map(row => {
+            const family = familyById.get(row.id);
+            const jump = family && index?.sections.find(section => family.root.sections[section.id].length);
+            const id = anchor(row);
+            return <li data-concept-id={row.id} data-family-id={family?.root.id} id={id} tabindex={id ? '-1' : undefined}>
+              {index && (family || previews.length > 0) ? <Heading class="view-root-title"><ViewRecordLink {row} {records} /></Heading> :
+                <ViewRecordLink {row} {records} {rootId} />}
+              {index && family && jump && !previews.includes(jump) && <p class="view-family-jump">
+                <a href={href(sectionLink(index, jump, family.root))} aria-label={`${jump.title} — ${records[row.id].title}`}>{jump.title}</a>
+              </p>}
+              {family && family.members.length > 0 &&
+                <Astro.self rows={family.members} {scope} {index} {display} {records} {caption} memberListOf={family} />}
+              {index && previews.map(section => {
+                const root = row as Root;
+                const related = root.sections[section.id];
+                return <section class="view-preview">
+                  <PreviewHeading>{section.title}</PreviewHeading>
+                  <Astro.self rows={related.slice(0, PREVIEW_SIZE)} display={section.display} {records} rootId={root.id} ordering={root.ordering?.[section.id]} caption={section.title} />
+                  <p class="view-count">Showing {Math.min(related.length, PREVIEW_SIZE)} of {related.length}
+                    {' · '}<a href={href(sectionLink(index, section, root))} aria-label={`View all ${related.length}: ${section.title} — ${records[root.id].title}`}>View all {related.length}</a>
+                  </p>
+                </section>;
+              })}
+            </li>;
+          })}</Items>
+        </Group>
+      ))}
+    </Groups>
+  )
+}

@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import ViewRows from './ViewRows.astro';
+import ViewSection from './ViewSection.astro';
+import ViewPaging from './ViewPaging.astro';
+import { href } from '../lib/lokf';
+import { INDEX_SIZE, indexPath, pageSlice, rootScope, sectionLink, type ViewRecord, type ViewPage } from '../lib/view-navigation';
+
+interface Props { info: ViewPage; records: Record<string, ViewRecord> }
+const { info: { view, page, detail, families }, records } = Astro.props;
+const title = detail ? detail.section.title : view.title;
+const path = (p: number) => indexPath(view, p) + '/';
+const rootTitle = detail && records[detail.root.id].title;
+---
+<Base title={detail ? `${title} — ${rootTitle} (page ${page})` : title} description={view.description} wide>
+  <nav class="view-crumb" aria-label="Reading path">
+    <a href={href('/')}>Home</a>
+    {detail && <><span aria-hidden="true"> / </span><a href={href(path(1))}>{view.title}</a>
+      <span aria-hidden="true"> / </span><a href={href(sectionLink(view, detail.section, detail.root))}>{rootTitle}</a></>}
+  </nav>
+  <h1>{title}</h1>
+  {detail ? (
+    <ViewSection {view} root={detail.root} section={detail.section} {records} {page} continuation />
+  ) : (<>
+    <p class="tagline">{view.description}</p>
+    <ViewRows scope={rootScope(view)} caption={view.title} {records} {families} rows={families?.map(f => f.root) ?? pageSlice(view.roots, page, INDEX_SIZE)} display={view.index} index={view} />
+    <ViewPaging {page} total={(view.families ?? view.roots).length} unit={view.families && (view.families.length === 1 ? 'family' : 'families')} size={INDEX_SIZE} label={`Pages for ${view.title}`} {path} />
+  </>)}
+</Base>
