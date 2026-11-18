@@ -1,22 +1,18 @@
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
-import { graphIndex, MAX_NODES } from './graph-scope.mjs';
+import { graphIndex, MAX_NODES, rankChoices } from './graph-scope.mjs';
+import { typeColors } from './graph-colors.mjs';
 import { LAYOUTS, readView, writeView, validLayout } from './graph-view.mjs';
 import { prepareLayout } from './graph-layouts.mjs';
 import { findPath } from './graph-path.mjs';
 
 cytoscape.use(fcose);
 
-const TYPE_COLORS = {
-  Person: '#c96f3b', Organization: '#5b8def', Role: '#2ea77d',
-  Document: '#9b6dd6', Reference: '#d2a53a', Dataset: '#4bacc6',
-  Table: '#3f8f96', Metric: '#c1558b', Service: '#7f8c4f',
-  GlossaryTerm: '#d2a53a', Playbook: '#d05b5b',
-};
-const COLORS = ['#5b8def', '#2ea77d', '#c1558b', '#9b6dd6', '#d2a53a', '#4bacc6', '#d05b5b'];
 const SHAPES = ['ellipse', 'round-rectangle', 'diamond', 'hexagon', 'triangle', 'star'];
 const value = (item) => String(item ?? '');
 const label = (data) => value(data.label || data.concept_id || data.id);
+const typeTitle = (data) => value(data.type_title || data.type) || 'Concept';
+const connections = (count) => `${count} connection${count === 1 ? '' : 's'}`;
 const query = (root, selector) => root.querySelector(selector);
 const all = (root, selector) => [...root.querySelectorAll(selector)];
 const setText = (root, selector, text) => { query(root, selector).textContent = text; };
@@ -90,12 +86,12 @@ export function startGraphExplorer(root) {
     choices.replaceChildren();
     const term = chooser.value.trim().toLowerCase();
     if (!term || !index) { choices.hidden = true; chooser.setAttribute('aria-expanded', 'false'); return; }
-    const found = index.nodes.filter((node) => `${node.label} ${node.concept_id} ${node.type}`.toLowerCase().includes(term)).slice(0, 20);
+    const found = rankChoices(index.nodes, term);
     for (const node of found) {
       const option = add(choices, 'button', label(node));
       option.type = 'button';
       option.setAttribute('role', 'option');
-      add(option, 'small', `${node.type || 'Concept'} · ${node.concept_id}`);
+      add(option, 'small', `${node.type_title || node.type || 'Concept'} · ${node.concept_id}`);
       option.addEventListener('click', () => chooseConcept(node.concept_id));
     }
     if (!found.length) add(choices, 'p', 'No matching concepts in this knowledge base.');
@@ -169,7 +165,11 @@ export function startGraphExplorer(root) {
   function filterOptions() {
     const types = [...new Set(graph.nodes.map((node) => value(node.data.type)))].sort();
     const predicates = [...new Set(graph.edges.map((edge) => value(edge.data.predicate)))].sort();
-    const colorOf = Object.fromEntries(types.map((type, i) => [type, TYPE_COLORS[type] || COLORS[i % COLORS.length]]));
+    const colorOf = typeColors(types);
+    const titles = new Map([
+      ...graph.nodes.map((node) => [value(node.data.type), typeTitle(node.data)]),
+      ...graph.edges.map((edge) => [value(edge.data.predicate), value(edge.data.title) || value(edge.data.predicate)]),
+    ]);
     const shapeOf = Object.fromEntries(types.map((type, i) => [type, SHAPES[i % SHAPES.length]]));
     const create = (selector, values, hidden) => {
       const container = query(root, `${selector} .lokf-graph__filter-items`);
@@ -183,7 +183,8 @@ export function startGraphExplorer(root) {
           const swatch = add(line, 'span', '', 'lokf-graph__swatch');
           swatch.style.background = colorOf[item];
         }
-        line.append(document.createTextNode(item || '(unspecified)'));
+        line.append(document.createTextNode(titles.get(item) || item || '(unspecified)'));
+        if (titles.get(item) && titles.get(item) !== item) line.title = item;
         input.addEventListener('change', () => applyFilters());
       }
     };
@@ -239,7 +240,7 @@ export function startGraphExplorer(root) {
       const item = add(listItems, 'li', '');
       const button = add(item, 'button', label(node.data()));
       button.type = 'button';
-      add(button, 'small', `${value(node.data('type')) || 'Concept'} · ${node.connectedEdges().not('.hidden').length} connections`);
+      add(button, 'small', `${typeTitle(node.data())} · ${connections(node.connectedEdges().not('.hidden').length)}`);
       button.addEventListener('click', () => selectNode(node.data('concept_id'), true));
     }
     if (!nodes.length) add(listItems, 'li', 'No concepts match the current filters.');
@@ -252,7 +253,7 @@ export function startGraphExplorer(root) {
       const old = select.value;
       select.replaceChildren();
       for (const node of visible) {
-        const option = add(select, 'option', `${label(node.data())} · ${value(node.data('type'))}`);
+        const option = add(select, 'option', `${label(node.data())} · ${typeTitle(node.data())}`);
         option.value = node.id();
       }
       if (visible.some((node) => node.id() === old)) select.value = old;
@@ -281,7 +282,7 @@ export function startGraphExplorer(root) {
     setText(root, '.lokf-graph__detail-description', value(data.description));
     const metadata = query(root, '.lokf-graph__detail-meta');
     metadata.replaceChildren();
-    detailField(metadata, 'Type', data.type);
+    detailField(metadata, 'Type', typeTitle(data));
     detailField(metadata, 'Status', data.status);
     detailField(metadata, 'Trust tier', data.trust_tier);
     if (data.stale === true) detailField(metadata, 'Freshness', 'Marked stale');
@@ -292,10 +293,11 @@ export function startGraphExplorer(root) {
     for (const edge of edges) {
       const outgoing = edge.source().id() === node.id();
       const neighbor = outgoing ? edge.target() : edge.source();
-      const rel = value(edge.data('predicate')) || 'related to';
-      const slot = value(edge.data('slot'));
+      const rel = outgoing
+        ? `→ ${value(edge.data('title')) || value(edge.data('predicate')) || 'related to'}`
+        : value(edge.data('incoming_title')) || `← ${value(edge.data('predicate')) || 'related to'}`;
       const reified = edge.data('reified') ? ' · reified' : '';
-      const text = `${outgoing ? '→' : '←'} ${rel}${slot && slot !== rel ? ` (${slot})` : ''}${reified} · ${label(neighbor.data())}`;
+      const text = `${rel}${reified} · ${label(neighbor.data())}`;
       const item = add(relations, 'li', '');
       const button = add(item, 'button', text);
       button.type = 'button';
@@ -370,7 +372,7 @@ export function startGraphExplorer(root) {
         { selector: 'node.concept', style: { 'background-color': 'data(color)', shape: 'data(shape)', label: 'data(label)', color: fg, 'font-size': 11, 'text-wrap': 'wrap', 'text-max-width': '115px', 'text-valign': 'bottom', 'text-margin-y': 4, width: 27, height: 27 } },
         { selector: 'node.layout-group', style: { 'background-color': line, 'background-opacity': .05, 'border-color': line, 'border-opacity': .32, 'border-width': 1, shape: 'round-rectangle', label: 'data(label)', 'font-size': 13, 'font-weight': 'bold', color: line, 'text-valign': 'top', 'text-margin-y': -12, padding: 30 } },
         { selector: 'edge', style: { 'line-color': line, 'line-opacity': .55, 'target-arrow-color': line, 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', width: 1.5, label: '', 'font-size': 9, color: line, 'text-rotation': 'autorotate' } },
-        { selector: 'edge.labels-on', style: { label: 'data(predicate)' } },
+        { selector: 'edge.labels-on', style: { label: (edge) => value(edge.data('title') || edge.data('predicate')) } },
         { selector: 'node:selected', style: { 'border-width': 4, 'border-color': fg } },
         { selector: '.dim', style: { opacity: .15 } },
         { selector: '.hidden', style: { display: 'none' } },
@@ -427,9 +429,8 @@ export function startGraphExplorer(root) {
     add(pathResult, 'p', `${path.steps.length} relation${path.steps.length === 1 ? '' : 's'} in the shortest path through this view:`);
     const steps = add(pathResult, 'ol', '');
     for (const step of path.steps) {
-      const relation = value(step.edge.data.predicate) || 'related to';
-      const slot = value(step.edge.data.slot);
-      const text = `${label(step.from.data)} ${step.forward ? '→' : '←'} ${relation}${slot && slot !== relation ? ` (${slot})` : ''}${step.edge.data.reified ? ' [reified]' : ''} ${step.forward ? '→' : '←'} ${label(step.to.data)}`;
+      const relation = value(step.edge.data.title) || value(step.edge.data.predicate) || 'related to';
+      const text = `${label(step.from.data)} ${step.forward ? '→' : '←'} ${relation}${step.edge.data.reified ? ' [reified]' : ''} ${step.forward ? '→' : '←'} ${label(step.to.data)}`;
       add(steps, 'li', text);
     }
   });

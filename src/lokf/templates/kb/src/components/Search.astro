@@ -55,9 +55,9 @@ import { href } from '../lib/lokf';
   let shown = 0;
   let generation = 0;
 
-  function options(select: HTMLSelectElement, values: string[]) {
+  function options(select: HTMLSelectElement, values: string[], labels?: Map<string, string>) {
     const selected = select.value;
-    for (const value of values) select.add(new Option(value, value));
+    for (const value of values) select.add(new Option(labels?.get(value) ?? value, value));
     select.value = selected;
   }
 
@@ -68,7 +68,9 @@ import { href } from '../lib/lokf';
       return response.json();
     }).then(value => {
       index = value;
-      options(type, [...new Set(index.documents.map((d: any) => d.type as string))].sort());
+      // Types are filtered by name but listed by the schema's title for them
+      const typeTitles = new Map<string, string>(index.documents.map((d: any) => [d.type, d.type_title || d.type]));
+      options(type, [...typeTitles.keys()].sort((a, b) => typeTitles.get(a)!.localeCompare(typeTitles.get(b)!)), typeTitles);
       options(tag, [...new Set(index.documents.flatMap((d: any) => d.tags as string[]))].sort());
       options(statusFilter, [...new Set(index.documents.map((d: any) => d.status as string).filter(Boolean))].sort());
       options(genre, [...new Set(index.documents.map((d: any) => d.genre as string).filter(Boolean))].sort());
@@ -99,7 +101,7 @@ import { href } from '../lib/lokf';
       title.href = doc.href;
       title.textContent = doc.title;
       const meta = document.createElement('small');
-      meta.textContent = [doc.type, doc.status, doc.genre, doc.trust_tier,
+      meta.textContent = [doc.type_title || doc.type, doc.status, doc.genre, doc.trust_tier,
         doc.stale ? 'stale' : '', doc.date, doc.tags.join(', ')].filter(Boolean).join(' · ');
       const snippet = document.createElement('p');
       markedText(snippet, snippetFor(doc, query.value));
