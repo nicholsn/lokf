@@ -10,10 +10,11 @@ full-text search, and an interactive graph browser.
 Add concept files under `knowledge/` (see the two examples). Each has YAML
 frontmatter (a `type` and fields) plus a markdown body. The authored
 `knowledge/index.md` is the site's home-page guide, followed by browsable
-concept cards. Typed relations declared by LOKF or your domain schema become
-edges in the graph and named connections on concept pages. Prose hyperlinks
-remain ordinary links. Raw HTML in knowledge Markdown is escaped, and unsafe
-link schemes are shown as text.
+concept cards. An `index.md` in a subdirectory becomes that section's page,
+and a link to it goes there. Typed relations declared by LOKF or your domain
+schema become edges in the graph and named connections on concept pages.
+Prose hyperlinks remain ordinary links. Raw HTML in knowledge Markdown is
+escaped, and unsafe link schemes are shown as text.
 
 Search covers titles, descriptions, tags, body text, and optional claim/thesis
 fields. The `/search` page offers type, tag, genre, status, trust, freshness,

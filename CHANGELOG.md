@@ -26,6 +26,11 @@ with the 0.x caveat that a minor release may tighten validation.
   as "Has derivative" rather than "Derived from". The core relations in
   `lokf.yaml` carry `inverse_title` annotations; a domain vocabulary can add
   its own, or name a LinkML `inverse`.
+- A site created with `lokf new` publishes each `index.md` below the bundle
+  root as its section's page, at the directory's address (`/metrics/`). A
+  Markdown link to a section's `index.md` goes there, and a link to the root
+  `index.md` goes to the home page. Before, the site left section guides
+  unpublished, and such links went to `/metrics/index`, which did not exist.
 
 ### Changed
 

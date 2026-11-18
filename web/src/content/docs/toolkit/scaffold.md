@@ -22,6 +22,7 @@ my-kb/
   src/                           # the Astro site
     pages/index.astro            #   home: authored introduction and concept browsing
     pages/[...slug].astro        #   one page per concept, with relations panels
+    pages/[...section].astro     #   one page per section index.md
     pages/search.astro           #   sitewide full-text search
     pages/search-index.json.ts   #   build-time search index
     pages/graph.astro            #   the interactive graph explorer
@@ -89,6 +90,10 @@ default dates record when concepts were created or written, which says little
 about what they describe. To show it, choose date fields and a grouping
 relation that mean something in your bundle in `src/temporal.config.mjs`, and
 set `enabled: true`.
+
+Each `index.md` below the bundle root becomes its section's page, at the
+directory's address. A Markdown link to a section's `index.md` goes to that
+page, and a link to the root `index.md` goes to the home page.
 Concept pages show recorded sources and review signals, with permalink and
 citation controls. Set `repositoryUrl` in `site.config.mjs` to offer a GitHub
 correction link. Raw HTML in knowledge Markdown is escaped by default.
