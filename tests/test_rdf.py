@@ -390,6 +390,61 @@ def test_relabel_keeps_nodes_apart_that_differ_only_in_term_kind():
     assert len(outs) == 1
 
 
+def test_relabel_preserves_plain_and_explicit_xsd_string_literals():
+    """Round-tripping through Oxigraph must not fold RDFLib literal forms."""
+    from rdflib import BNode, Graph, Literal, URIRef
+    from rdflib.compare import isomorphic
+    from rdflib.namespace import XSD
+
+    subject = URIRef("urn:subject")
+    predicate = URIRef("urn:predicate")
+    sentinel_datatype = URIRef("urn:lokf:internal:literal")
+    graph = Graph()
+    graph.add((subject, predicate, Literal("same")))
+    graph.add((subject, predicate, Literal("same", datatype=XSD.string)))
+    # A user datatype matching the first internal candidate must remain intact.
+    graph.add((subject, predicate, Literal("same", datatype=sentinel_datatype)))
+    graph.add((BNode("source"), predicate, Literal("anchor")))
+    graph.add((URIRef("urn:upper"), predicate, Literal("same", lang="EN")))
+    graph.add((URIRef("urn:lower"), predicate, Literal("same", lang="en")))
+
+    canonical = rdf.relabel_bnodes(graph)
+    assert len(canonical) == len(graph)
+    assert isomorphic(graph, canonical)
+    for _, _, literal in graph.triples((subject, predicate, None)):
+        assert (subject, predicate, literal) in canonical
+    assert next(canonical.objects(URIRef("urn:upper"), predicate)).language == "EN"
+    assert next(canonical.objects(URIRef("urn:lower"), predicate)).language == "en"
+
+    renamed = Graph()
+    for s, p, o in graph:
+        renamed.add((BNode("other") if isinstance(s, BNode) else s, p, o))
+    assert sorted(canonical.serialize(format="nt").splitlines()) == sorted(
+        rdf.relabel_bnodes(renamed).serialize(format="nt").splitlines()
+    )
+
+
+def test_relabel_preserves_relative_iris_and_datatypes():
+    """RDFLib graphs can contain IRIs rejected by Oxigraph's NamedNode."""
+    from rdflib import BNode, Graph, Literal, URIRef
+    from rdflib.compare import isomorphic
+
+    relative = URIRef("relative")
+    predicate = URIRef("relative-predicate")
+    datatype = URIRef("relative-datatype")
+    collision = URIRef("urn:lokf:internal:invalid-iri:0")
+    graph = Graph()
+    graph.add((relative, predicate, BNode("source")))
+    graph.add((collision, predicate, relative))
+    graph.add((relative, collision, Literal("value", datatype=datatype)))
+
+    canonical = rdf.relabel_bnodes(graph)
+    assert len(canonical) == len(graph)
+    assert isomorphic(graph, canonical)
+    assert (collision, predicate, relative) in canonical
+    assert (relative, collision, Literal("value", datatype=datatype)) in canonical
+
+
 def test_turtle_uses_the_schemas_prefixes():
     """schema.org terms print as `schema:`, not rdflib's fallback `schema1:`."""
     bundle = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
