@@ -208,19 +208,93 @@ def graph_of(
 def relabel_bnodes(g):
     """Copy a graph with canonical blank-node labels, preserving its triples.
 
-    Refinement alone cannot distinguish all nodes (long paths and symmetric
-    cycles are common counterexamples). RDFLib's canonicalizer resolves such
-    ties structurally instead of breaking them with random source node IDs.
+    The labels come from pyoxigraph's RDFC-1.0, which resolves ties that
+    refinement alone cannot (long paths and symmetric cycles). Its worst-case
+    complexity is exponential for highly symmetric graphs. The common case
+    uses the same algorithm as ``GraphStore.from_registry``.
     """
-    from rdflib import Graph
-    from rdflib.compare import to_canonical_graph
+    import pyoxigraph as ox
+    from rdflib import BNode, Graph, Literal, URIRef
     from rdflib.graph import DATASET_DEFAULT_GRAPH_ID
+
+    literals = []
+    iris = set()
+    for triple in g:
+        for term in triple:
+            if isinstance(term, URIRef):
+                iris.add(str(term))
+            elif isinstance(term, Literal):
+                literals.append(term)
+                if term.datatype is not None:
+                    iris.add(str(term.datatype))
+
+    # RDFLib permits relative or otherwise invalid IRIs that Oxigraph rejects.
+    # Give these temporary absolute IRIs, choosing a prefix absent from the
+    # input so no two RDFLib terms collapse to one Oxigraph term.
+    iri_nodes = {}
+    invalid_iris = []
+    for iri in sorted(iris):
+        try:
+            iri_nodes[iri] = ox.NamedNode(iri)
+        except ValueError:
+            invalid_iris.append(iri)
+    if invalid_iris:
+        prefix = "urn:lokf:internal:invalid-iri:"
+        while any(f"{prefix}{i}" in iris for i in range(len(invalid_iris))):
+            prefix += ":"
+        for i, iri in enumerate(invalid_iris):
+            iri_nodes[iri] = ox.NamedNode(f"{prefix}{i}")
+
+    def literal_signature(term):
+        return (str(term), term.language, str(term.datatype) if term.datatype is not None else None)
+
+    # Oxigraph can fold RDFLib literals with distinct representations, such as
+    # plain vs explicit xsd:string or uppercase vs lowercase language tags.
+    # Encode just those collisions with a datatype absent from the input.
+    literal_nodes = {}
+    for literal in literals:
+        signature = literal_signature(literal)
+        if signature not in literal_nodes:
+            datatype = None if literal.language or literal.datatype is None else iri_nodes[str(literal.datatype)]
+            literal_nodes[signature] = ox.Literal(str(literal), language=literal.language, datatype=datatype)
+    signatures_by_node = {}
+    for signature, node in literal_nodes.items():
+        signatures_by_node.setdefault(node, []).append(signature)
+    collisions = {signature for signatures in signatures_by_node.values() if len(signatures) > 1 for signature in signatures}
+    if collisions:
+        datatypes = {str(o.datatype) for o in literals if o.datatype is not None}
+        sentinel_iri = "urn:lokf:internal:literal"
+        while sentinel_iri in datatypes:
+            sentinel_iri += ":"
+        sentinel = ox.NamedNode(sentinel_iri)
+        for signature in collisions:
+            encoded = json.dumps(signature, ensure_ascii=False, separators=(",", ":"))
+            literal_nodes[signature] = ox.Literal(encoded, datatype=sentinel)
+
+    blanks: dict = {}
+    terms: dict = {}  # pyoxigraph term -> the rdflib term it came from
+
+    def to_ox(term):
+        if isinstance(term, BNode):
+            return blanks.setdefault(term, ox.BlankNode())
+        if isinstance(term, URIRef):
+            node = iri_nodes[str(term)]
+        else:
+            node = literal_nodes[literal_signature(term)]
+        terms.setdefault(node, term)
+        return node
+
+    def to_rdflib(term):
+        return BNode(term.value) if isinstance(term, ox.BlankNode) else terms[term]
+
+    dataset = ox.Dataset(ox.Quad(to_ox(s), to_ox(p), to_ox(o)) for s, p, o in g)
+    dataset.canonicalize(ox.CanonicalizationAlgorithm.RDFC_1_0)
 
     out = Graph(identifier=DATASET_DEFAULT_GRAPH_ID)
     for prefix, ns in g.namespaces():
         out.bind(prefix, ns)
-    for triple in to_canonical_graph(g):
-        out.add(triple)
+    for quad in dataset:
+        out.add((to_rdflib(quad.subject), to_rdflib(quad.predicate), to_rdflib(quad.object)))
     return out
 
 
