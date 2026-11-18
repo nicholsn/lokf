@@ -271,7 +271,8 @@ org:member a owl:Class ;
 prov:wasRevisionOf a owl:Class ;
     rdfs:label "wasRevisionOf" ;
     rdfs:subClassOf lokf:RelationType ;
-    skos:definition "The concept is a revised version of the target: a derivation that keeps substantial content of the original." .
+    skos:definition "The concept is a revised version of the target: a derivation that keeps substantial content of the original." ;
+    lokf:inverse_title "Has revision" .
 
 lokf:Audience a owl:Class ;
     rdfs:label "Audience" ;
@@ -720,7 +721,8 @@ lokf:about a owl:ObjectProperty ;
     rdfs:range lokf:Concept ;
     skos:closeMatch foaf:primaryTopic ;
     skos:definition "The subject matter this concept is about." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Subject of" .
 
 lokf:citations a owl:ObjectProperty ;
     rdfs:label "citations" ;
@@ -738,13 +740,15 @@ lokf:definedBy a owl:ObjectProperty ;
     rdfs:label "definedBy" ;
     rdfs:range lokf:Concept ;
     skos:definition "A resource that formally defines this concept." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Defines" .
 
 lokf:derivedFrom a owl:ObjectProperty ;
     rdfs:label "derivedFrom" ;
     rdfs:range lokf:Concept ;
     skos:definition "An entity this concept was derived from (provenance)." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Has derivative" .
 
 lokf:distribution a owl:ObjectProperty ;
     rdfs:label "distribution" ;
@@ -769,39 +773,45 @@ lokf:hasPart a owl:ObjectProperty ;
     rdfs:range lokf:Concept ;
     skos:closeMatch dcterms:hasPart ;
     skos:definition "A concept that is a part of this concept." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Is part of" .
 
 lokf:holder a owl:ObjectProperty ;
     rdfs:label "holder" ;
     rdfs:range lokf:Concept ;
     skos:closeMatch schema1:member ;
     skos:definition "The agent (typically a Person) who holds the role." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Holds" .
 
 lokf:isPartOf a owl:ObjectProperty ;
     rdfs:label "isPartOf" ;
     rdfs:range lokf:Concept ;
     skos:closeMatch schema1:isPartOf ;
     skos:definition "The target concept that this concept is a part of." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Has part" .
 
 lokf:isReplacedBy a owl:ObjectProperty ;
     rdfs:label "isReplacedBy" ;
     rdfs:range lokf:Concept ;
     skos:definition "A concept that supersedes this one, without asserting equivalence." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Replaces" .
 
 lokf:joinsWith a owl:Class ;
     rdfs:label "joinsWith" ;
     rdfs:subClassOf lokf:RelationType ;
-    skos:definition "The concept (a table) is joined with the target." .
+    skos:definition "The concept (a table) is joined with the target." ;
+    lokf:inverse_title "Joins with" .
 
 lokf:memberOf a owl:ObjectProperty ;
     rdfs:label "memberOf" ;
     rdfs:range lokf:Concept ;
     skos:closeMatch org:organization ;
     skos:definition "The organization within which the role is held." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Has member" .
 
 lokf:parameters a owl:ObjectProperty ;
     rdfs:label "parameters" ;
@@ -820,7 +830,8 @@ lokf:references a owl:ObjectProperty ;
     rdfs:label "references" ;
     rdfs:range lokf:Concept ;
     skos:definition "A concept or resource this concept refers to." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Referenced by" .
 
 lokf:refuted a owl:ObjectProperty ;
     rdfs:label "refuted" ;
@@ -838,7 +849,8 @@ lokf:relatedTo a owl:ObjectProperty ;
     rdfs:range lokf:Concept ;
     skos:closeMatch skos:related ;
     skos:definition "A generic association to another concept." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Related to" .
 
 lokf:relations a owl:ObjectProperty ;
     rdfs:label "relations" ;
@@ -851,13 +863,15 @@ lokf:sameAs a owl:ObjectProperty ;
     rdfs:range lokf:Concept ;
     skos:closeMatch owl:sameAs ;
     skos:definition "An IRI asserting this concept is the same entity as another." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Same as" .
 
 lokf:source a owl:ObjectProperty ;
     rdfs:label "source" ;
     rdfs:range lokf:Concept ;
     skos:definition "A resource from which this concept is derived or sourced." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Source for" .
 
 lokf:sources a owl:ObjectProperty ;
     rdfs:label "sources" ;
@@ -936,7 +950,8 @@ owl:sameAs a owl:Class ;
 prov:wasAttributedTo a owl:Class ;
     rdfs:label "wasAttributedTo" ;
     rdfs:subClassOf lokf:RelationType ;
-    skos:definition "The concept was attributed to the target agent." .
+    skos:definition "The concept was attributed to the target agent." ;
+    lokf:inverse_title "Responsible for" .
 
 prov:wasDerivedFrom a owl:Class ;
     rdfs:label "derivedFrom" ;
@@ -1411,7 +1426,8 @@ lokf:dependsOn a owl:ObjectProperty ;
     rdfs:range lokf:Concept ;
     skos:closeMatch lokf:dependsOn ;
     skos:definition "A concept this concept depends on." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Required by" .
 
 lokf:documentation a owl:DatatypeProperty ;
     rdfs:label "documentation" ;
@@ -1860,7 +1876,8 @@ lokf:measures a owl:Class,
     rdfs:subClassOf lokf:RelationType ;
     skos:definition "The concept (a metric) measures the target.",
         "What the metric measures (a concept IRI or description)." ;
-    skos:inScheme lokf:schema .
+    skos:inScheme lokf:schema ;
+    lokf:inverse_title "Measured by" .
 
 schema1:HowTo a owl:Class ;
     rdfs:label "how-to" ;

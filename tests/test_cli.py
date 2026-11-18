@@ -994,6 +994,23 @@ def test_export_draws_a_prefixed_target_in_both_graphs(tmp_path):
     assert drawn == rdf
 
 
+def test_export_labels_a_domain_vocabulary_for_the_site(tmp_path):
+    """graph.json carries the schema's titles, so a site can name the domain
+    type, read the relation from either end, and show the type's own fields."""
+    schema = FIXTURES / "domain-vocabulary" / "prefixes-the-bundle.yaml"
+    kb = FIXTURES / "domain-vocabulary" / "prefixed-target"
+    out = tmp_path / "out"
+    result = runner.invoke(app, ["export", str(kb), "-d", str(out), "--schema", str(schema)])
+    assert result.exit_code == 0, result.output
+    vocabulary = json.loads((out / "graph.json").read_text())["meta"]["vocabulary"]
+    assert vocabulary["types"]["Module"] == {"title": "Module"}
+    assert vocabulary["types"]["GlossaryTerm"]["title"] == "Glossary term"
+    assert vocabulary["relations"] == {"taughtBy": {"title": "Taught by", "inverse_title": "Teaches"}}
+    assert vocabulary["fields"]["Module"] == [{
+        "name": "credits", "title": "Credits", "description": "How many credits the module is worth.",
+    }]
+
+
 def test_validate_reads_the_project_schema_and_names_it(tmp_path, monkeypatch):
     kb = _project(tmp_path)
     monkeypatch.chdir(tmp_path)

@@ -1,7 +1,8 @@
 # A domain vocabulary that declares a prefix for the bundle's own namespace,
 # so a relation target can be written as a CURIE (taughtBy: [kb:real]); the
 # bundle in prefixed-target/ does. The relative import reaches the repo-root
-# lokf.yaml.
+# lokf.yaml. A generated site labels the relation both ways and shows the
+# module's credits.
 id: https://ex.org/schema/domain-prefixes-the-bundle
 name: domain_prefixes_the_bundle
 imports:
@@ -17,8 +18,14 @@ classes:
     is_a: Concept
     slots:
       - taughtBy
+    attributes:
+      credits:
+        range: integer
+        description: How many credits the module is worth.
 slots:
   taughtBy:
     range: Concept
     multivalued: true
     slot_uri: domain:taughtBy
+    annotations:
+      inverse_title: Teaches
