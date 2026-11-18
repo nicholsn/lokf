@@ -1,24 +1,30 @@
 ---
 import Base from '../layouts/Base.astro';
 import { loadBundle, hrefOf, titleOf, href } from '../lib/lokf';
+import { getCollection, render } from 'astro:content';
+import { loadTemporalEvidence } from '../lib/temporal-data';
 
 const { concepts } = await loadBundle();
+const index = (await getCollection('editorial'))[0];
+const editorial = index ? await render(index) : undefined;
+const temporal = await loadTemporalEvidence();
 const types = [...new Set(concepts.map((c) => c.data.type))].sort();
 const byType = (t: string) => concepts.filter((c) => c.data.type === t);
 ---
 
-<Base title="__KB_TITLE__" description="A LOKF knowledge base — markdown concepts that are also a queryable knowledge graph." wide>
-  <h1>__KB_TITLE__</h1>
-  <p class="tagline">
-    A <a href="https://lokf.nolan-nichols.com/">LOKF</a> knowledge base:
-    every page below is one markdown concept, and together they form a
-    queryable knowledge graph.
-  </p>
+<Base title={index?.data.title ?? '__KB_TITLE__'} description={index?.data.description ?? 'A LOKF knowledge base.'} wide>
+  <h1>{index?.data.title ?? '__KB_TITLE__'}</h1>
+  {editorial ? <article class="editorial"><editorial.Content /></article> : (
+    <p class="tagline">A <a href="https://lokf.nolan-nichols.com/">LOKF</a> knowledge base.</p>
+  )}
   <div class="lede-links">
+    <a href={href('/search')}>Search concepts →</a>
     <a href={href('/graph')}>Explore the graph →</a>
+    {temporal && <a href={href('/temporal/evidence')}>Explore evidence over time →</a>}
     <a href={href('/graph.jsonld')}>JSON-LD</a>
   </div>
 
+  <h2>Browse concepts</h2>
   {types.map((t) => (
     <>
       <h2>{t}</h2>

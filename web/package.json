@@ -5,8 +5,9 @@
   "scripts": {
     "sync:data": "cd .. && uv run lokf export examples/acme-knowledge --out-dir web/public --source-base https://github.com/nicholsn/lokf/tree/main/examples/acme-knowledge",
     "sync:content": "node scripts/sync-content.mjs",
+    "sync:graph": "node scripts/sync-graph.mjs",
     "sync:api": "cd .. && uv run python web/scripts/gen_api_docs.py",
-    "sync": "npm run sync:data && npm run sync:api && npm run sync:content",
+    "sync": "npm run sync:data && npm run sync:api && npm run sync:content && npm run sync:graph",
     "predev": "npm run sync",
     "dev": "astro dev",
     "start": "astro dev",

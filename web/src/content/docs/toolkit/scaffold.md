@@ -5,8 +5,8 @@ description: Create a new, publishable LOKF knowledge base — bundle, Astro sit
 
 `lokf new <name>` scaffolds a complete, publishable knowledge base — in the
 spirit of linkml-cookiecutter. One command, and you (or an AI agent) can go from
-an idea to a queryable knowledge graph *and* a full website with the
-interactive **graph browser**.
+an idea to a queryable knowledge graph and a static website with **full-text
+search** and an **interactive graph explorer**.
 
 ## Command
 
@@ -20,11 +20,19 @@ Creates `my-kb/`:
 my-kb/
   knowledge/                     # the LOKF bundle (index.md + example concepts)
   src/                           # the Astro site
-    pages/index.astro            #   home: concepts grouped by type
+    pages/index.astro            #   home: authored introduction and concept browsing
     pages/[...slug].astro        #   one page per concept, with relations panels
-    pages/graph.astro            #   the interactive graph browser
-    pages/graph.json.ts          #   nodes + edges for the browser
+    pages/search.astro           #   sitewide full-text search
+    pages/search-index.json.ts   #   build-time search index
+    pages/graph.astro            #   the interactive graph explorer
+    pages/graph.json.ts          #   complete graph export
+    pages/graph-index.json.ts    #   concept list for choosing a neighborhood
+    pages/graph-data/            #   bounded concept-neighborhood views
     pages/graph.jsonld.ts        #   the whole bundle as JSON-LD (the RDF view)
+    pages/temporal/              #   conditional evidence timeline
+    temporal.config.mjs          #   candidate date and relation fields
+  scripts/export-graph.mjs       # uses the matching LOKF toolkit at build time
+  site.config.mjs                # optional repository/correction link
   package.json · astro.config.mjs · tsconfig.json
   .github/workflows/pages.yml    # builds + publishes to GitHub Pages
   justfile                       # just setup | dev | site | serve | rdf | tables
@@ -36,18 +44,52 @@ The `site` and `base` in `astro.config.mjs` are derived from `--base-iri`, so
 the site works at a domain root **or** as a GitHub *project* page
 (`https://user.github.io/repo/`).
 
+Building the site requires Node 24 (or Node 22.23.4 or newer) and `uv`.
+The build runs the matching `lokf` package to produce the graph and JSON-LD,
+so domain vocabulary relations and trust signals use the toolkit projection.
+
 ## Then
 
 ```bash
 cd my-kb
 just setup     # npm install (once; commit package-lock.json)
-just dev       # live-preview: concept pages + the /graph browser
+just dev       # live-preview: concept pages, /search, and /graph
 ```
 
-Author concepts under `knowledge/` (see the two examples), listing each in
-`knowledge/index.md`. Typed relations become edges in the graph browser and
-"Knowledge graph" panels on the pages. The `lokf` toolkit recipes
+Author concepts under `knowledge/` (see the two examples). The authored
+`knowledge/index.md` appears on the home page before concept cards. The site
+search indexes concept titles, descriptions,
+tags, and Markdown bodies, along with present claim or thesis fields. Search
+results link to the concept page and its graph neighborhood. Readers can filter
+by type, tag, status, genre, trust, freshness, or date, and sort by relevance
+or newest content. The index is generated at build time and needs no search
+service.
+
+Typed relations become edges in the graph explorer and "Knowledge graph" panels
+on the pages. The `lokf` toolkit recipes
 (`just serve | rdf | tables`) run via `uvx`, so they only need `uv`.
+
+## Explore
+
+The graph opens on a concept neighborhood when a bundle is large enough to
+make a whole-graph layout unwieldy. Its graph and list views share the same
+typed relations. Choose a connected, community, type group, spread, or hub
+layout; filter node and relation types; inspect connections; and copy a URL
+that restores the view. The path finder shows a shortest chain through the
+current filtered view, with an option to follow relation direction. Community
+groups are inferred from the displayed relationships, and hub counts describe
+the current view rather than global importance. The complete `graph.json` and
+`graph.jsonld` exports remain
+available for other tools.
+
+If dated concepts share a suitable typed relation, a generic timeline appears.
+Choose its date fields and grouping relation in `src/temporal.config.mjs`.
+Concept pages show recorded sources and review signals, with permalink and
+citation controls. Set `repositoryUrl` in `site.config.mjs` to offer a GitHub
+correction link. Raw HTML in knowledge Markdown is escaped by default.
+
+Search and layout are website features. They do not change the LOKF format or
+turn ordinary Markdown links into asserted RDF relationships.
 
 ## Publish
 

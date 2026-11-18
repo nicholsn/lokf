@@ -14,8 +14,17 @@ projection.
 
 The data is the Acme knowledge bundle — eight concepts, twelve typed relations.
 (`run-on-bq`, the executor Reference, is reached by a computation's `executor`
-rather than a typed relation, so it sits on its own.)
-Search dims non-matching nodes; the filters toggle node types and predicates;
-click a node for its details.
+rather than a typed relation, so it sits on its own.) This page uses the same
+graph explorer as sites created with `lokf new`. The reference bundle is small
+enough to show in full; larger sites open a bounded concept neighborhood.
+
+Choose a layout to examine connections, inferred communities, concept types,
+or visible hubs. Node and relation filters change the displayed subgraph, and
+the list view lets you inspect the same concepts without the canvas. Click a
+concept to see its typed connections and open its source. The path finder
+traces a shortest chain between two visible concepts; its direction option
+respects relation arrows. The URL preserves your current view for sharing.
+Graph search highlights *labels and IDs* in this view;
+the documentation site's header search indexes the guide's full text.
 
 <KnowledgeGraph />

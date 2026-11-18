@@ -1,0 +1,231 @@
+---
+import { href } from '../lib/lokf';
+---
+
+<section class="kb-search" data-index={href('/search-index.json')} data-graph={href('/graph')}>
+  <form class="kb-search__form" role="search" action={href('/search')} method="get">
+    <label for="kb-query">Search concepts</label>
+    <div class="kb-search__row">
+      <input id="kb-query" name="q" type="search" autocomplete="off" placeholder="Search titles, descriptions, tags, and content…" aria-describedby="kb-search-help" />
+      <button type="submit">Search</button>
+    </div>
+    <div class="kb-search__row kb-search__filters">
+      <label>Type<select name="type"><option value="">All types</option></select></label>
+      <label>Tag<select name="tag"><option value="">All tags</option></select></label>
+      <label>Status<select name="status"><option value="">All statuses</option></select></label>
+      <label>Genre<select name="genre"><option value="">All genres</option></select></label>
+      <label>Trust<select name="trust"><option value="">All trust tiers</option></select></label>
+      <label>Freshness<select name="freshness"><option value="">All concepts</option><option value="current">Current</option><option value="stale">Stale</option></select></label>
+      <label>From<input name="from" type="date" /></label>
+      <label>Through<input name="to" type="date" /></label>
+      <label>Sort<select name="sort"><option value="relevance">Relevance</option><option value="newest">Newest content date</option></select></label>
+    </div>
+    <button type="button" class="kb-search__clear">Clear search and filters</button>
+    <p id="kb-search-help">All words must match. The last word can be a prefix. Dates use the recorded generation or creation date when available.</p>
+  </form>
+  <p class="kb-search__status" role="status" aria-live="polite">Enter a term or choose a filter.</p>
+  <ol class="kb-search__results"></ol>
+  <button class="kb-search__more" type="button" hidden>Show more results</button>
+  <button class="kb-search__retry" type="button" hidden>Retry search</button>
+  <noscript>Search requires JavaScript. Concept pages remain readable without it.</noscript>
+</section>
+
+<script>
+  import { searchIndex, snippetFor, terms } from '../lib/search.mjs';
+
+  const root = document.querySelector<HTMLElement>('.kb-search')!;
+  const form = root.querySelector<HTMLFormElement>('form')!;
+  const query = form.querySelector<HTMLInputElement>('[name=q]')!;
+  const type = form.querySelector<HTMLSelectElement>('[name=type]')!;
+  const tag = form.querySelector<HTMLSelectElement>('[name=tag]')!;
+  const statusFilter = form.querySelector<HTMLSelectElement>('[name=status]')!;
+  const genre = form.querySelector<HTMLSelectElement>('[name=genre]')!;
+  const trust = form.querySelector<HTMLSelectElement>('[name=trust]')!;
+  const freshness = form.querySelector<HTMLSelectElement>('[name=freshness]')!;
+  const from = form.querySelector<HTMLInputElement>('[name=from]')!;
+  const to = form.querySelector<HTMLInputElement>('[name=to]')!;
+  const sort = form.querySelector<HTMLSelectElement>('[name=sort]')!;
+  const status = root.querySelector<HTMLElement>('.kb-search__status')!;
+  const results = root.querySelector<HTMLOListElement>('.kb-search__results')!;
+  const more = root.querySelector<HTMLButtonElement>('.kb-search__more')!;
+  const retry = root.querySelector<HTMLButtonElement>('.kb-search__retry')!;
+  let index: any;
+  let loading: Promise<any> | undefined;
+  let matches: number[] = [];
+  let shown = 0;
+  let generation = 0;
+
+  function options(select: HTMLSelectElement, values: string[]) {
+    const selected = select.value;
+    for (const value of values) select.add(new Option(value, value));
+    select.value = selected;
+  }
+
+  async function load() {
+    if (index) return index;
+    loading ||= fetch(root.dataset.index!).then(response => {
+      if (!response.ok) throw new Error('Search unavailable');
+      return response.json();
+    }).then(value => {
+      index = value;
+      options(type, [...new Set(index.documents.map((d: any) => d.type as string))].sort());
+      options(tag, [...new Set(index.documents.flatMap((d: any) => d.tags as string[]))].sort());
+      options(statusFilter, [...new Set(index.documents.map((d: any) => d.status as string).filter(Boolean))].sort());
+      options(genre, [...new Set(index.documents.map((d: any) => d.genre as string).filter(Boolean))].sort());
+      options(trust, [...new Set(index.documents.map((d: any) => d.trust_tier as string).filter(Boolean))].sort());
+      return index;
+    }).catch(error => { loading = undefined; throw error; });
+    return loading;
+  }
+
+  function markedText(element: HTMLElement, value: string) {
+    const words = [...new Set(terms(query.value))];
+    const last = words.at(-1);
+    for (const part of value.split(/([\p{L}\p{N}]+)/u)) {
+      const normalized = terms(part)[0];
+      if (normalized && (words.includes(normalized) || (last?.length >= 2 && normalized.startsWith(last)))) {
+        const mark = document.createElement('mark');
+        mark.textContent = part;
+        element.append(mark);
+      } else element.append(document.createTextNode(part));
+    }
+  }
+
+  function append() {
+    for (const id of matches.slice(shown, shown + 20)) {
+      const doc = index.documents[id];
+      const li = document.createElement('li');
+      const title = document.createElement('a');
+      title.href = doc.href;
+      title.textContent = doc.title;
+      const meta = document.createElement('small');
+      meta.textContent = [doc.type, doc.status, doc.genre, doc.trust_tier,
+        doc.stale ? 'stale' : '', doc.date, doc.tags.join(', ')].filter(Boolean).join(' · ');
+      const snippet = document.createElement('p');
+      markedText(snippet, snippetFor(doc, query.value));
+      const graph = document.createElement('a');
+      graph.href = `${root.dataset.graph}?focus=${encodeURIComponent(doc.concept_id)}`;
+      graph.textContent = 'Open in graph →';
+      graph.className = 'kb-search__graph';
+      li.append(title, meta, snippet, graph);
+      results.append(li);
+    }
+    shown = Math.min(shown + 20, matches.length);
+    more.hidden = shown >= matches.length;
+    status.textContent = matches.length
+      ? `${matches.length.toLocaleString()} results · showing ${shown.toLocaleString()}`
+      : 'No results. Try fewer words or clear filters.';
+  }
+
+  function updateUrl(mode: 'replace' | 'push') {
+    const url = new URL(location.href);
+    for (const [name, value] of Object.entries({
+      q: query.value.trim(), type: type.value, tag: tag.value,
+      status: statusFilter.value, genre: genre.value,
+      trust: trust.value, freshness: freshness.value,
+      from: from.value, to: to.value, sort: sort.value === 'newest' ? 'newest' : '',
+    })) {
+      if (value) url.searchParams.set(name, value);
+      else url.searchParams.delete(name);
+    }
+    if (url.href !== location.href) {
+      if (mode === 'push') history.pushState({}, '', url);
+      else history.replaceState({}, '', url);
+    }
+  }
+
+  async function run(write: 'replace' | 'push' | false = 'replace') {
+    const current = ++generation;
+    if (write) updateUrl(write);
+    results.replaceChildren();
+    more.hidden = retry.hidden = true;
+    const text = query.value.trim();
+    if (from.value && to.value && from.value > to.value) {
+      status.textContent = 'The start date must be on or before the end date.';
+      return;
+    }
+    if (!text && !type.value && !tag.value && !statusFilter.value && !genre.value && !trust.value && !freshness.value && !from.value && !to.value) {
+      status.textContent = 'Enter a term or choose a filter.';
+      return;
+    }
+    if (text && terms(text).join('').length < 2) {
+      status.textContent = 'Enter at least two letters or numbers.';
+      return;
+    }
+    status.textContent = 'Searching…';
+    try {
+      await load();
+      if (current !== generation) return;
+      matches = searchIndex(index, text, { type: type.value, tag: tag.value,
+        status: statusFilter.value, genre: genre.value,
+        trust: trust.value, freshness: freshness.value,
+        from: from.value, to: to.value, sort: sort.value });
+      shown = 0;
+      append();
+    } catch {
+      if (current !== generation) return;
+      status.textContent = 'Could not load the search index.';
+      retry.hidden = false;
+    }
+  }
+
+  let timer: ReturnType<typeof setTimeout>;
+  form.addEventListener('submit', event => { event.preventDefault(); clearTimeout(timer); run('push'); });
+  query.addEventListener('input', () => { generation++; clearTimeout(timer); timer = setTimeout(() => run('replace'), 180); });
+  query.addEventListener('focus', () => { load().catch(() => {}); }, { once: true });
+  for (const field of [type, tag, statusFilter, genre, trust, freshness, from, to, sort]) field.addEventListener('change', () => { clearTimeout(timer); run('push'); });
+  root.querySelector('.kb-search__clear')!.addEventListener('click', () => {
+    query.value = type.value = tag.value = statusFilter.value = genre.value = trust.value = freshness.value = from.value = to.value = '';
+    sort.value = 'relevance';
+    clearTimeout(timer); run('push'); query.focus();
+  });
+  more.addEventListener('click', append);
+  retry.addEventListener('click', restore);
+  function restore() {
+    clearTimeout(timer);
+    const current = ++generation;
+    const params = new URLSearchParams(location.search);
+    query.value = params.get('q') ?? '';
+    from.value = params.get('from') ?? '';
+    to.value = params.get('to') ?? '';
+    sort.value = params.get('sort') === 'newest' ? 'newest' : 'relevance';
+    // Facets are generated from the index, so restore them after loading.
+    const chosenType = params.get('type') ?? '', chosenTag = params.get('tag') ?? '';
+    const chosenStatus = params.get('status') ?? '', chosenGenre = params.get('genre') ?? '';
+    const chosenTrust = params.get('trust') ?? '', chosenFreshness = params.get('freshness') ?? '';
+    load().then(() => {
+        if (current !== generation) return;
+        type.value = chosenType; tag.value = chosenTag;
+        statusFilter.value = chosenStatus; genre.value = chosenGenre;
+        trust.value = chosenTrust; freshness.value = chosenFreshness; run(false);
+      }).catch(() => {
+        if (current !== generation) return;
+        status.textContent = 'Could not load the search index.';
+        retry.hidden = false;
+      });
+  }
+  window.addEventListener('popstate', restore);
+  restore();
+</script>
+
+<style is:global>
+  .kb-search { margin: 1.5rem 0; padding: 1.2rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .kb-search__form > label { display: block; font-weight: 600; margin-bottom: .4rem; }
+  .kb-search__row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: end; }
+  .kb-search__row > input { flex: 1 1 20rem; }
+  .kb-search__filters { margin-top: .9rem; }
+  .kb-search__filters label { display: grid; gap: .25rem; flex: 1 1 9rem; font-size: .85rem; }
+  .kb-search input, .kb-search select, .kb-search button { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: .4rem; padding: .55rem; max-width: 100%; }
+  .kb-search input, .kb-search select { min-width: 0; box-sizing: border-box; }
+  .kb-search__clear { margin-top: .7rem; }
+  #kb-search-help, .kb-search__status { color: var(--muted); font-size: .85rem; }
+  .kb-search__results { padding-left: 1.25rem; }
+  .kb-search__results li { padding: .75rem .1rem; border-top: 1px solid var(--border); }
+  .kb-search__results a:first-child { font-weight: 600; }
+  .kb-search__results small { display: block; color: var(--muted); }
+  .kb-search__results p { margin: .3rem 0; font-size: .9rem; overflow-wrap: anywhere; }
+  .kb-search__graph { display: inline-block; font-size: .8rem; }
+  .kb-search__more, .kb-search__retry { margin-top: .5rem; }
+  .kb-search button { cursor: pointer; }
+  .kb-search [hidden] { display: none !important; }
+</style>

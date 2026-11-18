@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { href } from '../lib/lokf';
+import { loadTemporalEvidence } from '../lib/temporal-data';
 
 interface Props {
   title: string;
@@ -12,11 +13,14 @@ const { title, description, jsonld, wide } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const nav = [
   { href: href('/'), label: 'Home' },
+  { href: href('/search'), label: 'Search' },
   { href: href('/graph'), label: 'Graph' },
 ];
+if (await loadTemporalEvidence()) nav.push({ href: href('/temporal/evidence'), label: 'Timeline' });
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (h: string) => (h.replace(/\/$/, '') || '/') === path;
 const graphs = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
+const jsonScript = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
@@ -38,7 +42,7 @@ const graphs = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
     />
     {graphs.map((g) => (
-      <script type="application/ld+json" set:html={JSON.stringify(g)} />
+      <script type="application/ld+json" set:html={jsonScript(g)} />
     ))}
   </head>
   <body>
@@ -50,6 +54,11 @@ const graphs = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
           <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined}>{n.label}</a>
         ))}
       </nav>
+      <form class="site-search" role="search" action={href('/search')} method="get">
+        <label class="sr-only" for="site-query">Search this knowledge base</label>
+        <input id="site-query" name="q" type="search" placeholder="Search concepts…" autocomplete="off" />
+        <button type="submit">Search</button>
+      </form>
     </header>
     <main class={wide ? 'container wide' : 'container'}>
       <slot />

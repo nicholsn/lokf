@@ -30,4 +30,14 @@ const knowledge = defineCollection({
     .passthrough(),
 });
 
-export const collections = { knowledge };
+// The reserved root index is the bundle's authored guide. It is rendered on
+// the home page but must not appear as a concept or graph node.
+const editorial = defineCollection({
+  loader: glob({ pattern: 'index.md', base: './knowledge' }),
+  schema: z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+  }).passthrough(),
+});
+
+export const collections = { knowledge, editorial };

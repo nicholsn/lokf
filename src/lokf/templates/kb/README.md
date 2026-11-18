@@ -2,16 +2,29 @@
 
 A [LOKF](https://lokf.nolan-nichols.com) knowledge base. Every markdown file in
 `knowledge/` is one concept; together they are a queryable knowledge graph
-*and* this website — an [Astro](https://astro.build) site with concept pages
-and an interactive **graph browser** at `/graph`.
+*and* this website — an [Astro](https://astro.build) site with concept pages,
+full-text search, and an interactive graph browser.
 
 ## Author
 
 Add concept files under `knowledge/` (see the two examples). Each has YAML
-frontmatter (a `type` and fields) plus a markdown body; list new concepts in
-`knowledge/index.md`. Typed relations between concepts (`measures`,
-`dependsOn`, `isPartOf`, …) become edges in the graph and "Knowledge graph"
-panels on the pages.
+frontmatter (a `type` and fields) plus a markdown body. The authored
+`knowledge/index.md` is the site's home-page guide, followed by browsable
+concept cards. Typed relations declared by LOKF or your domain schema become
+edges in the graph and named connections on concept pages. Prose hyperlinks
+remain ordinary links. Raw HTML in knowledge Markdown is escaped, and unsafe
+link schemes are shown as text.
+
+Search covers titles, descriptions, tags, body text, and optional claim/thesis
+fields. The `/search` page offers type, tag, genre, status, trust, freshness,
+and date filters when the data supports them. Its URL can be bookmarked.
+
+The `/graph` page offers bounded neighborhoods for large bundles, a list view,
+several layouts, typed incoming/outgoing connections, and path finding. Share
+its URL to restore a view. The complete toolkit graph remains at `/graph.json`
+and its JSON-LD projection at `/graph.jsonld`. A timeline appears when your
+concepts have enough dated, related records; configure its date and relation
+fields in `src/temporal.config.mjs`.
 
 Prefer an AI agent? The bundled skills in `.claude/skills/` drive the whole
 workflow — open this repo in [Claude Code](https://claude.com/claude-code) and
@@ -19,8 +32,10 @@ ask it to build out the knowledge base from your idea.
 
 ## Work with it
 
-Needs **Node 22.12 or newer** (Astro 7's floor); the Pages workflow already
-pins a compatible version.
+Needs **Node 24** (or Node 22.23.4 or newer) and
+[`uv`](https://docs.astral.sh/uv/). The site build runs the pinned LOKF toolkit
+to export its graph and JSON-LD before Astro renders pages. The Pages workflow
+installs both tools.
 
 ```bash
 just setup    # npm install (once; commit package-lock.json)
@@ -33,8 +48,14 @@ just validate # check the bundle against the LOKF schema
 just tables   # project the bundle to linked tables (CSV)
 ```
 
-The `lokf` recipes use [`uvx`](https://docs.astral.sh/uv/), so they only need
-`uv` installed — no `pip install`.
+The `lokf` recipes use `uvx`, so no `pip install` is needed. For a local toolkit
+checkout, set `LOKF_EXPORT_EXECUTABLE` to its `lokf` executable when building
+the site. Set `LOKF_TOOLKIT_SPEC` to override the pinned package spec.
+
+To offer a correction link on concept pages, set `repositoryUrl` to your GitHub
+repository in `site.config.mjs`. For another host, set `correctionUrl` to its
+correction form. The pages show recorded sources and review signals with their
+trust tier; those signals do not prove a concept's claims.
 
 ## Publish to GitHub Pages
 

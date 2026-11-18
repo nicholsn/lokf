@@ -152,6 +152,19 @@ def test_cytoscape_skips_scalar_relations_entries(tmp_path):
     assert reified[0]["data"]["slot"] == "joinsWith"
 
 
+def test_cytoscape_keeps_external_typed_links_for_reading(tmp_path):
+    bundle = _write_synthetic_bundle(tmp_path)
+    external = to_cytoscape(bundle)["external_edges"]
+    assert external == [{"data": {
+        "id": "https://kb.example/datasets/a dcterms:isPartOf https://kb.example/datasets/parent",
+        "source": "https://kb.example/datasets/a",
+        "target": "https://kb.example/datasets/parent",
+        "predicate": "dcterms:isPartOf",
+        "slot": "isPartOf",
+        "reified": False,
+    }}]
+
+
 def test_dataset_search_jsonld_resolves_relative_ispartof(tmp_path):
     """Bundle-relative isPartOf refs are emitted as absolute IRIs."""
     bundle = _write_synthetic_bundle(tmp_path)

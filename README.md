@@ -213,16 +213,22 @@ lokf tables examples/acme-knowledge --format bigquery --location gs://bucket/lok
 
 ## Start your own
 
-`lokf new my-kb` scaffolds a complete knowledge-base repo — a starter bundle, a
-full Astro site with concept pages and the interactive **graph browser**
-(`/graph`, plus `graph.jsonld`), a GitHub Pages workflow, a `justfile`, and the
-bundled agent skills — so you (or an AI agent) can go from an idea to a
-published, queryable knowledge graph:
+`lokf new my-kb` scaffolds a complete knowledge-base repo — a starter bundle,
+an Astro site with an authored home page, full-text search, concept provenance,
+and an interactive graph browser. The graph offers bounded neighborhoods,
+several layouts, a list view, typed connections, and path finding; its full
+JSON and JSON-LD exports remain available. A configurable timeline appears
+when the bundle has enough dated, related concepts. The scaffold also includes
+a GitHub Pages workflow, a `justfile`, and bundled agent skills:
 
 ```bash
 lokf new my-kb --title "My Knowledge Base"
 cd my-kb && just setup && just dev
 ```
+
+Site builds need Node 24 (or Node 22.23.4 or newer) and `uv`; they run the
+matching LOKF package export before Astro renders the site. Domain vocabulary
+relations and trust signals therefore use the same projection as the toolkit.
 
 See the [scaffold docs](https://lokf.nolan-nichols.com/toolkit/scaffold/).
 
@@ -230,7 +236,7 @@ See the [scaffold docs](https://lokf.nolan-nichols.com/toolkit/scaffold/).
 
 LOKF v0.2 is a **draft profile** and is **not affiliated with or endorsed by
 Google**. The format version tracks OKF's `<major>.<minor>` scheme; the LinkML
-schema and the `lokf` package carry their own version (currently 0.9.0) so the
+schema and the `lokf` package carry their own version (currently 0.10.0) so the
 toolkit can ship fixes without implying a format change — see
 [SPEC §12](./SPEC.md). "Open Knowledge Format" / "OKF" refer to the format published by Google
 Cloud (`github.com/GoogleCloudPlatform/knowledge-catalog`); LOKF extends it under
