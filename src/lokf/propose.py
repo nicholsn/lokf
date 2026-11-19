@@ -169,7 +169,7 @@ def extract_links(concept: Concept, bundle: Bundle) -> list[Link]:
 def _asserted_iris(concept: Concept, bundle: Bundle, vocab: Vocabulary) -> set[str]:
     """Target IRIs already asserted in frontmatter (slots + reified relations)."""
     iris = set()
-    for name in vocab.relation_slots:
+    for name in vocab.references(concept.type):
         values = concept.data.get(name) or []
         if isinstance(values, str):
             values = [values]
@@ -180,7 +180,10 @@ def _asserted_iris(concept: Concept, bundle: Bundle, vocab: Vocabulary) -> set[s
     return iris
 
 
-def _domain_ok(relation: Relation, source: Concept) -> bool:
+def _domain_ok(relation: Relation, source: Concept, vocab: Vocabulary) -> bool:
+    if relation.is_slot:
+        slot = vocab.induced_slots(source.type).get(relation.name)
+        return bool(slot and slot.get("multivalued") and relation.name in vocab.references(source.type))
     return (
         not relation.domains
         or "Concept" in relation.domains
@@ -207,7 +210,7 @@ def _classify(
     """Pick a relation for one link from the cue table (fallback: relatedTo)."""
     for pattern, name, confidence in CUE_TABLE:
         relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
-        if relation is None or not _domain_ok(relation, source):
+        if relation is None or not _domain_ok(relation, source, vocab):
             continue
         match = pattern.search(link.sentence)
         if match is None:
@@ -226,7 +229,7 @@ def _classify(
         )
     name, confidence = _FALLBACK
     relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
-    if relation is None or not _domain_ok(relation, source):
+    if relation is None or not _domain_ok(relation, source, vocab):
         return None
     return Proposal(
         source=source,
