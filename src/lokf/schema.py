@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from importlib import resources
 
-from lokf.schema_sources import CACHE_SIZE, SchemaInputs, UnpinnedImport, capture, parsed
+from lokf.schema_sources import CACHE_SIZE, SchemaInputs, UnpinnedImport, cache_per_root, capture, local_view_caches, parsed
 
 _SCHEMA_NAME = "lokf.yaml"
 _CONTEXT_NAME = "lokf.context.jsonld"
@@ -205,7 +205,7 @@ def authoring_context(context: dict) -> dict:
     return ctx
 
 
-@lru_cache(maxsize=CACHE_SIZE)
+@cache_per_root
 def _schema_context(inputs: SchemaInputs, core_data: bytes) -> dict:
     from linkml.generators.jsonldcontextgen import ContextGenerator
 
@@ -745,7 +745,7 @@ def _with_imports(resolved: str, inputs: SchemaInputs | None = None) -> dict:
     from linkml_runtime.dumpers import json_dumper
     from linkml_runtime.utils.schemaview import SchemaView
 
-    view = inputs.view() if inputs is not None else SchemaView(resolved)
+    view = inputs.view() if inputs is not None else local_view_caches(SchemaView(resolved))
     merged = dict(parsed(inputs.sources[0].data) if inputs is not None else _load_schema(resolved))
     for key in ("prefixes", "classes", "slots", "enums"):
         merged[key] = {}
@@ -769,7 +769,7 @@ def _with_imports(resolved: str, inputs: SchemaInputs | None = None) -> dict:
     return merged
 
 
-@lru_cache(maxsize=CACHE_SIZE)
+@cache_per_root
 def _vocabulary(inputs: SchemaInputs) -> "Vocabulary":
     schema = parsed(inputs.sources[0].data)
     # Merge only when the schema imports more than LinkML's own schemas.

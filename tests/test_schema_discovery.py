@@ -275,12 +275,12 @@ def test_mcp_advertises_optional_selectors():
 
 def test_captured_views_are_collectable(project, monkeypatch):
     from lokf import schema_sources
-    original = schema_sources._local_caches
+    original = schema_sources.local_view_caches
     references = []
     def tracked(view):
         references.append(weakref.ref(view))
         return original(view)
-    monkeypatch.setattr(schema_sources, "_local_caches", tracked)
+    monkeypatch.setattr(schema_sources, "local_view_caches", tracked)
     vocabulary(project / "domain.yaml")
     gc.collect()
     assert references and all(ref() is None for ref in references)
@@ -442,3 +442,31 @@ def test_metadata_edits_are_private_to_the_response(project):
     second = mcp.get_vocabulary(bundle=str(project), include_metadata=True)["schema_metadata"]
     assert first["revision"] == second["revision"]
     assert first["sources"] != second["sources"]
+
+
+def test_edited_project_releases_superseded_inputs(project):
+    root = project / "domain.yaml"
+    first = weakref.ref(capture(root))
+    vocabulary(root)
+    schema_context(root)
+    revise(project / "member.yaml")
+    vocabulary(root)
+    schema_context(root)
+    gc.collect()
+    assert first() is None
+
+
+def test_live_import_reader_releases_its_view(project, monkeypatch):
+    # Exercise the uncached LinkML reader with deterministic local imports.
+    from linkml_runtime.utils.schemaview import SchemaView
+    from lokf.schema import _with_imports
+
+    references = []
+    initialize = SchemaView.__init__
+    def track(view, *args, **kwargs):
+        initialize(view, *args, **kwargs)
+        references.append(weakref.ref(view))
+    monkeypatch.setattr(SchemaView, "__init__", track)
+    assert "Note" in _with_imports(str(project / "domain.yaml"))["classes"]
+    gc.collect()
+    assert references and all(ref() is None for ref in references)
