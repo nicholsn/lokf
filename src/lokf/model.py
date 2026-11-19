@@ -44,6 +44,16 @@ class Concept:
         return self.data.get("body", "")
 
 
+    def reference_values(self, slot: str) -> list:
+        """Read the authored or LinkML-normalized key, in either cardinality."""
+        value = self.data.get(slot)
+        if value is None:
+            value = self.data.get(underscore(slot))
+        if value is None:
+            return []
+        return value if isinstance(value, list) else [value]
+
+
 def _is_curie(ref: str) -> bool:
     """``prefix:local`` with a scheme-like prefix: what JSON-LD reads as a
     compact IRI rather than a relative one. An absolute IRI is not one."""
@@ -170,14 +180,7 @@ class Bundle:
             # Only the slots that hold concept ids on this concept's type: a
             # class can narrow an inherited reference slot to a string.
             for slot in sorted(vocab.references(c.type)):
-                # A slot named with spaces (`in taxon`) is the key LinkML
-                # derives from it (`in_taxon`) in frontmatter.
-                value = c.data.get(slot)
-                if value is None:
-                    value = c.data.get(underscore(slot))
-                if value is None:
-                    continue
-                for target in value if isinstance(value, list) else [value]:
+                for target in c.reference_values(slot):
                     if dangling(target):
                         out.append((c.concept_id, slot, target))
         for c in self.concepts:
