@@ -170,13 +170,12 @@ def _asserted_iris(concept: Concept, bundle: Bundle, vocab: Vocabulary) -> set[s
     """Target IRIs already asserted in frontmatter (slots + reified relations)."""
     iris = set()
     for name in vocab.references(concept.type):
-        values = concept.data.get(name) or []
-        if isinstance(values, str):
-            values = [values]
-        iris.update(bundle.resolve(v) for v in values if isinstance(v, str))
+        for value in concept.reference_values(name):
+            if isinstance(value, str):
+                iris.add(bundle.resolve(vocab.expand(value)))
     for rel in concept.data.get("relations") or []:
         if isinstance(rel, dict) and isinstance(rel.get("target"), str):
-            iris.add(bundle.resolve(rel["target"]))
+            iris.add(bundle.resolve(vocab.expand(rel["target"])))
     return iris
 
 
@@ -255,7 +254,7 @@ def propose(
             if link.target is None:
                 continue
             target_iri = bundle.iri(link.target)
-            if target_iri in asserted:
+            if vocab.expand(target_iri) in asserted:
                 continue
             proposal = _classify(source, link, vocab, target_iri)
             if proposal is not None:

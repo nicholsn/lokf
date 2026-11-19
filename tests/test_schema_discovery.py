@@ -417,3 +417,20 @@ def test_convert_keeps_the_classes_and_context_from_one_capture(project, monkeyp
     result = mcp.convert(str(project / "bundle"), "nt")
     assert "<https://example.org/SpecialNote>" in result["rdf"]
     assert "AnotherNote" in mcp.get_vocabulary(bundle=str(project))["classes"]
+
+
+@pytest.mark.parametrize("assertion", [
+    "aboutIssuer: [ex:bundle/issuer]",
+    "tracks_issuer: [issuer]",
+    "relations: [{predicate: relatedTo, target: 'ex:bundle/issuer'}]",
+])
+def test_proposal_apply_recognizes_authored_reference_forms(project, assertion):
+    schema = project / "member.yaml"
+    if "tracks_issuer" in assertion:
+        schema.write_text(schema.read_text().replace("aboutIssuer:", "tracks issuer:")
+                          .replace("[aboutIssuer]", "[tracks issuer]"))
+    note = project / "bundle/note.md"
+    note.write_text(note.read_text().replace("aboutIssuer: [issuer]", assertion))
+    before = note.read_bytes()
+    assert mcp.propose_relations(str(note.parent), apply=True) == []
+    assert note.read_bytes() == before
