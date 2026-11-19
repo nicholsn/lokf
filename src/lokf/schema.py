@@ -100,6 +100,8 @@ def project_schema(start: str | pathlib.Path | None = None) -> pathlib.Path | No
     except ModuleNotFoundError:  # Python 3.10
         import tomli as tomllib
     base = pathlib.Path(start).resolve() if start is not None else pathlib.Path.cwd()
+    if not base.exists():
+        raise FileNotFoundError(f"Project discovery path does not exist: {base}")
     if base.is_file():
         base = base.parent
     for d in (base, *base.parents):
@@ -107,11 +109,16 @@ def project_schema(start: str | pathlib.Path | None = None) -> pathlib.Path | No
         if not f.exists():
             continue
         try:
-            tool = tomllib.loads(f.read_text(encoding="utf-8")).get("tool", {}).get("lokf")
+            tools = tomllib.loads(f.read_text(encoding="utf-8")).get("tool", {})
         except tomllib.TOMLDecodeError as exc:
             raise ValueError(f"{f}: {exc}") from exc
-        if not isinstance(tool, dict):
+        if not isinstance(tools, dict):
+            raise ValueError(f"{f}: [tool] must be a table")
+        if "lokf" not in tools:
             continue
+        tool = tools["lokf"]
+        if not isinstance(tool, dict):
+            raise ValueError(f"{f}: [tool.lokf] must be a table")
         name = tool.get("schema")
         if name is None:
             return None

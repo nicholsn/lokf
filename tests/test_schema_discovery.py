@@ -383,3 +383,21 @@ def test_live_mcp_refresh_and_project_isolation(project, tmp_path):
                     failed = await client.call_tool("get_vocabulary", {"bundle": str(project)})
                     assert failed.is_error
     asyncio.run(run())
+
+
+@pytest.mark.parametrize("declaration", ['tool = 42', '[tool]\nlokf = "domain.yaml"'])
+def test_invalid_project_tables_do_not_fall_back(project, declaration):
+    (project / "pyproject.toml").write_text(declaration)
+    for command in (["vocab", "--bundle", str(project)], ["propose", str(project / "bundle"), "--apply"]):
+        result = runner.invoke(app, command)
+        assert result.exit_code == 1 and "pyproject.toml" in result.output
+    with pytest.raises(ValueError, match="pyproject.toml"):
+        mcp.get_vocabulary(bundle=str(project))
+
+
+def test_missing_selector_cannot_discover_an_unrelated_schema(project):
+    missing = project / "absent"
+    with pytest.raises(FileNotFoundError):
+        mcp.get_vocabulary(bundle=str(missing))
+    # The explicit override remains usable independently of the discovery anchor.
+    assert "Note" in mcp.get_vocabulary(bundle=str(missing), schema=str(project / "domain.yaml"))["classes"]
