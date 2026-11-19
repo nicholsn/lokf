@@ -222,10 +222,10 @@ def bundle_summary(bundle: str) -> dict:
     from lokf import trust
     from lokf.export import to_cytoscape
     from lokf.model import load_bundle
-    from lokf.schema import vocabulary
+    from lokf.schema import projection_schema, vocabulary
     from lokf.store import GraphStore
 
-    schema = _schema(bundle)
+    schema = projection_schema(_schema(bundle))
     b = load_bundle(bundle)
     types: dict[str, int] = {}
     tiers: dict[str, int] = {}

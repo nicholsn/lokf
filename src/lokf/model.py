@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from linkml_runtime.utils.formatutils import underscore
 
 from lokf.parse import parse_concept, parse_index_text
-from lokf.schema import load_context
+from lokf.schema import SchemaSource, load_context
 
 RESERVED = ("index.md", "log.md")
 
@@ -201,7 +201,7 @@ class Bundle:
         ctx = context if context is not None else load_context()
         return [{**doc, "@context": ctx} for doc in self.docs()]
 
-    def graph(self, context: dict | None = None, schema: str | pathlib.Path | None = None):
+    def graph(self, context: dict | None = None, schema: SchemaSource = None):
         """The whole bundle as one :class:`rdflib.Graph`, under the domain
         vocabulary *schema* when one is given.
 
