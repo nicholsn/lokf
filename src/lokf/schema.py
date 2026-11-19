@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from importlib import resources
 
-import yaml
+from lokf.schema_sources import CACHE_SIZE, SchemaInputs, UnpinnedImport, capture, parsed
 
 _SCHEMA_NAME = "lokf.yaml"
 _CONTEXT_NAME = "lokf.context.jsonld"
@@ -45,27 +45,24 @@ def _resolve(name: str, path: str | pathlib.Path | None) -> pathlib.Path:
     """Resolve *name*: explicit path, then a checkout in an ancestor directory
     (so local schema edits always win), then the copy packaged with lokf."""
     if path is not None:
-        return pathlib.Path(path)
+        return pathlib.Path(path).resolve()
     found = _from_ancestors(name) or _packaged(name)
     if found is None:
         raise FileNotFoundError(
             f"{name} not found: not in any ancestor of the current directory "
             "and not packaged with lokf"
         )
-    return found
+    return found.resolve()
 
 
-# Cached on the resolved absolute path, not the (path=None) argument, so a
-# changed working directory re-resolves to a different file and reads fresh,
-# while repeated calls from one location (e.g. the server hot path) are free.
-@lru_cache(maxsize=None)
+# Cache parsed bytes, never a path alone. Read before looking up an interpretation.
 def _load_schema(resolved: str) -> dict:
-    return yaml.safe_load(pathlib.Path(resolved).read_text(encoding="utf-8"))
+    return parsed(pathlib.Path(resolved).read_bytes())
 
 
-@lru_cache(maxsize=None)
-def _load_context(resolved: str) -> dict:
-    return json.loads(pathlib.Path(resolved).read_text(encoding="utf-8"))["@context"]
+@lru_cache(maxsize=CACHE_SIZE)
+def _load_context(data: bytes) -> dict:
+    return json.loads(data)["@context"]
 
 
 def schema_path(path: str | pathlib.Path | None = None) -> pathlib.Path:
@@ -145,7 +142,7 @@ def load_schema(path: str | pathlib.Path | None = None) -> dict:
 
 def load_context(path: str | pathlib.Path | None = None) -> dict:
     """Return the published JSON-LD ``@context`` mapping (cached per file)."""
-    return _load_context(str(_resolve(_CONTEXT_NAME, path)))
+    return _load_context(_resolve(_CONTEXT_NAME, path).read_bytes())
 
 
 # ParameterType values, each naming the lokf Parameter-kind class it expands to.
@@ -201,17 +198,22 @@ def authoring_context(context: dict) -> dict:
     return ctx
 
 
-@lru_cache(maxsize=None)
-def _schema_context(resolved: str) -> dict:
+@lru_cache(maxsize=CACHE_SIZE)
+def _schema_context(inputs: SchemaInputs, core_data: bytes) -> dict:
     from linkml.generators.jsonldcontextgen import ContextGenerator
 
-    generated = json.loads(ContextGenerator(resolved).serialize())["@context"]
+    document, imports = inputs.context_inputs()
+    generated = json.loads(ContextGenerator(document, importmap=imports).serialize())["@context"]
+    return _domain_context(generated, _load_context(core_data)["@vocab"])
+
+
+def _domain_context(generated: dict, core: str) -> dict:
     ctx = authoring_context(generated)
     # The generated @vocab is the domain's namespace, and the domain's own
     # terms are written relative to it. Make those absolute, then fall back to
     # LOKF's @vocab, so a key no schema declares projects as it does without
     # a schema, not as a term the domain never declared.
-    vocab, core = ctx.get("@vocab"), load_context()["@vocab"]
+    vocab = ctx.get("@vocab")
     if vocab and vocab != core:
         for key, value in ctx.items():
             if isinstance(value, dict) and _vocab_relative(value.get("@id")):
@@ -239,7 +241,15 @@ def schema_context(schema_path: str | pathlib.Path | None = None) -> dict:
     """
     if schema_path is None:
         return load_context()
-    return _schema_context(str(pathlib.Path(schema_path).resolve()))
+    try:
+        inputs = capture(schema_path)
+    except UnpinnedImport:
+        # Preserve remote-import support, but never cache a live remote input.
+        from linkml.generators.jsonldcontextgen import ContextGenerator
+
+        generated = json.loads(ContextGenerator(str(schema_path)).serialize())["@context"]
+        return _domain_context(generated, load_context()["@vocab"])
+    return _schema_context(inputs, _resolve(_CONTEXT_NAME, None).read_bytes())
 
 
 def humanize(name: str) -> str:
@@ -352,6 +362,13 @@ class Vocabulary:
                 description=value.get("description", "").strip(),
                 is_slot=name in self.relation_slots,
             )
+
+    def relations(self) -> list[Relation]:
+        """Enum relations plus custom slots, by name. An existing enum row
+        keeps its meaning/description for compatibility when a slot shares it.
+        """
+        combined = {**self.relation_slots, **self.relation_types}
+        return [combined[name] for name in sorted(combined)]
 
     @staticmethod
     def _ancestors(elements: dict, name: str) -> list[str]:
@@ -690,7 +707,7 @@ def _follows(imported: str) -> bool:
     return not imported.startswith("linkml:")
 
 
-def _with_imports(resolved: str) -> dict:
+def _with_imports(resolved: str, inputs: SchemaInputs | None = None) -> dict:
     """Merge the schema at *resolved* with every schema it imports, and return
     one dict in the raw YAML shape that :class:`Vocabulary` reads.
 
@@ -703,8 +720,8 @@ def _with_imports(resolved: str) -> dict:
     from linkml_runtime.dumpers import json_dumper
     from linkml_runtime.utils.schemaview import SchemaView
 
-    view = SchemaView(resolved)
-    merged = dict(_load_schema(resolved))
+    view = inputs.view() if inputs is not None else SchemaView(resolved)
+    merged = dict(parsed(inputs.sources[0].data) if inputs is not None else _load_schema(resolved))
     for key in ("prefixes", "classes", "slots", "enums"):
         merged[key] = {}
     for name in view.imports_closure():
@@ -727,17 +744,43 @@ def _with_imports(resolved: str) -> dict:
     return merged
 
 
-@lru_cache(maxsize=None)
-def _vocabulary(resolved: str) -> "Vocabulary":
-    schema = _load_schema(resolved)
+@lru_cache(maxsize=CACHE_SIZE)
+def _vocabulary(inputs: SchemaInputs) -> "Vocabulary":
+    schema = parsed(inputs.sources[0].data)
     # Merge only when the schema imports more than LinkML's own schemas.
     # Stock lokf.yaml imports only linkml:types, so it is still read as one file.
     if any(_follows(str(i)) for i in schema.get("imports") or []):
-        schema = _with_imports(resolved)
+        schema = _with_imports(inputs.sources[0].path, inputs)
     return Vocabulary(schema)
 
 
 def vocabulary(schema_path: str | pathlib.Path | None = None) -> Vocabulary:
     """Return the :class:`Vocabulary` of the schema and every schema it
     imports (cached per file)."""
-    return _vocabulary(str(_resolve(_SCHEMA_NAME, schema_path)))
+    resolved = str(_resolve(_SCHEMA_NAME, schema_path))
+    try:
+        inputs = capture(resolved)
+    except UnpinnedImport:
+        return Vocabulary(_with_imports(resolved))
+    return _vocabulary(inputs)
+
+
+def discover_vocabulary(
+    bundle: str | pathlib.Path | None = None,
+    schema: str | pathlib.Path | None = None,
+    *, include_metadata: bool = False,
+) -> tuple[Vocabulary, dict | None]:
+    """Shared CLI/MCP selection. No selectors preserves legacy cwd/core lookup.
+    Metadata identifies the exact inputs used by this vocabulary, not documents.
+    """
+    selected = domain_schema(schema, bundle) if bundle is not None or schema is not None else None
+    resolved = str(_resolve(_SCHEMA_NAME, selected))
+    try:
+        inputs = capture(resolved)
+    except UnpinnedImport as exc:
+        result = Vocabulary(_with_imports(resolved))
+        metadata = {"complete": False, "revision": None, "reason": str(exc)}
+    else:
+        result = _vocabulary(inputs)
+        metadata = inputs.metadata() if include_metadata else None
+    return result, metadata if include_metadata else None

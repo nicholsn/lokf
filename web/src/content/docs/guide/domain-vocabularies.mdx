@@ -92,6 +92,30 @@ one from the schema name: `DataStage` reads "Data stage", and
   description: text, numbers, dates, enum values and links. Relations
   appear in the page's knowledge graph section instead.
 
+## Discover and propose with the same schema
+
+The CLI and MCP discovery tools can use the vocabulary declared by a project:
+
+```bash
+lokf vocab --bundle knowledge --json
+lokf vocab --bundle knowledge --all --json --include-metadata
+lokf propose knowledge --json
+```
+
+Use `--schema analytics.yaml` to override project discovery on either command.
+An explicit schema path is relative to the working directory; a project's
+declaration is relative to its `pyproject.toml`. With no selectors, `lokf vocab`
+retains its default cwd/core vocabulary. A broken declared schema is an error,
+including for proposals; it never silently falls back to the core vocabulary.
+
+The short response includes custom relation slots, and proposals recognize
+already-asserted custom references. Custom predicates do not add prose inference
+rules. `--include-metadata` requires `--json`: the short CLI list becomes
+`{relations, schema_metadata}`, while `--all` adds `schema_metadata` to the existing
+manifest. Without the flag, JSON shapes are unchanged. See the
+[MCP schema identity contract](/toolkit/mcp/#optional-schema-identity) for fields,
+cache behavior and the limits of identities involving remote imports.
+
 ## Adapt a published schema
 
 `lokf adapt` copies a published LinkML schema into a LOKF domain vocabulary.
