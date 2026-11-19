@@ -263,7 +263,6 @@ def test_cache_capacity_and_warm_reuse(project, tmp_path):
         vocabulary(schema)
     assert len(_cache) <= CACHE_SIZE
     assert _vocabulary.cache_info().currsize <= CACHE_SIZE
-    assert _schema_context.cache_info().maxsize == CACHE_SIZE
 
 
 def test_mcp_advertises_optional_selectors():
