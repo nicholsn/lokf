@@ -16,7 +16,7 @@ import os
 import pathlib
 
 from lokf.parse import parse_concept, parse_index_text
-from lokf.schema import schema_context
+from lokf.schema import SchemaSource, projection_schema, schema_context
 
 # CLI/RDF short names -> the format rdflib understands.
 FORMATS: dict[str, str] = {
@@ -82,7 +82,7 @@ def docs_to_graph(
     docs: list[dict],
     context: dict | None = None,
     base: str | None = None,
-    schema: str | pathlib.Path | None = None,
+    schema: SchemaSource = None,
 ):
     """Parse a list of concept docs into one :class:`rdflib.Graph`.
 
@@ -105,6 +105,7 @@ def docs_to_graph(
 
     from lokf.schema import vocabulary
 
+    schema = projection_schema(schema)
     ctx = context if context is not None else schema_context(schema)
     classes = set(vocabulary(schema).classes)
     docs = [_as_declared_type(_strip_context(d), classes) for d in docs]
@@ -171,7 +172,7 @@ def _bundle_root(path: pathlib.Path) -> pathlib.Path | None:
 def graph_of(
     source: str | pathlib.Path,
     context: dict | None = None,
-    schema: str | pathlib.Path | None = None,
+    schema: SchemaSource = None,
 ):
     """RDF graph for a concept file or a bundle directory.
 
@@ -351,13 +352,14 @@ def serialize(
     source: str | pathlib.Path,
     fmt: str = "ttl",
     context: dict | None = None,
-    schema: str | pathlib.Path | None = None,
+    schema: SchemaSource = None,
 ) -> str:
     """Serialize a concept file or bundle to RDF text in *fmt* (default Turtle),
     under the domain *schema* when one is given, the same bytes for the same
     bundle (see :func:`serialize_graph`)."""
     from lokf.schema import vocabulary
 
+    schema = projection_schema(schema)
     return serialize_graph(
         graph_of(source, context, schema=schema), fmt, vocabulary(schema).prefixes
     )

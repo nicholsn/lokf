@@ -237,7 +237,20 @@ def _vocab_relative(iri: object) -> bool:
     return isinstance(iri, str) and not iri.startswith("@") and ":" not in iri
 
 
-def schema_context(schema_path: str | pathlib.Path | None = None) -> dict:
+SchemaSource = str | pathlib.Path | SchemaInputs | None
+
+
+def projection_schema(source: SchemaSource) -> SchemaSource:
+    """Pin explicit local schema inputs for all consumers of one projection."""
+    if source is None or isinstance(source, SchemaInputs):
+        return source
+    try:
+        return capture(source)
+    except UnpinnedImport:
+        return source
+
+
+def schema_context(schema_path: SchemaSource = None) -> dict:
     """Return the ``@context`` that projects a bundle under *schema_path*.
 
     With no *schema_path*, this is the published context
@@ -249,7 +262,7 @@ def schema_context(schema_path: str | pathlib.Path | None = None) -> dict:
     if schema_path is None:
         return load_context()
     try:
-        inputs = capture(schema_path)
+        inputs = schema_path if isinstance(schema_path, SchemaInputs) else capture(schema_path)
     except UnpinnedImport:
         # Preserve remote-import support, but never cache a live remote input.
         from linkml.generators.jsonldcontextgen import ContextGenerator
@@ -761,9 +774,11 @@ def _vocabulary(inputs: SchemaInputs) -> "Vocabulary":
     return Vocabulary(schema)
 
 
-def vocabulary(schema_path: str | pathlib.Path | None = None) -> Vocabulary:
+def vocabulary(schema_path: SchemaSource = None) -> Vocabulary:
     """Return the :class:`Vocabulary` of the schema and every schema it
     imports (cached per file)."""
+    if isinstance(schema_path, SchemaInputs):
+        return _vocabulary(schema_path)
     resolved = str(_resolve(_SCHEMA_NAME, schema_path))
     try:
         inputs = capture(resolved)

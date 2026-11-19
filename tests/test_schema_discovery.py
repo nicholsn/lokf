@@ -401,3 +401,19 @@ def test_missing_selector_cannot_discover_an_unrelated_schema(project):
         mcp.get_vocabulary(bundle=str(missing))
     # The explicit override remains usable independently of the discovery anchor.
     assert "Note" in mcp.get_vocabulary(bundle=str(missing), schema=str(project / "domain.yaml"))["classes"]
+
+
+def test_convert_keeps_the_classes_and_context_from_one_capture(project, monkeypatch):
+    from lokf import schema
+
+    root = project / "domain.yaml"
+    original = schema._schema_context
+    def edit_after_context(*args):
+        result = original(*args)
+        revise(root, "SpecialNote", "AnotherNote")
+        return result
+
+    monkeypatch.setattr(schema, "_schema_context", edit_after_context)
+    result = mcp.convert(str(project / "bundle"), "nt")
+    assert "<https://example.org/SpecialNote>" in result["rdf"]
+    assert "AnotherNote" in mcp.get_vocabulary(bundle=str(project))["classes"]
