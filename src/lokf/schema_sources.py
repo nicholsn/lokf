@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from dataclasses import dataclass
-from functools import cached_property, lru_cache
+from functools import cached_property, lru_cache, wraps
 from hashlib import sha256
 from importlib.metadata import version
 import json
@@ -24,6 +24,21 @@ MAX_SOURCES = 256
 
 class UnpinnedImport(ValueError):
     """An import cannot be captured as local source bytes."""
+
+
+def cache_per_root(build):
+    """Retain the latest interpretation of each of the most recent roots."""
+    @lru_cache(maxsize=CACHE_SIZE)
+    def root_cache(path):
+        return lru_cache(maxsize=1)(build)
+
+    @wraps(build)
+    def cached(inputs, *args):
+        return root_cache(inputs.sources[0].path)(inputs, *args)
+
+    cached.cache_clear = root_cache.cache_clear
+    cached.cache_info = root_cache.cache_info  # occupancy counts roots
+    return cached
 
 
 @lru_cache(maxsize=CACHE_SIZE)
@@ -44,7 +59,7 @@ def _definition(data: bytes, path: str):
     return result
 
 
-def _local_caches(view):
+def local_view_caches(view):
     """SchemaView's class-level memoizers otherwise retain every view forever.
     Give a captured view its own bounded memoizers and lifetime instead.
     """
@@ -87,7 +102,7 @@ class SchemaInputs:
         from linkml_runtime.utils.schemaview import SchemaView
 
         definitions = [_definition(s.data, s.path) for s in self.sources]
-        view = _local_caches(SchemaView(definitions[0]))
+        view = local_view_caches(SchemaView(definitions[0]))
         view.schema_map = {key: definitions[index] for key, index in self.keys}
         view.imports_closure()  # all inputs are already present; no file reads
         return view
@@ -163,7 +178,7 @@ def capture(path: str | Path) -> SchemaInputs:
         def load_import(self, imp, from_schema=None):
             return read(_import_path(self, imp, from_schema or self.schema))
 
-    view = _local_caches(CapturedView(read(Path(resolved))))
+    view = local_view_caches(CapturedView(read(Path(resolved))))
     view.imports_closure()
     keys = tuple((str(key), positions[str(schema.source_file)])
                  for key, schema in view.schema_map.items())
