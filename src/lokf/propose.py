@@ -166,10 +166,10 @@ def extract_links(concept: Concept, bundle: Bundle) -> list[Link]:
     ]
 
 
-def _asserted_iris(concept: Concept, bundle: Bundle, vocab: Vocabulary) -> set[str]:
+def _asserted_iris(concept: Concept, bundle: Bundle, vocab: Vocabulary, slots: dict[str, bool]) -> set[str]:
     """Target IRIs already asserted in frontmatter (slots + reified relations)."""
     iris = set()
-    for name in vocab.references(concept.type):
+    for name in slots:
         for value in concept.reference_values(name):
             if isinstance(value, str):
                 iris.add(bundle.resolve(vocab.expand(value)))
@@ -179,10 +179,9 @@ def _asserted_iris(concept: Concept, bundle: Bundle, vocab: Vocabulary) -> set[s
     return iris
 
 
-def _domain_ok(relation: Relation, source: Concept, vocab: Vocabulary) -> bool:
+def _domain_ok(relation: Relation, source: Concept, slots: dict[str, bool]) -> bool:
     if relation.is_slot:
-        slot = vocab.induced_slots(source.type).get(relation.name)
-        return bool(slot and slot.get("multivalued") and relation.name in vocab.references(source.type))
+        return slots.get(relation.name, False)
     return (
         not relation.domains
         or "Concept" in relation.domains
@@ -204,12 +203,12 @@ def _adjacent(sentence: str, link_text: str, cue: re.Match) -> bool:
 
 
 def _classify(
-    source: Concept, link: Link, vocab: Vocabulary, target_iri: str
+    source: Concept, link: Link, vocab: Vocabulary, target_iri: str, slots: dict[str, bool]
 ) -> Proposal | None:
     """Pick a relation for one link from the cue table (fallback: relatedTo)."""
     for pattern, name, confidence in CUE_TABLE:
         relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
-        if relation is None or not _domain_ok(relation, source, vocab):
+        if relation is None or not _domain_ok(relation, source, slots):
             continue
         match = pattern.search(link.sentence)
         if match is None:
@@ -228,7 +227,7 @@ def _classify(
         )
     name, confidence = _FALLBACK
     relation = vocab.relation_slots.get(name) or vocab.relation_types.get(name)
-    if relation is None or not _domain_ok(relation, source, vocab):
+    if relation is None or not _domain_ok(relation, source, slots):
         return None
     return Proposal(
         source=source,
@@ -248,15 +247,20 @@ def propose(
     """Propose relations for prose links not already asserted in frontmatter."""
     vocab = vocab if vocab is not None else vocabulary()
     proposals = []
+    slots_by_type = {}
     for source in [concept] if concept is not None else bundle.concepts:
-        asserted = _asserted_iris(source, bundle, vocab)
-        for link in extract_links(source, bundle):
-            if link.target is None:
-                continue
+        links = [link for link in extract_links(source, bundle) if link.target is not None]
+        if not links:
+            continue
+        if source.type not in slots_by_type:
+            slots_by_type[source.type] = vocab.reference_cardinalities(source.type)
+        slots = slots_by_type[source.type]
+        asserted = _asserted_iris(source, bundle, vocab, slots)
+        for link in links:
             target_iri = bundle.iri(link.target)
             if vocab.expand(target_iri) in asserted:
                 continue
-            proposal = _classify(source, link, vocab, target_iri)
+            proposal = _classify(source, link, vocab, target_iri, slots)
             if proposal is not None:
                 proposals.append(proposal)
     return proposals
