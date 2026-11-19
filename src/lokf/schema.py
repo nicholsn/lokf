@@ -458,16 +458,21 @@ class Vocabulary:
     def references(self, type_name: str) -> set[str]:
         """The slots a concept of *type_name* holds concept ids in. A type no
         class declares is a plain Concept (SPEC §8), so it gets Concept's."""
+        return set(self.reference_cardinalities(type_name))
+
+    def reference_cardinalities(self, type_name: str) -> dict[str, bool]:
+        """Map effective reference slots to their multivalued flag."""
         if type_name not in self._classes:
             type_name = "Concept"
         ancestors = self._ancestors(self._classes, type_name)
-        return {
-            name
-            for name, holders in self.reference_slots.items()
-            # Inherited from a holder, and not narrowed to a string since
-            if not holders.isdisjoint(ancestors)
-            and self._holds_concepts(self._induced(type_name, name))
-        }
+        references = {}
+        for name, holders in self.reference_slots.items():
+            if holders.isdisjoint(ancestors):
+                continue
+            slot = self._induced(type_name, name)
+            if self._holds_concepts(slot):
+                references[name] = bool(slot["multivalued"])
+        return references
 
     def subclasses_of(self, ancestor: str) -> set[str]:
         """Class names descending from *ancestor* (inclusive), via ``is_a``."""
