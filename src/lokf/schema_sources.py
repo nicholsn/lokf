@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from hashlib import sha256
 from importlib.metadata import version
 import json
@@ -106,6 +106,11 @@ class SchemaInputs:
         return documents[0], dict(zip(names, documents))
 
     def metadata(self) -> dict:
+        # Callers may edit their result. Keep only the immutable encoding here.
+        return json.loads(self._encoded_metadata)
+
+    @cached_property
+    def _encoded_metadata(self) -> str:
         hashes = [sha256(s.data).hexdigest() for s in self.sources]
         records = [{"id": parsed(s.data).get("id"), "sha256": hashes[i],
                     "imports": [hashes[j] for j in self.edges[i]]}
@@ -114,7 +119,7 @@ class SchemaInputs:
                     "sources": sorted(records, key=lambda r: (str(r["id"]), r["sha256"])),
                     "linkml_runtime": version("linkml-runtime")}
         digest = sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-        return {"complete": True, "revision": f"sha256:{digest}", **identity}
+        return json.dumps({"complete": True, "revision": f"sha256:{digest}", **identity}, separators=(",", ":"))
 
 
 _cache: OrderedDict[str, SchemaInputs] = OrderedDict()
@@ -162,9 +167,10 @@ def capture(path: str | Path) -> SchemaInputs:
     view.imports_closure()
     keys = tuple((str(key), positions[str(schema.source_file)])
                  for key, schema in view.schema_map.items())
+    definitions = {str(schema.source_file): schema for schema in view.schema_map.values()}
     edges = []
     for source in sources:
-        definition = _definition(source.data, source.path)
+        definition = definitions[source.path]
         targets = []
         for imp in definition.imports:
             location = _import_path(view, imp, definition)

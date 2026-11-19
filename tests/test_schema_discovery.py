@@ -434,3 +434,11 @@ def test_proposal_apply_recognizes_authored_reference_forms(project, assertion):
     before = note.read_bytes()
     assert mcp.propose_relations(str(note.parent), apply=True) == []
     assert note.read_bytes() == before
+
+
+def test_metadata_edits_are_private_to_the_response(project):
+    first = mcp.get_vocabulary(bundle=str(project), include_metadata=True)["schema_metadata"]
+    first["sources"][0]["imports"].append("edited by caller")
+    second = mcp.get_vocabulary(bundle=str(project), include_metadata=True)["schema_metadata"]
+    assert first["revision"] == second["revision"]
+    assert first["sources"] != second["sources"]
