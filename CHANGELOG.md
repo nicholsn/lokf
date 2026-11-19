@@ -51,6 +51,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
+- Vocabulary discovery and relation proposals in the CLI and MCP now use the
+  selected bundle's declared domain vocabulary. A running MCP server picks up
+  edits to that vocabulary and its local imports on the next call.
 - The graph explorer's concept picker ranks the exact title first, then
   titles that start with the term, so typing a concept's name and pressing
   Enter opens it. Before, Enter opened the first title, alphabetically, that

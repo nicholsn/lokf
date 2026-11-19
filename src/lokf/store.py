@@ -167,6 +167,9 @@ class GraphStore:
         schema's prefixes."""
         from lokf import rdf
 
+        from lokf.schema import projection_schema
+
+        schema = projection_schema(schema)
         if schema is not None:
             kw.setdefault("prefixes", vocabulary(schema).prefixes)
         return cls.from_graph(rdf.graph_of(path, schema=schema), **kw)
