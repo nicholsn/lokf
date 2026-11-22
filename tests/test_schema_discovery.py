@@ -190,6 +190,27 @@ def test_root_and_published_context_edits_are_visible(project, tmp_path):
     assert load_context(context)["@vocab"].endswith("v2/")
 
 
+def test_caller_edits_to_loaded_documents_stay_local(project, tmp_path):
+    other = tmp_path / "other"
+    shutil.copytree(project, other)
+    load_schema(project / "domain.yaml")["classes"]["LocalOnly"] = {"is_a": "Concept"}
+    found = mcp.get_vocabulary(bundle=str(other), include_metadata=True)
+    assert "LocalOnly" not in found["classes"]
+    assert found["schema_metadata"]["complete"]
+
+    context = project / "context.jsonld"
+    other_context = other / "context.jsonld"
+    context.write_text('{"@context":{"Note":{"@id":"ex:Note"}}}')
+    shutil.copyfile(context, other_context)
+    load_context(context)["Note"]["@id"] = "ex:LocalOnly"
+    assert load_context(other_context)["Note"]["@id"] == "ex:Note"
+
+    root = project / "domain.yaml"
+    original_id = schema_context(root)["Note"]["@id"]
+    schema_context(root)["Note"]["@id"] = "ex:LocalOnly"
+    assert schema_context(root)["Note"]["@id"] == original_id
+
+
 def test_relative_paths_and_portable_identity(project, tmp_path, monkeypatch):
     other = tmp_path / "other"
     shutil.copytree(project, other)

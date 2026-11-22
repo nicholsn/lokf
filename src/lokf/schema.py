@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import pathlib
 import re
+from copy import deepcopy
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib import resources
@@ -144,12 +145,12 @@ def domain_schema(
 
 def load_schema(path: str | pathlib.Path | None = None) -> dict:
     """Return the LOKF LinkML schema as a plain dict (cached per file)."""
-    return _load_schema(str(_resolve(_SCHEMA_NAME, path)))
+    return deepcopy(_load_schema(str(_resolve(_SCHEMA_NAME, path))))
 
 
 def load_context(path: str | pathlib.Path | None = None) -> dict:
     """Return the published JSON-LD ``@context`` mapping (cached per file)."""
-    return _load_context(_resolve(_CONTEXT_NAME, path).read_bytes())
+    return deepcopy(_load_context(_resolve(_CONTEXT_NAME, path).read_bytes()))
 
 
 # ParameterType values, each naming the lokf Parameter-kind class it expands to.
@@ -269,7 +270,7 @@ def schema_context(schema_path: SchemaSource = None) -> dict:
 
         generated = json.loads(ContextGenerator(str(schema_path)).serialize())["@context"]
         return _domain_context(generated, load_context()["@vocab"])
-    return _schema_context(inputs, _resolve(_CONTEXT_NAME, None).read_bytes())
+    return deepcopy(_schema_context(inputs, _resolve(_CONTEXT_NAME, None).read_bytes()))
 
 
 def humanize(name: str) -> str:
