@@ -53,22 +53,22 @@ If `lokf` is installed in a project virtualenv rather than on the global
 
 ## The tools
 
-The server exposes seven tools, mirroring the toolkit surface. Each returns
-JSON-serializable data (and a `{"error": …}` object on bad input rather than
-throwing):
+Use a bundle directory on the server's filesystem for `bundle`. In
+`describe_concept`, `concept_id` is a path relative to the bundle, such as
+`metrics/weekly-active-users`. Tools take named JSON arguments. Optional
+arguments below show their defaults.
 
-| Tool | What it does |
-|---|---|
-| `list_concepts` | Fast index of a bundle: `{concept_id, type, title, iri}` for every concept. |
-| `describe_concept` | Full record of one concept — `{iri, type, title, body, frontmatter, turtle}`. |
-| `sparql_query` | Run SPARQL over the bundle. SELECT → `{columns, rows}`, ASK → `{boolean}`, CONSTRUCT/DESCRIBE → `{turtle}`. Schema prefixes preset. |
-| `convert` | Project a concept file or bundle directory to RDF: `{format, rdf}` (`ttl`, `nt`, `jsonld`, …). |
-| `propose_relations` | Suggest typed relations from prose links; optionally `apply` them, with a per-proposal `applied` flag. |
-| `get_vocabulary` | The selected schema vocabulary: `{classes, relations}`, or the full manifest with `all=true`. |
-| `bundle_summary` | Orientation at a glance: `{concept_count, types, triple_count, relation_edge_count}`. |
+| Tool and arguments | Result |
+| --- | --- |
+| `list_concepts(bundle)` | One row per concept with `concept_id`, `type`, `title`, `iri`, lifecycle `status` and `trust_tier`. |
+| `describe_concept(bundle, concept_id)` | IRI, type, title, Markdown body, frontmatter, trust summary and Turtle projection. |
+| `sparql_query(bundle, query)` | SELECT returns `columns` and `rows`, ASK returns `boolean`, and CONSTRUCT or DESCRIBE returns `turtle`. Schema prefixes are preset. |
+| `convert(source, format="ttl")` | A concept file or bundle as RDF, with `format` and `rdf`. Formats include `ttl`, `nt`, `jsonld`, `xml`, `n3` and `trig`. |
+| `propose_relations(bundle, min_confidence=0.0, apply=false, schema=null)` | Typed relations suggested from prose links, with confidence and rationale. With `apply=true`, writes accepted proposals to frontmatter and reports `applied` for each row. |
+| `get_vocabulary(all=false, bundle=null, schema=null, include_metadata=false)` | Class CURIEs and relation rows. Use `all=true` for the manifest of classes, slots and enums. |
+| `bundle_summary(bundle)` | Concept, triple and relation-edge counts, counts by type and trust tier, and a stale-concept count. |
 
-Each tool takes a bundle or concept path (and, where relevant, a SPARQL string
-or output format) and hands back structured data the agent can reason over.
+To query several bundles together, use the [registry MCP server](/toolkit/registry/#for-agents).
 
 ## Discover a project's vocabulary
 
@@ -136,12 +136,12 @@ base with no bespoke code:
   from `describe_concept`), and `sparql_query` the graph to confirm the new
   triples landed on the right subjects.
 - **Enrich** — call `propose_relations` to surface typed edges the prose already
-  implies, review the confidence and rationale, and apply the ones worth
-  keeping.
+  implies, review the confidence and rationale, and pass `min_confidence`
+  and `apply=true` to write proposals at or above the chosen threshold.
 - **Answer questions** — turn a natural-language question into a `sparql_query`
   against the bundle and read back the rows.
-- **Stay schema-correct** — call `get_vocabulary` to discover which relations a
-  class is allowed to use.
+- **Stay schema-correct** — call `get_vocabulary` to discover the classes and relations a
+  project defines.
 
 For the skills that package these workflows for coding agents, see
 [Agents](/toolkit/agents/).

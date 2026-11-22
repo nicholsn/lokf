@@ -125,6 +125,8 @@ schema = "schema/my-domain.yaml"
 
 New sites set `schemaBrowser: true` in `site.config.mjs`. Set it to `false`
 and rebuild to omit the tab and free the `/schema/` route for content.
+With the browser enabled, a concept or authored section under that path makes
+the build fail and names the conflicting route.
 Other consumers can run `lokf export knowledge --out-dir build/export --schema-docs`
 to read the resolved model from `schema.json`. [Domain vocabularies](/guide/domain-vocabularies/) · [Exported artifacts](/reference/artifacts/#static-site-exports)
 

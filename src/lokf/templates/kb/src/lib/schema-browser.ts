@@ -14,10 +14,25 @@ export function schemaPath(model: Schema, kind: SchemaKind, name: string) {
   return `schema/${kind}/${segment}`;
 }
 
+const schemaRoute = /^schema(?:\/|$)/i;
+
+export function checkSectionRoutes(sections: string[], viewPaths: Iterable<string>, schemaBrowser: boolean) {
+  const views = new Set(Array.from(viewPaths, path => path.toLowerCase()));
+  for (const section of sections) {
+    const source = `knowledge/${section}/index.md`;
+    if (schemaBrowser && schemaRoute.test(section)) {
+      throw new Error(`Schema browser route collision at /${section}/ with ${source}. Rename the section or disable schemaBrowser.`);
+    }
+    if (views.has(section.toLowerCase())) {
+      throw new Error(`View route /${section}/ collides with ${source}. Rename the section or change the view ID.`);
+    }
+  }
+}
+
 export function checkSchemaRoutes(model: Schema, concepts: {id: string}[], viewPaths: Iterable<string>,
                                   publicDir = join(process.cwd(), 'public')) {
   for (const path of [...concepts.map(entry => entry.id), ...viewPaths]) {
-    if (/^schema(?:\/|$)/i.test(path)) {
+    if (schemaRoute.test(path)) {
       throw new Error(`Schema browser route collision at /${path}/. Rename the record or view, or disable schemaBrowser.`);
     }
   }

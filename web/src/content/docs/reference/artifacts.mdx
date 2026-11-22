@@ -29,6 +29,8 @@ flowchart TD
 | `lokf.schema.json`    | `gen-json-schema`    | Validates concept frontmatter (JSON Schema).       |
 | `lokf.shacl.ttl`      | `lokf-build`          | Validates the resulting RDF graph (SHACL).         |
 | `lokf.owl.ttl`        | `gen-owl`            | Class/property ontology for reasoning & alignment. |
+| `lokf.sql` | `gen-sqltables` | Relational schema with typed tables and foreign keys. |
+| `src/lokf/datamodel.py` | `gen-python` | Typed Python bindings shipped in the package. |
 
 \* The published context additionally aliases OKF's `type` field to the
 JSON-LD `@type` keyword and `id` to `@id`, so that authoring in plain OKF

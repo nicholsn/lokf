@@ -18,7 +18,7 @@ test('schema graph includes inheritance, overrides and unused types with bounded
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkSchemaRoutes, schemaPath, slotCardinality } from '../src/lib/schema-browser.ts';
+import { checkSchemaRoutes, checkSectionRoutes, schemaPath, slotCardinality } from '../src/lib/schema-browser.ts';
 
 test('schema paths distinguish case and punctuation and protect emitted pages', t => {
   const model = { classes: [{name: 'Gene'}, {name: 'gene'}, {name: 'β chain'}, {name: 'Note'}], slots: [], types: [], enums: [] };
@@ -43,4 +43,15 @@ test('slot cardinality renders effective inclusive bounds, including zero', () =
   assert.equal(slotCardinality({multivalued: true, minimum_cardinality: 2, maximum_cardinality: 5}), '2..5');
   assert.equal(slotCardinality({multivalued: true, exact_cardinality: 2}), '2..2');
   assert.equal(slotCardinality({multivalued: true, maximum_cardinality: 0}), '0..0');
+});
+
+
+test('authored sections share only the enabled schema prefix and emitted view URLs', () => {
+  const sections = ['schema/guide', 'views/spare', 'views/metrics/page/3'];
+  const views = ['views/metrics', 'views/metrics/page/2'];
+  assert.doesNotThrow(() => checkSectionRoutes(sections, views, false));
+  assert.throws(() => checkSectionRoutes(sections, views, true), /knowledge\/schema\/guide\/index.md/);
+  assert.throws(() => checkSectionRoutes(['schema'], [], true), /knowledge\/schema\/index.md/);
+  assert.throws(() => checkSectionRoutes(['views/metrics'], views, false), /knowledge\/views\/metrics\/index.md/);
+  assert.throws(() => checkSectionRoutes(['views/Metrics/page/2'], views, true), /View route/);
 });

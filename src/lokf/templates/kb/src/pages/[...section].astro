@@ -1,6 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
+import config from '../../site.config.mjs';
+import { checkSectionRoutes } from '../lib/schema-browser';
+import { loadViews } from '../lib/view-data';
 
 /**
  * A section's `index.md` (OKF §3) is its authored guide, as the root one is
@@ -9,12 +12,14 @@ import { getCollection } from 'astro:content';
  * collection, so a bundle without sections builds without warnings.
  */
 export async function getStaticPaths() {
-  const concepts = new Set((await getCollection('knowledge')).map((entry) => entry.id));
+  const [entries, navigation] = await Promise.all([getCollection('knowledge'), loadViews()]);
+  const concepts = new Set(entries.map(entry => entry.id));
   const guides = import.meta.glob<any>('/knowledge/**/index.md', { eager: true });
-  return Object.entries(guides)
+  const sections = Object.entries(guides)
     .map(([file, guide]) => ({ section: file.replace(/^\/knowledge\//, '').replace(/\/?index\.md$/, ''), guide }))
-    .filter(({ section }) => section && !concepts.has(section))
-    .map(({ section, guide }) => ({ params: { section }, props: { section, guide } }));
+    .filter(({ section }) => section && !concepts.has(section));
+  checkSectionRoutes(sections.map(({ section }) => section), navigation.pages.keys(), config.schemaBrowser === true);
+  return sections.map(({ section, guide }) => ({ params: { section }, props: { section, guide } }));
 }
 
 const { section, guide } = Astro.props;

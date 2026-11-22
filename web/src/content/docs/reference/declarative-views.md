@@ -129,6 +129,8 @@ Continuation routes start at page two. An index uses `/views/<view-id>/page/<n>/
 lokf export knowledge --out-dir build/views --views lokf.views.yaml
 ```
 
+If a generated view URL coincides with an authored section guide, the build reports the conflicting path. Give the view or section a distinct URL.
+
 The version 1 LinkML schema describes the keys and structures you can write. The compiler also checks the predicates, types, and fields against the vocabulary used for this export. An unknown predicate produces an error with its position in the manifest. For a valid path with no matching records, the diagnostics report the first step that produced an empty result and how many roots encountered it. [Views manifest schema (LinkML)](/schemas/lokf-views-v1.yaml) · [Domain vocabularies](/guide/domain-vocabularies/)
 
 The manifest is site configuration. Its table and path design draws on SHACL UI's use of a focus node, inverse relations, and linked values in tables. LOKF uses the manifest to choose entry points and generate canonical links and static routes. [SHACL 1.2 UI, §12.2.10](https://www.w3.org/TR/2026/WD-shacl12-ui-20261111/)
