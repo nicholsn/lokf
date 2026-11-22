@@ -18,16 +18,24 @@ uv run lokf propose mykb/ --json             # same list, machine-readable
 uv run lokf propose mykb/ --min-confidence 0.5   # drop the weak ones
 uv run lokf propose mykb/ --apply --min-confidence 0.5   # write frontmatter
 uv run lokf propose mykb/ --json --apply     # apply + JSON report of what was written
+uv run lokf propose mykb/ --schema domain.yaml --json   # explicit vocabulary
 ```
+
+CLI and MCP proposals discover the bundle project's `[tool.lokf].schema` unless
+an explicit schema overrides it. A broken declaration is an error, including in
+apply mode. Custom reference slots, inherited domains and slot overrides are
+respected; custom predicates still need existing cue rules to be inferred.
 
 Or from Python:
 
 ```python
 import lokf
 from lokf.propose import apply, propose
+from lokf.schema import discover_vocabulary
 
 bundle = lokf.load_bundle("mykb")
-proposals = propose(bundle)                  # optionally: vocab=..., concept=...
+vocab, _ = discover_vocabulary(bundle="mykb")
+proposals = propose(bundle, vocab=vocab)      # optionally: concept=...
 for p in proposals:
     print(p.source.concept_id, p.link.text, p.relation.curie,
           p.confidence, p.rationale)

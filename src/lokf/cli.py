@@ -627,20 +627,20 @@ def propose(
     json_: bool = typer.Option(
         False, "--json", help="Emit JSON instead of a table (composes with --apply)."
     ),
+    schema: Optional[Path] = typer.Option(None, "--schema", help="Override the bundle's declared schema."),
 ) -> None:
     """Propose typed relations from markdown links in concept bodies."""
     from lokf.model import load_bundle
     from lokf.propose import apply, proposal_row
     from lokf.propose import propose as propose_relations
-    from lokf.schema import vocabulary
-
+    vocab, _ = _discover_or_exit(bundle_dir, schema)
     bundle = load_bundle(bundle_dir)
     if not bundle.concepts:
         _err(f"no concepts found in {bundle_dir}")
         raise typer.Exit(1)
     proposals = [
         p
-        for p in propose_relations(bundle, vocabulary())
+        for p in propose_relations(bundle, vocab)
         if p.confidence >= min_confidence
     ]
     applied: list = []
@@ -696,21 +696,31 @@ def vocab(
         help="Emit the full vocabulary - classes, slots, and value enums with their "
         "descriptions - not just the typed relations.",
     ),
+    bundle: Optional[Path] = typer.Option(None, "--bundle", help="Bundle, concept or project path for schema discovery."),
+    schema: Optional[Path] = typer.Option(None, "--schema", help="Explicit schema; takes precedence over --bundle."),
+    include_metadata: bool = typer.Option(False, "--include-metadata", help="Include schema/import identity; requires --json."),
 ) -> None:
     """Show the typed-relation vocabulary; pass --all for the full schema reference."""
-    from lokf.schema import vocabulary
-
-    v = vocabulary()
+    if include_metadata and not json_:
+        _err("--include-metadata requires --json")
+        raise typer.Exit(1)
+    v, metadata = _discover_or_exit(bundle, schema, include_metadata=include_metadata)
     if all_:
         manifest = v.manifest()
+        if include_metadata:
+            manifest["schema_metadata"] = metadata
         if json_:
             typer.echo(json.dumps(manifest, indent=2))
             return
         _echo_vocab_manifest(manifest)
         return
-    relations = sorted(v.relation_types.values(), key=lambda r: r.name)
+    relations = v.relations()
     if json_:
-        typer.echo(json.dumps([r.as_row() for r in relations], indent=2))
+        rows = [r.as_row() for r in relations]
+        result = {"relations": rows, "schema_metadata": metadata} if include_metadata else rows
+        typer.echo(json.dumps(result, indent=2))
+        return
+    if not relations:
         return
     name_w = max(len(r.name) for r in relations)
     curie_w = max(len(r.curie) for r in relations)
@@ -719,6 +729,17 @@ def vocab(
         typer.echo(
             f"{r.name.ljust(name_w)}  {key}  {r.curie.ljust(curie_w)}  {r.description}"
         )
+
+
+def _discover_or_exit(bundle, schema, *, include_metadata=False):
+    import yaml
+    from lokf.schema import discover_vocabulary
+
+    try:
+        return discover_vocabulary(bundle, schema, include_metadata=include_metadata)
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        _err(str(exc))
+        raise typer.Exit(1) from exc
 
 
 def _echo_vocab_manifest(manifest: dict) -> None:

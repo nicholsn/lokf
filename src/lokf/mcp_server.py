@@ -146,7 +146,8 @@ def convert(source: str, format: str = "ttl") -> dict:
 
 @server.tool()
 def propose_relations(
-    bundle: str, min_confidence: float = 0.0, apply: bool = False
+    bundle: str, min_confidence: float = 0.0, apply: bool = False,
+    schema: str | None = None,
 ) -> list[dict]:
     """Propose typed relations from the markdown links in concept prose.
 
@@ -154,16 +155,18 @@ def propose_relations(
     rationale}. Proposals below ``min_confidence`` are dropped. When ``apply``
     is True the accepted proposals are written into the source files'
     frontmatter and each carries an ``applied`` flag.
+    Resolve the bundle's declared vocabulary, or use an explicit ``schema``.
     """
     from lokf.model import load_bundle
     from lokf.propose import apply as apply_proposals
     from lokf.propose import propose, proposal_row
-    from lokf.schema import vocabulary
+    from lokf.schema import discover_vocabulary
 
+    vocab, _ = discover_vocabulary(bundle, schema)
     b = load_bundle(bundle)
     proposals = [
         p
-        for p in propose(b, vocabulary())
+        for p in propose(b, vocab)
         if p.confidence >= min_confidence
     ]
     applied_ids: set[int] | None = None
@@ -175,7 +178,10 @@ def propose_relations(
 
 
 @server.tool()
-def get_vocabulary(all: bool = False) -> dict:
+def get_vocabulary(
+    all: bool = False, bundle: str | None = None, schema: str | None = None,
+    include_metadata: bool = False,
+) -> dict:
     """Return the LOKF vocabulary: {classes, relations} by default.
 
     ``classes`` maps class name -> CURIE. ``relations`` is a list of
@@ -186,17 +192,21 @@ def get_vocabulary(all: bool = False) -> dict:
     Pass ``all=True`` for the full schema reference instead: every class,
     frontmatter slot, and value enum with its own description (see
     ``Vocabulary.manifest()``) - the same data as ``lokf vocab --all --json``.
+    ``bundle`` anchors project discovery; ``schema`` overrides it. With neither,
+    retain the legacy cwd/core vocabulary. ``include_metadata`` adds
+    ``schema_metadata`` with a content/import identity (not a bundle revision).
+    A live remote import yields complete=False and revision=None.
     """
-    from lokf.schema import vocabulary
+    from lokf.schema import discover_vocabulary
 
-    v = vocabulary()
+    v, metadata = discover_vocabulary(bundle, schema, include_metadata=include_metadata)
     if all:
-        return v.manifest()
-    relations = sorted(v.relation_types.values(), key=lambda r: r.name)
-    return {
-        "classes": dict(v.classes),
-        "relations": [r.as_row() for r in relations],
-    }
+        result = v.manifest()
+    else:
+        result = {"classes": dict(v.classes), "relations": [r.as_row() for r in v.relations()]}
+    if include_metadata:
+        result["schema_metadata"] = metadata
+    return result
 
 
 @server.tool()
@@ -212,10 +222,10 @@ def bundle_summary(bundle: str) -> dict:
     from lokf import trust
     from lokf.export import to_cytoscape
     from lokf.model import load_bundle
-    from lokf.schema import vocabulary
+    from lokf.schema import projection_schema, vocabulary
     from lokf.store import GraphStore
 
-    schema = _schema(bundle)
+    schema = projection_schema(_schema(bundle))
     b = load_bundle(bundle)
     types: dict[str, int] = {}
     tiers: dict[str, int] = {}
