@@ -176,65 +176,6 @@ def convert(
         typer.echo(data, nl=False)
 
 
-def _class_defs(schema_file: str) -> dict:
-    """Every class's own closed JSON Schema definition, keyed by name -
-    matching the closed-world (`additionalProperties: false` per class)
-    shape ``lokf validate`` already validates against."""
-    from linkml.generators.jsonschemagen import JsonSchemaGenerator
-
-    return json.loads(JsonSchemaGenerator(schema_file, not_closed=False).serialize())["$defs"]
-
-
-def _nested_errors(error):
-    """Descend union failures, omitting branches incompatible with the value type."""
-    if not error.context:
-        yield error
-        return
-    branches = {}
-    for child in error.context:
-        branch = next(iter(child.schema_path), None)
-        branches.setdefault(branch, []).append(child)
-    compatible = [group for group in branches.values() if not any(
-        child.validator == "type" and list(child.absolute_path) == list(error.absolute_path)
-        for child in group
-    )]
-    for group in compatible or branches.values():
-        for child in group:
-            yield from _nested_errors(child)
-
-
-def _sharpen_anyof_message(message: str, source, defs: dict) -> str:
-    """Select the declared concept class, then expose nested field failures."""
-    if "is not valid under any of the given schemas" not in message:
-        return message
-    instance = getattr(source, "instance", None)
-    if not isinstance(instance, dict):
-        return message
-    class_name = instance.get("type")
-    if not isinstance(class_name, str) or class_name not in defs:
-        if "type" not in instance:
-            return message
-        return (
-            f"{message}\n  hint: `type: {class_name!r}` isn't a class this schema "
-            "declares. A project-specific type needs a domain vocabulary that "
-            "`imports: [lokf]` and adds it - see `lokf validate --schema`."
-        )
-    import jsonschema
-
-    sub = {"$defs": defs, **defs[class_name]}
-    validator = jsonschema.validators.validator_for(sub)(sub)
-    specifics = []
-    prefix = list(getattr(source, "absolute_path", []))
-    for error in validator.iter_errors(instance):
-        for detail in _nested_errors(error):
-            path = "/" + "/".join(str(part).replace("~", "~0").replace("/", "~1")
-                                   for part in prefix + list(detail.absolute_path))
-            text = f"{path}: {detail.message}"
-            if text not in specifics:
-                specifics.append(text)
-    return f"{message}\n  on {class_name}: " + "; ".join(specifics) if specifics else message
-
-
 # ---------------------------------------------------------------------------
 # validate
 # ---------------------------------------------------------------------------
@@ -319,147 +260,17 @@ def validate(
     Needs LinkML, which the core install leaves out: ``pip install
     'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
     """
-    from lokf.model import load_bundle
-    from lokf.schema import schema_path
+    from lokf.validation import validate_bundle
 
-    if shacl:
-        try:
-            import pyshacl  # noqa: F401
-        except ModuleNotFoundError:
-            _err("SHACL validation needs the optional extra: pip install 'lokf[shacl]'")
-            raise typer.Exit(1)
-
-    # LinkML is deliberately not a core dependency (see pyproject's `build`
-    # extra), so validation is opt-in. Import the validator rather than shelling
-    # out to `linkml-validate`: an import resolves in the interpreter running
-    # lokf, while the binary only resolves if that environment's bin/ happens to
-    # be on PATH - so a correct `lokf[build]` install invoked as
-    # `.venv/bin/lokf` used to fail the same way a missing one did.
-    try:
-        from linkml.validator import validate as linkml_validate
-        from linkml.validator.report import Severity
-    except ModuleNotFoundError:
-        _err(
-            "validation needs LinkML, which the core install leaves out.\n"
-            "  install:  uv pip install 'lokf[build]'\n"
-            "  one-off:  uvx --from 'lokf[build]' lokf validate <bundle>"
-        )
-        raise typer.Exit(1)
-
-    schema = _domain_schema(schema, bundle_dir)
-    try:
-        sch = schema_path(schema)
-    except FileNotFoundError as exc:
-        _err(str(exc))
-        raise typer.Exit(1)
-
-    if root is not None and not (check_resources or check_excerpts):
-        _err("--root requires --check-resources or --check-excerpts")
-        raise typer.Exit(2)
-    bundle = load_bundle(bundle_dir)
-    doc = dict(bundle.meta)
-    doc["concepts"] = bundle.docs()
-
-    # Load the schema through SchemaView, which records the file's path, so
-    # its imports resolve next to the schema. Given only the path string,
-    # linkml resolves them against the current directory instead, and a
-    # domain vocabulary's `imports: [lokf]` fails from anywhere else.
-    from linkml_runtime.utils.schemaview import SchemaView
-
-    report = linkml_validate(doc, SchemaView(str(sch)).schema, "KnowledgeBundle")
-    defs = None
-    for result in report.results:
-        message = result.message
-        if result.source is not None:
-            if defs is None:
-                defs = _class_defs(str(sch))
-            message = _sharpen_anyof_message(message, result.source, defs)
-        _err(f"[{result.severity.name}] {message}")
-    # Fail on ERROR/FATAL only, which is what `linkml-validate` exits non-zero
-    # on (its exit code is `1 if severity_counter[Severity.ERROR] > 0`) - a
-    # warning is reported without failing the command.
-    failed = any(r.severity in (Severity.ERROR, Severity.FATAL) for r in report.results)
-
-    from lokf.logs import check_logs
-
-    for severity, path, line, message in check_logs(bundle_dir):
-        _err(f"[{severity}] {path}:{line}: {message}")
-        failed = failed or severity == "ERROR"
-
-    from lokf.resources import exclusion_conflicts
-
-    for severity, message in exclusion_conflicts(bundle):
-        _err(f"[{severity}] {message}")
-
-    from lokf.excerpts import excerpt_conflicts
-
-    for severity, message in excerpt_conflicts(bundle):
-        _err(f"[{severity}] {message}")
-
-    from lokf.events import event_findings
-
-    for severity, message in event_findings(bundle):
-        _err(f"[{severity}] {message}")
-        failed = failed or severity == "ERROR"
-
-    if check_ids:
-        # Two files declaring one `id` each validate on their own and then
-        # merge into one subject in the graph; the schema sees concepts one at
-        # a time and SHACL only the merged node, so the bundle is the one
-        # place to look.
-        duplicates = bundle.duplicate_iris()
-        for iri, ids in duplicates:
-            _err(f"[ERROR] id declared by more than one file: {iri} ({', '.join(ids)})")
-        failed = failed or bool(duplicates)
-
-    if check_refs:
-        # Pass the schema actually validated against, so an explicit --schema
-        # that renames or adds a relation slot is honoured here too.
-        dangling = bundle.dangling_refs(schema_path=sch)
-        for concept_id, slot, target in dangling:
-            _err(
-                f"[ERROR] {concept_id}: `{slot}` target does not resolve to a "
-                f"concept in the bundle: {target}"
-            )
-        failed = failed or bool(dangling)
-
-    if check_resources:
-        from lokf.resources import check_resources as resource_findings, resource_root
-
-        for severity, message in resource_findings(bundle, root or resource_root(bundle_dir)):
-            _err(f"[{severity}] {message}")
-            failed = failed or severity == "ERROR"
-
-    excerpts: dict = {}
-    if check_excerpts:
-        from lokf.excerpts import check_excerpts as excerpt_findings
-        from lokf.resources import resource_root
-
-        for severity, message in excerpt_findings(bundle, root or resource_root(bundle_dir), excerpts):
-            _err(f"[{severity}] {message}")
-            failed = failed or severity == "ERROR"
-
-    if shacl and not failed:
-        from importlib.resources import files
-        from rdflib import Graph
-        from lokf.shacl import build_shapes, validate_graph
-
-        packaged = files("lokf") / "data"
-        if schema is None and sch.read_bytes() == (packaged / "lokf.yaml").read_bytes():
-            shapes = Graph().parse(data=(packaged / "lokf.shacl.ttl").read_text(), format="turtle")
-        else:
-            shapes = build_shapes(sch)
-        conforms, _, report_text = validate_graph(
-            bundle.graph(schema=schema), shapes, bundle.base_iri, bundle.by_iri(),
-        )
-        if not conforms:
-            _err(report_text)
-            failed = True
-
-    if failed:
-        raise typer.Exit(1)
+    report = validate_bundle(bundle_dir, schema=schema, check_ids=check_ids, check_refs=check_refs,
+                             shacl=shacl, check_resources=check_resources, check_excerpts=check_excerpts,
+                             root=root, emit=_err)
+    if report.exit_code:
+        raise typer.Exit(report.exit_code)
+    schema = report.selected_schema
+    excerpts = report.excerpts
     ok = (
-        f"OK — {len(bundle.concepts)} concepts in {bundle_dir} validate "
+        f"OK — {report.concept_count} concepts in {bundle_dir} validate "
         f"against KnowledgeBundle{f' ({_shown(schema)})' if schema else ''}."
     )
     if check_refs:

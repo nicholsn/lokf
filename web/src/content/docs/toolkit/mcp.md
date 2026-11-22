@@ -66,9 +66,44 @@ arguments below show their defaults.
 | `convert(source, format="ttl")` | A concept file or bundle as RDF, with `format` and `rdf`. Formats include `ttl`, `nt`, `jsonld`, `xml`, `n3` and `trig`. |
 | `propose_relations(bundle, min_confidence=0.0, apply=false, schema=null)` | Typed relations suggested from prose links, with confidence and rationale. With `apply=true`, writes accepted proposals to frontmatter and reports `applied` for each row. |
 | `get_vocabulary(all=false, bundle=null, schema=null, include_metadata=false)` | Class CURIEs and relation rows. Use `all=true` for the manifest of classes, slots and enums. |
+| `validate_bundle(bundle, schema=null, check_ids=false, check_refs=false, check_resources=false, check_excerpts=false, shacl=false, root=null, max_diagnostics=50)` | Content verdict, check statuses, located diagnostics and coverage of local evidence. |
 | `bundle_summary(bundle)` | Concept, triple and relation-edge counts, counts by type and trust tier, and a stale-concept count. |
 
 To query several bundles together, use the [registry MCP server](/toolkit/registry/#for-agents).
+
+## Validate a bundle
+
+Call `validate_bundle(bundle="/project/knowledge", check_ids=true, check_refs=true,
+shacl=true)` to check content against its declared vocabulary. The optional
+`schema`, `check_resources`, `check_excerpts` and `root` arguments mirror
+`lokf validate`. Install `lokf[build]` for validation and `lokf[shacl]` for SHACL.
+
+- `outcome` is `valid`, `invalid` or `incomplete`. A confirmed content error
+  yields `invalid` even if a later check cannot finish. A missing validator yields
+  `incomplete` when no content error has been established. If a bundle directory
+  cannot be scanned, the input check is unavailable and the concept count is null.
+- `checks` records each check as `passed`, `failed`, `unavailable`, `skipped`
+  (selected but never reached) or `disabled`. Warnings alone permit a pass.
+  Reference checks find missing local targets. SHACL also checks target classes.
+- Each diagnostic carries a stable `code`, `severity`, check name and message.
+  Where available, `document` is bundle-relative, `field` is a JSON Pointer for
+  the authored frontmatter or a predicate IRI for RDF, and `line` starts at 1.
+  A SHACL finding can have a null document when several files declare its subject. Use
+  `max_diagnostics` (1–100, default 50) to limit the response. `diagnostic_count`
+  counts all findings and `omitted` counts those beyond the limit. Text fields
+  are capped at 512 characters. The limit applies only to the displayed findings.
+- `excerpts` and `resources` give local, remote and unchecked counts when those
+  checks run. Remote evidence is never fetched. For excerpts, `local` counts
+  comparisons actually performed. An unreadable evidence file counts as
+  `unchecked` and makes the excerpt check `unavailable`. A binary file also
+  counts as `unchecked` and produces a content error because a quote needs text.
+  Resource counts refer to authored resource entries. An inaccessible path or
+  glob directory makes the resource check unavailable. A missing path or a
+  fully scanned pattern with no matches produces a content error.
+- `schema.revision` identifies the captured local schema and imports. It is
+  null with a reason when unavailable. `source.kind` is `live_bundle` and
+  `source.revision` is null. A second call can observe edits to Markdown or cited
+  files. A validation report describes one run and grants no write permission.
 
 ## Discover a project's vocabulary
 

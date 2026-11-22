@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from linkml_runtime.utils.formatutils import underscore
 
-from lokf.parse import parse_concept, parse_index_text
+from lokf.parse import parse_concept_fields, parse_index_text, read_markdown
 from lokf.schema import SchemaSource, load_context
 
 RESERVED = ("index.md", "log.md")
@@ -30,6 +30,7 @@ class Concept:
     path: pathlib.Path
     data: dict
     concept_id: str  # bundle-relative id, e.g. "metrics/weekly-active-users"
+    authored_mappings: tuple[str, ...] = ()
 
     @property
     def type(self) -> str:
@@ -71,7 +72,9 @@ class Bundle:
 
     @property
     def base_iri(self) -> str:
-        return self.meta.get("base_iri", "")
+        base = self.meta.get("base_iri")
+        # Keep the authored value in meta for validation. Only strings can resolve IDs.
+        return base if isinstance(base, str) else ""
 
     def resolve(self, ref: str) -> str:
         """Resolve a Concept ID or IRI to an absolute Concept IRI."""
@@ -81,12 +84,19 @@ class Bundle:
 
     def iri(self, concept: Concept) -> str:
         """A concept's IRI: explicit ``id`` or ``base_iri`` + Concept ID."""
-        return concept.data.get("id") or self.resolve(concept.concept_id)
+        value = concept.data.get("id")
+        return value if isinstance(value, str) and value else self.resolve(concept.concept_id)
+
+    def _declared_iris(self):
+        for concept in self.concepts:
+            # A malformed explicit id cannot declare a target under the file's name.
+            if isinstance(concept.data.get("id", ""), str):
+                yield self.iri(concept), concept
 
     def by_iri(self) -> dict[str, Concept]:
         """IRI -> Concept index (built once, cached)."""
         if not hasattr(self, "_by_iri"):
-            self._by_iri = {self.iri(c): c for c in self.concepts}
+            self._by_iri = dict(self._declared_iris())
         return self._by_iri
 
     def duplicate_iris(self) -> list[tuple[str, list[str]]]:
@@ -100,8 +110,8 @@ class Bundle:
         merge, can see it; the schema validates concepts one at a time.
         """
         files: dict[str, list[str]] = {}
-        for c in self.concepts:
-            files.setdefault(self.iri(c), []).append(c.concept_id)
+        for iri, concept in self._declared_iris():
+            files.setdefault(iri, []).append(concept.concept_id)
         return [(iri, ids) for iri, ids in files.items() if len(ids) > 1]
 
     def get(self, ref: str) -> Concept | None:
@@ -176,15 +186,24 @@ class Bundle:
             return self.in_namespace(expanded) and self.get(expanded) is None
 
         out: list[tuple[str, str, str]] = []
+        slots_by_type: dict[str, list[str]] = {}
         for c in self.concepts:
             # Only the slots that hold concept ids on this concept's type: a
             # class can narrow an inherited reference slot to a string.
-            for slot in sorted(vocab.references(c.type)):
+            type_name = c.type
+            if not isinstance(type_name, str) or type_name not in vocab.classes:
+                type_name = "Concept"
+            if type_name not in slots_by_type:
+                slots_by_type[type_name] = sorted(vocab.references(type_name))
+            for slot in slots_by_type[type_name]:
                 for target in c.reference_values(slot):
                     if dangling(target):
                         out.append((c.concept_id, slot, target))
         for c in self.concepts:
-            for relation in c.data.get("relations") or []:
+            relations = c.data.get("relations")
+            if not isinstance(relations, list):
+                continue
+            for relation in relations:
                 target = relation.get("target") if isinstance(relation, dict) else None
                 if dangling(target):
                     out.append((c.concept_id, "relations", target))
@@ -223,17 +242,17 @@ def load_bundle(path: str | pathlib.Path) -> Bundle:
     the root ``index.md`` frontmatter becomes :attr:`Bundle.meta`.
     """
     root = pathlib.Path(path)
+    return _load_bundle_files(root, sorted(root.rglob("*.md")), (root / "index.md").exists())
+
+
+def _load_bundle_files(root, markdown_files, has_index):
     meta: dict = {}
     index = root / "index.md"
-    if index.exists():
-        meta = parse_index_text(index.read_text(encoding="utf-8"), str(index))
-    concepts = [
-        Concept(
-            path=p,
-            data=parse_concept(str(p)),
-            concept_id=p.relative_to(root).with_suffix("").as_posix(),
-        )
-        for p in sorted(root.rglob("*.md"))
-        if p.name not in RESERVED
-    ]
+    if has_index:
+        meta = parse_index_text(read_markdown(index), str(index))
+    concepts = []
+    for p in markdown_files:
+        if p.name not in RESERVED:
+            data, mappings = parse_concept_fields(read_markdown(p), str(p))
+            concepts.append(Concept(p, data, p.relative_to(root).with_suffix("").as_posix(), mappings))
     return Bundle(root=root, meta=meta, concepts=concepts)

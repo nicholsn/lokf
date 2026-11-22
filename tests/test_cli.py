@@ -199,9 +199,7 @@ def test_validate_without_linkml_hints_at_the_build_extra(monkeypatch):
     """A lean install has no LinkML: exit 1 with an install hint, not a traceback."""
     import sys
 
-    # `None` in sys.modules makes the `from linkml.validator import ...` raise
-    # ModuleNotFoundError, which is what a lean install raises.
-    monkeypatch.setitem(sys.modules, "linkml.validator", None)
+    monkeypatch.setitem(sys.modules, "linkml.validator.plugins", None)
     result = runner.invoke(app, ["validate", str(BUNDLE)])
     assert result.exit_code == 1
     # `result.output`, not `.stdout`: the hint goes to stderr.
@@ -410,8 +408,8 @@ def test_validate_reports_a_warning_without_failing(monkeypatch):
         type="test", severity=Severity.WARN, message="just a warning"
     )
     monkeypatch.setattr(
-        "linkml.validator.validate",
-        lambda *a, **kw: type("R", (), {"results": [warning]})(),
+        "linkml.validator.plugins.JsonschemaValidationPlugin.process",
+        lambda *a, **kw: iter([warning]),
     )
     result = runner.invoke(app, ["validate", str(BUNDLE)])
     assert result.exit_code == 0

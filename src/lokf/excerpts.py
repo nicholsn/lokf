@@ -26,6 +26,7 @@ concepts give one source ``id`` different excerpts.
 from __future__ import annotations
 
 import re
+import stat
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -101,10 +102,16 @@ def find(excerpt: str, text: str, markdown: bool = True, where: str = "the resou
 
 
 def check_excerpts(bundle, root: Path, stats: dict | None = None):
-    """Yield (severity, message) for each ``sources[].excerpt`` not found in
+    """Yield (severity, message) for check excerpts."""
+    for _, _, _, severity, message in excerpt_findings(bundle, root, stats):
+        yield severity, message
+
+
+def excerpt_findings(bundle, root: Path, stats: dict | None = None):
+    """Yield located findings for each ``sources[].excerpt`` not found in
     its local resource. *stats*, when given, receives ``local``, the excerpts
     checked against a file, and ``remote``, the ones on a URL, which is never
-    fetched, plus ``unchecked`` for local excerpts skipped by the size limit."""
+    fetched, plus ``unchecked`` for local files that could not be compared."""
     root = root.resolve()
     local = remote = unchecked = 0
     for concept in bundle.concepts:
@@ -112,61 +119,77 @@ def check_excerpts(bundle, root: Path, stats: dict | None = None):
             excerpt, value = entry.get("excerpt"), entry.get("resource")
             if not isinstance(excerpt, str) or not isinstance(value, str) or not value:
                 continue  # Absent, or a shape the schema reports.
+            where = concept.path.relative_to(bundle.root).as_posix()
+            key = f"/sources/{i}/excerpt"
             label = f"{bundle.iri(concept)}: `sources[{i}].excerpt` ({_short(excerpt)})"
             kind = kind_of(value)
             if kind == "uri":
                 remote += 1
                 continue
             if kind == "scope":
-                yield "ERROR", f"{label} quotes a scope description, which holds no text: {value!r}"
+                yield "excerpt.resource", where, key, "ERROR", f"{label} quotes a scope description, which holds no text: {value!r}"
                 continue
             if kind == "windows":
-                yield "ERROR", f"{label} names a Windows path that cannot be checked on this platform: {value!r}"
+                yield "excerpt.resource", where, key, "ERROR", f"{label} names a Windows path that cannot be checked on this platform: {value!r}"
                 continue
             if kind == "pattern":
-                yield "ERROR", f"{label} quotes a pattern; an excerpt needs one file: {value!r}"
+                yield "excerpt.resource", where, key, "ERROR", f"{label} quotes a pattern; an excerpt needs one file: {value!r}"
                 continue
             try:
                 path = (root / value).resolve()
-            except (OSError, RuntimeError, ValueError) as exc:
-                yield "ERROR", f"{label} cannot resolve {value!r}: {exc}"
+            except OSError as exc:
+                unchecked += 1
+                yield "excerpt.unavailable", where, key, "ERROR", f"{label} cannot resolve {value!r}: {exc}"
+                continue
+            except (RuntimeError, ValueError) as exc:
+                yield "excerpt.resource", where, key, "ERROR", f"{label} cannot resolve {value!r}: {exc}"
                 continue
             if not path.is_relative_to(root):
-                yield "ERROR", f"{label} resolves outside resource root {root}: {value!r}"
-            elif path.is_dir():
-                yield "ERROR", f"{label} quotes a directory; an excerpt needs a file: {value!r}"
-            elif not path.is_file():
-                yield "ERROR", f"{label} names no file: {value!r} (looked at {path})"
+                yield "excerpt.resource", where, key, "ERROR", f"{label} resolves outside resource root {root}: {value!r}"
             else:
-                local += 1
                 finding = _check_file(excerpt, path, value)
-                if finding and finding[0] == "WARNING":
+                if finding is None or finding[0] == "excerpt.mismatch":
+                    local += 1
+                else:
                     unchecked += 1
-                    local -= 1
                 if finding:
-                    yield finding[0], f"{label} {finding[1]}"
+                    code, severity, message = finding
+                    yield code, where, key, severity, f"{label} {message}"
     if stats is not None:
         stats["local"], stats["remote"], stats["unchecked"] = local, remote, unchecked
 
 
-def _check_file(excerpt: str, path: Path, value: str) -> tuple[str, str] | None:
+def _check_file(excerpt: str, path: Path, value: str) -> tuple[str, str, str] | None:
     try:
-        if path.stat().st_size > MAX_BYTES:
-            return "WARNING", f"is not checked against a file over {MAX_BYTES >> 20} MiB: {value!r}"
+        info = path.stat()
+        if stat.S_ISDIR(info.st_mode):
+            return "excerpt.resource", "ERROR", f"quotes a directory; an excerpt needs a file: {value!r}"
+        if not stat.S_ISREG(info.st_mode):
+            return "excerpt.resource", "ERROR", f"names no file: {value!r} (looked at {path})"
+        if info.st_size > MAX_BYTES:
+            return "excerpt.unchecked", "WARNING", f"is not checked against a file over {MAX_BYTES >> 20} MiB: {value!r}"
         with path.open("rb") as stream:
             data = stream.read(MAX_BYTES + 1)
         if len(data) > MAX_BYTES:
-            return "WARNING", f"is not checked against a file over {MAX_BYTES >> 20} MiB: {value!r}"
+            return "excerpt.unchecked", "WARNING", f"is not checked against a file over {MAX_BYTES >> 20} MiB: {value!r}"
+    except (FileNotFoundError, NotADirectoryError):
+        return "excerpt.resource", "ERROR", f"names no file: {value!r} (looked at {path})"
     except OSError as exc:
-        return "ERROR", f"cannot read {value!r}: {exc}"
+        return "excerpt.unavailable", "ERROR", f"cannot read {value!r}: {exc}"
     if b"\x00" in data[:8192]:
-        return "ERROR", f"quotes a file that is not text: {value!r}"
+        return "excerpt.resource", "ERROR", f"quotes a file that is not text: {value!r}"
     problem = find(excerpt, data.decode("utf-8", errors="replace"),
                    markdown=path.suffix.lower() in MARKDOWN, where=repr(value))
-    return ("ERROR", problem) if problem else None
+    return ("excerpt.mismatch", "ERROR", problem) if problem else None
 
 
 def excerpt_conflicts(bundle):
+    """Yield (severity, message) for excerpt conflicts."""
+    for _, _, _, severity, message in excerpt_conflict_findings(bundle):
+        yield severity, message
+
+
+def excerpt_conflict_findings(bundle):
     """Yield a warning for each source ``id`` cited with different excerpts.
 
     An ``id`` resolves against ``base_iri`` to one source node that every
@@ -176,7 +199,7 @@ def excerpt_conflicts(bundle):
     ``base_iri`` as the JSON-LD projection joins it, so two spellings of one
     IRI are one node.
     """
-    nodes: dict[str, list[tuple[str, str, str]]] = {}
+    nodes: dict[str, list[tuple[str, str, int, str]]] = {}
     for concept in bundle.concepts:
         where = concept.path.relative_to(bundle.root).as_posix()
         for i, entry in _entries(concept, "sources"):
@@ -185,22 +208,22 @@ def excerpt_conflicts(bundle):
                 try:
                     node = urljoin(bundle.base_iri, ref)
                 except ValueError as exc:
-                    yield "WARNING", (
+                    yield "excerpt.source_id", where, f"/sources/{i}/id", "WARNING", (
                         f"{where} sources[{i}]: cannot resolve source id {ref!r} "
                         f"against base_iri {bundle.base_iri!r}: {exc}; "
                         "excerpt conflict check skipped for this entry")
                     continue
                 nodes.setdefault(node, []).append(
-                    (ref, f"{where} sources[{i}]", excerpt))
+                    (ref, where, i, excerpt))
     for node, uses in nodes.items():
         sides: dict[str, list[str]] = {}
-        for _, at, excerpt in uses:
-            sides.setdefault(excerpt, []).append(at)
+        for _, where, index, excerpt in uses:
+            sides.setdefault(excerpt, []).append(f"{where} sources[{index}]")
         if len(sides) < 2:
             continue
-        ref = uses[0][0]
+        ref, where, index, _ = uses[0]
         shown = f"'{ref}'" + (f" ({node})" if node != ref else "")
-        yield "WARNING", (
+        yield "excerpt.conflict", where, f"/sources/{index}/id", "WARNING", (
             f"source id {shown} has {len(sides)} different excerpts: "
             + " vs. ".join(", ".join(ats) for ats in sides.values())
             + ". The id is one source node, shared by every concept citing it, and "

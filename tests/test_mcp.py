@@ -22,6 +22,7 @@ TOOL_NAMES = {
     "propose_relations",
     "get_vocabulary",
     "bundle_summary",
+    "validate_bundle",
 }
 
 
@@ -29,10 +30,9 @@ def test_server_imports_and_named():
     assert mcp.server.name == "lokf"
 
 
-def test_seven_tools_registered():
+def test_tool_inventory():
     tools = asyncio.run(mcp.server.list_tools())
     assert {t.name for t in tools} == TOOL_NAMES
-    assert len(tools) == 7
 
 
 def test_list_concepts():
