@@ -10,8 +10,10 @@ search** and an **interactive graph explorer**.
 
 ## Command
 
+Create a site with the published toolkit. The generated exporter pins the same version.
+
 ```bash
-lokf new my-kb --title "My Knowledge Base" --base-iri https://myorg.github.io/my-kb/
+uvx --from 'lokf==0.11.0' lokf new my-kb --title "My Knowledge Base" --base-iri https://myorg.github.io/my-kb/
 ```
 
 Creates `my-kb/`:
@@ -30,11 +32,13 @@ my-kb/
     pages/graph-index.json.ts    #   concept list for choosing a neighborhood
     pages/graph-data/            #   bounded concept-neighborhood views
     pages/graph.jsonld.ts        #   the whole bundle as JSON-LD (the RDF view)
+    pages/schema/                #   searchable LinkML reference and class diagrams
+    pages/views/                 #   indexes for declared navigation views
     pages/temporal/              #   evidence timeline, off until enabled
     temporal.config.mjs          #   candidate date and relation fields
   scripts/export-graph.mjs       # uses the matching LOKF toolkit at build time
-  lokf.views.example.yaml       # starter navigation manifest
-  site.config.mjs                # optional repository/correction link
+  lokf.views.example.yaml        # starter navigation manifest
+  site.config.mjs                # schema browser and optional repository link
   package.json · astro.config.mjs · tsconfig.json
   .github/workflows/pages.yml    # builds + publishes to GitHub Pages
   justfile                       # just setup | dev | site | serve | rdf | tables
@@ -102,6 +106,28 @@ correction link. Raw HTML in knowledge Markdown is escaped by default.
 Search and layout are website features. They do not change the LOKF format or
 turn ordinary Markdown links into asserted RDF relationships.
 
+## Browse the schema
+
+Open **Schema** to see which concepts the KB can describe. For example, open
+**Metric** and follow its `measures` slot to discover what a metric can point
+to. The class page shows its inherited fields and effective constraints. The
+overview also indexes slots, enumerations, and datatypes, including unused
+definitions. Reference tables are static HTML, and the diagram lets readers
+explore neighboring classes interactively.
+
+The browser defaults to the LOKF vocabulary. To document your own, declare
+the path relative to your project's `pyproject.toml` and rebuild:
+
+```toml
+[tool.lokf]
+schema = "schema/my-domain.yaml"
+```
+
+New sites set `schemaBrowser: true` in `site.config.mjs`. Set it to `false`
+and rebuild to omit the tab and free the `/schema/` route for content.
+Other consumers can run `lokf export knowledge --out-dir build/export --schema-docs`
+to read the resolved model from `schema.json`. [Domain vocabularies](/guide/domain-vocabularies/) · [Exported artifacts](/reference/artifacts/#static-site-exports)
+
 ## Add a navigation view
 
 Give readers a way into the site through a question they recognize. From the
@@ -120,9 +146,8 @@ timelines. [Navigation views reference and examples](/reference/declarative-view
 
 ### Build from a toolkit checkout
 
-Navigation views are available in the LOKF source tree. The 0.10.0 release
-predates them. To use the source before a release containing views, generate
-the project and run the exporter from the same checkout.
+For development against a local toolkit change, generate the site and run its
+exporter from the same checkout.
 
 ```sh
 git clone https://github.com/nicholsn/lokf.git
@@ -143,9 +168,15 @@ On CI, set `LOKF_TOOLKIT_SPEC` in the site build's environment to
 scaffold created from a published toolkit release uses its matching package
 version automatically.
 
-For a KB generated before views were introduced, generate a fresh scaffold in
-a separate directory and port its site and build changes into the existing
-project. The older renderer needs those changes to read the new export.
+### Upgrade an existing site
+
+For a site generated with 0.10.0 or earlier, run the 0.11.0 scaffold command
+in a separate directory. Compare its `src/`, `scripts/export-graph.mjs`,
+`site.config.mjs`, recipe and dependency files with the existing project.
+Port the renderer and exporter together, retaining your content and local
+customizations. Copy the example manifest to try a view, then run
+`npm install` and `npm run build`. Check the home page, a root concept,
+and the Schema tab before publishing.
 
 ## Publish
 

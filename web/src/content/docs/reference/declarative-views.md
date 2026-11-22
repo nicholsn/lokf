@@ -9,7 +9,7 @@ Use `lokf.views.yaml` to give readers a starting point in your knowledge graph. 
 
 ## Try the starter view
 
-In a site created with a view-capable `lokf new`, copy `lokf.views.example.yaml` to `lokf.views.yaml` beside `site.config.mjs` and run `npm run dev`. The example works with the two concepts supplied by the scaffold. For LOKF source versions ahead of PyPI, use the checkout's matching exporter. [Scaffold a knowledge base](/toolkit/scaffold/#add-a-navigation-view) · [Build from a toolkit checkout](/toolkit/scaffold/#build-from-a-toolkit-checkout)
+In a site created with `lokf new` from 0.11.0 or later, copy `lokf.views.example.yaml` to `lokf.views.yaml` beside `site.config.mjs` and run `npm run dev`. The example works with the two concepts supplied by the scaffold. Older sites can adopt the renderer and exporter from a fresh scaffold. [Scaffold a knowledge base](/toolkit/scaffold/#add-a-navigation-view) · [Upgrade an existing site](/toolkit/scaffold/#upgrade-an-existing-site)
 
 ```yaml
 version: "1"

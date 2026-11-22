@@ -35,7 +35,7 @@ directory as one RDF graph.
    lokf_version: "0.2"
    okf_version: "0.2"
    base_iri: https://acme.example/knowledge/
-   context: https://w3id.org/lokf/context.jsonld
+   context: https://lokf.nolan-nichols.com/lokf.context.jsonld
    title: Acme Knowledge Bundle
    description: Canonical, agent-readable knowledge for Acme.
    license: https://creativecommons.org/licenses/by/4.0/
@@ -71,7 +71,7 @@ directory as one RDF graph.
    support which slots:
 
    ```bash
-   lokf vocab
+   lokf vocab --bundle <bundle> --all
    ```
 
 4. **Enrich relations** — upgrade the prose links you wrote into typed edges
@@ -84,14 +84,12 @@ directory as one RDF graph.
 
    Review the frontmatter diff before keeping it.
 
-5. **Validate** the whole bundle renders to RDF without errors, and spot-check
-   the triple set:
+5. **Validate** the bundle against its schema and check local references. Use
+   an installation with the `build` extra.
 
    ```bash
-   lokf convert <bundle> --format ttl | tail -20
+   lokf validate <bundle> --check-refs
    ```
-
-   Every concept should appear with its `type`, `title`, and typed relations.
 
 6. **Query it** to confirm the graph answers real questions (the
    `query-knowledge-base` skill):

@@ -23,8 +23,8 @@ classifiers = [
 ]
 # Core toolkit: the `lokf` CLI, RDF conversion, the pyoxigraph store + SPARQL,
 # the local server, and the MCP server. Deliberately excludes linkml (heavy;
-# only the artifact regenerator and `lokf validate` need it — see the `build`
-# extra).
+# the build extra supplies validation, domain vocabulary projection, and
+# artifact generation).
 dependencies = [
     "rdflib>=7.0",
     "pyyaml>=6.0",
@@ -36,7 +36,7 @@ dependencies = [
     "mcp>=2.0",
     # Runtime for the generated dataclass bindings (src/lokf/datamodel.py).
     # linkml_runtime is light; the heavy `linkml` generator stays in the
-    # `build` extra used only to regenerate artifacts.
+    # `build` extra.
     "linkml-runtime>=1.12.0",
     # `lokf adapt` compares IRIs through curies, so schema.org's http and
     # https forms read as one. linkml-runtime already brings curies in, but
@@ -47,9 +47,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Regenerating the LinkML-derived artifacts (`lokf-build`) and `lokf validate`.
-# Not needed for convert/query/serve/propose/tables, which read the committed
-# schema/context directly.
+# Validation, schema artifact generation, and domain vocabulary projection.
 build = [
     "linkml>=1.12.0",
     "markdown-it-py>=3",

@@ -29,7 +29,7 @@ directly:
 
 Concept types render as their class URI, e.g. a `Metric` is `lokf:Metric`, a
 `Dataset` is `schema:Dataset`, a `Table` is `lokf:Table`. Typed relations use
-the predicate from `lokf vocab` (e.g. `derivedFrom` → `prov:wasDerivedFrom`,
+the predicate from `lokf vocab --bundle <bundle>` (e.g. `derivedFrom` → `prov:wasDerivedFrom`,
 `dependsOn` → `dcterms:requires`, `measures` → `lokf:measures`).
 
 ## Output formats
@@ -89,12 +89,14 @@ lokf query <bundle> \
 ## Method
 
 1. Restate the question as: which subjects, which predicate(s), which objects.
-2. Map English relation names to CURIEs via `lokf vocab` (name → curie column).
-3. Start with a broad `SELECT ?s ?p ?o WHERE { <focus> ?p ?o }` to see what
+2. Map relation names to CURIEs via `lokf vocab --bundle <bundle>`. Both
+   discovery and queries read the project's declared vocabulary. When using
+   an explicit `--schema` instead, pass the same file to both commands.
+3. Start with a broad `SELECT ?p ?o WHERE { <focus> ?p ?o }` to see what
    predicates a concept actually has, then tighten the pattern.
 4. Choose `--format json`/`csv` when piping the answer onward.
 
 ## Done when
 
 - The query returns exactly the rows that answer the question, and you have
-  confirmed the predicate CURIEs against `lokf vocab`.
+  confirmed the predicate CURIEs against the bundle's vocabulary.

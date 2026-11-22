@@ -28,39 +28,46 @@ the repository, then hands off to `author-concept` / `build-knowledge-base` /
    ```
 
    This creates `my-kb/` with a starter bundle (`knowledge/`), a full Astro
-   site (concept pages + the interactive `/graph` browser + `graph.jsonld`),
+   site with concept pages, a graph explorer at `/graph`, a schema browser
+   at `/schema`, and a JSON-LD projection at `/graph.jsonld`,
    a GitHub Pages workflow, a `justfile`, and these skills under
    `.claude/skills/`. Pass the real published URL as `--base-iri` when known —
    it configures both the concept IRIs and the site's base path.
 
-2. **Understand the domain.** Ask the human what concepts matter and how they
-   relate. Sketch the types (`Metric`, `Dataset`, `Table`, `GlossaryTerm`,
-   `Service`, `Playbook`, `Tutorial`, `Explanation`, `Document`, `Reference`,
-   `Person`, `Organization`,
-   `Role`) and the typed relations between them (`measures`, `dependsOn`,
-   `derivedFrom`, `isPartOf`, `about`, `memberOf`, …).
+2. **Understand the domain.** Identify the reader's first question, the concept
+   they would start from, and the typed relations leading to an answer. If the
+   project defines its own LinkML vocabulary, declare its path under
+   `[tool.lokf]` as `schema = "schema/my-domain.yaml"` in `pyproject.toml`.
+   From the new repo, run `lokf vocab --bundle knowledge --all` to see the
+   available classes and slots.
 
-3. **Author the concepts.** Delete the two examples under `knowledge/` and use
+3. **Author the concepts.** Adapt or replace the two examples under `knowledge/` and use
    the `author-concept` skill to write one file per concept, then
    `enrich-relations` to type the links. Register each concept in
    `knowledge/index.md`.
 
-4. **Validate.** Project the bundle to RDF to confirm it parses and the typed
-   relations bind to the right predicates:
+4. **Configure a reader's starting point.** For a guided view, copy
+   `lokf.views.example.yaml` to `lokf.views.yaml` at the repo root. Set
+   `roots.type` to the entry class and follow its relations in a section's
+   `path`. Choose a list, table, or dated timeline to answer the question.
 
    ```bash
-   uvx --from lokf lokf convert knowledge --format ttl | tail
+   just validate
+   just rdf
+   just setup
+   just dev
    ```
 
-   Preview the website with `just setup && just dev` (concept pages + the
-   `/graph` browser); explore with the toolkit via `just serve`; get the
-   tabular projection with `just tables`.
+   For each configured view, check a path from the home page to a root, then a section
+   member and its **Appears in** link back to the row. Use the **Schema** tab
+   to check the class and relation definitions. Run `just site` to generate
+   the static pages in `dist/`.
 
 5. **Publish.** Confirm the base IRI matches the real URL everywhere it is
    held — `base_iri` in `knowledge/index.md`, `site`/`base` (and the
    `remarkLokfLinks` `base`) in `astro.config.mjs`, `BASE_IRI` in
    `src/lib/lokf.ts`, and the starter concept's `measures:` cross-reference —
-   then run `just setup` once and commit
+   then commit
    `package-lock.json`, push to GitHub, and set **Settings → Pages → Source**
    to **GitHub Actions**. The `pages` workflow builds and deploys on every
    push to `main`.
