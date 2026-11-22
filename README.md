@@ -280,3 +280,13 @@ The installed package includes `lokf/data/lokf.schema.json` and
 `lokf/data/lokf.shacl.ttl`, synchronized by `lokf-build`. Python hosts can read
 these with `importlib.resources.files("lokf").joinpath("data", filename)`;
 non-Python clients can use the same versioned artifacts from the repository.
+
+### Browse the data model
+
+Generated knowledge-base sites can expose their LinkML vocabulary through a
+**Schema** tab (`schemaBrowser: true` in `site.config.mjs`). It contains searchable
+class, slot, enumeration and datatype documentation, effective inherited fields,
+and a bounded interactive class-relationship diagram. This is the schema (TBox),
+not a reconstruction from the records in the instance graph. Domain schemas use
+the same `[tool.lokf] schema` setting as the toolkit. For other consumers,
+`lokf export knowledge --out-dir public --schema-docs` adds `schema.json`.

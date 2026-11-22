@@ -1,0 +1,48 @@
+---
+import { schemaGraph } from '../lib/schema-graph.mjs';
+import { schemaHref } from '../lib/schema-data';
+const { model, focus = '' } = Astro.props;
+const graph = schemaGraph(model);
+const payload = JSON.stringify({graph, focus, links: Object.fromEntries(model.classes.map((c: any) => [c.name, schemaHref('classes', c.name)]))}).replace(/</g, '\\u003c');
+---
+<section class="schema-diagram" aria-label="Schema relationships">
+  <h2>Type relationships</h2>
+  <p>Arrows point from a class to its parent or slot range. Dashed lines show inheritance. Literal-valued slots are documented in the tables below.</p>
+  <label>Focus <select data-focus><option value="">Domain overview</option>{model.classes.map((c: any) => <option value={c.name} selected={c.name === focus}>{c.name}</option>)}</select></label>
+  <button type="button" data-fit>Fit diagram</button>
+  <a data-doc hidden>Open selected class documentation</a>
+  <p data-status role="status"></p>
+  <div data-canvas role="img" aria-label="Interactive class relationship diagram; use the focus selector and documentation links for keyboard access"></div>
+  <script type="application/json" data-schema-graph set:html={payload} />
+</section>
+<style>
+[data-canvas]{height:430px;border:1px solid #8885;border-radius:10px;background:#fafafa;margin:1rem 0}select,button{padding:.5rem;margin-right:.6rem;max-width:100%}[data-doc]{display:inline-block}[data-doc][hidden]{display:none}
+</style>
+<script>
+import cytoscape from 'cytoscape';
+import { schemaScope } from '../lib/schema-graph.mjs';
+for (const section of document.querySelectorAll<HTMLElement>('.schema-diagram')) {
+  const {graph, focus, links} = JSON.parse(section.querySelector('[data-schema-graph]')!.textContent!);
+  const select = section.querySelector<HTMLSelectElement>('[data-focus]')!;
+  const doc = section.querySelector<HTMLAnchorElement>('[data-doc]')!;
+  const status = section.querySelector<HTMLElement>('[data-status]')!;
+  let cy: any;
+  function render(name: string) {
+    const scoped = schemaScope(graph, name);
+    cy?.destroy();
+    cy = cytoscape({container:section.querySelector<HTMLElement>('[data-canvas]')!, elements:[...scoped.nodes,...scoped.edges],
+      style:[{selector:'node',style:{label:'data(label)','background-color':'#31586b',color:'#182b35','font-size':11,'text-valign':'bottom','text-margin-y':6,width:24,height:24}},
+        {selector:'edge',style:{label:'data(label)',width:1,'target-arrow-shape':'triangle','curve-style':'bezier','line-color':'#a0acb5','target-arrow-color':'#a0acb5','font-size':8,'text-background-color':'#fafafa','text-background-opacity':.9}},
+        {selector:'edge[kind = "inheritance"]',style:{'line-style':'dashed'}},
+        {selector:'edge[kind = "inherited-slot"]',style:{label:'',opacity:.25}},
+        {selector:'node:selected',style:{'background-color':'#b55330'}}],
+      layout: name ? {name:'concentric',animate:false,concentric:(node:any)=>node.id()===name ? 2 : 1,levelWidth:()=>1,minNodeSpacing:50,padding:40} : {name:'circle',animate:false,padding:40},maxZoom:3,minZoom:.1});
+    status.textContent = `${scoped.nodes.length} types shown${scoped.omitted ? `; ${scoped.omitted} outside this view. Select a class to explore its neighbors.` : '.'}`;
+    doc.hidden = !name; if(name) { doc.href=links[name]; doc.textContent=`Open ${name} documentation`; }
+    cy.on('tap','node',(event:any)=> {const name=event.target.id();select.value=name;doc.href=links[name];doc.hidden=false;doc.textContent=`Open ${name} documentation`;});
+  }
+  select.addEventListener('change',()=>render(select.value));
+  section.querySelector('[data-fit]')!.addEventListener('click',()=>cy.fit(undefined,30));
+  render(focus);
+}
+</script>

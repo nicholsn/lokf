@@ -102,3 +102,25 @@ trust tier; those signals do not prove a concept's claims.
 This knowledge base may be authored with AI assistance. You own everything you
 commit — understand it, verify it, and don't credit an AI as a co-author. See
 the [LOKF AI Covenant](https://github.com/nicholsn/lokf/blob/main/AI_COVENANT.md).
+
+## Schema browser
+
+`schemaBrowser: true` in `site.config.mjs` adds a **Schema** tab at `/schema`.
+The build exports the configured LinkML schema, including imported and abstract
+classes, even when no records use them. Configure the domain vocabulary with
+`[tool.lokf] schema = "schema/my-domain.yaml"` in `pyproject.toml`, as for other
+LOKF commands. Without a domain vocabulary, the browser documents LOKF itself.
+
+The overview has searchable class, slot, enumeration and datatype indexes.
+Class pages show inheritance, mixins and effective slot ranges and constraints,
+including class-specific overrides. The Cytoscape diagram starts with domain
+classes, limits each view to 70 types, and lets readers focus on a class and its
+neighbors. Dashed edges show inheritance; labeled edges show class-valued slots.
+The linked reference tables also work without JavaScript.
+
+Set `schemaBrowser: false` to omit the tab and its routes. Enabling it reserves
+`schema/`; the build fails if a concept or view would collide with that path.
+For an existing site, copy the schema pages, component, helpers, export script
+and navigation integration from the current template. The exporter must support
+`lokf export --schema-docs`, which adds a separate `schema.json` artifact without
+changing the instance graph or the four-file registry producer contract.

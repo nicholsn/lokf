@@ -1,3 +1,4 @@
+import siteConfig from '../site.config.mjs';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,6 +18,7 @@ const hasViews = existsSync(manifest);
 const stage = mkdtempSync(join(output, '.export-'));
 try {
   const args = ['export', 'knowledge', '--out-dir', stage];
+  if (siteConfig.schemaBrowser === true) args.push('--schema-docs');
   if (hasViews) args.push('--views', manifest);
   if (!local) args.unshift('--from', toolkit, 'lokf');
   const result = spawnSync(command, args, { stdio: 'inherit' });
@@ -25,11 +27,13 @@ try {
     process.exitCode = result.status || 1;
   } else {
     const files = ['graph.json', 'concepts.jsonld', 'graph.nt', 'datasets.jsonld'];
+    if (siteConfig.schemaBrowser === true) files.push('schema.json');
     if (hasViews) files.push('views.json');
     for (const name of files) {
       if (!existsSync(join(stage, name))) throw new Error(`LOKF export did not produce ${name}`);
     }
     for (const name of files) renameSync(join(stage, name), join(output, name));
+    if (siteConfig.schemaBrowser !== true) rmSync(join(output, 'schema.json'), { force: true });
     if (!hasViews) rmSync(join(output, 'views.json'), { force: true });
   }
 } finally {

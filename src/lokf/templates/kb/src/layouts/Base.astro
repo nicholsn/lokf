@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import siteConfig from '../../site.config.mjs';
 import { href } from '../lib/lokf';
 import { loadTemporalEvidence } from '../lib/temporal-data';
 
@@ -17,8 +18,9 @@ const nav = [
   { href: href('/graph'), label: 'Graph' },
 ];
 if (await loadTemporalEvidence()) nav.push({ href: href('/temporal/evidence'), label: 'Timeline' });
+if (siteConfig.schemaBrowser === true) nav.push({ href: href('/schema'), label: 'Schema' });
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const isActive = (h: string) => (h.replace(/\/$/, '') || '/') === path;
+const isActive = (h: string) => (h.replace(/\/$/, '') || '/') === path || (h === href('/schema') && path.startsWith(h + '/'));
 const graphs = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
 const jsonScript = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c');
 ---
