@@ -22,6 +22,21 @@ re-assembles the reference bundle, re-validates it, and re-emits the RDF.
 
 ## Install
 
+To create your own knowledge base with the release from PyPI:
+
+```bash
+uvx --from 'lokf==0.11.0' lokf new my-kb
+cd my-kb
+npm install
+npm run dev
+```
+
+The site build needs Node 24 or a supported Node 22 release (22.23.4 or newer).
+Open **Schema** to explore the model, or enable the starter navigation view.
+[Scaffold guide](/toolkit/scaffold/)
+
+### Work from a source checkout
+
 ```bash
 git clone https://github.com/nicholsn/lokf.git
 cd lokf
@@ -57,7 +72,7 @@ uv run lokf-build
 
 The build:
 
-1. runs the four LinkML generators against `lokf.yaml`,
+1. generates the vocabulary artifacts and Python bindings from `lokf.yaml`,
 2. publishes the authoring context (aliasing `type` → `@type` and `id` → `@id`),
 3. assembles `examples/acme-knowledge/` into a single bundle document,
 4. validates the bundle against the schema, and

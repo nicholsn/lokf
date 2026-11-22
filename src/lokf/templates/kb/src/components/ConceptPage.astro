@@ -23,7 +23,7 @@ const trailing = roots.filter(({ view }) => view.placement !== 'before_text');
 const memberships = navigation.memberships.get(entry.id) ?? [];
 const d = entry.data as Record<string, any>;
 const schema = await loadSchema();
-const classUrl = schema?.classes.some((item: any) => item.name === d.type) ? schemaHref('classes', d.type) : null;
+const classUrl = schema?.classes.some((item: any) => item.name === d.type) ? schemaHref(schema, 'classes', d.type) : null;
 const myIri = iriOf(entry);
 const node = projection.nodes.get(myIri);
 const document = projection.documents.get(myIri);

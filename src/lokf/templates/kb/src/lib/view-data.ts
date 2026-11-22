@@ -21,20 +21,24 @@ export function loadViews() {
   return navigation ||= readViews();
 }
 
+export function checkPublicRoute(path: string, kind: string, publicDir: string) {
+  let asset = publicDir;
+  for (const part of [...path.split('/'), 'index.html']) {
+    asset = join(asset, part);
+    if (!existsSync(asset)) break;
+    if (!statSync(asset).isDirectory() || part === 'index.html') {
+      throw new Error(`${kind} route /${path}/ collides with ${asset}`);
+    }
+  }
+}
+
 /** Generated URLs share Astro's catch-all with concept pages and its output with public/. */
 export function checkViewRoutes(navigation: Navigation, concepts: { id: string }[], publicDir = join(process.cwd(), 'public')) {
   if (!navigation.pages.size) return;
   const ids = new Set(concepts.map(c => c.id));
   for (const path of navigation.pages.keys()) {
     if (ids.has(path)) throw new Error(`View route /${path}/ collides with knowledge/${path}.md`);
-    let asset = publicDir;
-    for (const part of [...path.split('/'), 'index.html']) {
-      asset = join(asset, part);
-      if (!existsSync(asset)) break;
-      if (!statSync(asset).isDirectory() || part === 'index.html') {
-        throw new Error(`View route /${path}/ collides with ${asset}`);
-      }
-    }
+    checkPublicRoute(path, 'View', publicDir);
   }
   for (const id of Object.keys(navigation.records)) {
     if (!ids.has(id)) {

@@ -9,7 +9,7 @@ Use `lokf.views.yaml` to give readers a starting point in your knowledge graph. 
 
 ## Try the starter view
 
-In a site created with a view-capable `lokf new`, copy `lokf.views.example.yaml` to `lokf.views.yaml` beside `site.config.mjs` and run `npm run dev`. The example works with the two concepts supplied by the scaffold. For LOKF source versions ahead of PyPI, use the checkout's matching exporter. [Scaffold a knowledge base](/toolkit/scaffold/#add-a-navigation-view) · [Build from a toolkit checkout](/toolkit/scaffold/#build-from-a-toolkit-checkout)
+In a site created with `lokf new` from 0.11.0 or later, copy `lokf.views.example.yaml` to `lokf.views.yaml` beside `site.config.mjs` and run `npm run dev`. The example works with the two concepts supplied by the scaffold. Older sites can adopt the renderer and exporter from a fresh scaffold. [Scaffold a knowledge base](/toolkit/scaffold/#add-a-navigation-view) · [Upgrade an existing site](/toolkit/scaffold/#upgrade-an-existing-site)
 
 ```yaml
 version: "1"
@@ -36,6 +36,8 @@ Open **Explore metrics** on the home page. Under **Weekly Active Users**, the pr
 - `roots.type` selects the exact class in the bundle's vocabulary. To start from a single overview, also set `roots.concept` to its bundle-relative concept ID, such as `guides/overview`, without the `.md` extension.
 - A section supplies an `id`, `title`, `path`, and `display`. Its path contains one to four steps. Each step has exactly one direction, `out` or `in`, and can filter the reached concepts with an exact `type`. A predicate can be a projected relation name, a CURIE, or its full IRI.
 - Each step reads local concept links from the same graph as `lokf export`, including typed entries under `relations`. An incoming step reads an existing assertion backwards. A section lists each matching endpoint once and omits its own root. A multi-step result includes a **How are these connected?** disclosure with one matching chain.
+
+For a custom frontmatter key to appear as a graph edge, give the slot a `slot_uri`, a concept reference range, and `multivalued: true` on a concept class. Use `lokf vocab --bundle knowledge` to check which relation names your manifest can follow. Single-valued frontmatter references can participate in validation even when they produce no explorer edge.
 
 For example, to answer “Which metrics use tables from this dataset?” in the Acme bundle, select `roots: {type: Dataset}` and add this section. Starting from **Events**, it finds **User Events**, then **Weekly Active Users**. The second step selects metrics even when other kinds of concept also derive from the same table. [Acme example bundle](/examples/)
 
@@ -126,6 +128,8 @@ Continuation routes start at page two. An index uses `/views/<view-id>/page/<n>/
 ```sh
 lokf export knowledge --out-dir build/views --views lokf.views.yaml
 ```
+
+If a generated view URL coincides with an authored section guide, the build reports the conflicting path. Give the view or section a distinct URL.
 
 The version 1 LinkML schema describes the keys and structures you can write. The compiler also checks the predicates, types, and fields against the vocabulary used for this export. An unknown predicate produces an error with its position in the manifest. For a valid path with no matching records, the diagnostics report the first step that produced an empty result and how many roots encountered it. [Views manifest schema (LinkML)](/schemas/lokf-views-v1.yaml) · [Domain vocabularies](/guide/domain-vocabularies/)
 

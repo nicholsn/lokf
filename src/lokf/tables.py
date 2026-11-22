@@ -21,7 +21,7 @@ from typing import Any
 from lokf.model import Bundle, load_bundle
 from lokf.schema import vocabulary
 
-#: Name of the edge table that holds every typed relation in the bundle.
+#: Name of the edge table for core relation slots and explicit relations.
 RELATIONS_TABLE = "relations"
 
 
@@ -84,8 +84,8 @@ def to_frames(bundle: Bundle | str | pathlib.Path, engine: str = "pandas") -> di
 
     *bundle* may be a loaded :class:`~lokf.model.Bundle` or a path to a bundle
     directory. One frame per concept ``type`` holds that type's scalar fields;
-    the ``relations`` frame holds every typed edge as ``(source, predicate,
-    target)``.
+    the ``relations`` frame holds core relation slots and explicit relation
+    entries as ``(source, predicate, target)``.
     """
     if not isinstance(bundle, Bundle):
         bundle = load_bundle(bundle)

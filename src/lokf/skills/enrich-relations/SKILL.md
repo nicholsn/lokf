@@ -27,6 +27,12 @@ and recording a `rationale`. It only proposes relations valid for the source
 concept's type (a `measures` proposal only on a `Metric`, etc.). It never
 overwrites an existing frontmatter relation.
 
+`lokf propose <bundle>` reads the project's declared vocabulary. To inspect
+the available predicates, run `lokf vocab --bundle <bundle>`. Both commands
+accept `--schema path/to/domain.yaml` as an override. The proposer recognizes
+targets already linked through custom slots. Author a domain-specific link
+directly when it needs a predicate the cue rules cannot infer.
+
 ## Steps
 
 1. **Dry-run first (no writes).** Review every proposal as a table:

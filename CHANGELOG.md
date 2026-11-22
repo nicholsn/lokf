@@ -13,7 +13,22 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-11-22
+
 ### Added
+
+- Generated sites now include a searchable **Schema** tab with per-term
+  pages and class diagrams. The browser displays imported definitions,
+  class-specific attributes, inherited fields and effective cardinalities.
+  Set `schemaBrowser: false` in `site.config.mjs` to turn it off.
+  `lokf export --schema-docs` writes the same model to `schema.json`.
+- `lokf vocab --bundle PATH` discovers the project's domain vocabulary.
+  `--schema PATH` selects it explicitly. Add `--json --include-metadata` for
+  schema revision information. MCP's `get_vocabulary` accepts the same
+  selectors and metadata option.
+- The published CLI reference lists commands, arguments and options directly
+  from the installed command tree. The Python and MCP references include
+  the schema browser, view compiler and registry tools.
 
 - Sites created with `lokf new` support an optional `lokf.views.yaml` for
   task-oriented navigation. Declare starting concepts and relation paths to
@@ -51,6 +66,10 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Fixed
 
+- The scaffold's `serve`, `rdf`, and `validate` recipes install the matching
+  toolkit with LinkML support so they can read the project's domain vocabulary.
+- Loaded schema and context mappings can be modified by a caller without
+  affecting vocabulary discovery for another project with identical inputs.
 - Vocabulary discovery and relation proposals in the CLI and MCP now use the
   selected bundle's declared domain vocabulary. A running MCP server picks up
   edits to that vocabulary and its local imports on the next call.
@@ -452,6 +471,8 @@ via `lokf validate --schema`.
 [#78]: https://github.com/nicholsn/lokf/pull/78
 [#79]: https://github.com/nicholsn/lokf/pull/79
 [#80]: https://github.com/nicholsn/lokf/pull/80
+[Unreleased]: https://github.com/nicholsn/lokf/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/nicholsn/lokf/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/nicholsn/lokf/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/nicholsn/lokf/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/nicholsn/lokf/compare/v0.7.0...v0.8.0

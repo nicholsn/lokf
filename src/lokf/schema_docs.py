@@ -11,7 +11,7 @@ def schema_documentation(path=None):
     """Include imported/abstract classes and effective, class-specific slot constraints."""
     view = SchemaView(str(schema_path(path)))
     classes = view.all_classes()
-    slots = view.all_slots()
+    slots = view.all_slots(attributes=False)
     enums = view.all_enums()
     types = view.all_types()
 
@@ -25,7 +25,7 @@ def schema_documentation(path=None):
         row = basic(slot)
         for key in ("range", "required", "recommended", "multivalued", "pattern",
                     "minimum_value", "maximum_value", "minimum_cardinality",
-                    "maximum_cardinality", "inlined", "inlined_as_list", "identifier",
+                    "maximum_cardinality", "exact_cardinality", "inlined", "inlined_as_list", "identifier",
                     "key", "readonly", "is_a"):
             value = getattr(slot, key, None)
             if value is not None:
@@ -41,8 +41,11 @@ def schema_documentation(path=None):
                    mixin=bool(cls.mixin), is_a=str(cls.is_a) if cls.is_a else None,
                    mixins=[str(x) for x in cls.mixins], slots=[])
         direct = set(cls.slots) | set(cls.attributes)
+        attributes = {attr for ancestor in view.class_ancestors(name) for attr in classes[ancestor].attributes}
         for slot in view.class_induced_slots(name):
             field = slot_row(slot)
+            if slot.name in attributes:
+                field["class_attribute"] = True
             field["declared_here"] = slot.name in direct
             field["overridden_here"] = slot.name in cls.slot_usage
             row["slots"].append(field)

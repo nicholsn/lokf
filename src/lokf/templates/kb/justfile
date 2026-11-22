@@ -1,3 +1,5 @@
+export LOKF_TOOLKIT_SPEC := env_var_or_default("LOKF_TOOLKIT_SPEC", "lokf[build]==__LOKF_PACKAGE_VERSION__")
+
 # List recipes
 default:
     @just --list
@@ -16,16 +18,16 @@ site:
 
 # Interactive SPARQL endpoint + graph explorer over the bundle
 serve:
-    uvx --from lokf lokf serve knowledge
+    uvx --from "$LOKF_TOOLKIT_SPEC" lokf serve knowledge
 
 # Project the bundle to RDF (Turtle) on stdout
 rdf:
-    uvx --from lokf lokf convert knowledge --format ttl
+    uvx --from "$LOKF_TOOLKIT_SPEC" lokf convert knowledge --format ttl
 
-# Validate the bundle against the LOKF schema (needs LinkML, hence the extra)
+# Validate the bundle against its declared schema or the built-in LOKF schema
 validate:
-    uvx --from 'lokf[build]' lokf validate knowledge
+    uvx --from "$LOKF_TOOLKIT_SPEC" lokf validate knowledge
 
 # Project the bundle to linked tables (CSV under build/tables)
 tables:
-    uvx --from 'lokf[tables]' lokf tables knowledge --format csv --output build/tables
+    uvx --from 'lokf[tables]==__LOKF_PACKAGE_VERSION__' lokf tables knowledge --format csv --output build/tables

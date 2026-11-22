@@ -123,11 +123,27 @@ instead of fetching the members again.
 
 ## For agents
 
-`lokf registry mcp` runs the `lokf-registry` MCP server over stdio, with five
-tools, each bounded in depth and breadth so a cross-bundle hop is one call:
-`resolve_iri`, `neighbors`, `subgraph`, `federated_sparql` and
-`read_document`. The registry's index is the server's instructions;
-`--index` substitutes a Markdown file of your own.
+Start the `lokf-registry` MCP server over stdio with an existing manifest.
+A client can use `lokf` as its command and pass the remaining words as arguments.
+
+```sh
+lokf registry mcp -r /path/to/lokf-registry.yaml
+```
+
+The server includes its member index in its instructions. Pass `--index FILE`
+to supply a Markdown introduction of your own. Tools take named JSON arguments.
+Optional arguments below show their defaults.
+
+| Tool and arguments | Result |
+| --- | --- |
+| `resolve_iri(iri)` | The owning member, concept ID, resolution method and source URL. Includes concept metadata and trust when available offline. |
+| `neighbors(iri, depth=1, limit=200)` | Incoming and outgoing triples with their asserting graph, a count and a truncation flag. Maximum depth is 3 hops and maximum result size is 2,000 triples. |
+| `subgraph(iris, depth=1, limit=200, format="trig")` | The neighborhood of an array of IRIs using the same bounds. `trig` and `nquads` retain the graph names. `turtle` returns a single graph. |
+| `federated_sparql(query, limit=1000)` | SELECT returns up to 1,000 rows, ASK returns a boolean, and CONSTRUCT or DESCRIBE returns up to 2,000 triples as Turtle. Row and triple responses indicate truncation. |
+| `read_document(iri="")` | Markdown, source and trust information. Omit `iri` for the registry index or pass a member's base IRI for its index. |
+
+See the [CLI reference](/reference/cli/#lokf-registry-mcp) for server options
+and the [bundle MCP server](/toolkit/mcp/) for tools that work on a single local bundle.
 
 ## Sensitive members and registries of registries
 

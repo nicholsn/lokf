@@ -5,6 +5,8 @@ sat at 0.5.0 while the package shipped 0.7.0 — two releases of silent drift,
 because nothing checked. These assert the documented surface still matches the
 real one.
 """
+import asyncio
+import json
 import pathlib
 import re
 from importlib.metadata import version
@@ -90,3 +92,31 @@ def test_no_broken_relative_links_in_the_root_docs():
             if not (doc.parent / target.split("#")[0]).exists():
                 broken.append(f"{doc.name} -> {target}")
     assert not broken, f"broken relative links: {broken}"
+
+
+def test_mcp_guides_match_registered_tool_signatures(tmp_path):
+    from lokf.mcp_server import server
+    from lokf.registry import Registry
+    from lokf.registry_mcp import RegistryTools, build_server
+    from lokf.store import GraphStore
+
+    pages = ROOT / "web" / "src" / "content" / "docs" / "toolkit"
+    if not pages.exists():
+        pytest.skip("the distribution excludes the documentation site")
+
+    registry = Registry(path=tmp_path / "registry.yaml")
+    registry_tools = RegistryTools(registry, GraphStore.from_registry(registry))
+    try:
+        for filename, service in (("mcp.md", server), ("registry.md", build_server(registry_tools))):
+            text = (pages / filename).read_text(encoding="utf-8")
+            documented = set(re.findall(r"^\| `(\w+\(.*?\))` \|", text, re.M))
+            expected = set()
+            for tool in asyncio.run(service.list_tools()):
+                args = []
+                for name, schema in tool.input_schema["properties"].items():
+                    default = "=" + json.dumps(schema["default"]) if "default" in schema else ""
+                    args.append(name + default)
+                expected.add(f"{tool.name}({', '.join(args)})")
+            assert documented == expected, filename
+    finally:
+        registry_tools.close()

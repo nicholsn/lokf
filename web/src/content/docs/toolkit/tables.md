@@ -8,9 +8,8 @@ of **linked tables**. `lokf tables` projects a bundle to **one table per concept
 type** (the nodes) plus a single **`relations`** table (the typed edges:
 `source`, `predicate`, `target`).
 
-This is the *abstract* knowledge graph: the same information you can traverse and
-reason over in RDF, reshaped so you can analyze it in pandas/polars, join it in
-SQL, or scale it in a lakehouse.
+Use the type tables for analysis in pandas or polars. Join them with the
+relations table in SQL to follow links between records.
 
 ## Install
 
@@ -52,8 +51,12 @@ print(external_table_ddl(frames, "bigquery", "gs://bucket/lokf"))
 - Each concept's **scalar** frontmatter (`title`, `unit`, `roleName`, …) becomes a
   column on its type's table. Multivalued strings like `tags` are joined into one
   cell.
-- Every **typed relation** (`derivedFrom`, `dependsOn`, `memberOf`, `about`, the
-  reified `relations`, …) becomes a row in the `relations` edge table.
+- Core relation slots such as `derivedFrom`, `dependsOn`, and `memberOf`, and
+  explicit entries under `relations`, become rows in the edge table.
+- A project-specific frontmatter key becomes a column, including when the
+  project's domain vocabulary defines it as a relation. To project those
+  keys as graph edges or use them in navigation tables, use `lokf export`.
+  [Navigation views](/reference/declarative-views/)
 
 ## Two shapes, one schema
 

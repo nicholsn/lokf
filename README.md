@@ -41,6 +41,11 @@ It stays **bidirectionally compatible**: every LOKF bundle is a valid OKF bundle
 | `examples/acme-knowledge/` | A conformant 8-concept reference bundle. | ✅ |
 | `examples/*.nt` | RDF triples produced from the example frontmatter. | ⚙️ generated |
 
+The installed package includes `lokf/data/lokf.schema.json` and
+`lokf/data/lokf.shacl.ttl`, synchronized by `lokf-build`. Python hosts can read
+these with `importlib.resources.files("lokf").joinpath("data", filename)`;
+non-Python clients can use the same versioned artifacts from the repository.
+
 ## Anatomy of a LOKF concept
 
 `metrics/weekly-active-users.md` — ordinary OKF markdown; every key has a defined
@@ -204,7 +209,9 @@ Metric(id="https://acme.example/knowledge/metrics/wau",
 ```
 
 `lokf tables` projects a whole bundle to linked tables — one per type plus a
-`relations` edge table (needs `lokf[tables]`):
+`relations` edge table (needs `lokf[tables]`). The table writer recognizes
+core relation slots and explicit `relations` entries. Domain-specific keys
+appear as columns. For schema-aware graph traversal, use `lokf export`.
 
 ```bash
 lokf tables examples/acme-knowledge --format parquet  --output build/tables
@@ -217,8 +224,8 @@ lokf tables examples/acme-knowledge --format bigquery --location gs://bucket/lok
 an Astro site with an authored home page, full-text search, concept provenance,
 and an interactive graph browser. The graph offers bounded neighborhoods,
 several layouts, a list view, typed connections, and path finding; its full
-JSON and JSON-LD exports remain available. A configurable timeline appears
-when the bundle has enough dated, related concepts. The scaffold also includes
+JSON and JSON-LD exports remain available. Publishers can enable a timeline and
+choose its date and grouping fields in `src/temporal.config.mjs`. The scaffold also includes
 a GitHub Pages workflow, a `justfile`, and bundled agent skills:
 
 ```bash
@@ -234,13 +241,32 @@ An optional `lokf.views.yaml` gives readers task-oriented entry points
 through the same graph. A publisher can group concepts into families, list
 stages in dependency order, or show which related records belong to each
 row of a table. Copy the generated `lokf.views.example.yaml` to try the
-starter metric view. [Scaffold setup and source-checkout instructions](https://lokf.nolan-nichols.com/toolkit/scaffold/#add-a-navigation-view) · [Declarative navigation views](https://lokf.nolan-nichols.com/reference/declarative-views/)
+starter metric view. [Scaffold setup](https://lokf.nolan-nichols.com/toolkit/scaffold/#add-a-navigation-view) · [Declarative navigation views](https://lokf.nolan-nichols.com/reference/declarative-views/)
+
+### Browse the data model
+
+New sites include a **Schema** tab at `/schema/`. Readers can look up a class,
+see its inherited fields and constraints, and follow links to related types.
+The browser uses the project's configured LinkML vocabulary, including types
+with no records yet. Set `schemaBrowser: false` in `site.config.mjs` to omit it.
+[Schema browser setup](https://lokf.nolan-nichols.com/toolkit/scaffold/#browse-the-schema)
+
+From a project with a domain vocabulary, these commands inspect the model and
+export it alongside the navigation views for another client:
+
+```sh
+lokf vocab --bundle knowledge --all --json
+lokf export knowledge --out-dir build/export --schema-docs --views lokf.views.yaml
+```
+
+See the [CLI reference](https://lokf.nolan-nichols.com/reference/cli/) and the
+[MCP tools](https://lokf.nolan-nichols.com/toolkit/mcp/) for the same project's discovery options.
 
 ## Status
 
 LOKF v0.2 is a **draft profile** and is **not affiliated with or endorsed by
 Google**. The format version tracks OKF's `<major>.<minor>` scheme; the LinkML
-schema and the `lokf` package carry their own version (currently 0.10.0) so the
+schema and the `lokf` package carry their own version (currently 0.11.0) so the
 toolkit can ship fixes without implying a format change — see
 [SPEC §12](./SPEC.md). "Open Knowledge Format" / "OKF" refer to the format published by Google
 Cloud (`github.com/GoogleCloudPlatform/knowledge-catalog`); LOKF extends it under
@@ -273,20 +299,3 @@ package, so it is Apache-2.0 like the rest of `src/`. Its header comment — and
 key, so wherever CC-BY-4.0 appears inside a generated file it is the schema's
 license, not the package's. The published package declares `Apache-2.0`, which
 is the license of the code you install.
-
-
-
-The installed package includes `lokf/data/lokf.schema.json` and
-`lokf/data/lokf.shacl.ttl`, synchronized by `lokf-build`. Python hosts can read
-these with `importlib.resources.files("lokf").joinpath("data", filename)`;
-non-Python clients can use the same versioned artifacts from the repository.
-
-### Browse the data model
-
-Generated knowledge-base sites can expose their LinkML vocabulary through a
-**Schema** tab (`schemaBrowser: true` in `site.config.mjs`). It contains searchable
-class, slot, enumeration and datatype documentation, effective inherited fields,
-and a bounded interactive class-relationship diagram. This is the schema (TBox),
-not a reconstruction from the records in the instance graph. Domain schemas use
-the same `[tool.lokf] schema` setting as the toolkit. For other consumers,
-`lokf export knowledge --out-dir public --schema-docs` adds `schema.json`.

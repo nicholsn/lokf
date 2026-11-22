@@ -8,14 +8,14 @@ sidebar:
 LinkML is the **single source of truth**.
 [`lokf.yaml`](https://github.com/nicholsn/lokf/blob/main/lokf.yaml) defines the
 classes, slots, enumerations, and their mappings to external vocabularies.
-Every other artifact is generated from it and MUST NOT be edited by hand.
+The repository builds the vocabulary artifacts below from that file.
 
 ```mermaid
 flowchart TD
     Y["lokf.yaml<br/><em>LinkML — edit this</em>"]
     Y -- gen-jsonld-context --> C["lokf.context.jsonld<br/>JSON-LD @context"]
     Y -- gen-json-schema --> J["lokf.schema.json<br/>JSON Schema"]
-    Y -- gen-shacl --> S["lokf.shacl.ttl<br/>SHACL shapes"]
+    Y -- lokf-build --> S["lokf.shacl.ttl<br/>SHACL shapes"]
     Y -- gen-owl --> O["lokf.owl.ttl<br/>OWL ontology"]
     C -- "attach to frontmatter" --> R[("RDF graph")]
     J -- "validate documents" --> R
@@ -27,8 +27,10 @@ flowchart TD
 |-----------------------|----------------------|----------------------------------------------------|
 | `lokf.context.jsonld` | `gen-jsonld-context`* | Turns concept frontmatter into JSON-LD / RDF.      |
 | `lokf.schema.json`    | `gen-json-schema`    | Validates concept frontmatter (JSON Schema).       |
-| `lokf.shacl.ttl`      | `gen-shacl`          | Validates the resulting RDF graph (SHACL).         |
+| `lokf.shacl.ttl`      | `lokf-build`          | Validates the resulting RDF graph (SHACL).         |
 | `lokf.owl.ttl`        | `gen-owl`            | Class/property ontology for reasoning & alignment. |
+| `lokf.sql` | `gen-sqltables` | Relational schema with typed tables and foreign keys. |
+| `src/lokf/datamodel.py` | `gen-python` | Typed Python bindings shipped in the package. |
 
 \* The published context additionally aliases OKF's `type` field to the
 JSON-LD `@type` keyword and `id` to `@id`, so that authoring in plain OKF
@@ -62,12 +64,29 @@ re-derive:
 just build   # or: uv run lokf-build
 ```
 
-:::note[Regeneration can reorder]
-The artifacts are committed for consumers who just want to download them.
-Upstream LinkML/rdflib serialization is not byte-stable between runs
-(RDF list ordering, generation timestamps), so a rebuild may produce a
-textual diff with no semantic change — the graphs stay isomorphic.
-:::
+The build normalizes serialization and CI checks that regeneration with the
+locked toolchain reproduces the committed artifacts byte for byte.
+
+## Static site exports
+
+`lokf export` operates on a particular knowledge bundle. It always writes
+`graph.json`, `datasets.jsonld`, `graph.nt`, and `concepts.jsonld`.
+These four files are also the [registry producer contract](/toolkit/registry/).
+Two options add files for static-site consumers:
+
+| Option | Output | Contents |
+|---|---|---|
+| `--schema-docs` | `schema.json` | The browser reference for the resolved LinkML model, with classes, effective slots, enumerations, and datatypes. Use `lokf.schema.json` above for JSON Schema validation. |
+| `--views lokf.views.yaml` | `views.json` | Compiled root concepts, related rows and return links for the declared navigation views. |
+
+```sh
+lokf export knowledge --out-dir build/export --schema-docs --views lokf.views.yaml
+```
+
+`--schema path/to/model.yaml` selects a domain vocabulary explicitly. The
+exporter also honors the project's `[tool.lokf] schema` setting. New sites
+request the relevant files at build time from the schema browser setting and
+the presence of a view manifest. [Scaffold guide](/toolkit/scaffold/) · [Navigation views](/reference/declarative-views/)
 
 ## What the build does
 

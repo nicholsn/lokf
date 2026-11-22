@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""Generate the Starlight Python API reference from the lokf package.
+"""Generate the Starlight Python and CLI references from the lokf package.
 
-Replaces mkdocstrings: imports each toolkit module and emits a Markdown page
-of its public functions and classes (signatures + docstrings). Run in the
-web prebuild (``uv run python web/scripts/gen_api_docs.py``); the output is
-generated (gitignored) — edit the docstrings, not the page.
+Read module signatures, docstrings and the command tree during the web
+prebuild with ``uv run python web/scripts/gen_api_docs.py``.
 """
 from __future__ import annotations
 
+import html
 import importlib
 import inspect
 import pathlib
 import re
+
+from typer.main import get_command
+
+import lokf
+from lokf.cli import app
 
 # Public toolkit modules, in reading order.
 MODULES = [
@@ -20,11 +24,22 @@ MODULES = [
     "lokf.adapt",
     "lokf.parse",
     "lokf.rdf",
+    "lokf.shacl",
+    "lokf.trust",
+    "lokf.resources",
+    "lokf.excerpts",
+    "lokf.events",
+    "lokf.logs",
     "lokf.store",
     "lokf.server",
     "lokf.propose",
     "lokf.export",
+    "lokf.views",
+    "lokf.schema_docs",
+    "lokf.tables",
+    "lokf.scaffold",
     "lokf.registry",
+    "lokf.registry_mcp",
     "lokf.agentskills",
     "lokf.mcp_server",
     "lokf.build",
@@ -40,7 +55,7 @@ def _clean(text: str) -> str:
     text = text.replace("::\n", ":\n")  # RST literal-block marker
     return text
 
-OUT = pathlib.Path(__file__).resolve().parent.parent / "src" / "content" / "docs" / "reference" / "api.md"
+REFERENCE = pathlib.Path(__file__).resolve().parent.parent / "src" / "content" / "docs" / "reference"
 
 
 def _sig(obj) -> str:
@@ -71,12 +86,16 @@ def _members(module):
     return funcs, classes
 
 
-def _methods(cls):
-    out = []
-    for name, obj in vars(cls).items():
-        if _is_public(name) and inspect.isfunction(obj):
-            out.append((name, obj))
-    return out
+def _class_members(cls):
+    """Report public methods, constructors and properties defined by this class."""
+    for name, descriptor in vars(cls).items():
+        if not _is_public(name):
+            continue
+        if isinstance(descriptor, property):
+            yield name, descriptor, ""
+        elif inspect.isfunction(descriptor) or isinstance(descriptor, (classmethod, staticmethod)):
+            obj = getattr(cls, name)
+            yield name, obj, _sig(obj)
 
 
 def render() -> str:
@@ -88,8 +107,10 @@ def render() -> str:
         "  order: 2",
         "---",
         "",
-        "Generated from the installed `lokf` package. Every entry below is the "
-        "real signature and docstring of the shipped code.",
+        "Generated from the toolkit modules. The following names can also be imported "
+        "directly from `lokf`.",
+        "",
+        ", ".join(f"`{name}`" for name in lokf.__all__) + ".",
         "",
     ]
     for mod_name in MODULES:
@@ -107,17 +128,68 @@ def render() -> str:
             lines += [f"### `class {name}`", ""]
             if _doc(cls):
                 lines += [_doc(cls), ""]
-            for mname, mobj in _methods(cls):
-                lines += [f"#### `{name}.{mname}{_sig(mobj)}`", ""]
+            for mname, mobj, signature in _class_members(cls):
+                lines += [f"#### `{name}.{mname}{signature}`", ""]
                 if _doc(mobj):
                     lines += [_doc(mobj), ""]
     return "\n".join(lines)
 
 
+def _command_sections(command, ctx):
+    yield f"## `{ctx.command_path}`"
+    yield ""
+    if command.help:
+        yield command.help.split("\n\n", 1)[0].replace("\n", " ")
+        yield ""
+    yield f"```text\n{command.get_usage(ctx)}\n```"
+    yield ""
+    yield "| Argument or option | Meaning |"
+    yield "| --- | --- |"
+    for parameter in command.get_params(ctx):
+        record = parameter.get_help_record(ctx)
+        if record:
+            label, description = record
+            description = html.escape(" ".join(description.split()), quote=False).replace("|", r"\|")
+            yield f"| `{label}` | {description} |"
+    yield ""
+    if hasattr(command, "list_commands"):
+        for name in command.list_commands(ctx):
+            child = command.get_command(ctx, name)
+            if not child.hidden:
+                with child.make_context(name, [], parent=ctx, resilient_parsing=True) as child_ctx:
+                    yield from _command_sections(child, child_ctx)
+
+
+def render_cli() -> str:
+    command = get_command(app)
+    lines = [
+        "---",
+        "title: CLI reference",
+        "description: Commands, arguments, and options supported by the lokf CLI.",
+        "sidebar:",
+        "  order: 1",
+        "---",
+        "",
+        "Each section gives the invocation and options for one command. "
+        "Use `lokf COMMAND --help` to see the help for your installed version. "
+        "For worked examples, see the [toolkit guide](/toolkit/).",
+        "",
+        "The package also installs `lokf-mcp` to run the [bundle MCP server](/toolkit/mcp/) "
+        "and `lokf-build` to regenerate schema artifacts from a LOKF source checkout "
+        "with the `build` extra.",
+        "",
+    ]
+    with command.make_context("lokf", [], resilient_parsing=True) as ctx:
+        lines.extend(_command_sections(command, ctx))
+    return "\n".join(lines)
+
+
 def main() -> None:
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(render(), encoding="utf-8")
-    print(f"gen_api_docs: wrote {OUT.relative_to(OUT.parents[4])}")
+    REFERENCE.mkdir(parents=True, exist_ok=True)
+    for filename, content in (("api.md", render()), ("cli.md", render_cli())):
+        path = REFERENCE / filename
+        path.write_text(content, encoding="utf-8")
+        print(f"gen_api_docs: wrote {path.relative_to(REFERENCE.parents[3])}")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,9 @@ Do not use this to bulk-import — author one concept per file.
 
 ## The concept types
 
-Pick the `type` that fits (from `lokf vocab` classes):
+Run `lokf vocab --bundle <bundle> --all` for the classes and slots in the
+bundle's vocabulary. On a generated site, the **Schema** tab also lists
+inherited fields and their ranges. Common built-in types include the following.
 
 | type          | Use for                                             |
 |---------------|-----------------------------------------------------|
@@ -38,8 +40,6 @@ Pick the `type` that fits (from `lokf vocab` classes):
 | `Document`    | A prose document.                                   |
 | `Reference`   | An external citation-like reference.                |
 | `AttestedComputation` | A sanctioned, immutable computation recipe (a `prov:Plan`). |
-
-Run `lokf vocab` first if you are unsure which relation slots a type supports.
 
 ## Steps
 
@@ -112,7 +112,7 @@ Run `lokf vocab` first if you are unsure which relation slots a type supports.
    strings — `<producer>/<version>`, `human:<id>`, `process:<id>` — never IRIs.
 
 3. **Add typed relations as frontmatter keys** where the link is precise. These
-   are the `slot`-flagged rows from `lokf vocab`, each ranged on other
+   are the `slot`-flagged rows from `lokf vocab --bundle <bundle>`, each ranged on other
    concepts by IRI:
 
    ```yaml
@@ -142,7 +142,7 @@ Run `lokf vocab` first if you are unsure which relation slots a type supports.
    - Excludes internal test accounts.
    ```
 
-5. **Register it in `index.md`** so it is part of the bundle: add a bullet
+5. **Link it from `index.md`** so readers can find it. Add a bullet
    under the right heading, e.g.
    `* [Signup Rate](metrics/signup-rate.md) - Session signup conversion.`
 
@@ -157,10 +157,11 @@ Run `lokf vocab` first if you are unsure which relation slots a type supports.
    frontmatter relation appears as the expected predicate (e.g. `derivedFrom`
    → `prov:wasDerivedFrom`, `measures` → `lokf:measures`).
 
-7. **Validate the whole bundle** renders cleanly:
+7. **Validate the whole bundle.** From the bundle directory, check the schema
+   and in-namespace relation targets (requires `lokf[build]`).
 
    ```bash
-   lokf convert . --format ttl | tail -5
+   lokf validate . --check-refs
    ```
 
 ## Done when
