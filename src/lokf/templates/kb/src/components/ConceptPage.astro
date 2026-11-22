@@ -7,6 +7,7 @@ import type { Concept } from '../lib/lokf';
 import { loadBundle, iriOf, hrefOf, titleOf, href } from '../lib/lokf';
 import { loadProjectionIndex, loadVocabulary } from '../lib/graph-data';
 import { fieldsOf, fieldValues, incomingTitle, relationTitle, typeTitle } from '../lib/labels.mjs';
+import { loadSchema, schemaHref } from '../lib/schema-data';
 import siteConfig from '../../site.config.mjs';
 
 interface Props { entry: Concept; navigation: Navigation }
@@ -21,6 +22,8 @@ const leading = roots.filter(({ view }) => view.placement === 'before_text');
 const trailing = roots.filter(({ view }) => view.placement !== 'before_text');
 const memberships = navigation.memberships.get(entry.id) ?? [];
 const d = entry.data as Record<string, any>;
+const schema = await loadSchema();
+const classUrl = schema?.classes.some((item: any) => item.name === d.type) ? schemaHref('classes', d.type) : null;
 const myIri = iriOf(entry);
 const node = projection.nodes.get(myIri);
 const document = projection.documents.get(myIri);
@@ -75,7 +78,7 @@ const correctionUrl = webUrl(siteConfig.correctionUrl) ||
 ---
 
 <Base title={titleOf(entry)} description={d.description} jsonld={jsonld}>
-  <p><a class="badge" href={searchLink('type', d.type)}>{typeTitle(vocabulary, d.type)}</a></p>
+  <p><a class="badge" href={searchLink('type', d.type)}>{typeTitle(vocabulary, d.type)}</a>{classUrl && <> · <a href={classUrl}>Class documentation</a></>}</p>
   <h1>{titleOf(entry)}</h1>
   {d.description && <p class="tagline">{d.description}</p>}
   {Array.isArray(d.tags) && d.tags.length > 0 && (

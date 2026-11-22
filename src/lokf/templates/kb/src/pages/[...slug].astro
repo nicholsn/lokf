@@ -3,11 +3,16 @@ import { getCollection } from 'astro:content';
 import ConceptPage from '../components/ConceptPage.astro';
 import ViewPage from '../components/ViewPage.astro';
 import { checkViewRoutes, loadViews } from '../lib/view-data';
+import { loadSchema } from '../lib/schema-data';
 import type { Concept } from '../lib/lokf';
 
 export async function getStaticPaths() {
   const [concepts, navigation] = await Promise.all([getCollection('knowledge'), loadViews()]);
   checkViewRoutes(navigation, concepts);
+  if (await loadSchema()) {
+    const collision = [...concepts.map(e => e.id), ...navigation.pages.keys()].find(p => p === 'schema' || p.startsWith('schema/'));
+    if (collision) throw new Error(`Schema browser route collision at /${collision}/. Rename the record or disable schemaBrowser.`);
+  }
   return [
     ...concepts.map(entry => ({ params: { slug: entry.id }, props: { entry } })),
     ...Array.from(navigation.pages.keys(), path => ({ params: { slug: path }, props: { path } })),
