@@ -3,7 +3,7 @@ import { schemaGraph } from '../lib/schema-graph.mjs';
 import { schemaHref } from '../lib/schema-data';
 const { model, focus = '' } = Astro.props;
 const graph = schemaGraph(model);
-const payload = JSON.stringify({graph, focus, links: Object.fromEntries(model.classes.map((c: any) => [c.name, schemaHref('classes', c.name)]))}).replace(/</g, '\\u003c');
+const payload = JSON.stringify({graph, focus, links: Object.fromEntries(model.classes.map((c: any) => [c.name, schemaHref(model, 'classes', c.name)]))}).replace(/</g, '\\u003c');
 ---
 <section class="schema-diagram" aria-label="Schema relationships">
   <h2>Type relationships</h2>

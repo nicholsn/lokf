@@ -1,24 +1,25 @@
 ---
 import Base from '../../layouts/Base.astro';
 import SchemaDiagram from '../../components/SchemaDiagram.astro';
-import { loadSchema, schemaPath, schemaHref, rangeHref } from '../../lib/schema-data';
+import { loadSchema, schemaHref, rangeHref } from '../../lib/schema-data';
 import { href } from '../../lib/lokf';
+import { schemaKinds, schemaPath, slotCardinality } from '../../lib/schema-browser';
 export async function getStaticPaths() {
   const model = await loadSchema();
   if (!model) return [];
   return [{ params: { term: undefined }, props: { model } },
-    ...['classes', 'slots', 'enums', 'types'].flatMap(kind => model[kind].map((item: any) => ({
-      params: { term: schemaPath(kind, item.name).replace(/^schema\//, '') }, props: { model, kind, item },
+    ...schemaKinds.flatMap(kind => model[kind].map((item: any) => ({
+      params: { term: schemaPath(model, kind, item.name).replace(/^schema\//, '') }, props: { model, kind, item },
     })))];
 }
 const { model, kind, item } = Astro.props;
 const constraints = (slot: any) => {
   const values = [];
   for (const key of ['required', 'recommended', 'identifier', 'key', 'readonly', 'inlined', 'inlined_as_list']) if (slot[key]) values.push(key.replaceAll('_', ' '));
-  for (const key of ['pattern', 'minimum_value', 'maximum_value', 'minimum_cardinality', 'maximum_cardinality']) if (slot[key] !== undefined) values.push(`${key.replaceAll('_', ' ')}: ${slot[key]}`);
+  for (const key of ['pattern', 'minimum_value', 'maximum_value']) if (slot[key] !== undefined) values.push(`${key.replaceAll('_', ' ')}: ${slot[key]}`);
   return values.join(' · ') || '—';
 };
-const usedBy = kind === 'slots' ? model.classes.filter((c: any) => c.slots.some((s: any) => s.name === item.name)) : [];
+const usedBy = kind === 'slots' ? model.classes.filter((c: any) => c.slots.some((s: any) => !s.class_attribute && s.name === item.name)) : [];
 const children = kind === 'classes' ? model.classes.filter((c: any) => c.is_a === item.name || c.mixins.includes(item.name)) : [];
 ---
 <Base title={item ? `${item.title} — Schema` : `Schema — ${model.title}`} wide>
@@ -31,10 +32,10 @@ const children = kind === 'classes' ? model.classes.filter((c: any) => c.is_a ==
     <label for="schema-filter">Find a class, slot, enumeration or datatype</label>
     <input id="schema-filter" type="search" placeholder="Search the data model…" />
     <p id="schema-results" role="status" aria-live="polite"></p>
-    {['classes', 'slots', 'enums', 'types'].map(group => <section id={group}>
+    {schemaKinds.map(group => <section id={group}>
       <h2>{group[0].toUpperCase() + group.slice(1)} <small>({model[group].length})</small></h2>
       <ul class="schema-list">{model[group].map((entry: any) => <li data-schema-entry data-search={`${entry.name} ${entry.title} ${entry.description}`.toLowerCase()}>
-        <a href={schemaHref(group, entry.name)}>{entry.title}</a> <code>{entry.name}</code>
+        <a href={schemaHref(model, group, entry.name)}>{entry.title}</a> <code>{entry.name}</code>
         <span class="badge">{entry.local ? 'Domain' : 'Imported'}{entry.abstract ? ' · Abstract' : ''}{entry.mixin ? ' · Mixin' : ''}</span>
         <p>{entry.description}</p>
       </li>)}</ul>
@@ -44,22 +45,22 @@ const children = kind === 'classes' ? model.classes.filter((c: any) => c.is_a ==
     {item.uri && <p>URI: <code>{item.uri}</code></p>}
     <p>Defined by: <code>{item.origin}</code></p>
     {kind === 'classes' && <>
-      {item.is_a && <p>Subclass of <a href={schemaHref('classes', item.is_a)}>{item.is_a}</a></p>}
-      {item.mixins.length > 0 && <p>Mixins: {item.mixins.map((name: string) => <a class="term" href={schemaHref('classes', name)}>{name}</a>)}</p>}
-      {children.length > 0 && <p>Specializations: {children.map((c: any) => <a class="term" href={schemaHref('classes', c.name)}>{c.title}</a>)}</p>}
+      {item.is_a && <p>Subclass of <a href={schemaHref(model, 'classes', item.is_a)}>{item.is_a}</a></p>}
+      {item.mixins.length > 0 && <p>Mixins: {item.mixins.map((name: string) => <a class="term" href={schemaHref(model, 'classes', name)}>{name}</a>)}</p>}
+      {children.length > 0 && <p>Specializations: {children.map((c: any) => <a class="term" href={schemaHref(model, 'classes', c.name)}>{c.title}</a>)}</p>}
       <SchemaDiagram {model} focus={item.name} />
       <h2>Effective slots</h2>
       <p>Ranges and constraints include inheritance, mixins and class-specific overrides. Attribute definitions appear here even when no global slot exists.</p>
       <div class="table-scroll"><table><thead><tr><th>Slot</th><th>Range</th><th>Cardinality</th><th>Constraints</th><th>Source</th></tr></thead><tbody>
-        {item.slots.map((slot: any) => <tr><td>{model.slots.some((s: any) => s.name === slot.name) ? <a href={schemaHref('slots', slot.name)}>{slot.name}</a> : <strong>{slot.name}</strong>}<p>{slot.description}</p></td>
+        {item.slots.map((slot: any) => <tr><td>{!slot.class_attribute && model.slots.some((s: any) => s.name === slot.name) ? <a href={schemaHref(model, 'slots', slot.name)}>{slot.name}</a> : <strong>{slot.name}</strong>}<p>{slot.description}</p></td>
           <td>{[slot.range, ...slot.any_of].filter(Boolean).map((r: string) => rangeHref(model, r) ? <a class="term" href={rangeHref(model, r)}>{r}</a> : <span class="term">{r}</span>)}</td>
-          <td>{slot.required ? '1' : '0'}..{slot.multivalued ? '*' : '1'}</td><td>{constraints(slot)}</td><td>{slot.declared_here ? 'Declared' : 'Inherited'}{slot.overridden_here ? ' · overridden here' : ''}</td></tr>)}
+          <td>{slotCardinality(slot)}</td><td>{constraints(slot)}</td><td>{slot.declared_here ? 'Declared' : 'Inherited'}{slot.overridden_here ? ' · overridden here' : ''}</td></tr>)}
       </tbody></table></div>
     </>}
     {kind === 'slots' && <>
-      <p>Default range: {rangeHref(model, item.range) ? <a href={rangeHref(model, item.range)}>{item.range}</a> : item.range || 'unspecified'} · {item.multivalued ? 'Multiple values' : 'Single value'}</p>
+      <p>Default range: {rangeHref(model, item.range) ? <a href={rangeHref(model, item.range)}>{item.range}</a> : item.range || 'unspecified'} · Cardinality: {slotCardinality(item)}</p>
       <p>{constraints(item)}</p><h2>Used by</h2><p>Follow a class to see its effective range and constraints, which may override these defaults.</p>
-      <ul>{usedBy.map((c: any) => <li><a href={schemaHref('classes', c.name)}>{c.title}</a></li>)}</ul>
+      <ul>{usedBy.map((c: any) => <li><a href={schemaHref(model, 'classes', c.name)}>{c.title}</a></li>)}</ul>
     </>}
     {kind === 'enums' && <table><thead><tr><th>Value</th><th>Description</th><th>Meaning</th></tr></thead><tbody>{item.values.map((v: any) => <tr><td>{v.name}</td><td>{v.description}</td><td>{v.meaning}</td></tr>)}</tbody></table>}
     {kind === 'types' && <p>Base datatype: <code>{item.base}</code></p>}

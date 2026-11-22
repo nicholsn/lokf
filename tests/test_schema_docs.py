@@ -26,9 +26,13 @@ classes:
         required: true
         multivalued: false
     attributes:
+      label:
+        range: integer
       local:
         range: string
         pattern: '^x'
+        multivalued: true
+        exact_cardinality: 2
 slots:
   related:
     range: Parent
@@ -48,7 +52,11 @@ slots:
     assert fields['related']['overridden_here']
     assert not fields['related']['declared_here']
     assert fields['local']['pattern'] == '^x'
+    assert fields['label']['class_attribute'] and fields['label']['range'] == 'integer'
+    assert next(s for s in model['slots'] if s['name'] == 'label')['range'] == 'string'
     assert fields['local']['declared_here']
+    assert fields['local']['exact_cardinality'] == 2
+    assert 'local' not in {s['name'] for s in model['slots']}
     assert any(t['name']=='string' and not t['local'] for t in model['types'])
 
 
