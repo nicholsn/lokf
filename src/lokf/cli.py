@@ -992,6 +992,10 @@ def export(
       ``@context``/``@graph``; lets a registry read a foreign concept's source
       document offline, without re-fetching the markdown.
 
+    With ``--schema-docs``, also write ``schema.json`` with the resolved LinkML
+    definitions for the schema browser. Use ``--schema`` to select a domain
+    vocabulary explicitly, or declare it in the project's pyproject.toml.
+
     With ``--views lokf.views.yaml``, also write ``views.json`` for the site's
     navigation indexes, concept sections, and return links. A subsequent
     successful export without a manifest removes that generated plan.

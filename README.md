@@ -209,7 +209,9 @@ Metric(id="https://acme.example/knowledge/metrics/wau",
 ```
 
 `lokf tables` projects a whole bundle to linked tables — one per type plus a
-`relations` edge table (needs `lokf[tables]`):
+`relations` edge table (needs `lokf[tables]`). The table writer recognizes
+core relation slots and explicit `relations` entries. Domain-specific keys
+appear as columns. For schema-aware graph traversal, use `lokf export`.
 
 ```bash
 lokf tables examples/acme-knowledge --format parquet  --output build/tables
@@ -222,8 +224,8 @@ lokf tables examples/acme-knowledge --format bigquery --location gs://bucket/lok
 an Astro site with an authored home page, full-text search, concept provenance,
 and an interactive graph browser. The graph offers bounded neighborhoods,
 several layouts, a list view, typed connections, and path finding; its full
-JSON and JSON-LD exports remain available. Publishers can enable a timeline and choose the date and grouping fields in
-`src/temporal.config.mjs`. The scaffold also includes
+JSON and JSON-LD exports remain available. Publishers can enable a timeline and
+choose its date and grouping fields in `src/temporal.config.mjs`. The scaffold also includes
 a GitHub Pages workflow, a `justfile`, and bundled agent skills:
 
 ```bash

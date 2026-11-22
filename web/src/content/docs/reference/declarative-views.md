@@ -37,6 +37,8 @@ Open **Explore metrics** on the home page. Under **Weekly Active Users**, the pr
 - A section supplies an `id`, `title`, `path`, and `display`. Its path contains one to four steps. Each step has exactly one direction, `out` or `in`, and can filter the reached concepts with an exact `type`. A predicate can be a projected relation name, a CURIE, or its full IRI.
 - Each step reads local concept links from the same graph as `lokf export`, including typed entries under `relations`. An incoming step reads an existing assertion backwards. A section lists each matching endpoint once and omits its own root. A multi-step result includes a **How are these connected?** disclosure with one matching chain.
 
+For a custom frontmatter key to appear as a graph edge, give the slot a `slot_uri`, a concept reference range, and `multivalued: true` on a concept class. Use `lokf vocab --bundle knowledge` to check which relation names your manifest can follow. Single-valued frontmatter references can participate in validation even when they produce no explorer edge.
+
 For example, to answer “Which metrics use tables from this dataset?” in the Acme bundle, select `roots: {type: Dataset}` and add this section. Starting from **Events**, it finds **User Events**, then **Weekly Active Users**. The second step selects metrics even when other kinds of concept also derive from the same table. [Acme example bundle](/examples/)
 
 ```yaml
