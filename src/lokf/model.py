@@ -12,6 +12,7 @@ RDF graph::
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 from dataclasses import dataclass
 
@@ -235,6 +236,21 @@ class Bundle:
         return docs_to_graph(self.docs(), context, base=self.base_iri or None, schema=schema)
 
 
+def _markdown_files(root):
+    """Enumerate all Markdown input. A failed scan must reach the caller."""
+    files = []
+    pending = [root]
+    while pending:
+        with os.scandir(pending.pop()) as entries:
+            for entry in entries:
+                path = pathlib.Path(entry.path)
+                if entry.is_dir(follow_symlinks=False):
+                    pending.append(path)
+                if path.match("*.md"):
+                    files.append(path)
+    return sorted(files)
+
+
 def load_bundle(path: str | pathlib.Path) -> Bundle:
     """Load a bundle directory into a :class:`Bundle`.
 
@@ -245,14 +261,14 @@ def load_bundle(path: str | pathlib.Path) -> Bundle:
     return _load_bundle_files(root, sorted(root.rglob("*.md")), (root / "index.md").exists())
 
 
-def _load_bundle_files(root, markdown_files, has_index):
+def _load_bundle_files(root, markdown_files, has_index, read=read_markdown):
     meta: dict = {}
     index = root / "index.md"
     if has_index:
-        meta = parse_index_text(read_markdown(index), str(index))
+        meta = parse_index_text(read(index), str(index))
     concepts = []
     for p in markdown_files:
         if p.name not in RESERVED:
-            data, mappings = parse_concept_fields(read_markdown(p), str(p))
+            data, mappings = parse_concept_fields(read(p), str(p))
             concepts.append(Concept(p, data, p.relative_to(root).with_suffix("").as_posix(), mappings))
     return Bundle(root=root, meta=meta, concepts=concepts)

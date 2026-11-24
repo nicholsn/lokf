@@ -5,7 +5,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cached_property, lru_cache, partial
 import json
-import os
 import re
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -19,7 +18,7 @@ from linkml_runtime.utils.formatutils import underscore
 from lokf.events import event_diagnostics
 from lokf.excerpts import excerpt_conflict_findings, excerpt_findings
 from lokf.logs import _check_log_files
-from lokf.model import Bundle, _load_bundle_files
+from lokf.model import Bundle, _load_bundle_files, _markdown_files
 from lokf.parse import DocumentError
 from lokf.resources import exclusion_findings, resource_findings, resource_root
 from lokf.schema import domain_schema, projection_schema, schema_context, schema_path
@@ -385,21 +384,6 @@ def _shacl_findings(report, bundle, selected, schema, emit):
         report._record("shacl", "shacl." + name, "error", reason, doc, prop)
     if not findings:
         report._record("shacl", "shacl.violation", "error", "RDF does not conform to the shapes.")
-
-
-def _markdown_files(root):
-    """Enumerate the validation input once. A failed scan must reach the caller."""
-    files = []
-    pending = [root]
-    while pending:
-        with os.scandir(pending.pop()) as entries:
-            for entry in entries:
-                path = Path(entry.path)
-                if entry.is_dir(follow_symlinks=False):
-                    pending.append(path)
-                if path.match("*.md"):
-                    files.append(path)
-    return sorted(files)
 
 
 def validate_bundle(bundle: str | Path, *, schema: str | Path | None = None,

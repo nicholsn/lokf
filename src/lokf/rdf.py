@@ -322,6 +322,13 @@ def _sorted_jsonld(text: str) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
 
+def _sorted_nt(g):
+    # Split on newlines only: N-Triples escapes them, but writes other
+    # line breaks a literal may hold (U+2028, U+0085, form feed) as they are.
+    text = g.serialize(format="nt")
+    return "\n".join(sorted(line for line in text.split("\n") if line.strip())) + "\n"
+
+
 def serialize_graph(g, fmt: str = "ttl", prefixes: dict[str, str] | None = None) -> str:
     """Serialize *g* to RDF text in *fmt*, the same bytes for the same graph.
 
@@ -337,14 +344,12 @@ def serialize_graph(g, fmt: str = "ttl", prefixes: dict[str, str] | None = None)
     g = relabel_bnodes(g)
     for prefix, ns in (prefixes or {}).items():
         g.bind(prefix, ns, override=True, replace=True)
+    if rdflib_fmt == "nt":
+        return _sorted_nt(g)
     data = g.serialize(format=rdflib_fmt)
     text = data if isinstance(data, str) else data.decode("utf-8")
     if rdflib_fmt == "json-ld":
         text = _sorted_jsonld(text)
-    if rdflib_fmt == "nt":
-        # Split on newlines only: N-Triples escapes them, but writes other
-        # line breaks a literal may hold (U+2028, U+0085, form feed) as they are.
-        text = "\n".join(sorted(line for line in text.split("\n") if line.strip())) + "\n"
     return text
 
 

@@ -15,6 +15,9 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ### Added
 
+- The new `lokf snapshot capture` and `lokf snapshot mcp` commands retain
+  revisioned bundle and registry reads. Agents can pin Markdown, RDF queries
+  and vocabulary metadata to the same capture across server restarts.
 - The bundle MCP server exposes `validate_bundle`, backed by the same Python
   validator as `lokf validate`. Agents can inspect which checks ran, locate
   errors in individual documents, and distinguish invalid content from an

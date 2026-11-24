@@ -71,6 +71,32 @@ arguments below show their defaults.
 
 To query several bundles together, use the [registry MCP server](/toolkit/registry/#for-agents).
 
+## Read a retained revision
+
+Capture a bundle directory or registry manifest, then start the snapshot MCP server over stdio.
+
+```bash
+lokf snapshot capture examples/acme-knowledge --store ./knowledge.sqlite
+lokf snapshot mcp --store ./knowledge.sqlite
+```
+
+Capture prints a JSON receipt. Call `get_snapshot()` to discover the current head and its members. Pass its `snapshot` value to every read for the same task.
+
+| Tool | Example arguments |
+| --- | --- |
+| `get_snapshot` | `{"snapshot": "sha256:…"}` returns the members, each bundle revision, its schema revision and projection profile. |
+| `federated_sparql` | `{"snapshot": "sha256:…", "query": "SELECT ?g ?s WHERE { GRAPH ?g { ?s a lokf:Metric } }"}` returns the graph IRI and subject. |
+| `read_document` | `{"snapshot": "sha256:…", "member": "<graph IRI>", "iri": "<subject IRI>"}` returns the captured Markdown and its byte digest. Use `"path": "metrics/revenue.md"` to select a file by name. |
+| `get_vocabulary` | `{"snapshot": "sha256:…", "member": "<graph IRI>"}` returns the captured vocabulary and schema import metadata. |
+
+A single-member snapshot supplies the member by default. Omitting `snapshot` resolves the head once for that call. A missing revision, member or document produces an error. Run the capture command again to adopt edits. A running server sees the new head on its next unpinned read. Earlier revisions remain readable after a restart or removal of the source checkout.
+
+Document lookup accepts the authored ID and its expanded graph IRI. When upgrading an earlier snapshot store, recapturing the same member adds the expanded lookup to its existing revision. Path lookup continues to work for historical documents.
+
+Each registry capture selects all bundle members together. Checkouts use their declared project schema. A release archive requires its registered checksum and uses core LOKF. An unavailable member, skipped subregistry or unpinned schema import fails the capture and preserves the previous head. The graph and vocabulary are materialized at capture time. Markdown retains its original UTF-8 bytes, including line endings. Capture checks for observed edits and binds the acquired bytes; use a fixed checkout when a group of source edits must be adopted together. Cited URLs and external evidence remain references. Use `validate_bundle` on the source for a validation verdict.
+
+The operator controls capture. Each store belongs to one source path and one set of explicit `--clear-member` permissions. Access to the file or its MCP connection grants access to the retained history, including cleared members. Use a separate store for each audience and withdraw that audience's access when its permissions change. Repeated captures reuse identical member revisions and document bytes.
+
 ## Validate a bundle
 
 Call `validate_bundle(bundle="/project/knowledge", check_ids=true, check_refs=true,
