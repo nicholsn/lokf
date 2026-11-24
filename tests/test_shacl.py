@@ -35,6 +35,30 @@ def test_reference_bundle_passes_shacl_cli():
     assert 'RDF conforms' in result.output
 
 
+def test_packaged_shapes_only_for_unmodified_default(tmp_path, monkeypatch):
+    from unittest.mock import patch
+    from lokf.validation import validate_bundle
+
+    monkeypatch.chdir(tmp_path)
+    schema = tmp_path / 'lokf.yaml'
+    schema.write_bytes((ROOT / 'lokf.yaml').read_bytes())
+    make_bundle(tmp_path, service={'type': 'Service', 'title': 'Service', 'dependsOn': ['term']},
+                term={'type': 'GlossaryTerm', 'title': 'Term'})
+    with patch('lokf.shacl.build_shapes', wraps=build_shapes) as generate:
+        assert validate_bundle(tmp_path, shacl=True).checks['shacl'] == 'passed'
+        assert generate.call_count == 0
+
+        assert validate_bundle(tmp_path, shacl=True, schema=schema).checks['shacl'] == 'passed'
+        assert generate.call_count == 1
+
+        edited = yaml.safe_load(schema.read_bytes())
+        edited['slots']['dependsOn']['range'] = 'Person'
+        schema.write_text(yaml.safe_dump(edited, sort_keys=False))
+        report = validate_bundle(tmp_path, shacl=True)
+        assert report.checks['shacl'] == 'failed'
+        assert report.diagnostics[0]['code'] == 'shacl.Class'
+
+
 def test_people_organizations_external_targets_and_helpers(tmp_path, shapes):
     b = make_bundle(tmp_path,
         service={'type': 'Service', 'title': 'Service', 'dependsOn': ['person', 'org'],

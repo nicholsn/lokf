@@ -5,6 +5,8 @@ import datetime as dt
 import re
 from pathlib import Path
 
+from lokf.parse import read_markdown
+
 
 def check_logs(root: Path):
     """Yield (severity, file, line, message); missing logs are valid.
@@ -12,11 +14,15 @@ def check_logs(root: Path):
     Markdown parsing keeps headings in fenced code, HTML, and indented code
     out of the date checks. All level-two headings represent date groups.
     """
+    yield from _check_log_files(sorted(root.rglob("log.md")))
+
+
+def _check_log_files(paths):
     from markdown_it import MarkdownIt
 
     parser = MarkdownIt()
-    for path in sorted(root.rglob("log.md")):
-        tokens = parser.parse(path.read_text(encoding="utf-8"))
+    for path in paths:
+        tokens = parser.parse(read_markdown(path))
         seen = set()
         previous = None
         for i, token in enumerate(tokens):

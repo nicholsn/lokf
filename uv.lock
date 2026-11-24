@@ -1066,6 +1066,7 @@ dependencies = [
     { name = "ruamel-yaml" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "typer" },
+    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -1108,6 +1109,7 @@ requires-dist = [
     { name = "ruamel-yaml", specifier = ">=0.18" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
     { name = "typer", specifier = ">=0.15" },
+    { name = "typing-extensions", specifier = ">=4.0" },
 ]
 provides-extras = ["build", "shacl", "tables"]
 

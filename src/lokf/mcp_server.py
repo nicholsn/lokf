@@ -4,12 +4,15 @@ LOKF is a semantic profile of the Open Knowledge Framework: a knowledge base
 is a *bundle* of markdown *concepts* (frontmatter + prose) that projects to
 RDF and is queryable with SPARQL. The tools here let an agent list and inspect
 concepts, run SPARQL, convert markdown to RDF, propose typed relations from
-prose links, read the relation vocabulary, and summarize a bundle. Point tools
+prose links, read the relation vocabulary, validate and summarize a bundle. Point tools
 at a bundle directory (e.g. ``examples/acme-knowledge``) unless noted.
 """
 from __future__ import annotations
 
 from mcp.server.mcpserver import MCPServer
+from mcp.types import ToolAnnotations
+
+from lokf.validation import ValidationResult
 
 
 def _version() -> str:
@@ -34,7 +37,7 @@ _INSTRUCTIONS = (
     "foaf/rdf/rdfs/owl/xsd/dcat are preset), convert to serialize markdown to "
     "RDF, propose_relations to mine typed relations from prose links, "
     "get_vocabulary to read the relation vocabulary, and bundle_summary for a "
-    "quick orientation. Pass a bundle directory as the bundle/source argument."
+    "quick orientation. Use validate_bundle to check authored knowledge. Pass a bundle directory as the bundle/source argument."
 )
 
 server = MCPServer("lokf", instructions=_INSTRUCTIONS, version=_version())
@@ -207,6 +210,27 @@ def get_vocabulary(
     if include_metadata:
         result["schema_metadata"] = metadata
     return result
+
+
+@server.tool(annotations=ToolAnnotations(read_only_hint=True))
+def validate_bundle(
+    bundle: str, schema: str | None = None, check_ids: bool = False, check_refs: bool = False,
+    check_resources: bool = False, check_excerpts: bool = False, shacl: bool = False,
+    root: str | None = None, max_diagnostics: int = 50,
+) -> ValidationResult:
+    """Validate a local bundle and return its verdict, checks, coverage and located diagnostics.
+
+    Flags match the validate CLI. Request shacl to check RDF ranges, check_refs for local
+    target existence, and check_excerpts to compare quotes with local resources. An incomplete
+    verdict means validation could not finish. max_diagnostics (1–100) limits the displayed
+    findings; diagnostic_count and the verdict cover every finding. A live bundle has no
+    source revision. Validation reads the bundle without authorizing or publishing changes.
+    """
+    from lokf.validation import validate_bundle as validate
+
+    return validate(bundle, schema=schema, check_ids=check_ids, check_refs=check_refs,
+                    check_resources=check_resources, check_excerpts=check_excerpts, shacl=shacl,
+                    root=root, max_diagnostics=max_diagnostics).as_dict()
 
 
 @server.tool()

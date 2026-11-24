@@ -25,6 +25,7 @@ MODULES = [
     "lokf.parse",
     "lokf.rdf",
     "lokf.shacl",
+    "lokf.validation",
     "lokf.trust",
     "lokf.resources",
     "lokf.excerpts",

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from lokf.schema_sources import SchemaInputs, local_view_caches
+
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.collection import Collection
 from rdflib.namespace import RDF, RDFS, SH, XSD
@@ -15,7 +17,7 @@ def _list(graph, predicate, subject, values):
     graph.add((subject, predicate, head))
 
 
-def build_shapes(schema: str | Path) -> Graph:
+def build_shapes(schema: str | Path, *, inputs: SchemaInputs | None = None) -> Graph:
     """Adapt LinkML shapes to the same flat authoring context as conversion.
 
     Distinct native shape names preserve classes sharing a class_uri (Source
@@ -26,11 +28,11 @@ def build_shapes(schema: str | Path) -> Graph:
     from linkml_runtime.utils.schemaview import SchemaView
     from lokf.schema import _PARAMETER_KINDS, schema_context
 
-    view = SchemaView(str(schema))
-    context = schema_context(schema)
-    graph = Graph().parse(data=ShaclGenerator(
-        str(schema), use_class_uri_names=False, suffix='Shape', closed=False,
-    ).serialize(), format='turtle')
+    view = inputs.view() if inputs else local_view_caches(SchemaView(str(schema)))
+    context = schema_context(inputs or schema)
+    generator = ShaclGenerator(str(schema), use_class_uri_names=False, suffix='Shape', closed=False)
+    local_view_caches(generator.schemaview)
+    graph = Graph().parse(data=generator.serialize(), format='turtle')
 
     def class_uri(name):
         return URIRef(view.get_uri(view.get_class(name), expand=True))

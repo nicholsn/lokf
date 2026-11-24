@@ -13,6 +13,13 @@ with the 0.x caveat that a minor release may tighten validation.
 
 ## [Unreleased]
 
+### Added
+
+- The bundle MCP server exposes `validate_bundle`, backed by the same Python
+  validator as `lokf validate`. Agents can inspect which checks ran, locate
+  errors in individual documents, and distinguish invalid content from an
+  unavailable check.
+
 ## [0.11.0] — 2026-11-22
 
 ### Added

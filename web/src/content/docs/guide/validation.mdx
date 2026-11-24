@@ -15,6 +15,10 @@ flowchart LR
     C -- "lokf.shacl.ttl<br/>(SHACL shapes)" --> D["valid graph"]
 ```
 
+Python applications can call `lokf.validation.validate_bundle(path, check_refs=True)`.
+The returned report exposes `outcome`, `checks` and `as_dict()`. Agents can use
+the same checks through the [bundle MCP validation tool](/toolkit/mcp/#validate-a-bundle).
+
 ## JSON Schema — before projection
 
 [`lokf.schema.json`](https://github.com/nicholsn/lokf/blob/main/lokf.schema.json)

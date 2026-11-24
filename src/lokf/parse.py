@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+from pathlib import Path
 
 #: OKF type spellings normalized to their LOKF class names. OKF v0.2 writes
 #: ``type: Attested Computation`` (§10); LOKF classes are single-word (the
@@ -61,7 +62,7 @@ def parse_concept(path: str) -> dict:
     Raises ``ValueError`` with a clear message if the file has no ``---``
     delimited YAML frontmatter (e.g. a plain markdown or reserved file).
     """
-    return parse_concept_text(open(path, encoding="utf-8").read(), path)
+    return parse_concept_text(read_markdown(Path(path)), path)
 
 
 #: A delimiter of a frontmatter block: ``---`` at the start of a line, with
@@ -90,7 +91,32 @@ def split_frontmatter(raw: str) -> tuple[str, str, str] | None:
     return raw[: opening.start()], raw[opening.end() : closing.start()], raw[closing.end() :]
 
 
-def _load_frontmatter(front: str, where: str) -> dict:
+class DocumentError(ValueError):
+    """A Markdown input error with a filename and optional line number."""
+
+    def __init__(self, where: str, reason: str, line: int | None = None):
+        self.where = where
+        self.reason = reason
+        self.line = line
+        super().__init__(f"{where}: {reason}")
+
+
+class FrontmatterError(DocumentError):
+    code = "document.frontmatter"
+
+
+class DocumentEncodingError(DocumentError):
+    code = "document.encoding"
+
+
+def read_markdown(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise DocumentEncodingError(str(path), "Markdown must be encoded as UTF-8.") from exc
+
+
+def _load_frontmatter(front: str, where: str, lead: str) -> dict:
     """The mapping a frontmatter block holds; *where* names the file in errors."""
     import yaml
 
@@ -98,10 +124,13 @@ def _load_frontmatter(front: str, where: str) -> dict:
         data = yaml.safe_load(front)
         if data is None:
             data = {}
-    except yaml.YAMLError as exc:
-        raise ValueError(f"{where}: frontmatter is not valid YAML: {exc}") from exc
+    except (yaml.YAMLError, ValueError, OverflowError) as exc:
+        # PyYAML's scalar constructors can reject a date or number without a YAML mark.
+        mark = getattr(exc, "problem_mark", None)
+        line = len(re.findall(r"\r\n?|\n", lead)) + mark.line + 1 if mark is not None else None
+        raise FrontmatterError(where, f"frontmatter is not valid YAML: {exc}", line) from exc
     if not isinstance(data, dict):
-        raise ValueError(f"{where}: frontmatter must be a mapping, not {type(data).__name__}")
+        raise FrontmatterError(where, f"frontmatter must be a mapping, not {type(data).__name__}")
     return data
 
 
@@ -114,31 +143,35 @@ def parse_index_text(raw: str, where: str = "<text>") -> dict:
     """
     parts = split_frontmatter(raw)
     if parts:
-        return isoify(_load_frontmatter(parts[1], where))
+        return isoify(_load_frontmatter(parts[1], where, parts[0]))
     if _OPENS_WITH_DASHES.match(raw):
-        raise ValueError(f"{where}: frontmatter is not closed by '---' on a line of its own")
+        raise FrontmatterError(where, "frontmatter is not closed by '---' on a line of its own")
     return {}
 
 
 def parse_concept_text(raw: str, where: str = "<text>") -> dict:
     """:func:`parse_concept` for markdown already read; *where* names it in errors."""
+    data, _ = parse_concept_fields(raw, where)
+    return data
+
+
+def parse_concept_fields(raw: str, where: str) -> tuple[dict, tuple[str, ...]]:
+    """Parse once, retaining which authored mappings were wrapped for projection."""
     parts = split_frontmatter(raw)
     if parts is None:
-        raise ValueError(
-            f"{where}: no YAML frontmatter (expected a block at the top of the file, "
+        raise FrontmatterError(
+            where, "no YAML frontmatter (expected a block at the top of the file, "
             "opened and closed by '---' on a line of its own)"
         )
-    _, front, body = parts
-    d = _load_frontmatter(front, where)
+    lead, front, body = parts
+    d = _load_frontmatter(front, where, lead)
     d["body"] = body.strip()
-    if d.get("type") in OKF_TYPE_ALIASES:
+    if isinstance(d.get("type"), str) and d["type"] in OKF_TYPE_ALIASES:
         d["type"] = OKF_TYPE_ALIASES[d["type"]]
     # OKF v0.2 §5.2: a bare `verified: { by, at }` mapping MUST be read as a
     # one-element list. Normalized here so validation, RDF projection, and
     # trust derivation all see the canonical list form.
-    if isinstance(d.get("verified"), dict):
-        d["verified"] = [d["verified"]]
-    # LOKF's `refuted` is `verified`'s negative counterpart and reads the same way.
-    if isinstance(d.get("refuted"), dict):
-        d["refuted"] = [d["refuted"]]
-    return isoify(d)
+    mappings = tuple(key for key in ("verified", "refuted") if isinstance(d.get(key), dict))
+    for key in mappings:
+        d[key] = [d[key]]
+    return isoify(d), mappings
