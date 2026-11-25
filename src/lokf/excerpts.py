@@ -28,7 +28,6 @@ from __future__ import annotations
 import re
 import stat
 from pathlib import Path
-from urllib.parse import urljoin
 
 from lokf.resources import _entries, kind_of
 
@@ -190,15 +189,18 @@ def excerpt_conflicts(bundle):
 
 
 def excerpt_conflict_findings(bundle):
-    """Yield a warning for each source ``id`` cited with different excerpts.
+    """Yield a warning for each source node cited with different excerpts.
 
-    An ``id`` resolves against ``base_iri`` to one source node that every
-    concept citing it shares (SPEC §5.4), so all their excerpts land on it.
-    Each file passes the schema; the SHACL shapes allow the node one
-    ``lokf:excerpt`` and report the node, not the files. The id is joined to
-    ``base_iri`` as the JSON-LD projection joins it, so two spellings of one
-    IRI are one node.
+    A relative ``id`` names a node under its own concept, so concepts cannot
+    clash over it, but one concept can give it two excerpts. An absolute IRI
+    or CURIE names one node that every concept giving it shares (SPEC §5.4),
+    so all their excerpts land on it. Each file passes the schema; the SHACL
+    shapes allow the node one ``lokf:excerpt`` and report the node, not the
+    files. The node is found as the projection finds it, so two spellings of
+    one IRI are one node.
     """
+    from lokf.rdf import source_node_iri
+
     nodes: dict[str, list[tuple[str, str, int, str]]] = {}
     for concept in bundle.concepts:
         where = concept.path.relative_to(bundle.root).as_posix()
@@ -206,7 +208,7 @@ def excerpt_conflict_findings(bundle):
             ref, excerpt = entry.get("id"), entry.get("excerpt")
             if isinstance(ref, str) and ref.strip() and isinstance(excerpt, str):
                 try:
-                    node = urljoin(bundle.base_iri, ref)
+                    node = source_node_iri(bundle.iri(concept), ref, bundle.base_iri)
                 except ValueError as exc:
                     yield "excerpt.source_id", where, f"/sources/{i}/id", "WARNING", (
                         f"{where} sources[{i}]: cannot resolve source id {ref!r} "
@@ -226,8 +228,8 @@ def excerpt_conflict_findings(bundle):
         yield "excerpt.conflict", where, f"/sources/{index}/id", "WARNING", (
             f"source id {shown} has {len(sides)} different excerpts: "
             + " vs. ".join(", ".join(ats) for ats in sides.values())
-            + ". The id is one source node, shared by every concept citing it, and "
-            "SHACL allows that node one excerpt, so --shacl fails on it")
+            + ". The id names one source node, and SHACL allows that node one "
+            "excerpt, so --shacl fails on it")
 
 
 def _short(excerpt: str) -> str:

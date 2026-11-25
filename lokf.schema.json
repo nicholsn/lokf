@@ -6384,7 +6384,7 @@
                     ]
                 },
                 "id": {
-                    "description": "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`).",
+                    "description": "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`). A relative id is local to its concept and names the source node `<concept IRI>#<id>`; an absolute IRI or CURIE names a node that concepts share.",
                     "type": [
                         "string",
                         "null"

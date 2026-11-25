@@ -843,14 +843,16 @@ def export(
         json.dumps(dataset_search_jsonld(bundle, vocab), indent=2), encoding="utf-8"
     )
     (out_dir / "graph.nt").write_text(rdf.serialize(bundle_dir, "nt", schema=schema), encoding="utf-8")
-    # The context is paired with an @base entry (the bundle's base_iri) so the
-    # document is self-contained: relative @ids like OKF v0.2 `sources[].id`
-    # resolve identically for any consumer, matching graph.nt.
+    # The context is paired with an @base entry (the bundle's base_iri), and
+    # each relative `sources[].id` is written as its concept-local IRI, so the
+    # document is self-contained: any JSON-LD consumer reads the triples of
+    # graph.nt from it.
     ctx = schema_context(schema)
     if bundle.base_iri:
         ctx = [ctx, {"@base": bundle.base_iri}]
+    docs = rdf.with_source_nodes(bundle.docs(), bundle.base_iri or None)
     (out_dir / "concepts.jsonld").write_text(
-        json.dumps({"@context": ctx, "@graph": bundle.docs()}, indent=2),
+        json.dumps({"@context": ctx, "@graph": docs}, indent=2),
         encoding="utf-8",
     )
     if documentation is not None:

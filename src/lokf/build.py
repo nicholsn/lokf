@@ -280,17 +280,20 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
     # Same single-parse projection as lokf.model.Bundle.graph(): the
     # assembled concepts already carry injected ids, so one @graph document
     # (context compiled once) covers the whole bundle.
-    base = bundle.get("base_iri") or None  # anchors relative @ids (sources[].id)
+    from lokf.rdf import with_source_nodes
+
+    base = bundle.get("base_iri") or None
+    concepts = with_source_nodes(bundle["concepts"], base)
     whole = Graph()
     whole.parse(
-        data=json.dumps({"@context": ctx, "@graph": bundle["concepts"]}),
+        data=json.dumps({"@context": ctx, "@graph": concepts}),
         format="json-ld",
         publicID=base,
     )
     whole.serialize(destination=str(ex / "acme-knowledge.nt"), format="nt")
     _canonicalize_rdf(ex / "acme-knowledge.nt", "nt")
 
-    metric = next(c for c in bundle["concepts"] if c["type"] == "Metric")
+    metric = next(c for c in concepts if c["type"] == "Metric")
     mdoc = {k: v for k, v in metric.items() if k != "body"}
     mdoc["@context"] = ctx
     mg = Graph()

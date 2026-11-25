@@ -4057,7 +4057,7 @@ lokf:SourceShape a sh:NodeShape ;
             sh:order 3 ;
             sh:path lokf:usageCount ],
         [ sh:datatype xsd:string ;
-            sh:description "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`)." ;
+            sh:description "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`). A relative id is local to its concept and names the source node `<concept IRI>#<id>`; an absolute IRI or CURIE names a node that concepts share." ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 7 ;

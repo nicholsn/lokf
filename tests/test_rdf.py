@@ -37,9 +37,9 @@ def test_graph_of_single_file_has_wau_subject_and_relations():
 
 
 def test_graph_of_bundle_dir_triple_count():
-    """The whole acme bundle projects to exactly 157 triples."""
+    """The whole acme bundle projects to exactly 161 triples."""
     g = rdf.graph_of(BUNDLE)
-    assert len(g) == 157
+    assert len(g) == 161
 
 
 def test_unknown_type_projects_as_concept_and_keeps_its_spelling(tmp_path):
@@ -202,7 +202,7 @@ def test_single_file_under_a_section_index_gets_the_bundles_iris():
     assert single and single <= whole
     text = "\n".join(single)
     assert "<https://kb.example/knowledge/genetics/lrrk2>" in text
-    assert "<https://kb.example/knowledge/smith-2020>" in text
+    assert "<https://kb.example/knowledge/genetics/lrrk2#smith-2020>" in text
     assert "file://" not in text
 
 
@@ -502,3 +502,18 @@ def test_malformed_inner_index_does_not_inherit_outer_namespace(tmp_path, index_
     for source in (concept, inner):
         with pytest.raises(ValueError, match='inner/index.md: frontmatter'):
             rdf.graph_of(source)
+
+
+def test_source_node_iri_is_local_to_the_concept_unless_absolute():
+    """SPEC §5.4: a relative source id is a fragment of its concept's IRI; an
+    absolute IRI or a CURIE names a node that concepts share."""
+    from lokf.rdf import source_node_iri
+
+    base, concept = "https://kb.example/k/", "https://kb.example/k/services/api"
+    assert source_node_iri(concept, "changelog", base) == concept + "#changelog"
+    assert source_node_iri("services/api", "changelog", base) == concept + "#changelog"
+    assert source_node_iri(concept, "https://doi.org/10.1/x", base) == "https://doi.org/10.1/x"
+    assert source_node_iri(concept, "ex:paper", base) == "ex:paper"
+    assert source_node_iri("https://kb.example/k#api", "log", base) == "https://kb.example/k#api/log"
+    assert source_node_iri(concept, "a b#c", base) == concept + "#a%20b%23c"
+    assert source_node_iri(None, "changelog", base) == base + "changelog"

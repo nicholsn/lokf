@@ -287,9 +287,8 @@ yes. `refuted` is LOKF's own field, proposed for OKF in
 it moves to the OKF subset if OKF adopts it.
 
 **Source entries** (`sources[]`): `resource` (REQUIRED → `schema:url`; a URL,
-bundle-relative path, or scope descriptor), `id` (footnote join key; resolves
-against `base_iri` to mint the source node's IRI, so the same id shared across
-concepts merges into one node), `title` (`schema:name`), `author`
+bundle-relative path, or scope descriptor), `id` (footnote join key and the
+source node's IRI, see below), `title` (`schema:name`), `author`
 (`schema:author`, an actor literal), `usage_count` (`lokf:usageCount`),
 `last_modified` (`schema:dateModified` — the *source's* recency, distinct from
 `generated.at`), and `excerpt` (`lokf:excerpt` — the exact passage from
@@ -298,6 +297,20 @@ again later; `lokf validate --check-excerpts` makes that check for a local
 `resource`, §9). `excerpt` is LOKF's own field, proposed for OKF under the same name
 ([knowledge-catalog#438](https://github.com/GoogleCloudPlatform/knowledge-catalog/issues/438));
 it moves to the OKF subset if OKF adopts it.
+
+A source `id` that is not an absolute IRI or a CURIE is a label local to its
+concept, as a footnote label is local to its page. It names a fragment of the
+concept's IRI: `id: changelog` on `services/orders-api` projects as
+`<base_iri>services/orders-api#changelog`, and a concept IRI that already has
+a fragment takes the label after it, as `#<fragment>/<id>`. Two concepts may
+use one label for two passages of one file; each gets its own node, with its
+own `excerpt`, and both carry the same `schema:url`, which is what joins them.
+An absolute IRI or a CURIE names one node that every concept giving it shares,
+so it SHOULD be used only for one passage, or with no `excerpt`. The toolkit
+sets these IRIs before JSON-LD expansion; a consumer that expands the
+frontmatter with the published context alone resolves a label against
+`base_iri` instead, so `lokf export` writes `concepts.jsonld` with each label
+already made absolute.
 
 **Exclusion entries** (`exclusions[]`, `lokf:excludes`): the materials the
 concept's author looked at and left out on purpose, a sibling of `sources`.
@@ -629,11 +642,12 @@ or an IRI under `base_iri` — because a bundle can only vouch for what it
 contains; `definedBy` and `source` are defined as taking an external resource,
 so off-site targets are not errors.
 
-A source `id` merges the same way: it resolves against `base_iri` to one source
-node that every concept citing it shares (§5.4). Concepts that give it different
+An absolute source `id` merges the same way: it names one source node that
+every concept giving it shares (§5.4). Concepts that give it different
 `excerpt`s each validate, but the node holds them all and the SHACL shapes allow
-it one, so `--shacl` fails. `lokf validate` warns when that happens, naming the
-id and the files; the warning does not fail validation.
+it one, so `--shacl` fails. A relative `id` is local to its concept, so only
+one concept giving it two excerpts can do this. `lokf validate` warns when it
+happens, naming the id and the files; the warning does not fail validation.
 
 ### Local resource checks
 

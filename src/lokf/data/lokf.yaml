@@ -551,7 +551,9 @@ classes:
       id:
         description: >-
           Optional stable key joining markdown footnote labels to this entry
-          (e.g. `ga4-schema`).
+          (e.g. `ga4-schema`). A relative id is local to its concept and
+          names the source node `<concept IRI>#<id>`; an absolute IRI or
+          CURIE names a node that concepts share.
         range: string
         slot_uri: schema:identifier
         comments:
@@ -561,11 +563,12 @@ classes:
             silently drops an `identifier: false` slot_usage override and
             generation then fails).
           - >-
-            Under the published flat context `id` maps to @id, so the value
-            resolves against the bundle base and mints the source node's
-            IRI — the same id used across concepts merges into one RDF
-            node; schema:identifier applies only on the LinkML RDF-dump
-            path.
+            Under the published flat context `id` maps to @id and names the
+            source node. The toolkit makes a relative id absolute under the
+            concept's IRI before expansion (SPEC §5.4), so a label used in
+            two concepts names two nodes; an absolute IRI or CURIE used in
+            several concepts names one. schema:identifier applies only on the
+            LinkML RDF-dump path.
     slots:
       - resource
       - title

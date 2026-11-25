@@ -458,7 +458,7 @@
 --     * Slot: usage_count Description: How often the source's resource was exercised (views, executions, reads) over the governing usage_window. An adoption/liveness signal read as order-of-magnitude and trend, not a score.
 --     * Slot: last_modified Description: When the SOURCE itself last changed, an ISO 8601 datetime (a bare YYYY-MM-DD is read as that day at 00:00:00Z). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept).
 --     * Slot: excerpt Description: A verbatim copy of the passage in `resource` that the concept relies on, taken as retrieved. Lets a claim be re-checked against its source without re-reading the whole of it.
---     * Slot: id Description: Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`).
+--     * Slot: id Description: Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`). A relative id is local to its concept and names the source node `<concept IRI>#<id>`; an absolute IRI or CURIE names a node that concepts share.
 --     * Slot: Concept_id Description: Autocreated FK slot
 --     * Slot: Dataset_id Description: Autocreated FK slot
 --     * Slot: Table_id Description: Autocreated FK slot

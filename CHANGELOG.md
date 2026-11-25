@@ -20,6 +20,17 @@ with the 0.x caveat that a minor release may tighten validation.
   errors in individual documents, and distinguish invalid content from an
   unavailable check.
 
+### Changed
+
+- A relative `sources[].id` is now local to its concept, as a footnote label
+  is local to its page: it names the source node `<concept IRI>#<id>`
+  (SPEC §5.4). Before, every concept giving one id shared one node, so two
+  concepts quoting two passages of one file under one label pooled both
+  excerpts and failed `--shacl`. Concepts that cite the same material still
+  share its `schema:url`. An absolute IRI or CURIE still names a shared node.
+  Source node IRIs change for every bundle with a relative id, and
+  `concepts.jsonld` from `lokf export` now carries them absolute.
+
 ## [0.11.0] — 2026-11-22
 
 ### Added
