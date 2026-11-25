@@ -516,4 +516,16 @@ def test_source_node_iri_is_local_to_the_concept_unless_absolute():
     assert source_node_iri(concept, "ex:paper", base) == "ex:paper"
     assert source_node_iri("https://kb.example/k#api", "log", base) == "https://kb.example/k#api/log"
     assert source_node_iri(concept, "a b#c", base) == concept + "#a%20b%23c"
+    assert source_node_iri(concept, "100%", base) == concept + "#100%25"
     assert source_node_iri(None, "changelog", base) == base + "changelog"
+
+
+def test_with_source_nodes_leaves_a_blank_or_absolute_id_alone():
+    from lokf.rdf import with_source_nodes
+
+    concept = "https://kb.example/k/services/api"
+    docs = [{"id": concept, "sources": [{"id": "changelog", "resource": "r"}, {"id": "  ", "resource": "r"},
+                                        {"id": "ex:paper", "resource": "r"}, {"resource": "r"}]}]
+    out = with_source_nodes(docs, "https://kb.example/k/")
+    assert [s.get("id") for s in out[0]["sources"]] == [concept + "#changelog", "  ", "ex:paper", None]
+    assert docs[0]["sources"][0]["id"] == "changelog"  # the input is not changed

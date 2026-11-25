@@ -299,18 +299,16 @@ again later; `lokf validate --check-excerpts` makes that check for a local
 it moves to the OKF subset if OKF adopts it.
 
 A source `id` that is not an absolute IRI or a CURIE is a label local to its
-concept, as a footnote label is local to its page. It names a fragment of the
-concept's IRI: `id: changelog` on `services/orders-api` projects as
-`<base_iri>services/orders-api#changelog`, and a concept IRI that already has
-a fragment takes the label after it, as `#<fragment>/<id>`. Two concepts may
-use one label for two passages of one file; each gets its own node, with its
-own `excerpt`, and both carry the same `schema:url`, which is what joins them.
-An absolute IRI or a CURIE names one node that every concept giving it shares,
-so it SHOULD be used only for one passage, or with no `excerpt`. The toolkit
-sets these IRIs before JSON-LD expansion; a consumer that expands the
-frontmatter with the published context alone resolves a label against
-`base_iri` instead, so `lokf export` writes `concepts.jsonld` with each label
-already made absolute.
+concept, as a footnote label is local to its page. It projects as a fragment
+of the concept's IRI: `id: changelog` on `services/orders-api` becomes
+`<base_iri>services/orders-api#changelog`, and a concept IRI with a fragment
+of its own takes `#<fragment>/<id>`. Two concepts may give one label to two
+passages of one file: each gets its own node and `excerpt`, and `schema:url`
+joins them. An absolute IRI or a CURIE names one node that every concept
+giving it shares, so it SHOULD carry one passage, or no `excerpt`. The toolkit
+makes these IRIs absolute before JSON-LD expansion, and `lokf export` writes
+them absolute in `concepts.jsonld`, because the published context alone would
+resolve a label against `base_iri`.
 
 **Exclusion entries** (`exclusions[]`, `lokf:excludes`): the materials the
 concept's author looked at and left out on purpose, a sibling of `sources`.
@@ -644,10 +642,10 @@ so off-site targets are not errors.
 
 An absolute source `id` merges the same way: it names one source node that
 every concept giving it shares (§5.4). Concepts that give it different
-`excerpt`s each validate, but the node holds them all and the SHACL shapes allow
-it one, so `--shacl` fails. A relative `id` is local to its concept, so only
-one concept giving it two excerpts can do this. `lokf validate` warns when it
-happens, naming the id and the files; the warning does not fail validation.
+`excerpt`s each validate, but the SHACL shapes allow the node one, so `--shacl`
+fails. A relative `id` is local to its concept, so only one concept giving it
+two excerpts can do this. `lokf validate` warns, naming the id and the files;
+the warning does not fail validation.
 
 ### Local resource checks
 

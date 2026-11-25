@@ -103,12 +103,11 @@ schema's.
 lokf validate knowledge --schema domain.yaml --check-ids --check-refs --check-resources --check-excerpts
 ```
 
-A cross-file check runs without a flag, as a warning. A relative source `id`
-is local to its concept, but an absolute IRI or CURIE names one node that
-every concept giving it shares. Two concepts that give such an id different
-excerpts each validate, and `--shacl` then fails on the node, which may hold
-one. `lokf validate` names the id and the files; the warning does not fail
-validation.
+A cross-file check runs without a flag, as a warning. An absolute source `id`
+or CURIE names one node that every concept giving it shares. Two concepts that
+give it different excerpts each validate, and `--shacl` then fails on the node,
+which may hold one. `lokf validate` names the id and the files; the warning
+does not fail validation.
 
 ## SHACL — after projection
 

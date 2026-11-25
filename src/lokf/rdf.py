@@ -67,12 +67,11 @@ _SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 def source_node_iri(concept_iri: str | None, ref: str, base: str | None = None) -> str:
     """The IRI of the source node a ``sources[].id`` names (SPEC §5.4).
 
-    An absolute IRI or a CURIE names a node that every concept giving it
-    shares. Any other id is a label local to its concept, as a footnote label
-    is local to its page, and names a fragment of the concept's IRI:
-    ``<concept IRI>#<id>``. A concept IRI that already has a fragment takes the
-    label after it, as ``#<fragment>/<id>``. Without an absolute concept IRI the
-    id resolves against *base*, as JSON-LD would resolve it.
+    An absolute IRI or a CURIE is returned as given, resolved against *base*.
+    Any other id is a label local to its concept and becomes
+    ``<concept IRI>#<id>``, percent-encoded; a concept IRI with a fragment of
+    its own takes ``#<fragment>/<id>``. Without an absolute concept IRI the id
+    resolves against *base*, as JSON-LD would resolve it.
 
     Raises ``ValueError`` for an id that is not a valid IRI reference.
     """
@@ -81,16 +80,16 @@ def source_node_iri(concept_iri: str | None, ref: str, base: str | None = None) 
     concept = urljoin(base or "", concept_iri) if concept_iri else ""
     if not _SCHEME.match(concept):
         return urljoin(base or "", ref)
-    label = quote(ref, safe="/?:@!$&'()*+,;=-._~%")
+    label = quote(ref, safe="/?:@!$&'()*+,;=-._~")
     url, fragment = urldefrag(concept)
     return f"{url}#{fragment}/{label}" if fragment else f"{url}#{label}"
 
 
 def with_source_nodes(docs: list[dict], base: str | None = None) -> list[dict]:
-    """Copies of *docs* whose relative ``sources[].id`` values are made
-    absolute by :func:`source_node_iri`. JSON-LD resolves a relative ``@id``
-    against one document base, so a per-concept IRI has to be set first.
-    An id that is not a valid IRI reference is left for JSON-LD to report.
+    """Copies of *docs* with each relative ``sources[].id`` made absolute by
+    :func:`source_node_iri`. JSON-LD resolves a relative ``@id`` against one
+    document base, so the per-concept IRI is set here first. A blank or
+    invalid id is left for JSON-LD to report.
     """
     out = []
     for doc in docs:
@@ -102,7 +101,7 @@ def with_source_nodes(docs: list[dict], base: str | None = None) -> list[dict]:
         entries = []
         for entry in sources if isinstance(sources, list) else [sources]:
             ref = entry.get("id") if isinstance(entry, dict) else None
-            if isinstance(ref, str) and ref and not _SCHEME.match(ref):
+            if isinstance(ref, str) and ref.strip() and not _SCHEME.match(ref):
                 try:
                     entry = {**entry, "id": source_node_iri(concept, ref, base)}
                 except ValueError:

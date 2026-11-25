@@ -4056,17 +4056,17 @@ lokf:SourceShape a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path lokf:usageCount ],
-        [ sh:datatype xsd:string ;
-            sh:description "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`). A relative id is local to its concept and names the source node `<concept IRI>#<id>`; an absolute IRI or CURIE names a node that concepts share." ;
-            sh:maxCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path schema1:identifier ],
         [ sh:datatype xsd:dateTime ;
             sh:description "When the SOURCE itself last changed, an ISO 8601 datetime (a bare YYYY-MM-DD is read as that day at 00:00:00Z). A recency signal about the source, distinct from `generated.at`, which records when this concept's content was produced. Same predicate as the deprecated `timestamp`, on a different subject node (source vs concept)." ;
             sh:nodeKind sh:Literal ;
             sh:order 4 ;
             sh:path schema1:dateModified ],
+        [ sh:datatype xsd:string ;
+            sh:description "Optional stable key joining markdown footnote labels to this entry (e.g. `ga4-schema`). A relative id names the node `<concept IRI>#<id>`; an absolute IRI or CURIE names a node that concepts share." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path schema1:identifier ],
         [ sh:description "The `{ from, to }` date range framing every `usage_count`. Attached both to Concept (the shared window, sibling of `sources`) and to Source (a per-entry override)." ;
             sh:maxCount 1 ;
             sh:node lokf:UsageWindowShape ;

@@ -843,10 +843,9 @@ def export(
         json.dumps(dataset_search_jsonld(bundle, vocab), indent=2), encoding="utf-8"
     )
     (out_dir / "graph.nt").write_text(rdf.serialize(bundle_dir, "nt", schema=schema), encoding="utf-8")
-    # The context is paired with an @base entry (the bundle's base_iri), and
-    # each relative `sources[].id` is written as its concept-local IRI, so the
-    # document is self-contained: any JSON-LD consumer reads the triples of
-    # graph.nt from it.
+    # The context carries an @base entry (the bundle's base_iri) and each
+    # relative `sources[].id` is written absolute, so any JSON-LD consumer
+    # reads the triples of graph.nt from this file alone.
     ctx = schema_context(schema)
     if bundle.base_iri:
         ctx = [ctx, {"@base": bundle.base_iri}]

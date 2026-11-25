@@ -191,13 +191,11 @@ def excerpt_conflicts(bundle):
 def excerpt_conflict_findings(bundle):
     """Yield a warning for each source node cited with different excerpts.
 
-    A relative ``id`` names a node under its own concept, so concepts cannot
-    clash over it, but one concept can give it two excerpts. An absolute IRI
-    or CURIE names one node that every concept giving it shares (SPEC §5.4),
-    so all their excerpts land on it. Each file passes the schema; the SHACL
-    shapes allow the node one ``lokf:excerpt`` and report the node, not the
-    files. The node is found as the projection finds it, so two spellings of
-    one IRI are one node.
+    A relative ``id`` names a node under its own concept, so only that concept
+    can give it two excerpts. An absolute IRI or CURIE names one node shared
+    by every concept giving it (SPEC §5.4). The SHACL shapes allow a node one
+    ``lokf:excerpt`` and report the node, not the files. Nodes are found as
+    the projection finds them, so two spellings of one IRI are one node.
     """
     from lokf.rdf import source_node_iri
 
