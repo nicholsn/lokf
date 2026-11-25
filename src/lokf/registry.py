@@ -135,6 +135,11 @@ class Registry:
     #: Sub-registries a walk could not read, each with its reason; not saved.
     skipped: list[str] = field(default_factory=list)
     _tree_loaded: bool = field(default=False, repr=False)  # runtime-only traversal result
+    _manifest_digest: str | None = field(default=None, repr=False, compare=False)
+    # Local manifest locators, their resolved paths and the digest of the bytes parsed.
+    # A failed read has no digest but still counts for input/output overlap checks.
+    _manifest_inputs: dict[pathlib.Path, tuple[pathlib.Path, str | None]] = field(
+        default_factory=dict, repr=False, compare=False)
 
     # -- resolution ---------------------------------------------------------
     def _match(self, iri: str) -> tuple[RepoEntry | None, str | None, str | None]:
@@ -389,7 +394,8 @@ def load_registry(path: str | pathlib.Path) -> Registry:
     """
     p = pathlib.Path(path)
     try:
-        data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+        raw = p.read_bytes()
+        data = yaml.safe_load(raw.decode("utf-8")) or {}
     except yaml.YAMLError as exc:
         raise ValueError(f"{p}: not valid YAML: {exc}") from None
     if not isinstance(data, dict):
@@ -406,6 +412,7 @@ def load_registry(path: str | pathlib.Path) -> Registry:
         version=str(data.get("lokf_registry_version") or REGISTRY_VERSION),
         repos=repos,
         max_depth=_max_depth(data.get("max_depth"), p),
+        _manifest_digest="sha256:" + hashlib.sha256(raw).hexdigest(),
     )
 
 
@@ -530,6 +537,8 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None, 
     start = str(top_path)
     queue = collections.deque([(root, start, 0, frozenset({start} | ({root.id} if root.id else set())))])
     read = {start}
+    locators = {top_path: top_path}
+    digests = {top_path: root._manifest_digest}
     try:
         while queue:
             reg, where, depth, above = queue.popleft()
@@ -550,6 +559,9 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None, 
                 if loc in above:
                     raise ValueError(f"{where}: {e.base_iri} names a registry above it, {loc}")
                 connect(where, loc)
+                if depth + 1 <= limit and not is_url(loc):
+                    locator = _local_ref(e.registry) or pathlib.Path(where).parent / e.registry
+                    locators[locator] = pathlib.Path(loc)
                 if loc in read:
                     continue
                 if depth + 1 > limit:
@@ -562,6 +574,8 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None, 
                 except (ValueError, OSError) as exc:
                     flat.skipped.append(f"{loc}: {exc}")
                     continue
+                if not is_url(loc):
+                    digests[pathlib.Path(loc)] = sub._manifest_digest
                 if sub.id and sub.id in above:
                     raise ValueError(
                         f"{loc} has the id {sub.id} of a registry above it: a cycle, or a "
@@ -570,6 +584,7 @@ def load_tree(top: str | pathlib.Path | Registry, max_depth: int | None = None, 
                 queue.append((sub, loc, depth + 1, above | {loc} | ({sub.id} if sub.id else set())))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+    flat._manifest_inputs = {locator: (path, digests.get(path)) for locator, path in locators.items()}
     return flat
 
 

@@ -882,6 +882,43 @@ def mcp() -> None:
     run_mcp()
 
 
+snapshot_app = typer.Typer(help="Capture and read immutable knowledge revisions.", no_args_is_help=True)
+app.add_typer(snapshot_app, name="snapshot")
+
+
+@snapshot_app.command("capture")
+def snapshot_capture(
+    source: Path = typer.Argument(..., exists=True, help="Bundle directory or registry manifest."),
+    store: Path = typer.Option(..., "--store", dir_okay=False, help="SQLite file retaining captured revisions."),
+    clear_member: list[str] = typer.Option([], "--clear-member", help="Permit this sensitive member in the store."),
+) -> None:
+    """Capture all members and advance the head after the complete capture succeeds."""
+    from lokf.snapshots import capture_snapshot
+
+    try:
+        receipt = capture_snapshot(source, store, cleared_members=clear_member)
+    except Exception as exc:
+        _err(f"cannot capture snapshot: {exc}")
+        raise typer.Exit(1)
+    typer.echo(json.dumps(receipt, indent=2))
+
+
+@snapshot_app.command("mcp")
+def snapshot_mcp(
+    store: Path = typer.Option(..., "--store", exists=True, dir_okay=False, help="Snapshot store to read."),
+) -> None:
+    """Serve captured documents, graphs and vocabularies over read-only stdio MCP."""
+    import sqlite3
+    from lokf.snapshots import SnapshotReader, build_server
+
+    try:
+        reader = SnapshotReader(store)
+    except (ValueError, OSError, sqlite3.Error) as exc:
+        _err(f"cannot open snapshot store: {exc}")
+        raise typer.Exit(1)
+    build_server(reader).run(transport="stdio")
+
+
 # ---------------------------------------------------------------------------
 # registry — federate multiple bundles (meta-lokf); see SPEC §11
 # ---------------------------------------------------------------------------

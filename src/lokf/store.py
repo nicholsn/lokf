@@ -190,7 +190,6 @@ class GraphStore:
         producer labelled them. Relative locations are read against the
         manifest (:meth:`lokf.registry.Registry.located`).
         """
-        import hashlib
 
         from lokf.registry import has_bundle, load_tree, member_ntriples
 
@@ -207,19 +206,12 @@ class GraphStore:
                 errors[entry.base_iri] = "sensitive member requires explicit clearance"
                 continue
             graph = ox.NamedNode(entry.base_iri)
-            tag = "m" + hashlib.sha256(entry.base_iri.encode()).hexdigest()[:12] + "_"
-
-            def local(term, tag=tag):
-                return ox.BlankNode(tag + term.value) if isinstance(term, ox.BlankNode) else term
-
             # A member's own content can fail in many ways (bad frontmatter, a
             # schema LinkML rejects, a malformed graph.nt). Each failure is that
             # member's alone, and it is parsed whole before any of it is added,
             # so a member either loads completely or not at all.
             try:
-                member = ox.Dataset(ox.parse(member_ntriples(entry), format=ox.RdfFormat.N_TRIPLES))
-                member.canonicalize(ox.CanonicalizationAlgorithm.RDFC_1_0)
-                quads = [ox.Quad(local(q.subject), q.predicate, local(q.object), graph) for q in member]
+                quads = cls._member_quads(graph, member_ntriples(entry))
             except Exception as exc:  # noqa: BLE001
                 errors[entry.base_iri] = f"{type(exc).__name__}: {exc}".splitlines()[0]
                 continue
@@ -227,6 +219,26 @@ class GraphStore:
         out = cls(store, union=True, **kw)
         out.load_errors = errors
         return out
+
+    @staticmethod
+    def _member_quads(graph, nt):
+        """Give blank nodes stable, member-local labels before joining named graphs."""
+        member = ox.Dataset(ox.parse(nt, format=ox.RdfFormat.N_TRIPLES))
+        member.canonicalize(ox.CanonicalizationAlgorithm.RDFC_1_0)
+        return list(GraphStore._scoped_quads(graph, member))
+
+    @staticmethod
+    def _scoped_quads(graph, triples):
+        """Stream canonical triples into one member's blank-node namespace."""
+        import hashlib
+
+        tag = "m" + hashlib.sha256(graph.value.encode()).hexdigest()[:12] + "_"
+
+        def local(term):
+            return ox.BlankNode(tag + term.value) if isinstance(term, ox.BlankNode) else term
+
+        for triple in triples:
+            yield ox.Quad(local(triple.subject), triple.predicate, local(triple.object), graph)
 
     @classmethod
     def from_quads(cls, data: str | bytes, **kw) -> "GraphStore":

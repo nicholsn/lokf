@@ -41,6 +41,7 @@ MODULES = [
     "lokf.scaffold",
     "lokf.registry",
     "lokf.registry_mcp",
+    "lokf.snapshots",
     "lokf.agentskills",
     "lokf.mcp_server",
     "lokf.build",

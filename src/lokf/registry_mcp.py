@@ -382,27 +382,7 @@ class RegistryTools:
         {columns, rows, truncated} with at most limit rows (1000 at most); ASK
         {boolean}; CONSTRUCT or DESCRIBE {turtle, count, truncated} with at
         most 2000 triples. SERVICE is refused, as ``lokf serve`` refuses it."""
-        limit = max(1, min(int(limit), ROWS_MAX))
-        try:
-            # The answer's own type says what the query was, however its
-            # prologue is laid out.
-            result = self.store.query(query)
-            if isinstance(result, ox.QueryTriples):
-                triples = list(itertools.islice(result, LIMIT_MAX + 1))
-                data = ox.serialize(triples[:LIMIT_MAX], format=ox.RdfFormat.TURTLE,
-                                    prefixes=self.store.prefixes)
-                return {"turtle": data.decode("utf-8"), "count": min(len(triples), LIMIT_MAX),
-                        "truncated": len(triples) > LIMIT_MAX}
-            if isinstance(result, ox.QueryBoolean):
-                return {"boolean": bool(result)}
-            columns = [v.value for v in result.variables]
-            rows = [
-                {c: (s[c].value if s[c] is not None else None) for c in columns}
-                for s in itertools.islice(result, limit + 1)
-            ]
-            return {"columns": columns, "rows": rows[:limit], "truncated": len(rows) > limit}
-        except Exception as exc:  # noqa: BLE001 — the engine's message is the answer
-            return {"error": f"query failed: {exc}"}
+        return query_registry(self.store, query, limit)
 
     def read_document(self, iri: str = "") -> dict:
         """A document by IRI: the registry index with no IRI (read it first), a
@@ -436,6 +416,31 @@ class RegistryTools:
                 summary = None
         return {"iri": iri, "owner": self._owner(res.entry), "path": name,
                 "read_from": where, "markdown": text, "trust": summary}
+
+
+def query_registry(store, query: str, limit: int = ROWS_MAX) -> dict:
+    """Run a bounded SELECT, ASK or graph query over a registry store."""
+    limit = max(1, min(int(limit), ROWS_MAX))
+    try:
+        # The answer's own type says what the query was, however its
+        # prologue is laid out.
+        result = store.query(query)
+        if isinstance(result, ox.QueryTriples):
+            triples = list(itertools.islice(result, LIMIT_MAX + 1))
+            data = ox.serialize(triples[:LIMIT_MAX], format=ox.RdfFormat.TURTLE,
+                                prefixes=store.prefixes)
+            return {"turtle": data.decode("utf-8"), "count": min(len(triples), LIMIT_MAX),
+                    "truncated": len(triples) > LIMIT_MAX}
+        if isinstance(result, ox.QueryBoolean):
+            return {"boolean": bool(result)}
+        columns = [v.value for v in result.variables]
+        rows = [
+            {c: (s[c].value if s[c] is not None else None) for c in columns}
+            for s in itertools.islice(result, limit + 1)
+        ]
+        return {"columns": columns, "rows": rows[:limit], "truncated": len(rows) > limit}
+    except Exception as exc:  # noqa: BLE001 — the engine's message is the answer
+        return {"error": f"query failed: {exc}"}
 
 
 def build_server(tools: RegistryTools):
