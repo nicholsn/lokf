@@ -301,19 +301,21 @@ it moves to the OKF subset if OKF adopts it.
 A source `id` that is not an absolute IRI or a CURIE is a label local to its
 concept, as a footnote label is local to its page. An id is a CURIE when the
 active context, published or project, defines its prefix, as JSON-LD reads it.
-A label projects as a fragment of the concept's expanded IRI: `id: changelog`
-on `services/orders-api` becomes `<base_iri>services/orders-api#changelog`.
-A concept IRI with a fragment of its own, as under a `base_iri` ending in `#`,
-takes `#<fragment>//<id>`. A Concept ID derived from a path never holds an
-empty segment, so that node names no concept and no other concept's label.
-The label is percent-encoded. A bundle with no `base_iri` gives the relative
-`<Concept ID>#<id>`, which a consumer's base resolves. Two concepts may give
-one label to two passages of one file: each gets its own node and `excerpt`,
-and `schema:url` joins them. An absolute IRI or a CURIE names one node that
-every concept giving it shares, so it SHOULD carry one passage, or no
-`excerpt`. The toolkit writes each label's node IRI before JSON-LD expansion,
-and `lokf export` writes it in `concepts.jsonld`, because the published
-context alone would resolve a label against `base_iri`.
+Any other id with a scheme-like prefix and a colon, such as `rfc:7231`, is an
+absolute IRI. A label projects as a fragment of the concept's expanded IRI:
+`id: changelog` on `services/orders-api` becomes
+`<base_iri>services/orders-api#changelog`. A concept IRI with a fragment of
+its own, as under a `base_iri` ending in `#`, takes `#<fragment>//<id>`. A
+Concept ID derived from a path never holds an empty segment, so that node
+names no concept and no other concept's label. The label is percent-encoded.
+A bundle with no `base_iri` gives the relative `<Concept ID>#<id>`, which a
+consumer's base resolves. Two concepts may give one label to two passages of
+one file: each gets its own node and `excerpt`, and `schema:url` joins them.
+An absolute IRI or a CURIE names one node that every concept giving it shares,
+so it SHOULD carry one passage, or no `excerpt`; another passage of the same
+`resource` takes an id of its own. The toolkit writes each label's node IRI
+before JSON-LD expansion, and `lokf export` writes it in `concepts.jsonld`,
+because the published context alone would resolve a label against `base_iri`.
 
 **Exclusion entries** (`exclusions[]`, `lokf:excludes`): the materials the
 concept's author looked at and left out on purpose, a sibling of `sources`.
@@ -649,8 +651,11 @@ An absolute source `id` merges the same way: it names one source node that
 every concept giving it shares (§5.4). Concepts that give it different
 `excerpt`s each validate, but the SHACL shapes allow the node one, so `--shacl`
 fails. A relative `id` is local to its concept, so only one concept giving it
-two excerpts can do this. `lokf validate` warns, naming the id and the files;
-the warning does not fail validation.
+two excerpts can do this. `lokf validate` warns, naming the id and the files.
+Under `--strict` every content warning is an error: this one, an unresolvable
+source `id`, a material both used and excluded, a duplicate or out-of-order log
+heading. A warning that a check left something unchecked, such as a scope
+description or a file too large to search, stays a warning.
 
 ### Local resource checks
 

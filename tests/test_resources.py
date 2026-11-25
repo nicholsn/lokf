@@ -108,3 +108,19 @@ def test_patterns_report_symlink_loops(tmp_path):
     b = bundle_at(tmp_path / 'kb', exclusions=[{'resource': '*.svg', 'reason': 'figures'}])
     findings = list(check_resources(b, tmp_path))
     assert findings and all(severity == 'ERROR' for severity, _ in findings)
+
+
+def test_strict_leaves_a_scope_description_a_warning(tmp_path):
+    """A scope description is allowed content that a check cannot look at, so
+    `--strict` does not fail it. A material both used and excluded fails."""
+    bundle_at(tmp_path / 'knowledge', sources=[{'resource': 'all queries in project X'}])
+    result = CliRunner().invoke(app, ['validate', str(tmp_path / 'knowledge'), '--check-resources',
+                                      '--root', str(tmp_path), '--strict'])
+    assert result.exit_code == 0, result.output
+    assert '[WARNING]' in result.output
+    (tmp_path / 'notes.md').write_text('notes')
+    bundle_at(tmp_path / 'knowledge', sources=[{'resource': 'notes.md'}],
+              exclusions=[{'resource': 'notes.md', 'reason': 'r'}])
+    result = CliRunner().invoke(app, ['validate', str(tmp_path / 'knowledge'), '--strict'])
+    assert result.exit_code == 1, result.output
+    assert '[ERROR]' in result.output

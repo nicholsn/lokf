@@ -27,6 +27,9 @@ from lokf.schema_sources import SchemaInputs, cache_per_root, local_view_caches,
 
 MAX_DIAGNOSTICS = 100
 MAX_TEXT = 512
+# Warnings that only say a check could not look at something. They describe the
+# check's coverage, not the bundle's content, so strict mode leaves them warnings.
+COVERAGE_WARNINGS = frozenset({"excerpt.unchecked", "resource.unchecked"})
 
 
 class Diagnostic(TypedDict):
@@ -72,8 +75,15 @@ class ValidationReport:
     selected_schema: Path | None = None
     schema_revision: str | None = None
     schema_reason: str | None = "schema unavailable"
+    strict: bool = False
+    errors: int = 0  # findings that were errors before strict mode raised any
 
-    def _record(self, check, code, severity, message, document=None, field=None, line=None):
+    def _record(self, check, code, severity, message, document=None, field=None, line=None) -> str:
+        """Record a finding and return the severity it was recorded at."""
+        if severity == "error":
+            self.errors += 1
+        elif self.strict and severity == "warning" and code not in COVERAGE_WARNINGS:
+            severity = "error"
         self.total += 1
         if len(self.diagnostics) < self.limit:
             self.diagnostics.append({
@@ -86,6 +96,7 @@ class ValidationReport:
                 self.checks[check] = "failed"
             self.outcome = "invalid"
             self.exit_code = 1
+        return severity
 
     def _unavailable(self, check, code, message, exit_code=1, document=None, field=None):
         previous = self.outcome
@@ -277,6 +288,7 @@ def _schema_findings(report, bundle, schema, emit):
         error = row.source
         severity = row.severity.name
         level = {"WARN": "warning", "WARNING": "warning", "FATAL": "error"}.get(severity, severity.lower())
+        shown = "ERROR" if report.strict and level == "warning" else severity
         path = list(error.absolute_path) if error is not None else []
         doc = "index.md"
         local = path
@@ -289,7 +301,7 @@ def _schema_findings(report, bundle, schema, emit):
         if error is None:
             report._record("schema", "schema.validation", level, row.message, doc)
             if emit:
-                emit(f"[{severity}] {row.message}")
+                emit(f"[{shown}] {row.message}")
             continue
         message = row.message
         errors = [(error, local)]
@@ -321,7 +333,7 @@ def _schema_findings(report, bundle, schema, emit):
                     missing_fields.add((doc, pointer))
                 report._record("schema", code, level, reason, doc, pointer)
         if emit:
-            emit(f"[{severity}] {message}")
+            emit(f"[{shown}] {message}")
 
 
 def _shacl_findings(report, bundle, selected, schema, emit):
@@ -387,6 +399,11 @@ def _shacl_findings(report, bundle, selected, schema, emit):
         report._record("shacl", "shacl.violation", "error", "RDF does not conform to the shapes.")
 
 
+def _label(severity: str, level: str) -> str:
+    """The CLI label for a finding: its own, or ERROR once strict mode raised it."""
+    return "ERROR" if level == "error" and severity.lower() != "error" else severity
+
+
 def _markdown_files(root):
     """Enumerate the validation input once. A failed scan must reach the caller."""
     files = []
@@ -405,8 +422,13 @@ def _markdown_files(root):
 def validate_bundle(bundle: str | Path, *, schema: str | Path | None = None,
                     check_ids: bool = False, check_refs: bool = False, check_resources: bool = False,
                     check_excerpts: bool = False, shacl: bool = False, root: str | Path | None = None,
-                    max_diagnostics: int = 50, emit: Callable[[str], None] | None = None) -> ValidationReport:
-    """Validate a local bundle. An optional sink receives full CLI diagnostics in check order."""
+                    strict: bool = False, max_diagnostics: int = 50,
+                    emit: Callable[[str], None] | None = None) -> ValidationReport:
+    """Validate a local bundle. An optional sink receives full CLI diagnostics in check order.
+
+    ``strict`` makes a content warning an error. A coverage warning, which says
+    a check could not look at something, stays a warning.
+    """
     directory = Path(bundle)
     selected = {"input": True, "schema": True, "logs": True, "exclusions": True,
                 "excerpt_conflicts": True, "events": True, "ids": check_ids, "refs": check_refs,
@@ -414,7 +436,7 @@ def validate_bundle(bundle: str | Path, *, schema: str | Path | None = None,
     if type(max_diagnostics) is not int or not 1 <= max_diagnostics <= MAX_DIAGNOSTICS:
         raise ValueError(f"max_diagnostics must be between 1 and {MAX_DIAGNOSTICS}")
     report = ValidationReport({k: "skipped" if enabled else "disabled" for k, enabled in selected.items()},
-                              max_diagnostics)
+                              max_diagnostics, strict=strict)
     current = "input"
 
     def unavailable(code, message, exit_code=1, *, cli_message=None):
@@ -464,20 +486,21 @@ def validate_bundle(bundle: str | Path, *, schema: str | Path | None = None,
         current = "logs"
         report.checks[current] = "passed"
         for severity, logfile, line, message in _check_log_files(p for p in markdown_files if p.match("log.md")):
-            report._record(current, "log.heading", severity.lower(), message,
-                          logfile.relative_to(directory).as_posix(), line=line)
+            level = report._record(current, "log.heading", severity.lower(), message,
+                                   logfile.relative_to(directory).as_posix(), line=line)
             if emit:
-                emit(f"[{severity}] {logfile}:{line}: {message}")
+                emit(f"[{_label(severity, level)}] {logfile}:{line}: {message}")
 
         def record_located(check, findings):
             report.checks[check] = "passed"
             for code, doc, field, severity, msg in findings:
+                level = severity.lower()
                 if code in ("excerpt.unavailable", "resource.unavailable"):
                     report._unavailable(check, code, msg, document=doc, field=field)
                 else:
-                    report._record(check, code, severity.lower(), msg, doc, field)
+                    level = report._record(check, code, level, msg, doc, field)
                 if emit:
-                    emit(f"[{severity}] {msg}")
+                    emit(f"[{_label(severity, level)}] {msg}")
 
         # Source ids expand under the projection's context; a schema with live
         # imports falls back to the published one rather than fetching here.
@@ -517,7 +540,9 @@ def validate_bundle(bundle: str | Path, *, schema: str | Path | None = None,
             if check_excerpts:
                 current = "excerpts"
                 record_located(current, excerpt_findings(kb, resource_dir, report.excerpts))
-        if shacl and report.outcome == "valid":
+        # The projection is sound once no check found an error of its own, so
+        # a warning strict mode raised does not stop SHACL.
+        if shacl and report.errors == 0:
             current = "shacl"
             report.checks[current] = "passed"
             _shacl_findings(report, kb, report.selected_schema, prepared, emit)

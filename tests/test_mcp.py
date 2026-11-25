@@ -162,3 +162,12 @@ def test_all_tool_results_json_serializable():
         mcp.bundle_summary(BUNDLE),
     ]
     json.dumps(payloads)
+
+
+def test_validate_bundle_strict_fails_a_content_warning(tmp_path):
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n")
+    (tmp_path / "log.md").write_text("## 2026-01-01\n\n## 2026-02-01\n")
+    assert mcp.validate_bundle(str(tmp_path))["outcome"] == "valid"
+    result = mcp.validate_bundle(str(tmp_path), strict=True)
+    assert result["outcome"] == "invalid" and result["checks"]["logs"] == "failed"
+    assert [(d["code"], d["severity"]) for d in result["diagnostics"]] == [("log.heading", "error")]

@@ -223,6 +223,11 @@ def validate(
         "duplicate - each validate on their own and then merge into one "
         "subject in the graph, which neither JSON Schema nor SHACL can see.",
     ),
+    strict: bool = typer.Option(
+        False, "--strict",
+        help="Fail on a content warning, such as one source id with different "
+        "excerpts. A warning that a check left something unchecked stays a warning.",
+    ),
 ) -> None:
     """Assemble a bundle and validate it against the LOKF schema.
 
@@ -257,6 +262,9 @@ def validate(
     ``id`` that concepts give different excerpts is a warning: the id is one
     node in the graph, and ``--shacl`` allows it one excerpt.
 
+    ``--strict`` turns these content warnings into errors. A warning that a
+    check left something unchecked stays a warning.
+
     Needs LinkML, which the core install leaves out: ``pip install
     'lokf[build]'`` (or ``uvx --from 'lokf[build]' lokf validate ...``).
     """
@@ -264,7 +272,7 @@ def validate(
 
     report = validate_bundle(bundle_dir, schema=schema, check_ids=check_ids, check_refs=check_refs,
                              shacl=shacl, check_resources=check_resources, check_excerpts=check_excerpts,
-                             root=root, emit=_err)
+                             root=root, strict=strict, emit=_err)
     if report.exit_code:
         raise typer.Exit(report.exit_code)
     schema = report.selected_schema

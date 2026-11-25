@@ -106,8 +106,16 @@ lokf validate knowledge --schema domain.yaml --check-ids --check-refs --check-re
 A cross-file check runs without a flag, as a warning. An absolute source `id`
 or CURIE names one node that every concept giving it shares. Two concepts that
 give it different excerpts each validate, and `--shacl` then fails on the node,
-which may hold one. `lokf validate` names the id and the files; the warning
-does not fail validation.
+which may hold one. `lokf validate` names the id and the files.
+
+`--strict` makes every content warning an error: an id with different
+excerpts, an unresolvable id, a material both used and excluded, a duplicate
+or out-of-order log heading. A warning that a check left something unchecked
+stays a warning. For a producer's own gate:
+
+```bash
+lokf validate knowledge --strict --shacl
+```
 
 ## SHACL — after projection
 

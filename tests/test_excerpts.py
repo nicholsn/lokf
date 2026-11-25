@@ -263,3 +263,25 @@ def test_malformed_source_id_warns_without_aborting_other_conflict_checks(tmp_pa
     assert 'excerpt conflict check skipped for this entry' in result.output
     assert "source id 'https://example.org/kb/paper'" in result.output
     assert 'b.md sources[0] vs. c.md sources[0]' in result.output
+
+
+def test_strict_fails_one_source_id_with_two_excerpts(tmp_path):
+    """SPEC §5.4: an absolute source id SHOULD be used for one passage only.
+    `--strict` fails a bundle that does not, and `--shacl` still runs after it
+    and names the node."""
+    from lokf.validation import validate_bundle
+
+    shared = 'https://example.org/kb/paper'
+    kb = cite_at(tmp_path / 'kb', a=(shared, 'the first passage'), b=(shared, 'the second passage'))
+    result = runner.invoke(app, ['validate', str(kb), '--strict'])
+    assert result.exit_code == 1, result.output
+    assert f"[ERROR] source id '{shared}'" in result.output
+    report = validate_bundle(kb, strict=True).as_dict()
+    assert report['outcome'] == 'invalid' and report['checks']['excerpt_conflicts'] == 'failed'
+    assert [(d['code'], d['severity']) for d in report['diagnostics']] == [('excerpt.conflict', 'error')]
+    report = validate_bundle(kb, strict=True, shacl=True).as_dict()
+    assert report['checks']['shacl'] == 'failed'
+    assert 'shacl.MaxCount' in [d['code'] for d in report['diagnostics']]
+    local = cite_at(tmp_path / 'local', a=('paper', 'the first passage'), b=('paper', 'the second passage'))
+    result = runner.invoke(app, ['validate', str(local), '--strict', '--shacl'])
+    assert result.exit_code == 0, result.output
