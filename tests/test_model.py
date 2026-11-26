@@ -39,7 +39,7 @@ def test_iri_resolution(bundle):
 
 def test_graph_matches_committed_projection(bundle):
     g = bundle.graph()
-    assert len(g) == 157  # examples/acme-knowledge.nt
+    assert len(g) == 161  # examples/acme-knowledge.nt
 
     from rdflib import URIRef
 
@@ -55,6 +55,30 @@ def test_to_jsonld_injects_id_and_context(bundle):
     for doc in docs:
         assert "@context" in doc
         assert doc["id"].startswith("https://acme.example/knowledge/")
+
+
+def test_to_jsonld_projects_sources_as_graph_does(tmp_path):
+    """Bundle.to_jsonld() gives each concept's local source label its own
+    node, as Bundle.graph() does."""
+    import json
+
+    from rdflib import Graph, URIRef
+
+    from lokf.model import load_bundle
+
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n")
+    for name, quote in (("a", "first"), ("b", "second")):
+        (tmp_path / f"{name}.md").write_text(
+            f"---\ntype: Explanation\ntitle: {name}\nsources:\n  - id: paper\n"
+            f"    resource: https://ex.org/paper\n    excerpt: {quote}\n---\n")
+    kb = load_bundle(tmp_path)
+    data = Graph()
+    for doc in kb.to_jsonld():
+        data.parse(data=json.dumps(doc), format="json-ld", publicID=kb.base_iri)
+    graph = kb.graph()
+    for p in ("http://schema.org/isBasedOn", "https://w3id.org/lokf/excerpt"):
+        assert set(data.subject_objects(URIRef(p))) == set(graph.subject_objects(URIRef(p)))
+    assert len(set(data.objects(None, URIRef("http://schema.org/isBasedOn")))) == 2
 
 
 def test_concept_body_and_title(bundle):

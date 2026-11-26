@@ -120,7 +120,7 @@ def test_add_rejects_empty_base_iri():
 def test_entry_for_bundle_indexes_the_example():
     entry = entry_for_bundle(BUNDLE, source_base="https://x/")
     assert entry.base_iri == "https://acme.example/knowledge/"
-    assert entry.void["triples"] == 157
+    assert entry.void["triples"] == 161
     # Six concepts, each a distinct type; all route by prefix, so id_index empty.
     assert sum(entry.void["class_partition"].values()) == 8
     assert entry.id_index == {}
@@ -231,7 +231,7 @@ def test_entry_for_archive_unpacks_and_records_checksum(tmp_path, top):
     archive = _zip_bundle(tmp_path, top)
     entry = entry_for_archive(archive, source_base="https://x/", checksum=_digest(archive))
     assert entry.base_iri == "https://acme.example/knowledge/"
-    assert entry.void["triples"] == 157
+    assert entry.void["triples"] == 161
     assert entry.checksum == _digest(archive)
     assert entry.path is None and entry.source_base == "https://x/"
     assert entry.distribution == {"archive": str(archive.resolve())}
@@ -274,7 +274,7 @@ def test_cli_init_add_list_resolve(tmp_path):
         app,
         ["registry", "add", str(BUNDLE), "-r", str(manifest), "--source-base", "https://x/"],
     )
-    assert add.exit_code == 0 and "157 triples" in add.output
+    assert add.exit_code == 0 and "161 triples" in add.output
 
     listed = runner.invoke(app, ["registry", "list", "-r", str(manifest)])
     assert "https://acme.example/knowledge/" in listed.output

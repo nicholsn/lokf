@@ -479,9 +479,15 @@ def validate_bundle(bundle: str | Path, *, schema: str | Path | None = None,
                 if emit:
                     emit(f"[{severity}] {msg}")
 
+        # Source ids expand under the projection's context; a schema with live
+        # imports falls back to the published one rather than fetching here.
+        if report.selected_schema is None or inputs is None:
+            source_context = schema_context(None)
+        else:
+            source_context = schema_context(inputs)
         for current, findings in (
             ("exclusions", exclusion_findings(kb)),
-            ("excerpt_conflicts", excerpt_conflict_findings(kb)),
+            ("excerpt_conflicts", excerpt_conflict_findings(kb, source_context)),
             ("events", event_diagnostics(kb)),
         ):
             record_located(current, findings)

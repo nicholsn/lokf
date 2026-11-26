@@ -138,43 +138,128 @@ def cite_at(root, **ids_and_excerpts):
     return root
 
 
-def test_one_source_id_with_two_excerpts_passes_the_schema_but_not_shacl(tmp_path):
-    """SPEC §5.4 reads an excerpt as the passage the concept relies on, but a
-    source `id` mints one node that every concept citing it shares. Each file
-    passes the schema; the node then holds both excerpts, where SHACL allows
-    one, and the SHACL report names neither file. `lokf validate` names the id
-    and the files without changing its verdict."""
+def test_a_relative_source_id_is_local_to_its_concept(tmp_path):
+    """SPEC §5.4: a relative source `id` is a label local to its concept, as a
+    footnote label is local to its page. Two concepts quoting two passages under
+    one label get one node each, and still share the material through
+    `schema:url`."""
+    from rdflib import Literal, URIRef
+    from lokf.rdf import graph_of
+
     kb = cite_at(tmp_path / 'kb', a=('paper', 'the first passage'), b=('paper', 'the second passage'))
+    result = runner.invoke(app, ['validate', str(kb), '--shacl'])
+    assert result.exit_code == 0, result.output
+    assert 'different excerpts' not in result.output
+    g = graph_of(kb)
+    isBasedOn, excerpt = URIRef('http://schema.org/isBasedOn'), URIRef('https://w3id.org/lokf/excerpt')
+    nodes = {str(s): str(o) for s, o in g.subject_objects(isBasedOn)}
+    assert nodes == {'https://example.org/kb/a': 'https://example.org/kb/a#paper',
+                     'https://example.org/kb/b': 'https://example.org/kb/b#paper'}
+    assert set(g.objects(URIRef('https://example.org/kb/a#paper'), excerpt)) == {Literal('the first passage')}
+    urls = {o for n in nodes.values() for o in g.objects(URIRef(n), URIRef('http://schema.org/url'))}
+    assert len(urls) == 1
+
+
+def test_an_absolute_source_id_is_shared_and_holds_one_excerpt(tmp_path):
+    """An absolute IRI names one node that every concept giving it shares, so
+    two excerpts on it pass the schema but not SHACL. `lokf validate` names the
+    id and the files without changing its verdict."""
+    shared = 'https://example.org/kb/paper'
+    kb = cite_at(tmp_path / 'kb', a=(shared, 'the first passage'), b=(shared, 'the second passage'))
     result = runner.invoke(app, ['validate', str(kb)])
     assert result.exit_code == 0, result.output
-    assert ("[WARNING] source id 'paper' (https://example.org/kb/paper) has 2 different "
+    assert (f"[WARNING] source id '{shared}' has 2 different "
             "excerpts: a.md sources[0] vs. b.md sources[0]") in result.output
     result = runner.invoke(app, ['validate', str(kb), '--shacl'])
     assert result.exit_code == 1
     assert 'MaxCount' in result.output and 'lokf:excerpt' in result.output
 
 
-def test_excerpt_conflicts_group_by_the_node_an_id_mints(tmp_path):
-    """One excerpt, or none, under a shared id is no clash; two spellings of
-    one IRI are one node, and the files giving one excerpt are named together."""
+def test_excerpt_conflicts_group_by_the_node_an_id_names(tmp_path):
+    """One excerpt, or none, on a node is no clash, and neither is one label
+    in two concepts. Two absolute ids name two nodes. One concept giving a
+    label two excerpts is a clash."""
     from lokf.excerpts import excerpt_conflicts
 
-    quiet = cite_at(tmp_path / 'quiet', a=('paper', 'one passage'), b=('paper', 'one passage'),
-                    c=('paper', None), d=('other', 'another passage'))
+    shared = 'https://example.org/kb/paper'
+    quiet = cite_at(tmp_path / 'quiet', a=(shared, 'one passage'), b=(shared, 'one passage'),
+                    c=(shared, None), d=('paper', 'another passage'), e=('paper', 'a third passage'))
     assert list(excerpt_conflicts(load_bundle(quiet))) == []
-    loud = cite_at(tmp_path / 'loud', a=('paper', 'one passage'), b=('/kb/paper', 'one passage'),
-                   c=('https://example.org/kb/paper', 'another passage'))
+    loud = cite_at(tmp_path / 'loud', a=(shared, 'one passage'), b=('ex:paper', 'one passage'),
+                   c=(shared, 'another passage'))
     findings = list(excerpt_conflicts(load_bundle(loud)))
     assert [severity for severity, _ in findings] == ['WARNING']
-    assert 'a.md sources[0], b.md sources[0] vs. c.md sources[0]' in findings[0][1]
+    assert 'a.md sources[0] vs. c.md sources[0]' in findings[0][1]
+    one = tmp_path / 'one'
+    one.mkdir()
+    (one / 'index.md').write_text('---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n')
+    (one / 'a.md').write_text('---\n' + yaml.safe_dump({'type': 'Explanation', 'title': 'a', 'sources': [
+        {'id': 'paper', 'resource': 'https://example.org/paper', 'excerpt': 'one passage'},
+        {'id': 'paper', 'resource': 'https://example.org/paper', 'excerpt': 'another passage'}]}) + '---\n')
+    findings = list(excerpt_conflicts(load_bundle(one)))
+    assert len(findings) == 1
+    assert "source id 'paper' (https://example.org/kb/a#paper)" in findings[0][1]
+
+
+def test_excerpt_conflicts_expand_ids_under_the_context(tmp_path):
+    """A CURIE and its full IRI name one node; a prefix with `_` is a CURIE."""
+    from lokf.excerpts import excerpt_conflicts
+
+    kb = cite_at(tmp_path / 'curie', a=('schema:Article', 'one passage'),
+                 b=('http://schema.org/Article', 'another passage'))
+    findings = list(excerpt_conflicts(load_bundle(kb)))
+    assert len(findings) == 1 and '(http://schema.org/Article)' in findings[0][1]
+    kb = cite_at(tmp_path / 'adms', a=('adms_status:Completed', 'one passage'),
+                 b=('adms_status:Completed', 'another passage'))
+    assert len(list(excerpt_conflicts(load_bundle(kb)))) == 1
+
+
+def test_a_source_label_stays_local_without_a_base(tmp_path):
+    """With no base_iri, a label stays local to its relative Concept ID, so a
+    base a consumer supplies still gives two nodes."""
+    from rdflib import URIRef
+    from lokf.excerpts import excerpt_conflicts
+    from lokf.rdf import graph_of
+
+    kb = cite_at(tmp_path / 'kb', a=('paper', 'one passage'), b=('paper', 'another passage'))
+    (kb / 'index.md').write_text('---\ntitle: KB\n---\n')
+    assert list(excerpt_conflicts(load_bundle(kb))) == []
+    nodes = set(graph_of(kb).objects(None, URIRef('http://schema.org/isBasedOn')))
+    assert len(nodes) == 2 and all(str(n).endswith(('/a#paper', '/b#paper')) for n in nodes)
+
+
+def test_source_nodes_under_a_hash_base_stay_apart(tmp_path):
+    """Under `base_iri: ...#`, a citation never lands on a concept's IRI or on
+    another concept's citation (SPEC §5.4)."""
+    from rdflib import URIRef
+    from lokf.rdf import graph_of
+
+    kb = tmp_path / 'kb'
+    (kb / 'a').mkdir(parents=True)
+    (kb / 'index.md').write_text('---\nbase_iri: https://example.org/kb#\ntitle: KB\n---\n')
+    def write(name, sources):
+        (kb / f'{name}.md').write_text('---\n' + yaml.safe_dump(
+            {'type': 'Explanation', 'title': name, 'sources': sources}) + '---\n')
+    write('a', [{'id': 'evidence', 'resource': 'https://example.org/e', 'excerpt': 'one passage'},
+                {'id': 'b/fig', 'resource': 'https://example.org/f'}])
+    write('a/evidence', [])
+    write('a/b', [{'id': 'fig', 'resource': 'https://example.org/g'}])
+    g = graph_of(kb)
+    nodes = {str(o) for o in g.objects(None, URIRef('http://schema.org/isBasedOn'))}
+    assert nodes == {'https://example.org/kb#a//evidence', 'https://example.org/kb#a//b/fig',
+                     'https://example.org/kb#a/b//fig'}
+    assert not set(g.objects(URIRef('https://example.org/kb#a/evidence'), URIRef('https://w3id.org/lokf/excerpt')))
+    result = runner.invoke(app, ['validate', str(kb), '--shacl'])
+    assert result.exit_code == 0, result.output
 
 
 def test_malformed_source_id_warns_without_aborting_other_conflict_checks(tmp_path):
     kb = cite_at(tmp_path / 'kb', a=('http://[', 'invalid id passage'),
-                 b=('paper', 'first passage'), c=('paper', 'second passage'))
+                 b=('https://example.org/kb/paper', 'first passage'),
+                 c=('https://example.org/kb/paper', 'second passage'))
     result = runner.invoke(app, ['validate', str(kb)])
     assert result.exit_code == 0, result.output
     assert "a.md sources[0]: cannot resolve source id 'http://['" in result.output
     assert 'excerpt conflict check skipped for this entry' in result.output
-    assert "source id 'paper'" in result.output
+    assert "source id 'https://example.org/kb/paper'" in result.output
     assert 'b.md sources[0] vs. c.md sources[0]' in result.output

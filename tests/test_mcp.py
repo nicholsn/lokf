@@ -70,7 +70,7 @@ def test_concept_under_a_section_index_projects_under_the_bundle_base_iri():
     assert f"<{d['iri']}>" in d["turtle"]
     assert "file://" not in d["turtle"]
     out = mcp.convert(str(nested / "genetics" / "lrrk2.md"), "nt")
-    assert "<https://kb.example/knowledge/smith-2020>" in out["rdf"]
+    assert "<https://kb.example/knowledge/genetics/lrrk2#smith-2020>" in out["rdf"]
     assert "file://" not in out["rdf"]
 
 
@@ -145,7 +145,7 @@ def test_get_vocabulary_all_returns_the_full_manifest():
 
 def test_bundle_summary():
     summary = mcp.bundle_summary(BUNDLE)
-    assert summary["triple_count"] == 157
+    assert summary["triple_count"] == 161
     assert summary["concept_count"] == 8
     assert summary["relation_edge_count"] == 12
 

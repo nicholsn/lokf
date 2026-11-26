@@ -241,3 +241,31 @@ def test_registry_mcp_over_stdio(tools):
                 assert not query.is_error
                 assert any('true' in c.text.lower() for c in query.content if hasattr(c, 'text'))
     asyncio.run(exercise())
+
+
+def test_read_document_from_concepts_jsonld_keeps_the_footnote_label(tmp_path):
+    """The export writes a local source id absolute; the Markdown read back
+    from concepts.jsonld gives the label the body's footnote cites."""
+    from typer.testing import CliRunner
+
+    from lokf.cli import app
+    from lokf.parse import parse_concept_text
+
+    acme = pathlib.Path(__file__).resolve().parents[1] / "examples" / "acme-knowledge"
+    out = tmp_path / "site"
+    result = CliRunner().invoke(app, ["export", str(acme), "-d", str(out)])
+    assert result.exit_code == 0, result.output
+    reg = Registry(path=tmp_path / "lokf-registry.yaml", title="Acme")
+    reg.add(entry_for_bundle(acme))
+    reg.repos[0].path = None
+    reg.repos[0].source_base = ""
+    reg.repos[0].distribution = {"concepts": str(out / "concepts.jsonld")}
+    tools = RegistryTools(reg, GraphStore.from_registry(reg))
+    try:
+        doc = tools.read_document("https://acme.example/knowledge/metrics/weekly-active-users")
+    finally:
+        tools.close()
+    assert doc["read_from"] == "concepts.jsonld", doc
+    assert "[^metric-defs-rfc]" in doc["markdown"]
+    ids = [s.get("id") for s in parse_concept_text(doc["markdown"], doc["path"])["sources"]]
+    assert "metric-defs-rfc" in ids

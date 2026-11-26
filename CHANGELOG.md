@@ -20,6 +20,16 @@ with the 0.x caveat that a minor release may tighten validation.
   errors in individual documents, and distinguish invalid content from an
   unavailable check.
 
+### Changed
+
+- A relative `sources[].id` is local to its concept and names the node
+  `<concept IRI>#<id>`, so two concepts quoting one file under one label no
+  longer share a node and its excerpts (SPEC §5.4). Under a `base_iri` ending
+  in `#` the node is `#<fragment>//<id>`, so it never lands on a concept.
+  An absolute IRI or CURIE still names a shared node, and a CURIE expands
+  under the active context. Source IRIs change for every bundle with a
+  relative id, and `lokf export` writes them absolute in `concepts.jsonld`.
+
 ## [0.11.0] — 2026-11-22
 
 ### Added
