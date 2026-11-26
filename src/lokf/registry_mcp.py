@@ -108,12 +108,24 @@ def _safe_name(concept_id: str) -> str | None:
 
 
 def _as_markdown(doc: dict) -> str:
-    """A concepts.jsonld document back as frontmatter and body."""
+    """A concepts.jsonld document back as frontmatter and body, with each
+    source id the export made absolute read back as its footnote label."""
     import yaml
 
     front = {k: v for k, v in doc.items() if k != "body"}
+    sources, concept = front.get("sources"), front.get("id")
+    if isinstance(sources, list) and isinstance(concept, str):
+        front["sources"] = [_authored_source(entry, concept) for entry in sources]
     fm = yaml.safe_dump(front, sort_keys=False, allow_unicode=True)
     return f"---\n{fm}---\n\n{doc.get('body', '')}\n"
+
+
+def _authored_source(entry, concept: str):
+    from lokf.rdf import source_label
+
+    ref = entry.get("id") if isinstance(entry, dict) else None
+    label = source_label(concept, ref) if isinstance(ref, str) else None
+    return {**entry, "id": label} if label else entry
 
 
 class RegistryTools:

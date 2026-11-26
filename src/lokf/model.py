@@ -219,9 +219,13 @@ class Bundle:
         return out
 
     def to_jsonld(self, context: dict | None = None) -> list[dict]:
-        """Each concept's frontmatter as a JSON-LD document (context attached)."""
+        """Each concept's frontmatter as a JSON-LD document (context attached),
+        with each local source id made absolute as :meth:`graph` makes it."""
+        from lokf.rdf import with_source_nodes
+
         ctx = context if context is not None else load_context()
-        return [{**doc, "@context": ctx} for doc in self.docs()]
+        docs = with_source_nodes(self.docs(), self.base_iri or None, ctx)
+        return [{**doc, "@context": ctx} for doc in docs]
 
     def graph(self, context: dict | None = None, schema: SchemaSource = None):
         """The whole bundle as one :class:`rdflib.Graph`, under the domain

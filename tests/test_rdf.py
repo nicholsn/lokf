@@ -514,10 +514,32 @@ def test_source_node_iri_is_local_to_the_concept_unless_absolute():
     assert source_node_iri("services/api", "changelog", base) == concept + "#changelog"
     assert source_node_iri(concept, "https://doi.org/10.1/x", base) == "https://doi.org/10.1/x"
     assert source_node_iri(concept, "ex:paper", base) == "ex:paper"
-    assert source_node_iri("https://kb.example/k#api", "log", base) == "https://kb.example/k#api/log"
+    assert source_node_iri(concept, "schema:Article", base) == "http://schema.org/Article"
+    assert source_node_iri(concept, "adms_status:Completed", base) == "http://purl.org/adms/status/Completed"
+    assert source_node_iri("https://kb.example/k#api", "log", base) == "https://kb.example/k#api//log"
+    assert source_node_iri("prov:Entity", "log", base) == "http://www.w3.org/ns/prov#Entity//log"
     assert source_node_iri(concept, "a b#c", base) == concept + "#a%20b%23c"
     assert source_node_iri(concept, "100%", base) == concept + "#100%25"
     assert source_node_iri(None, "changelog", base) == base + "changelog"
+    assert source_node_iri("services/api", "changelog") == "services/api#changelog"
+
+
+def test_source_nodes_under_a_hash_base_name_no_concept_or_other_source():
+    """Under a base ending in `#`, a label follows `//`, which a Concept ID
+    derived from a path never holds."""
+    from lokf.rdf import source_label, source_node_iri
+
+    base = "https://kb.example/k#"
+    a, ab = base + "a", base + "a/b"
+    nodes = {
+        source_node_iri(a, "evidence", base), source_node_iri(a, "b/fig", base),
+        source_node_iri(ab, "fig", base), base + "a/evidence", base + "a/b/fig",
+    }
+    assert len(nodes) == 5
+    for concept, label in ((a, "b/fig"), (ab, "fig"), (a, "/x"), (a, "50% off")):
+        assert source_label(concept, source_node_iri(concept, label, base)) == label
+    assert source_label(base + "a", base + "a/b//fig") is None
+    assert source_label("https://kb.example/k/a", "https://kb.example/k/a#") is None
 
 
 def test_with_source_nodes_leaves_a_blank_or_absolute_id_alone():
@@ -525,7 +547,9 @@ def test_with_source_nodes_leaves_a_blank_or_absolute_id_alone():
 
     concept = "https://kb.example/k/services/api"
     docs = [{"id": concept, "sources": [{"id": "changelog", "resource": "r"}, {"id": "  ", "resource": "r"},
-                                        {"id": "ex:paper", "resource": "r"}, {"resource": "r"}]}]
+                                        {"id": "ex:paper", "resource": "r"}, {"resource": "r"},
+                                        {"id": "adms_status:Completed", "resource": "r"}]}]
     out = with_source_nodes(docs, "https://kb.example/k/")
-    assert [s.get("id") for s in out[0]["sources"]] == [concept + "#changelog", "  ", "ex:paper", None]
+    assert [s.get("id") for s in out[0]["sources"]] == [
+        concept + "#changelog", "  ", "ex:paper", None, "adms_status:Completed"]
     assert docs[0]["sources"][0]["id"] == "changelog"  # the input is not changed

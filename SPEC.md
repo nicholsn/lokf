@@ -299,16 +299,21 @@ again later; `lokf validate --check-excerpts` makes that check for a local
 it moves to the OKF subset if OKF adopts it.
 
 A source `id` that is not an absolute IRI or a CURIE is a label local to its
-concept, as a footnote label is local to its page. It projects as a fragment
-of the concept's IRI: `id: changelog` on `services/orders-api` becomes
-`<base_iri>services/orders-api#changelog`, and a concept IRI with a fragment
-of its own takes `#<fragment>/<id>`. Two concepts may give one label to two
-passages of one file: each gets its own node and `excerpt`, and `schema:url`
-joins them. An absolute IRI or a CURIE names one node that every concept
-giving it shares, so it SHOULD carry one passage, or no `excerpt`. The toolkit
-makes these IRIs absolute before JSON-LD expansion, and `lokf export` writes
-them absolute in `concepts.jsonld`, because the published context alone would
-resolve a label against `base_iri`.
+concept, as a footnote label is local to its page. An id is a CURIE when the
+active context, published or project, defines its prefix, as JSON-LD reads it.
+A label projects as a fragment of the concept's expanded IRI: `id: changelog`
+on `services/orders-api` becomes `<base_iri>services/orders-api#changelog`.
+A concept IRI with a fragment of its own, as under a `base_iri` ending in `#`,
+takes `#<fragment>//<id>`. A Concept ID derived from a path never holds an
+empty segment, so that node names no concept and no other concept's label.
+The label is percent-encoded. A bundle with no `base_iri` gives the relative
+`<Concept ID>#<id>`, which a consumer's base resolves. Two concepts may give
+one label to two passages of one file: each gets its own node and `excerpt`,
+and `schema:url` joins them. An absolute IRI or a CURIE names one node that
+every concept giving it shares, so it SHOULD carry one passage, or no
+`excerpt`. The toolkit writes each label's node IRI before JSON-LD expansion,
+and `lokf export` writes it in `concepts.jsonld`, because the published
+context alone would resolve a label against `base_iri`.
 
 **Exclusion entries** (`exclusions[]`, `lokf:excludes`): the materials the
 concept's author looked at and left out on purpose, a sibling of `sources`.
