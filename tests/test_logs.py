@@ -34,3 +34,11 @@ def test_cli_warns_on_order_and_duplicates_but_fails_bad_dates(tmp_path):
     result = CliRunner().invoke(app, ['validate', str(tmp_path)])
     assert result.exit_code == 1
     assert 'log.md:1' in result.output
+
+
+def test_strict_fails_order_and_duplicates(tmp_path):
+    (tmp_path / 'index.md').write_text('---\nbase_iri: https://example.org/\ntitle: KB\n---\n')
+    (tmp_path / 'log.md').write_text('## 2026-01-01\n\n## 2026-02-01\n')
+    result = CliRunner().invoke(app, ['validate', str(tmp_path), '--strict'])
+    assert result.exit_code == 1
+    assert '[ERROR]' in result.output and 'newest first' in result.output

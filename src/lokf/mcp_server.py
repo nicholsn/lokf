@@ -216,12 +216,13 @@ def get_vocabulary(
 def validate_bundle(
     bundle: str, schema: str | None = None, check_ids: bool = False, check_refs: bool = False,
     check_resources: bool = False, check_excerpts: bool = False, shacl: bool = False,
-    root: str | None = None, max_diagnostics: int = 50,
+    root: str | None = None, max_diagnostics: int = 50, strict: bool = False,
 ) -> ValidationResult:
     """Validate a local bundle and return its verdict, checks, coverage and located diagnostics.
 
     Flags match the validate CLI. Request shacl to check RDF ranges, check_refs for local
-    target existence, and check_excerpts to compare quotes with local resources. An incomplete
+    target existence, check_excerpts to compare quotes with local resources, and strict to fail
+    on content warnings such as one source id with different excerpts. An incomplete
     verdict means validation could not finish. max_diagnostics (1–100) limits the displayed
     findings; diagnostic_count and the verdict cover every finding. A live bundle has no
     source revision. Validation reads the bundle without authorizing or publishing changes.
@@ -230,7 +231,7 @@ def validate_bundle(
 
     return validate(bundle, schema=schema, check_ids=check_ids, check_refs=check_refs,
                     check_resources=check_resources, check_excerpts=check_excerpts, shacl=shacl,
-                    root=root, max_diagnostics=max_diagnostics).as_dict()
+                    root=root, strict=strict, max_diagnostics=max_diagnostics).as_dict()
 
 
 @server.tool()

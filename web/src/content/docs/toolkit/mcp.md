@@ -66,7 +66,7 @@ arguments below show their defaults.
 | `convert(source, format="ttl")` | A concept file or bundle as RDF, with `format` and `rdf`. Formats include `ttl`, `nt`, `jsonld`, `xml`, `n3` and `trig`. |
 | `propose_relations(bundle, min_confidence=0.0, apply=false, schema=null)` | Typed relations suggested from prose links, with confidence and rationale. With `apply=true`, writes accepted proposals to frontmatter and reports `applied` for each row. |
 | `get_vocabulary(all=false, bundle=null, schema=null, include_metadata=false)` | Class CURIEs and relation rows. Use `all=true` for the manifest of classes, slots and enums. |
-| `validate_bundle(bundle, schema=null, check_ids=false, check_refs=false, check_resources=false, check_excerpts=false, shacl=false, root=null, max_diagnostics=50)` | Content verdict, check statuses, located diagnostics and coverage of local evidence. |
+| `validate_bundle(bundle, schema=null, check_ids=false, check_refs=false, check_resources=false, check_excerpts=false, shacl=false, root=null, max_diagnostics=50, strict=false)` | Content verdict, check statuses, located diagnostics and coverage of local evidence. |
 | `bundle_summary(bundle)` | Concept, triple and relation-edge counts, counts by type and trust tier, and a stale-concept count. |
 
 To query several bundles together, use the [registry MCP server](/toolkit/registry/#for-agents).

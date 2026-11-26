@@ -70,7 +70,7 @@ def test_concept_under_a_section_index_projects_under_the_bundle_base_iri():
     assert f"<{d['iri']}>" in d["turtle"]
     assert "file://" not in d["turtle"]
     out = mcp.convert(str(nested / "genetics" / "lrrk2.md"), "nt")
-    assert "<https://kb.example/knowledge/smith-2020>" in out["rdf"]
+    assert "<https://kb.example/knowledge/genetics/lrrk2#smith-2020>" in out["rdf"]
     assert "file://" not in out["rdf"]
 
 
@@ -145,7 +145,7 @@ def test_get_vocabulary_all_returns_the_full_manifest():
 
 def test_bundle_summary():
     summary = mcp.bundle_summary(BUNDLE)
-    assert summary["triple_count"] == 157
+    assert summary["triple_count"] == 161
     assert summary["concept_count"] == 8
     assert summary["relation_edge_count"] == 12
 
@@ -162,3 +162,20 @@ def test_all_tool_results_json_serializable():
         mcp.bundle_summary(BUNDLE),
     ]
     json.dumps(payloads)
+
+
+def test_validate_bundle_strict_fails_a_content_warning(tmp_path):
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n")
+    (tmp_path / "log.md").write_text("## 2026-01-01\n\n## 2026-02-01\n")
+    assert mcp.validate_bundle(str(tmp_path))["outcome"] == "valid"
+    result = mcp.validate_bundle(str(tmp_path), strict=True)
+    assert result["outcome"] == "invalid" and result["checks"]["logs"] == "failed"
+    assert [(d["code"], d["severity"]) for d in result["diagnostics"]] == [("log.heading", "error")]
+
+
+def test_validate_bundle_keeps_max_diagnostics_in_its_positional_slot(tmp_path):
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n")
+    (tmp_path / "log.md").write_text("## 2026-01-01\n\n## 2026-02-01\n\n## 2026-03-01\n")
+    result = mcp.validate_bundle(str(tmp_path), None, False, False, False, False, False, None, 1)
+    assert result["outcome"] == "valid"
+    assert result["diagnostic_count"] == 2 and len(result["diagnostics"]) == 1

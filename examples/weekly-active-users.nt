@@ -1,7 +1,11 @@
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/author> "team:analytics" .
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/name> "Metric definitions RFC" .
-<https://acme.example/knowledge/metric-defs-rfc> <http://schema.org/url> "https://wiki.acme.example/rfc/metric-defs"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users#metric-defs-rfc> <http://schema.org/author> "team:analytics" .
+<https://acme.example/knowledge/metrics/weekly-active-users#metric-defs-rfc> <http://schema.org/dateModified> "2026-05-12T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://acme.example/knowledge/metrics/weekly-active-users#metric-defs-rfc> <http://schema.org/name> "Metric definitions RFC" .
+<https://acme.example/knowledge/metrics/weekly-active-users#metric-defs-rfc> <http://schema.org/url> "https://wiki.acme.example/rfc/metric-defs"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users#wau-look> <http://schema.org/author> "team:analytics" .
+<https://acme.example/knowledge/metrics/weekly-active-users#wau-look> <http://schema.org/name> "WAU Look (production dashboard)" .
+<https://acme.example/knowledge/metrics/weekly-active-users#wau-look> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
+<https://acme.example/knowledge/metrics/weekly-active-users#wau-look> <https://w3id.org/lokf/usageCount> "3200"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/computations/weekly-active-users-count> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://purl.org/dc/terms/requires> <https://acme.example/knowledge/glossary/active-user> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/author> <https://acme.example/people/jsmith> .
@@ -9,8 +13,8 @@
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/dateCreated> "2026-01-15T09:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/description> "Distinct users with at least one qualifying event in a trailing 7-day window." .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/expires> "2026-12-31T00:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metric-defs-rfc> .
-<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/wau-look> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metrics/weekly-active-users#metric-defs-rfc> .
+<https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/isBasedOn> <https://acme.example/knowledge/metrics/weekly-active-users#wau-look> .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "engagement" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "growth" .
 <https://acme.example/knowledge/metrics/weekly-active-users> <http://schema.org/keywords> "north-star" .
@@ -27,10 +31,6 @@
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/usageWindow> _:c14n1 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:c14n2 .
 <https://acme.example/knowledge/metrics/weekly-active-users> <https://w3id.org/lokf/verified> _:c14n3 .
-<https://acme.example/knowledge/wau-look> <http://schema.org/author> "team:analytics" .
-<https://acme.example/knowledge/wau-look> <http://schema.org/name> "WAU Look (production dashboard)" .
-<https://acme.example/knowledge/wau-look> <http://schema.org/url> "https://looker.acme.example/looks/wau"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
-<https://acme.example/knowledge/wau-look> <https://w3id.org/lokf/usageCount> "3200"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://acme.example/people/jsmith> <http://schema.org/email> "jsmith@acme.example" .
 <https://acme.example/people/jsmith> <http://schema.org/name> "Jordan Smith" .
 <https://acme.example/people/jsmith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .

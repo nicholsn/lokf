@@ -19,6 +19,20 @@ with the 0.x caveat that a minor release may tighten validation.
   validator as `lokf validate`. Agents can inspect which checks ran, locate
   errors in individual documents, and distinguish invalid content from an
   unavailable check.
+- `lokf validate --strict` fails on a content warning: an id with different
+  excerpts, an unresolvable id on a source with an excerpt, a material both
+  used and excluded, a duplicate or out-of-order log heading. A warning that a check left something
+  unchecked stays a warning. MCP's `validate_bundle` takes `strict` too.
+
+### Changed
+
+- A relative `sources[].id` is local to its concept and names the node
+  `<concept IRI>#<id>`, so two concepts quoting one file under one label no
+  longer share a node and its excerpts (SPEC §5.4). Under a `base_iri` ending
+  in `#` the node is `#<fragment>//<id>`, so it never lands on a concept.
+  An absolute IRI or CURIE still names a shared node, and a CURIE expands
+  under the active context. Source IRIs change for every bundle with a
+  relative id, and `lokf export` writes them absolute in `concepts.jsonld`.
 
 ## [0.11.0] — 2026-11-22
 
