@@ -182,22 +182,25 @@ def _check_file(excerpt: str, path: Path, value: str) -> tuple[str, str, str] | 
     return ("excerpt.mismatch", "ERROR", problem) if problem else None
 
 
-def excerpt_conflicts(bundle):
+def excerpt_conflicts(bundle, context=None):
     """Yield (severity, message) for excerpt conflicts."""
-    for _, _, _, severity, message in excerpt_conflict_findings(bundle):
+    for _, _, _, severity, message in excerpt_conflict_findings(bundle, context):
         yield severity, message
 
 
-def excerpt_conflict_findings(bundle):
+def excerpt_conflict_findings(bundle, context=None):
     """Yield a warning for each source node cited with different excerpts.
 
     A relative ``id`` names a node under its own concept, so only that concept
     can give it two excerpts. An absolute IRI or CURIE names one node shared
     by every concept giving it (SPEC §5.4). The SHACL shapes allow a node one
     ``lokf:excerpt`` and report the node, not the files. Nodes are found as
-    the projection finds them, so two spellings of one IRI are one node.
+    the projection finds them under *context* (default: the published one),
+    so two spellings of one IRI are one node.
     """
-    from lokf.rdf import source_node_iri
+    from lokf.rdf import context_prefixes, source_node_iri
+
+    prefixes = context_prefixes(context)
 
     nodes: dict[str, list[tuple[str, str, int, str]]] = {}
     for concept in bundle.concepts:
@@ -206,7 +209,7 @@ def excerpt_conflict_findings(bundle):
             ref, excerpt = entry.get("id"), entry.get("excerpt")
             if isinstance(ref, str) and ref.strip() and isinstance(excerpt, str):
                 try:
-                    node = source_node_iri(bundle.iri(concept), ref, bundle.base_iri)
+                    node = source_node_iri(bundle.iri(concept), ref, bundle.base_iri, prefixes=prefixes)
                 except ValueError as exc:
                     yield "excerpt.source_id", where, f"/sources/{i}/id", "WARNING", (
                         f"{where} sources[{i}]: cannot resolve source id {ref!r} "

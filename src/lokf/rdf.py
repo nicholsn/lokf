@@ -15,7 +15,7 @@ import json
 import os
 import pathlib
 import re
-from urllib.parse import quote, urldefrag, urljoin
+from urllib.parse import quote, unquote, urldefrag, urljoin
 
 from lokf.parse import parse_concept, parse_index_text
 from lokf.schema import SchemaSource, projection_schema, schema_context
@@ -62,35 +62,102 @@ def _strip_context(obj):
 
 
 _SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
+_LABEL_SAFE = "/?:@!$&'()*+,;=-._~"
 
 
-def source_node_iri(concept_iri: str | None, ref: str, base: str | None = None) -> str:
+def context_prefixes(context=None) -> dict[str, str]:
+    """The prefixes a JSON-LD context defines, by name. *context* is a
+    mapping, a list of them, or None for the published context."""
+    if context is None:
+        from lokf.schema import load_context
+
+        context = load_context()
+    out: dict[str, str] = {}
+    for part in context if isinstance(context, list) else [context]:
+        if not isinstance(part, dict):
+            continue
+        part = part.get("@context", part)
+        for term, value in part.items() if isinstance(part, dict) else ():
+            if term.startswith("@") or ":" in term:
+                continue
+            if isinstance(value, str) and value[-1:] in ":/?#[]@":
+                out[term] = value
+            elif isinstance(value, dict) and value.get("@prefix") is True and isinstance(value.get("@id"), str):
+                out[term] = value["@id"]
+    return out
+
+
+def _names_node(ref: str, prefixes: dict[str, str]) -> bool:
+    """Whether *ref* is a CURIE, blank node or absolute IRI, as JSON-LD reads it."""
+    prefix, sep, suffix = ref.partition(":")
+    return bool(sep) and (prefix in prefixes or prefix == "_" or bool(_SCHEME.match(ref)))
+
+
+def _expand(ref: str, prefixes: dict[str, str], base: str | None) -> str:
+    """*ref* expanded as JSON-LD expands an ``@id`` (prefix, absolute, relative)."""
+    prefix, sep, suffix = ref.partition(":")
+    if sep and prefix in prefixes and not suffix.startswith("//"):
+        return prefixes[prefix] + suffix
+    if sep and prefix == "_":
+        return ref
+    return urljoin(base or "", ref)
+
+
+def _owner_prefix(concept: str) -> str:
+    """What a local source label follows in its node IRI (SPEC §5.4)."""
+    url, fragment = urldefrag(concept)
+    return f"{url}#{fragment}//" if fragment else f"{url}#"
+
+
+def source_node_iri(concept_iri: str | None, ref: str, base: str | None = None,
+                    context=None, *, prefixes: dict[str, str] | None = None) -> str:
     """The IRI of the source node a ``sources[].id`` names (SPEC §5.4).
 
-    An absolute IRI or a CURIE is returned as given, resolved against *base*.
-    Any other id is a label local to its concept and becomes
-    ``<concept IRI>#<id>``, percent-encoded; a concept IRI with a fragment of
-    its own takes ``#<fragment>/<id>``. Without an absolute concept IRI the id
-    resolves against *base*, as JSON-LD would resolve it.
+    A CURIE or absolute IRI names a shared node and is expanded under
+    *context* (default: the published one). Any other id is a label local to
+    its concept: ``<concept IRI>#<id>``, percent-encoded, or
+    ``<concept IRI>//<id>`` when the concept IRI has a fragment already, as
+    under a ``base_iri`` ending in ``#``. A Concept ID derived from a path
+    has no empty segment, so ``//`` cannot name a concept. A relative
+    concept IRI yields a relative node IRI.
 
     Raises ``ValueError`` for an id that is not a valid IRI reference.
     """
-    if _SCHEME.match(ref):
+    if prefixes is None:
+        prefixes = context_prefixes(context)
+    if _names_node(ref, prefixes):
+        return _expand(ref, prefixes, base)
+    if not concept_iri:
         return urljoin(base or "", ref)
-    concept = urljoin(base or "", concept_iri) if concept_iri else ""
-    if not _SCHEME.match(concept):
-        return urljoin(base or "", ref)
-    label = quote(ref, safe="/?:@!$&'()*+,;=-._~")
-    url, fragment = urldefrag(concept)
-    return f"{url}#{fragment}/{label}" if fragment else f"{url}#{label}"
+    concept = _expand(concept_iri, prefixes, base)
+    return _owner_prefix(concept) + quote(ref, safe=_LABEL_SAFE)
 
 
-def with_source_nodes(docs: list[dict], base: str | None = None) -> list[dict]:
-    """Copies of *docs* with each relative ``sources[].id`` made absolute by
-    :func:`source_node_iri`. JSON-LD resolves a relative ``@id`` against one
-    document base, so the per-concept IRI is set here first. A blank or
-    invalid id is left for JSON-LD to report.
+def source_label(concept_iri: str, node: str, base: str | None = None, context=None) -> str | None:
+    """The local label :func:`source_node_iri` turned into *node*, or None
+    when *node* is not a label local to *concept_iri*."""
+    prefixes = context_prefixes(context)
+    try:
+        owner = _owner_prefix(_expand(concept_iri, prefixes, base))
+    except ValueError:
+        return None
+    if not node.startswith(owner) or len(node) == len(owner):
+        return None
+    label = unquote(node[len(owner):])
+    try:
+        same = source_node_iri(concept_iri, label, base, prefixes=prefixes) == node
+    except ValueError:
+        return None
+    return label if same and label.strip() else None
+
+
+def with_source_nodes(docs: list[dict], base: str | None = None, context=None) -> list[dict]:
+    """Copies of *docs* with each local ``sources[].id`` made absolute by
+    :func:`source_node_iri` under *context*. JSON-LD resolves a relative
+    ``@id`` against one document base, so the per-concept IRI is set here
+    first. A blank or invalid id is left for JSON-LD to report.
     """
+    prefixes = context_prefixes(context)
     out = []
     for doc in docs:
         sources = doc.get("sources")
@@ -101,9 +168,9 @@ def with_source_nodes(docs: list[dict], base: str | None = None) -> list[dict]:
         entries = []
         for entry in sources if isinstance(sources, list) else [sources]:
             ref = entry.get("id") if isinstance(entry, dict) else None
-            if isinstance(ref, str) and ref.strip() and not _SCHEME.match(ref):
+            if isinstance(ref, str) and ref.strip() and not _names_node(ref, prefixes):
                 try:
-                    entry = {**entry, "id": source_node_iri(concept, ref, base)}
+                    entry = {**entry, "id": source_node_iri(concept, ref, base, prefixes=prefixes)}
                 except ValueError:
                     pass
             entries.append(entry)
@@ -160,7 +227,7 @@ def docs_to_graph(
     schema = projection_schema(schema)
     ctx = context if context is not None else schema_context(schema)
     classes = set(vocabulary(schema).classes)
-    docs = [_as_declared_type(_strip_context(d), classes) for d in with_source_nodes(docs, base)]
+    docs = [_as_declared_type(_strip_context(d), classes) for d in with_source_nodes(docs, base, ctx)]
     g = Graph()
     g.parse(
         data=json.dumps({"@context": ctx, "@graph": docs}),

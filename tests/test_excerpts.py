@@ -201,6 +201,58 @@ def test_excerpt_conflicts_group_by_the_node_an_id_names(tmp_path):
     assert "source id 'paper' (https://example.org/kb/a#paper)" in findings[0][1]
 
 
+def test_excerpt_conflicts_expand_ids_under_the_context(tmp_path):
+    """A CURIE and its full IRI name one node; a prefix with `_` is a CURIE."""
+    from lokf.excerpts import excerpt_conflicts
+
+    kb = cite_at(tmp_path / 'curie', a=('schema:Article', 'one passage'),
+                 b=('http://schema.org/Article', 'another passage'))
+    findings = list(excerpt_conflicts(load_bundle(kb)))
+    assert len(findings) == 1 and '(http://schema.org/Article)' in findings[0][1]
+    kb = cite_at(tmp_path / 'adms', a=('adms_status:Completed', 'one passage'),
+                 b=('adms_status:Completed', 'another passage'))
+    assert len(list(excerpt_conflicts(load_bundle(kb)))) == 1
+
+
+def test_a_source_label_stays_local_without_a_base(tmp_path):
+    """With no base_iri, a label stays local to its relative Concept ID, so a
+    base a consumer supplies still gives two nodes."""
+    from rdflib import URIRef
+    from lokf.excerpts import excerpt_conflicts
+    from lokf.rdf import graph_of
+
+    kb = cite_at(tmp_path / 'kb', a=('paper', 'one passage'), b=('paper', 'another passage'))
+    (kb / 'index.md').write_text('---\ntitle: KB\n---\n')
+    assert list(excerpt_conflicts(load_bundle(kb))) == []
+    nodes = set(graph_of(kb).objects(None, URIRef('http://schema.org/isBasedOn')))
+    assert len(nodes) == 2 and all(str(n).endswith(('/a#paper', '/b#paper')) for n in nodes)
+
+
+def test_source_nodes_under_a_hash_base_stay_apart(tmp_path):
+    """Under `base_iri: ...#`, a citation never lands on a concept's IRI or on
+    another concept's citation (SPEC §5.4)."""
+    from rdflib import URIRef
+    from lokf.rdf import graph_of
+
+    kb = tmp_path / 'kb'
+    (kb / 'a').mkdir(parents=True)
+    (kb / 'index.md').write_text('---\nbase_iri: https://example.org/kb#\ntitle: KB\n---\n')
+    def write(name, sources):
+        (kb / f'{name}.md').write_text('---\n' + yaml.safe_dump(
+            {'type': 'Explanation', 'title': name, 'sources': sources}) + '---\n')
+    write('a', [{'id': 'evidence', 'resource': 'https://example.org/e', 'excerpt': 'one passage'},
+                {'id': 'b/fig', 'resource': 'https://example.org/f'}])
+    write('a/evidence', [])
+    write('a/b', [{'id': 'fig', 'resource': 'https://example.org/g'}])
+    g = graph_of(kb)
+    nodes = {str(o) for o in g.objects(None, URIRef('http://schema.org/isBasedOn'))}
+    assert nodes == {'https://example.org/kb#a//evidence', 'https://example.org/kb#a//b/fig',
+                     'https://example.org/kb#a/b//fig'}
+    assert not set(g.objects(URIRef('https://example.org/kb#a/evidence'), URIRef('https://w3id.org/lokf/excerpt')))
+    result = runner.invoke(app, ['validate', str(kb), '--shacl'])
+    assert result.exit_code == 0, result.output
+
+
 def test_malformed_source_id_warns_without_aborting_other_conflict_checks(tmp_path):
     kb = cite_at(tmp_path / 'kb', a=('http://[', 'invalid id passage'),
                  b=('https://example.org/kb/paper', 'first passage'),

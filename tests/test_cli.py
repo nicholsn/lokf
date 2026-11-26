@@ -785,6 +785,31 @@ def test_query_schema_presets_its_prefixes(tmp_path):
     assert "https://ex.org/kb/real" in result.stdout
 
 
+def test_query_reads_a_source_of_a_concept_named_by_a_hash_prefix(tmp_path):
+    """A concept id under a project prefix ending in `#` expands before its
+    source label is added, so the store takes the IRI."""
+    root = pathlib.Path(__file__).resolve().parents[1]
+    domain = tmp_path / "proj.yaml"
+    domain.write_text(
+        "id: https://ex.org/schema/proj\nname: proj\n"
+        f"imports:\n  - linkml:types\n  - {root / 'lokf'}\n"
+        "default_prefix: proj\nprefixes:\n  proj: https://ex.org/proj#\n"
+        "  linkml: https://w3id.org/linkml/\n"
+        "classes:\n  Widget:\n    is_a: Concept\n    class_uri: proj:Widget\n",
+        encoding="utf-8",
+    )
+    kb = tmp_path / "kb"
+    kb.mkdir()
+    (kb / "index.md").write_text("---\nbase_iri: https://ex.org/kb/\ntitle: KB\n---\n", encoding="utf-8")
+    (kb / "w.md").write_text(
+        "---\ntype: Widget\ntitle: W\nid: proj:w\nsources:\n  - id: evidence\n"
+        "    resource: https://ex.org/e\n---\n", encoding="utf-8")
+    sparql = "SELECT ?s WHERE { ?c schema:isBasedOn ?s }"
+    result = runner.invoke(app, ["query", str(kb), sparql, "--schema", str(domain)])
+    assert result.exit_code == 0, result.output
+    assert "https://ex.org/proj#w//evidence" in result.stdout
+
+
 def test_serve_passes_the_schema_to_the_server(monkeypatch):
     """serve --schema hands the schema to the server, which loads the store
     the way query does."""

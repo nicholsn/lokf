@@ -283,7 +283,7 @@ def to_rdf(root: pathlib.Path, bundle: dict) -> None:
     from lokf.rdf import with_source_nodes
 
     base = bundle.get("base_iri") or None
-    concepts = with_source_nodes(bundle["concepts"], base)
+    concepts = with_source_nodes(bundle["concepts"], base, ctx)
     whole = Graph()
     whole.parse(
         data=json.dumps({"@context": ctx, "@graph": concepts}),

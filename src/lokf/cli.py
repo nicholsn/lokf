@@ -849,7 +849,7 @@ def export(
     ctx = schema_context(schema)
     if bundle.base_iri:
         ctx = [ctx, {"@base": bundle.base_iri}]
-    docs = rdf.with_source_nodes(bundle.docs(), bundle.base_iri or None)
+    docs = rdf.with_source_nodes(bundle.docs(), bundle.base_iri or None, ctx)
     (out_dir / "concepts.jsonld").write_text(
         json.dumps({"@context": ctx, "@graph": docs}, indent=2),
         encoding="utf-8",
