@@ -20,8 +20,8 @@ with the 0.x caveat that a minor release may tighten validation.
   errors in individual documents, and distinguish invalid content from an
   unavailable check.
 - `lokf validate --strict` fails on a content warning: an id with different
-  excerpts, an unresolvable source id, a material both used and excluded, a
-  duplicate or out-of-order log heading. A warning that a check left something
+  excerpts, an unresolvable id on a source with an excerpt, a material both
+  used and excluded, a duplicate or out-of-order log heading. A warning that a check left something
   unchecked stays a warning. MCP's `validate_bundle` takes `strict` too.
 
 ### Changed

@@ -285,3 +285,13 @@ def test_strict_fails_one_source_id_with_two_excerpts(tmp_path):
     local = cite_at(tmp_path / 'local', a=('paper', 'the first passage'), b=('paper', 'the second passage'))
     result = runner.invoke(app, ['validate', str(local), '--strict', '--shacl'])
     assert result.exit_code == 0, result.output
+
+
+def test_strict_fails_a_curie_and_its_iri_with_two_excerpts(tmp_path):
+    """A CURIE and its full IRI name one node, so `--strict` fails them as
+    `--shacl` does."""
+    kb = cite_at(tmp_path / 'kb', a=('schema:Article', 'the first passage'),
+                 b=('http://schema.org/Article', 'the second passage'))
+    for flags in (['--strict'], ['--shacl']):
+        result = runner.invoke(app, ['validate', str(kb), *flags])
+        assert result.exit_code == 1, (flags, result.output)

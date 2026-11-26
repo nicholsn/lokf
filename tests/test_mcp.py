@@ -171,3 +171,11 @@ def test_validate_bundle_strict_fails_a_content_warning(tmp_path):
     result = mcp.validate_bundle(str(tmp_path), strict=True)
     assert result["outcome"] == "invalid" and result["checks"]["logs"] == "failed"
     assert [(d["code"], d["severity"]) for d in result["diagnostics"]] == [("log.heading", "error")]
+
+
+def test_validate_bundle_keeps_max_diagnostics_in_its_positional_slot(tmp_path):
+    (tmp_path / "index.md").write_text("---\nbase_iri: https://example.org/kb/\ntitle: KB\n---\n")
+    (tmp_path / "log.md").write_text("## 2026-01-01\n\n## 2026-02-01\n\n## 2026-03-01\n")
+    result = mcp.validate_bundle(str(tmp_path), None, False, False, False, False, False, None, 1)
+    assert result["outcome"] == "valid"
+    assert result["diagnostic_count"] == 2 and len(result["diagnostics"]) == 1

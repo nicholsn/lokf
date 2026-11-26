@@ -109,8 +109,10 @@ give it different excerpts each validate, and `--shacl` then fails on the node,
 which may hold one. `lokf validate` names the id and the files.
 
 `--strict` makes every content warning an error: an id with different
-excerpts, an unresolvable id, a material both used and excluded, a duplicate
-or out-of-order log heading. A warning that a check left something unchecked
+excerpts, an unresolvable id on a source with an excerpt, a material both used
+and excluded, a duplicate or out-of-order log heading. The conflict check reads
+only the ids of sources that carry an excerpt, so it does not report an
+unresolvable id on any other source. A warning that a check left something unchecked
 stays a warning. For a producer's own gate:
 
 ```bash

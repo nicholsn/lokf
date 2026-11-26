@@ -653,8 +653,10 @@ every concept giving it shares (§5.4). Concepts that give it different
 fails. A relative `id` is local to its concept, so only one concept giving it
 two excerpts can do this. `lokf validate` warns, naming the id and the files.
 Under `--strict` every content warning is an error: this one, an unresolvable
-source `id`, a material both used and excluded, a duplicate or out-of-order log
-heading. A warning that a check left something unchecked, such as a scope
+`id` on a source with an `excerpt`, a material both used and excluded, a
+duplicate or out-of-order log heading. The conflict check reads only the ids of
+sources that carry an `excerpt`, so it does not report an unresolvable `id`
+on any other source. A warning that a check left something unchecked, such as a scope
 description or a file too large to search, stays a warning.
 
 ### Local resource checks

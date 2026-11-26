@@ -216,7 +216,7 @@ def get_vocabulary(
 def validate_bundle(
     bundle: str, schema: str | None = None, check_ids: bool = False, check_refs: bool = False,
     check_resources: bool = False, check_excerpts: bool = False, shacl: bool = False,
-    root: str | None = None, strict: bool = False, max_diagnostics: int = 50,
+    root: str | None = None, max_diagnostics: int = 50, strict: bool = False,
 ) -> ValidationResult:
     """Validate a local bundle and return its verdict, checks, coverage and located diagnostics.
 
